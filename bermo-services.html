@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<!-- saved from url=(0064)file:///Users/lexibermingham/Downloads/bermo-services%20(6).html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Bermo Shop · BERMO.COLLECTIVE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Inter+Tight:wght@800;900&family=Inter:wght@400;500;600&family=Montserrat:wght@900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+<style>
+:root{--cyan:#00f5d4;--lime:#c8f500;--pink:#ff2d7a;--black:#0a0a0a;--white:#ffffff;--off:#f5f5f0;--cream:#f0efe9;--gray:#888888;--lgray:#e2e0db;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--black);font-family:'Montserrat',sans-serif;overflow-x:hidden;}
+
+/* NAV — transparent over hero, black when scrolled */
+nav{position:fixed;top:0;left:0;right:0;z-index:500;background:transparent;display:flex;justify-content:space-between;align-items:center;padding:0 40px;height:58px;gap:16px;border-bottom:3px solid transparent;transition:background .35s,border-color .35s;}
+nav.scrolled{background:var(--black);border-bottom-color:var(--cyan);}
+.nav-left{display:flex;align-items:center;gap:14px;}
+.nav-logo{display:flex;flex-direction:column;line-height:1;text-decoration:none;}
+.nav-logo .nl-top,.nav-logo .nl-bot{font-family:'Montserrat',sans-serif;font-weight:900;font-size:13px;line-height:0.9;letter-spacing:-0.01em;text-transform:uppercase;display:block;color:var(--black);transition:color .35s;}
+nav.scrolled .nl-top,nav.scrolled .nl-bot{color:#fff;}
+.nl-top .c{color:var(--black);transition:color .35s;}
+nav.scrolled .nl-top .c{color:var(--cyan);}
+.nav-logo .nl-bar{width:28px;height:3px;background:var(--black);margin-top:4px;transition:background .35s;}
+nav.scrolled .nl-bar{background:var(--cyan);}
+.nav-mid{display:flex;align-items:center;gap:24px;}
+.nav-mid a{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(0,0,0,0.5);text-decoration:none;transition:color .2s;}
+nav.scrolled .nav-mid a{color:rgba(255,255,255,0.45);}
+.nav-mid a:hover{color:var(--black);}
+nav.scrolled .nav-mid a:hover{color:var(--cyan);}
+.nav-social{display:flex;align-items:center;gap:10px;}
+.nav-social a{color:rgba(0,0,0,0.35);transition:color .2s;display:flex;}
+nav.scrolled .nav-social a{color:rgba(255,255,255,0.35);}
+.nav-social a:hover{color:var(--black);}
+nav.scrolled .nav-social a:hover{color:var(--cyan);}
+.nav-social svg{width:16px;height:16px;}
+.nav-audit{display:inline-flex;align-items:center;gap:6px;background:var(--black);color:#fff;font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:10px 20px;text-decoration:none;border-radius:100px;transition:background .2s;}
+nav.scrolled .nav-audit{background:var(--cyan);color:var(--black);}
+.nav-audit:hover{background:var(--lime) !important;color:var(--black) !important;}
+.nav-menu-btn{display:flex;flex-direction:column;justify-content:center;align-items:center;width:34px;height:34px;border-radius:50%;border:1.5px solid rgba(0,0,0,0.25);gap:5px;cursor:pointer;transition:border-color .2s;flex-shrink:0;background:transparent;}
+nav.scrolled .nav-menu-btn{border-color:rgba(255,255,255,0.25);}
+.nav-menu-btn span{display:block;width:14px;height:1.5px;background:rgba(0,0,0,0.6);}
+nav.scrolled .nav-menu-btn span{background:rgba(255,255,255,0.7);}
+
+/* Dropdown menu — BERMO vibe */
+.nav-dropdown{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--black);border-top:4px solid var(--cyan);border-radius:16px;min-width:320px;padding:0;z-index:600;box-shadow:0 32px 80px rgba(0,0,0,0.65);overflow:hidden;}
+.nav-dropdown.open{display:block;}
+.nav-dropdown a{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;font-family:'Inter Tight',sans-serif;font-weight:900;font-size:22px;line-height:1;letter-spacing:-0.03em;text-transform:uppercase;text-decoration:none;color:#fff;border-bottom:1px solid rgba(255,255,255,0.07);transition:color .15s,background .15s,padding-left .15s;}
+.nav-dropdown a:last-child{border-bottom:none;}
+.nav-dropdown a::after{content:'→';font-size:16px;opacity:0;transform:translateX(-6px);transition:opacity .15s,transform .15s;}
+.nav-dropdown a:hover{color:var(--cyan);background:rgba(0,245,212,0.06);padding-left:36px;}
+.nav-dropdown a:hover::after{opacity:1;transform:translateX(0);}
+.nav-dropdown a.dd-active{color:var(--cyan);}
+.nav-dropdown a.dd-active:hover{color:var(--cyan);background:rgba(0,245,212,0.06);}
+.nav-dropdown a.dd-pink{color:var(--pink);}
+.nav-dropdown a.dd-pink:hover{color:#fff;background:rgba(255,45,122,0.08);}
+.nav-dropdown a.dd-num{font-family:'Inter',sans-serif;font-weight:400;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,0.2);margin-right:10px;flex-shrink:0;}
+
+/* SERVICES: transparent nav uses white/cyan so text shows on black hero */
+.nav-logo .nl-top,.nav-logo .nl-bot{color:var(--cyan);}
+.nl-top .c{color:var(--cyan);}
+.nav-logo .nl-bar{background:var(--cyan);}
+.nav-social a{color:rgba(255,255,255,0.5);}
+.nav-social a:hover{color:var(--cyan);}
+.nav-menu-btn{border-color:rgba(255,255,255,0.3);}
+.nav-menu-btn span{background:rgba(255,255,255,0.7);}
+.nav-audit{background:var(--cyan);color:var(--black);}
+
+/* ── HERO: Editorial Shop ── */
+.hero {
+  margin-top:58px;
+  background:var(--black);
+  padding:0 56px 60px;
+  border-bottom:1px solid rgba(0,245,212,0.15);
+  position:sticky;
+  top:58px;
+  z-index:1;
+  min-height:auto;
+  overflow:hidden;
+}
+.hero-ghost {
+  position:absolute; bottom:-20px; left:58%; transform:translateX(-50%);
+  font-family:'Montserrat',sans-serif; font-weight:900;
+  font-size:clamp(120px,20vw,300px); color:rgba(0,245,212,0.09);
+  white-space:nowrap; letter-spacing:-0.04em;
+  pointer-events:none; user-select:none; text-transform:uppercase; line-height:1;
+}
+.hero-top {
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  padding:40px 0 32px;
+  display:flex; align-items:baseline; justify-content:space-between; gap:24px;
+  position:relative; z-index:1;
+}
+.hero-top-label { font-family:'Inter',sans-serif; font-size:9px; letter-spacing:4px; text-transform:uppercase; color:rgba(255,255,255,0.3); }
+.hero-top-items { font-family:'Inter',sans-serif; font-size:9px; letter-spacing:4px; text-transform:uppercase; color:rgba(255,255,255,0.3); }
+
+.hero-main { padding-top:48px; position:relative; z-index:1; display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:end; }
+
+.hero-h1 {
+  font-family:'Inter Tight',sans-serif; font-weight:900;
+  font-size:clamp(72px,11vw,160px); line-height:0.85;
+  letter-spacing:-0.04em; color:#fff; text-transform:uppercase;
+}
+.hero-h1 .shop { color:var(--cyan); display:block; }
+
+.hero-right { padding-bottom:8px; }
+.hero-browse {
+  font-family:'Inter Tight',sans-serif; font-weight:900;
+  font-size:clamp(28px,3.2vw,44px); letter-spacing:-0.02em;
+  color:rgba(255,255,255,0.95); margin-bottom:16px; line-height:1.1;
+}
+.hero-body { font-family:'Inter',sans-serif; font-size:15px; color:rgba(255,255,255,0.55); line-height:1.8; margin-bottom:24px; max-width:420px; }
+.hero-tag { font-family:'Inter Tight',sans-serif; font-weight:800; font-size:12px; letter-spacing:1px; color:var(--cyan); display:flex; align-items:center; gap:8px; }
+.hero-tag::before { content:''; width:20px; height:2px; background:var(--cyan); display:block; }
+.scroll-cue { position:absolute; bottom:32px; left:50%; transform:translateX(-50%); z-index:2; display:flex; flex-direction:column; align-items:center; gap:7px; font-family:'Inter',sans-serif; font-size:8px; letter-spacing:3px; text-transform:uppercase; color:rgba(255,255,255,0.35); animation:bob 2.2s ease infinite; }
+.scroll-cue svg { width:18px; height:18px; color:rgba(255,255,255,0.35); }
+@keyframes bob { 0%,100%{ transform:translateX(-50%) translateY(0) } 50%{ transform:translateX(-50%) translateY(8px) } }
+
+/* ── SCROLL-OVER: everything after hero slides over the sticky hero ── */
+.scroll-over {
+  position:relative;
+  z-index:5;
+  background:var(--black);
+  border-radius:28px 28px 0 0;
+  box-shadow:0 -24px 60px rgba(0,0,0,0.5);
+}
+
+/* ── TICKER ── */
+.ticker-wrap { overflow:hidden; background:var(--cyan); padding:11px 0; }
+.ticker-inner { display:flex; white-space:nowrap; animation:tickScroll 24s linear infinite; }
+.ticker-inner span { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px; letter-spacing:4px; text-transform:uppercase; padding:0 22px; color:var(--black); }
+.ticker-inner .dot { opacity:.3; padding:0 4px; }
+@keyframes tickScroll { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+
+/* ── OUR COLLECTION ── */
+.collection { background:var(--black); padding:0; position:relative; z-index:6; }
+.collection-header { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:40px; flex-wrap:wrap; gap:16px; }
+.collection-label { font-family:'Inter',sans-serif; font-size:9px; letter-spacing:4px; text-transform:uppercase; color:rgba(255,255,255,0.4); margin-bottom:10px; }
+.collection-title { font-family:'Inter Tight',sans-serif; font-weight:900; font-size:clamp(40px,6vw,80px); line-height:0.9; letter-spacing:-0.04em; color:#fff; }
+.collection-note { font-family:'Inter',sans-serif; font-size:12px; color:rgba(255,255,255,0.3); font-style:italic; text-align:right; max-width:220px; line-height:1.6; }
+
+/* Card rows */
+.card-row { display:flex; gap:10px; margin-bottom:10px; align-items:stretch; min-height:260px; }
+
+/* The bubble cards: hover to expand */
+.svc-bubble {
+  border-radius:20px;
+  padding:28px 26px 24px;
+  flex:1; min-width:0;
+  position:relative; cursor:pointer;
+  transition:flex .55s cubic-bezier(.4,0,.2,1), background .35s, box-shadow .35s;
+  overflow:hidden;
+  display:flex; flex-direction:column;
+  background:var(--cream);
+}
+
+/* Each card gets its own bright hover color */
+.svc-bubble.c1 { background:#e8faf6; }
+.svc-bubble.c2 { background:#f0f9e0; }
+.svc-bubble.c3 { background:#fef4e8; }
+.svc-bubble.c4 { background:#e8f5f9; }
+.svc-bubble.c5 { background:#f0ece8; }
+
+.svc-bubble.c1:hover { background:var(--cyan); box-shadow:0 12px 48px rgba(0,245,212,0.3); }
+.svc-bubble.c2:hover { background:var(--lime); box-shadow:0 12px 48px rgba(200,245,0,0.3); }
+.svc-bubble.c3:hover { background:#ffcc44; box-shadow:0 12px 48px rgba(255,204,68,0.3); }
+.svc-bubble.c4:hover { background:#7de8ff; box-shadow:0 12px 48px rgba(125,232,255,0.3); }
+.svc-bubble.c5:hover { background:#ff9966; box-shadow:0 12px 48px rgba(255,153,102,0.3); }
+
+/* Hovered card grows, others shrink */
+.card-row:hover .svc-bubble { flex:.55; }
+.svc-bubble:hover { flex:2.8 !important; }
+
+.bubble-top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.bubble-num { font-family:'Inter',sans-serif; font-size:10px; letter-spacing:3px; color:rgba(0,0,0,0.3); font-weight:500; }
+.bubble-plus {
+  background:transparent; color:var(--cyan);
+  display:flex; align-items:center; justify-content:flex-end;
+  flex-shrink:0;
+  width:auto; height:auto; border-radius:0;
+  transition:transform .35s;
+}
+.bubble-plus svg { display:block; transition:transform .35s; }
+.svc-bubble:hover .bubble-plus svg { transform:translate(4px,4px); }
+
+.bubble-title {
+  font-family:'Inter Tight',sans-serif; font-weight:900;
+  font-size:clamp(20px,2vw,27px); letter-spacing:-0.02em;
+  color:var(--black); line-height:1.05; margin-bottom:10px;
+}
+.bubble-teaser {
+  font-family:'Inter',sans-serif; font-size:14px; color:rgba(0,0,0,0.65); line-height:1.7;
+  transition:opacity .2s;
+}
+.svc-bubble:hover .bubble-teaser { opacity:0.8; }
+
+/* Expanded content: shows on hover */
+.bubble-expand {
+  max-height:0; overflow:hidden;
+  transition:max-height .55s cubic-bezier(.4,0,.2,1), opacity .35s;
+  margin-top:0; opacity:0;
+}
+.svc-bubble:hover .bubble-expand { max-height:700px; margin-top:20px; opacity:1; }
+
+.expand-divider { width:100%; height:1px; background:rgba(0,0,0,0.12); margin-bottom:18px; }
+.expand-cols { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.expand-col-label {
+  font-family:'Inter Tight',sans-serif; font-weight:900;
+  font-size:11px; letter-spacing:1.5px; text-transform:uppercase;
+  color:rgba(0,0,0,0.7); margin-bottom:12px; display:flex; align-items:center; gap:6px;
+}
+.expand-list { list-style:none; display:flex; flex-direction:column; gap:0; }
+.expand-list li {
+  display:flex; align-items:flex-start; gap:8px;
+  font-family:'Inter',sans-serif; font-size:12px; color:rgba(0,0,0,0.7); line-height:1.5;
+  padding:7px 0; border-bottom:1px solid rgba(0,0,0,0.09);
+}
+.expand-list li:last-child { border-bottom:none; }
+.expand-list li .li-icon { color:rgba(0,0,0,0.5); flex-shrink:0; font-size:11px; padding-top:2px; font-weight:700; }
+.expand-list li .li-icon.positive { color:rgba(0,0,0,0.7); }
+.expand-list li strong { color:rgba(0,0,0,0.9); display:block; font-size:11px; letter-spacing:0.3px; text-transform:uppercase; margin-bottom:2px; }
+
+.expand-under {
+  margin-top:14px; padding-top:12px;
+  border-top:1px solid rgba(0,0,0,0.1);
+  font-family:'Inter',sans-serif; font-size:12px; color:rgba(0,0,0,0.55);
+  line-height:1.6; font-style:italic;
+  display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+}
+.expand-cta {
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--black); color:#fff;
+  font-family:'Inter',sans-serif; font-size:9px; letter-spacing:2px; text-transform:uppercase;
+  padding:9px 18px; text-decoration:none; font-weight:500; transition:background .2s, color .2s;
+  border-radius:100px; white-space:nowrap; flex-shrink:0; border:none; cursor:pointer;
+}
+.expand-cta:hover { background:rgba(0,0,0,0.8); }
+.expand-cta.cta-dark { background:rgba(0,0,0,0.85); color:#fff; }
+.expand-cta.cta-dark:hover { background:var(--black); }
+
+/* ── HOW WE WORK: Editorial collab card style ── */
+.how-section { background:var(--off); border-top:2px solid var(--black); position:relative; overflow:hidden; }
+.how-ghost {
+  position:absolute;
+  bottom:-20px;
+  right:-60px;
+  font-family:'Montserrat',sans-serif;
+  font-weight:900;
+  font-size:clamp(120px,18vw,280px);
+  color:rgba(0,0,0,0.04);
+  white-space:nowrap;
+  letter-spacing:-0.04em;
+  pointer-events:none;
+  user-select:none;
+  text-transform:uppercase;
+  line-height:1;
+  z-index:0;
+}
+.how-head { padding:28px 56px 0; position:relative; z-index:1; }
+.how-label { font-family:'Inter',sans-serif; font-size:9px; letter-spacing:4px; text-transform:uppercase; color:var(--gray); margin-bottom:12px; display:flex; align-items:center; gap:10px; }
+.how-label::before { content:''; width:20px; height:1px; background:var(--black); display:block; }
+.how-title { font-family:'Inter Tight',sans-serif; font-weight:900; font-size:clamp(44px,5.5vw,72px); line-height:0.88; letter-spacing:-0.04em; color:var(--black); text-transform:uppercase; margin-bottom:16px; }
+.how-sub { font-family:'Inter',sans-serif; font-size:15px; color:#555; line-height:1.7; max-width:700px; margin-bottom:0; }
+
+/* Cards grid: collab-nation style */
+.pkg-grid { display:grid; grid-template-columns:repeat(4,1fr); border-top:2px solid var(--black); margin-top:20px; }
+.pkg-pulse-card { grid-column:span 2; }
+.pkg-collective { grid-column:span 2; }
+.pkg-card {
+  background:#fff; border-right:1px solid var(--lgray);
+  padding:20px 18px;
+  display:flex; flex-direction:column; gap:10px;
+  transition:background .2s;
+  border-radius:0;
+}
+.pkg-card:last-of-type { border-right:none; }
+.pkg-card:hover { background:var(--cream); }
+.pkg-card.pkg-dark { background:#fff; border-right:none; }
+.pkg-card.pkg-dark:hover { background:var(--cream); }
+.pkg-card.pkg-free { background:#fff; border-right:1px solid var(--lgray); }
+.pkg-card.pkg-free:hover { background:rgba(0,245,212,0.06); }
+.pkg-num { font-family:'Inter',sans-serif; font-size:10px; letter-spacing:3px; color:var(--cyan); font-weight:600; }
+.pkg-eyebrow { font-family:'Inter',sans-serif; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--gray); margin-top:4px; }
+.pkg-title { font-family:'Inter Tight',sans-serif; font-weight:900; font-size:clamp(15px,1.4vw,20px); letter-spacing:-0.03em; line-height:0.95; color:var(--black); text-transform:uppercase; }
+.pkg-card.pkg-dark .pkg-title { color:var(--black); }
+.pkg-card.pkg-dark .pkg-eyebrow { color:var(--gray); }
+.pkg-body { font-family:'Inter',sans-serif; font-size:12px; color:#555; line-height:1.5; }
+.pkg-card.pkg-dark .pkg-body { color:#555; }
+.pkg-list { list-style:none; display:flex; flex-direction:column; gap:0; flex:1; }
+.pkg-list li { display:flex; align-items:flex-start; gap:6px; font-family:'Inter',sans-serif; font-size:11px; color:#444; line-height:1.4; padding:4px 0; border-bottom:1px solid rgba(0,0,0,0.07); }
+.pkg-list li:last-child { border-bottom:none; }
+.pkg-list li::before { content:'—'; color:var(--cyan); flex-shrink:0; font-size:11px; font-weight:600; }
+.pkg-list-white li { color:rgba(0,0,0,0.78) !important; border-bottom-color:rgba(0,0,0,0.12) !important; }
+.pkg-list-white li::before { content:'—'; color:#ffffff !important; font-weight:900; }
+.pkg-card.pkg-dark .pkg-list li { color:#444; border-bottom-color:rgba(0,0,0,0.07); }
+.pkg-card.pkg-dark .pkg-list li::before { color:var(--cyan); }
+.pkg-price { font-family:'Inter Tight',sans-serif; font-weight:900; font-size:13px; letter-spacing:-0.01em; color:var(--black); }
+.pkg-price span { font-family:'Inter',sans-serif; font-weight:400; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gray); }
+.pkg-card.pkg-dark .pkg-price { color:var(--black); }
+.pkg-card.pkg-dark .pkg-price span { color:var(--gray); }
+.pkg-cta { display:block; text-align:center; padding:9px 14px; font-family:'Inter',sans-serif; font-size:9px; letter-spacing:2.5px; text-transform:uppercase; text-decoration:none; font-weight:500; transition:all .2s; border:1.5px solid var(--cyan); color:var(--black); background:var(--cyan); cursor:pointer; border-radius:100px; }
+.pkg-cta:hover { border-color:var(--lime); background:var(--lime); color:var(--black); }
+.pkg-cta.cta-main { background:var(--cyan); border-color:var(--cyan); color:var(--black); }
+.pkg-cta.cta-main:hover { background:var(--lime); border-color:var(--lime); }
+.pkg-card.pkg-dark .pkg-cta { border-color:var(--cyan); color:var(--black); background:var(--cyan); }
+.pkg-card.pkg-dark .pkg-cta:hover { background:var(--lime); border-color:var(--lime); color:var(--black); }
+.pkg-card.pkg-dark .pkg-cta.cta-main { background:var(--cyan); color:var(--black); border-color:var(--cyan); }
+.pkg-card.pkg-dark .pkg-cta.cta-main:hover { background:var(--lime); border-color:var(--lime); }
+
+/* Full width collective card */
+.pkg-full { grid-column:1/-1; background:#fff; border-top:1px solid var(--lgray); padding:40px 36px; }
+.pkg-full-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:40px; align-items:start; }
+.pkg-full-col { display:flex; flex-direction:column; gap:12px; }
+.pkg-full-col .pkg-num { color:var(--cyan); }
+.pkg-full-col .pkg-title { color:var(--black); font-size:clamp(18px,1.8vw,24px); }
+.pkg-full-col .pkg-eyebrow { color:var(--gray); }
+.pkg-full-col .pkg-body { color:#555; }
+.pkg-full-col .pkg-list li { color:#444; border-bottom-color:rgba(0,0,0,0.07); }
+.pkg-full-col .pkg-list li::before { color:var(--cyan); }
+.pkg-full-col .pkg-cta { border-color:var(--cyan); color:var(--black); background:var(--cyan); }
+
+/* Collab Nation button: logo style */
+.collab-nation-btn {
+  display:inline-flex; flex-direction:column; align-items:flex-start;
+  text-decoration:none; padding:10px 16px; border:1.5px solid rgba(0,0,0,0.1);
+  background:#fff; transition:background .2s; cursor:pointer;
+}
+.collab-nation-btn:hover { background:var(--off); }
+.collab-nation-btn .cn-top { font-family:'Inter Tight',sans-serif; font-weight:900; font-size:13px; letter-spacing:-0.01em; text-transform:uppercase; color:var(--black); line-height:0.9; }
+.collab-nation-btn .cn-bar { width:28px; height:3px; background:#ff2d7a; margin:4px 0; }
+.collab-nation-btn .cn-sub { font-family:'Inter',sans-serif; font-size:8px; letter-spacing:2.5px; text-transform:uppercase; color:var(--gray); }
+.pkg-full-col .pkg-cta:hover { background:var(--cyan); border-color:var(--cyan); color:var(--black); }
+
+/* ── IS THIS FOR YOU ── */
+.fit-section { background:var(--cream); border-top:2px solid var(--black); padding:72px 48px; }
+.fit-inner { max-width:1100px; margin:0 auto; }
+.fit-label { font-family:'Inter',sans-serif; font-size:9px; letter-spacing:4px; text-transform:uppercase; color:var(--gray); margin-bottom:12px; display:flex; align-items:center; gap:10px; }
+.fit-label::before { content:''; width:20px; height:1px; background:var(--black); display:block; }
+.fit-title { font-family:'Inter Tight',sans-serif; font-weight:900; font-size:clamp(40px,5.5vw,72px); line-height:0.9; letter-spacing:-0.04em; color:var(--black); margin-bottom:44px; }
+.fit-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.fit-col { border-radius:16px; padding:36px 32px; }
+.fit-yes { background:var(--cyan); }
+.fit-no  { background:var(--black); }
+.fit-col-label { font-family:'Inter Tight',sans-serif; font-weight:900; font-size:13px; letter-spacing:1px; text-transform:uppercase; margin-bottom:20px; display:flex; align-items:center; gap:8px; }
+.fit-yes .fit-col-label { color:rgba(0,0,0,0.5); }
+.fit-no  .fit-col-label { color:rgba(255,255,255,0.4); }
+.fit-col-label .arrow { color:var(--black); }
+.fit-no .fit-col-label .arrow { color:var(--cyan); }
+.fit-list { list-style:none; display:flex; flex-direction:column; gap:10px; }
+.fit-list li { display:flex; align-items:flex-start; gap:10px; font-family:'Inter',sans-serif; font-size:14px; line-height:1.5; }
+.fit-yes .fit-list li { color:var(--black); }
+.fit-no  .fit-list li { color:rgba(255,255,255,0.6); }
+.fit-list li::before { content:'→'; flex-shrink:0; font-weight:700; font-size:12px; margin-top:1px; }
+.fit-yes .fit-list li::before { color:var(--black); }
+.fit-no  .fit-list li::before { color:var(--cyan); }
+
+/* ── BOTTOM CTA ── */
+.bot-cta { background:var(--cyan); border-top:none; padding:80px 48px; text-align:center; position:relative; overflow:hidden; }
+.bot-ghost { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-family:'Montserrat',sans-serif; font-weight:900; font-size:clamp(80px,20vw,380px); color:rgba(0,0,0,0.06); white-space:nowrap; pointer-events:none; user-select:none; letter-spacing:-0.04em; }
+.bot-inner { position:relative; z-index:1; }
+.bot-kicker { font-size:9px; letter-spacing:4px; text-transform:uppercase; color:rgba(0,0,0,0.5); margin-bottom:16px; display:flex; align-items:center; justify-content:center; gap:10px; }
+.bot-kicker::before,.bot-kicker::after { content:''; width:24px; height:1px; background:rgba(0,0,0,0.3); display:block; }
+.bot-hed { font-family:'Inter Tight',sans-serif; font-weight:900; font-size:clamp(48px,7vw,110px); line-height:0.88; letter-spacing:-0.04em; color:var(--black); margin-bottom:16px; }
+.bot-hed em { color:#fff; font-style:normal; }
+.bot-body { font-family:'Inter',sans-serif; font-size:15px; color:rgba(0,0,0,0.6); line-height:1.8; max-width:480px; margin:0 auto 8px; }
+.bot-note { font-family:'Inter',sans-serif; font-size:11px; color:rgba(255,255,255,0.3); font-style:italic; margin-bottom:40px; }
+.bot-btns { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; }
+.bot-cta .btn-ghost { color:var(--black); border-color:rgba(0,0,0,0.3); }
+.bot-cta .btn-ghost:hover { border-color:var(--black); color:var(--black); }
+.btn-cyan { display:inline-flex; align-items:center; gap:8px; background:var(--cyan); color:var(--black); font-family:'Inter',sans-serif; font-size:10px; letter-spacing:2px; text-transform:uppercase; padding:13px 28px; text-decoration:none; font-weight:500; transition:background .2s; border-radius:100px; border:1.5px solid var(--black); cursor:pointer; }
+.btn-cyan:hover { background:var(--lime); }
+.btn-ghost { display:inline-flex; align-items:center; gap:8px; background:transparent; color:#fff; border:1.5px solid rgba(255,255,255,0.25); font-family:'Inter',sans-serif; font-size:10px; letter-spacing:2px; text-transform:uppercase; padding:13px 28px; text-decoration:none; font-weight:500; transition:all .2s; border-radius:100px; }
+.btn-ghost:hover { border-color:var(--cyan); color:var(--cyan); }
+.ctabn{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:14px 28px;font-weight:500;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;border-radius:100px;text-decoration:none;border:none;min-width:180px;text-align:center;line-height:1;}
+.ctabn.sl{background:#fff;color:#0a0a0a;}
+.ctabn.sl:hover{background:#0a0a0a;color:#fff;}
+.ctabn.dk{background:#0a0a0a;color:#fff;}
+.ctabn.dk:hover{background:#fff;color:#0a0a0a;}
+
+/* ── FOOTER ── */
+footer{position:relative;z-index:20;background:#0a0a0a;border-top:3px solid #00f5d4;padding:52px 48px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:32px;}
+.footer-logo{display:inline-flex;flex-direction:column;line-height:1;text-decoration:none;align-items:flex-start;}
+.footer-logo .fl-top,.footer-logo .fl-bot{font-family:'Montserrat',sans-serif;font-weight:900;font-size:13px;line-height:0.9;letter-spacing:-0.01em;text-transform:uppercase;display:block;color:#fff;}
+.footer-logo .fl-top .c{color:#00f5d4;}
+.footer-logo .fl-bar{width:28px;height:3px;background:#00f5d4;margin-top:4px;display:block;}
+.footer-tagline{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-top:10px;}
+.footer-links{display:flex;gap:24px;list-style:none;justify-content:center;flex-wrap:wrap;padding:0;margin:0;}
+.footer-links a{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);text-decoration:none;transition:color .2s;}
+.footer-links a:hover{color:#00f5d4;}
+.footer-links a.footer-pink{color:#ff2d7a !important;}
+.footer-right{text-align:right;}
+.footer-social{display:flex;gap:10px;justify-content:flex-end;margin-bottom:10px;}
+.footer-social a{color:rgba(255,255,255,0.25);transition:color .2s;display:flex;}
+.footer-social a:hover{color:#00f5d4;}
+.footer-social svg{width:17px;height:17px;}
+.footer-copy{font-family:'Inter',sans-serif;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.15);margin-top:6px;}
+@media(max-width:768px){footer{grid-template-columns:1fr;gap:28px;padding:40px 24px;text-align:center;}.footer-social{justify-content:center;}.footer-right{text-align:center;}.footer-links{justify-content:center;}.footer-logo{align-items:center;}}
+
+/* TABLET: 2-column pkg-grid */
+@media (max-width:1100px) {
+  .pkg-grid { grid-template-columns:repeat(2,1fr); }
+  .pkg-pulse-card { grid-column:span 1 !important; }
+  .pkg-collective { grid-column:span 1 !important; }
+}
+
+/* MOBILE */
+@media (max-width:860px) {
+  nav { padding:0 16px; }
+  .nav-mid { display:none; }
+  .how-head { padding:28px 24px 0; }
+  .hero { padding:0 24px 80px; }
+  .hero-main { grid-template-columns:1fr; gap:32px; }
+  .collection,.how-section,.fit-section,.bot-cta { padding-left:0; padding-right:0; }
+  .how-head { padding:28px 24px 0; }
+  .pkg-grid { padding:0; }
+  .card-row { flex-direction:column; }
+  .svc-bubble { min-height:auto; }
+  .svc-bubble.active { flex:1; }
+  .expand-cols { grid-template-columns:1fr; }
+  .pkg-grid { grid-template-columns:1fr !important; }
+  .pkg-card { border-right:none; border-bottom:1px solid var(--lgray); }
+  .pkg-pulse-card { align-self:stretch !important; }
+  .pkg-full-grid { grid-template-columns:1fr; }
+  .fit-grid { grid-template-columns:1fr; }
+  .collection-cards { padding:32px 24px 0 !important; }
+  footer { padding:28px 24px; flex-direction:column; align-items:flex-start; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="mainNav" class="">
+  <div class="nav-left">
+    <a href="index.html" class="nav-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"></path></svg>
+    </a>
+    <a href="index.html" class="nav-logo">
+      <span class="nl-top"><span class="c">BERMO.</span></span>
+      <span class="nl-bot">COLLECTIVE</span>
+      <div class="nl-bar"></div>
+    </a>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;position:relative;">
+    <div class="nav-social">
+      <a href="https://instagram.com/bermo.co" target="_blank" title="Instagram"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"></path></svg></a>
+      <a href="https://tiktok.com/@bermo.co" target="_blank" title="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.89 2.89 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.95a8.2 8.2 0 0 0 4.78 1.52V7.01a4.85 4.85 0 0 1-1.01-.32z"></path></svg></a>
+      <a href="https://linkedin.com/company/bermo-collective" target="_blank" title="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"></path><circle cx="4" cy="4" r="2"></circle></svg></a>
+      <a href="mailto:hello@bermoco.com" title="Email"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"></path></svg></a>
+    </div>
+    <a href="bermo-audit.html#quiz" class="nav-audit">Free Audit</a>
+    <button class="nav-menu-btn" id="menuBtn">
+      <span></span><span></span>
+    </button>
+    <div class="nav-dropdown" id="navDropdown">
+      <a href="index.html"><span style="display:flex;flex-direction:column;align-items:flex-start"><span>Home</span><span style="display:block;font-family:'Inter',sans-serif;font-weight:400;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-top:3px;line-height:1.3">Where it all starts</span></span></a>
+      <a href="bermo-services.html" class="dd-active"><span style="display:flex;flex-direction:column;align-items:flex-start"><span>The Bermo Shop</span><span style="display:block;font-family:'Inter',sans-serif;font-weight:400;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-top:3px;line-height:1.3">Services + Pricing</span></span></a>
+      <a href="index.html#about"><span style="display:flex;flex-direction:column;align-items:flex-start"><span>About</span><span style="display:block;font-family:'Inter',sans-serif;font-weight:400;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-top:3px;line-height:1.3">The person behind the work</span></span></a>
+      <a href="bermo-CollabNation.html" class="dd-pink"><span style="display:flex;flex-direction:column;align-items:flex-start"><span>Collab Nation</span><span style="display:block;font-family:'Montserrat',sans-serif;font-weight:900;font-size:13px;color:#fff;letter-spacing:-.01em;text-transform:uppercase;margin-top:2px;line-height:1">by BERMO.</span><span style="display:block;font-family:'Inter',sans-serif;font-weight:400;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-top:4px;line-height:1.3">The Social Pop-Up</span></span></a>
+      <a href="bermo-contact.html"><span style="display:flex;flex-direction:column;align-items:flex-start"><span>Contact</span><span style="display:block;font-family:'Inter',sans-serif;font-weight:400;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-top:3px;line-height:1.3">Fix the Break</span></span></a>
+      <a href="bermo-audit.html"><span style="display:flex;flex-direction:column;align-items:flex-start"><span>Free Brand Audit</span><span style="display:block;font-family:'Inter',sans-serif;font-weight:400;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#00f5d4;margin-top:3px;line-height:1.3">Find the Break</span></span></a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-ghost">BERMO.</div>
+  <div style="height:48px;"></div>
+  <div class="hero-main">
+    <div>
+      <h1 class="hero-h1">THE<br>BERMO<br><span class="shop">SHOP.</span></h1>
+    </div>
+    <div class="hero-right">
+      <p class="hero-browse">Browse Our Services</p>
+      <p class="hero-body">If you've tried everything and nothing sticks, start here. We step inside your business, clarify what matters, and then actually do it. If it's blocking momentum, we're in.</p>
+      <div class="hero-tag">Human-Led. AI-Leveraged.</div>
+    </div>
+  </div>
+  <div class="scroll-cue">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"></path></svg>
+    scroll
+  </div>
+</div>
+
+<!-- SCROLL-OVER: everything slides over the sticky hero -->
+<div class="scroll-over">
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-inner">
+    <span>Brand Growth</span><span class="dot">·</span><span>AI Translation</span><span class="dot">·</span><span>Brand Positioning</span><span class="dot">·</span><span>Social + Content</span><span class="dot">·</span><span>Experience Marketing</span><span class="dot">·</span><span>The Collective</span><span class="dot">·</span><span>Brand Growth</span><span class="dot">·</span><span>AI Translation</span><span class="dot">·</span><span>Brand Positioning</span><span class="dot">·</span><span>Social + Content</span><span class="dot">·</span><span>Experience Marketing</span><span class="dot">·</span><span>The Collective</span><span class="dot">·</span>
+  </div>
+</div>
+
+<!-- OUR COLLECTION -->
+<div class="collection" id="services">
+  <div class="collection-cards" style="padding:56px 56px 0;background:var(--black);">
+  <div style="margin-bottom:40px;">
+    <div style="font-family:&#39;Inter&#39;,sans-serif;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:10px;display:flex;align-items:center;gap:10px;"><span style="display:block;width:20px;height:1px;background:rgba(255,255,255,0.4);"></span>The Work</div>
+    <h2 style="font-family:&#39;Inter Tight&#39;,sans-serif;font-weight:900;font-size:clamp(44px,5.5vw,72px);line-height:0.88;letter-spacing:-0.04em;color:#fff;text-transform:uppercase;">OUR <span style="color:var(--cyan);">COLLECTION.</span></h2>
+  </div>
+  <!-- ROW 1: 3 bubble cards -->
+  <div class="card-row" id="row1">
+
+    <!-- CARD 1: Brand Growth - SPECIAL with WE ARE / WE ARE NOT -->
+    <div class="svc-bubble c1">
+      <div class="bubble-top">
+        <div class="bubble-num">01</div>
+        <div class="bubble-plus">
+          <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="6" y1="6" x2="36" y2="36" stroke="currentColor" stroke-width="3" stroke-linecap="round"></line>
+            <path d="M20 36 L36 36 L36 20" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="bubble-title">BRAND GROWTH,<br>STRATEGY + EXECUTION</div>
+      <p class="bubble-teaser">Ideas aren't the problem. Execution is. We step in and move the right things forward so momentum actually builds.</p>
+      <div class="bubble-expand">
+        <div class="expand-divider"></div>
+        <div class="expand-cols">
+          <div class="we-are-col">
+            <div class="expand-col-label">WE ARE <span class="arrow">→</span></div>
+            <ul class="expand-list">
+              <li>
+                <span class="li-icon">→</span>
+                <div><strong>Your Strategic Execution Partner</strong>We help you decide what matters, then do it.</div>
+              </li>
+              <li>
+                <span class="li-icon">→</span>
+                <div><strong>Your First Move</strong>Here to step in before a specialist makes sense. Timing is everything.</div>
+              </li>
+              <li>
+                <span class="li-icon">→</span>
+                <div><strong>AI-Leveraged. Human-Led.</strong>We use AI as leverage AND keep your voice yours. High-tech. High-touch.</div>
+              </li>
+              <li>
+                <span class="li-icon">→</span>
+                <div><strong>Momentum From Day 1</strong>No ramp-up theater. We start moving the right things forward immediately.</div>
+              </li>
+            </ul>
+          </div>
+          <div class="we-are-not-col">
+            <div class="expand-col-label">WE ARE NOT <span class="arrow">→</span></div>
+            <ul class="expand-list">
+              <li>
+                <span class="li-icon" style="color:rgba(0,0,0,0.3);">×</span>
+                <div><strong>A Consultant</strong>They tell you what to do. We help you decide what matters, then do it.</div>
+              </li>
+              <li>
+                <span class="li-icon" style="color:rgba(0,0,0,0.3);">×</span>
+                <div><strong>A Specialist</strong>They fix specific problems. We step in before a specialist makes sense.</div>
+              </li>
+              <li>
+                <span class="li-icon" style="color:rgba(0,0,0,0.3);">×</span>
+                <div><strong>An AI Platform</strong>They streamline efficiencies. We use AI as leverage, your voice stays yours.</div>
+              </li>
+              <li>
+                <span class="li-icon" style="color:rgba(0,0,0,0.3);">×</span>
+                <div><strong>An Employee</strong>They are told what to do. We start momentum from day 1.</div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="expand-under">
+          <span>Your strategic execution partner. We decide what matters, then actually do it.</span>
+          <a href="bermo-contact.html#contact-form" class="expand-cta">Get Started →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 2: AI Translation -->
+    <div class="svc-bubble c2">
+      <div class="bubble-top">
+        <div class="bubble-num">02</div>
+        <div class="bubble-plus">
+          <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="6" y1="6" x2="36" y2="36" stroke="currentColor" stroke-width="3" stroke-linecap="round"></line>
+            <path d="M20 36 L36 36 L36 20" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="bubble-title">AI TRANSLATION</div>
+      <p class="bubble-teaser">Use AI without losing your voice. When everyone uses it the same way, every brand sounds the same.</p>
+      <div class="bubble-expand">
+        <div class="expand-divider"></div>
+        <div class="expand-cols">
+          <div>
+            <div class="expand-col-label">WHY AI MATTERS <span class="arrow">→</span></div>
+            <ul class="expand-list">
+              <li><span class="li-icon">→</span><div>People use AI to choose products and vendors</div></li>
+              <li><span class="li-icon">→</span><div>It generates strategy, content, and workflows</div></li>
+              <li><span class="li-icon">→</span><div>It's how buyers make decisions now</div></li>
+              <li><span class="li-icon">→</span><div>If you're not using it, you fall behind</div></li>
+              <li><span class="li-icon">→</span><div>It speeds everything up and lowers barriers to entry</div></li>
+            </ul>
+          </div>
+          <div>
+            <div class="expand-col-label">WHERE IT BREAKS <span class="arrow">→</span></div>
+            <ul class="expand-list">
+              <li><span class="li-icon" style="color:rgba(0,0,0,0.3);">×</span><div>Dilutes your voice and brand identity</div></li>
+              <li><span class="li-icon" style="color:rgba(0,0,0,0.3);">×</span><div>Makes your brand feel generic</div></li>
+              <li><span class="li-icon" style="color:rgba(0,0,0,0.3);">×</span><div>Overwhelms you with conflicting outputs</div></li>
+              <li><span class="li-icon" style="color:rgba(0,0,0,0.3);">×</span><div>Creates content that sounds like everyone else</div></li>
+              <li><span class="li-icon" style="color:rgba(0,0,0,0.3);">×</span><div>Wrong inputs create the wrong direction</div></li>
+            </ul>
+          </div>
+        </div>
+        <div class="expand-under">
+          <span>AI can scale execution, but it can also erase differentiation. We keep your voice yours.</span>
+          <a href="bermo-contact.html#contact-form" class="expand-cta">Let's Build Momentum →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 3: Brand + Positioning -->
+    <div class="svc-bubble c3">
+      <div class="bubble-top">
+        <div class="bubble-num">03</div>
+        <div class="bubble-plus">
+          <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="6" y1="6" x2="36" y2="36" stroke="currentColor" stroke-width="3" stroke-linecap="round"></line>
+            <path d="M20 36 L36 36 L36 20" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+          </svg>
+        </div>
+      </div>
+<div class="bubble-title">BRAND POSITIONING + SOCIAL CONTENT</div>
+
+<p class="bubble-teaser">
+What is your business saying when you're not in the room?<br>
+Growth breaks when translation breaks. If your positioning isn't clear, your content won't land.
+</p>
+
+<div class="bubble-expand">
+  <div class="expand-divider"></div>
+
+  <div class="expand-cols">
+    <div>
+      <div class="expand-col-label">WHAT'S GOING WRONG <span class="arrow">→</span></div>
+      <ul class="expand-list">
+        <li><span class="li-icon" style="color:rgba(0,0,0,0.3);">×</span><div>No clear direction</div></li>
+        <li><span class="li-icon" style="color:rgba(0,0,0,0.3);">×</span><div>Messaging and brand image shifts across platforms</div></li>
+        <li><span class="li-icon" style="color:rgba(0,0,0,0.3);">×</span><div>Language feels unclear or hard to buy</div></li>
+        <li><span class="li-icon" style="color:rgba(0,0,0,0.3);">×</span><div>Content sounds generic or "bot-like"</div></li>
+        <li><span class="li-icon" style="color:rgba(0,0,0,0.3);">×</span><div>No connection to revenue</div></li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="expand-col-label">WHAT WE DO <span class="arrow">→</span></div>
+      <ul class="expand-list">
+        <li><span class="li-icon">→</span><div>Positioning that's instantly understood</div></li>
+        <li><span class="li-icon">→</span><div>Messaging that actually lands</div></li>
+        <li><span class="li-icon">→</span><div>Offers and language that feel obvious to buy</div></li>
+        <li><span class="li-icon">→</span><div>Streamlined content systems that work with AI</div></li>
+        <li><span class="li-icon">→</span><div>Consistency across every touchpoint</div></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="expand-under">
+    <span>Clear message. Strong positioning. Content that converts.</span>
+    <a href="bermo-contact.html#contact-form" class="expand-cta">Fix the Foundation →</a>
+  </div>
+</div>
+    </div>
+
+  </div>
+
+  <!-- ROW 2: 2 bubble cards -->
+  <div class="card-row" id="row2">
+
+    <!-- CARD 4: Social + Content -->
+    <div class="svc-bubble c4">
+      <div class="bubble-top">
+        <div class="bubble-num">04</div>
+        <div class="bubble-plus">
+          <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="6" y1="6" x2="36" y2="36" stroke="currentColor" stroke-width="3" stroke-linecap="round"></line>
+            <path d="M20 36 L36 36 L36 20" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+          </svg>
+        </div>
+      </div>
+  <div class="bubble-title">HIRING + AFFILIATE MARKETING</div>
+
+  <p class="bubble-teaser">
+    Growth doesn't scale without the right people.<br>
+    Most teams need the right hires or specialists at the right time.<br>
+    With 15+ years in recruiting and working closely with an amazing network of specialists,<br>
+    we are here to help you get the right person that makes a difference.
+  </p>
+
+  <div class="bubble-expand">
+    <div class="expand-divider"></div>
+
+    <div class="expand-cols">
+      <div>
+        <div class="expand-col-label">WHAT'S GOING WRONG <span class="arrow">→</span></div>
+        <ul class="expand-list">
+          <li><span class="li-icon" style="color:rgba(0,0,0,0.3);">×</span><div>Hiring too early or too late</div></li>
+          <li><span class="li-icon" style="color:rgba(0,0,0,0.3);">×</span><div>Roles are unclear or constantly shifting</div></li>
+          <li><span class="li-icon" style="color:rgba(0,0,0,0.3);">×</span><div>Relying on resumes or 3rd party sites</div></li>
+          <li><span class="li-icon" style="color:rgba(0,0,0,0.3);">×</span><div>No system set up for training or direction</div></li>
+          <li><span class="li-icon" style="color:rgba(0,0,0,0.3);">×</span><div>High turnover or no previous ROI from hires</div></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="expand-col-label">WHAT WE DO <span class="arrow">→</span></div>
+        <ul class="expand-list">
+          <li><span class="li-icon">→</span><div>Understand your needs and business and define roles based on real conversations</div></li>
+          <li><span class="li-icon">→</span><div>Target the correct talent/specialist through a proven process</div></li>
+          <li><span class="li-icon">→</span><div>Hands-on hiring support at every stage</div></li>
+          <li><span class="li-icon">→</span><div>Build affiliate + partner systems</div></li>
+          <li><span class="li-icon">→</span><div>Find the right people and take the workload off you</div></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="expand-under">
+      <span>The right people, at the right time, change everything.</span>
+      <a href="bermo-contact.html#contact-form" class="expand-cta">Build the Team →</a>
+    </div>
+  </div>
+    </div>
+
+    <!-- CARD 5: Immersive + Experience -->
+    <div class="svc-bubble c5">
+      <div class="bubble-top">
+        <div class="bubble-num">05</div>
+        <div class="bubble-plus">
+          <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="6" y1="6" x2="36" y2="36" stroke="currentColor" stroke-width="3" stroke-linecap="round"></line>
+            <path d="M20 36 L36 36 L36 20" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="bubble-title">IMMERSIVE + EXPERIENCE MARKETING</div>
+      <p class="bubble-teaser">This is where your brand becomes real. In a world of AI, people crave connection. Pop-ups, in-person experiences, events that drive attention and demand.</p>
+      <div class="bubble-expand">
+        <div class="expand-divider"></div>
+        <div class="expand-cols">
+          <div>
+            <div class="expand-col-label">WHAT'S MISSING <span class="arrow">→</span></div>
+            <ul class="expand-list">
+              <li><span class="li-icon" style="color:rgba(0,0,0,0.3);">×</span><div>Brands live online, but connection happens in real life</div></li>
+              <li><span class="li-icon" style="color:rgba(0,0,0,0.3);">×</span><div>No real-world presence or touchpoints</div></li>
+              <li><span class="li-icon" style="color:rgba(0,0,0,0.3);">×</span><div>No memorable experiences that create loyalty</div></li>
+              <li><span class="li-icon" style="color:rgba(0,0,0,0.3);">×</span><div>No reason for people to engage beyond the screen</div></li>
+            </ul>
+          </div>
+          <div>
+            <div class="expand-col-label">WHAT WE DO <span class="arrow">→</span></div>
+            <ul class="expand-list">
+              <li><span class="li-icon">→</span><div>Pop-ups and local brand activations</div></li>
+              <li><span class="li-icon">→</span><div>Brand experiences people actually remember</div></li>
+              <li><span class="li-icon">→</span><div>Partnership-driven events and networking</div></li>
+              <li><span class="li-icon">→</span><div>Tradeshows and in-person demand generation</div></li>
+              <li><span class="li-icon">→</span><div>Moments that turn attention into real demand</div></li>
+            </ul>
+          </div>
+        </div>
+        <div class="expand-under">
+          <span>Get on the list for Collab Nation, the social pop-up where brands collaborate, cross-promote, and grow together.</span>
+          <a href="bermo-CollabNation.html" class="expand-cta cta-cyan">Build Your Network →</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  </div><!-- /collection-cards -->
+</div>
+
+
+<!-- HOW WE WORK TOGETHER -->
+<div class="how-section" id="how-we-work">
+  <div class="how-ghost">BERMO</div>
+  <div class="how-head">
+    <div class="how-label">How We Work Together</div>
+    <h2 class="how-title">CHOOSE YOUR <em style="color:var(--cyan);font-style:normal;">FIT.</em></h2>
+    <p class="how-sub" style="font-size:14px;color:var(--black);font-weight:500;">Start where your business needs it most.</p>
+  </div>
+
+  <div class="pkg-grid">
+
+    <div class="pkg-card pkg-free">
+      <div class="pkg-num">01</div>
+      <div class="pkg-eyebrow">The Try On</div>
+      <div class="pkg-title">FREE INTRO CALL + AUDIT</div>
+      <p class="pkg-body">You already know something isn't working. This shows you exactly where your business is breaking.</p>
+      <ul class="pkg-list">
+        <li>10-question brand audit (2 minutes)</li>
+        <li>Clear snapshot of what's off</li>
+        <li>Free 15-minute intro call</li>
+        <li>Direction on what to fix first</li>
+      </ul>
+      <div class="pkg-price">Free <span>/ start here</span></div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <a href="bermo-audit.html" class="pkg-cta cta-main">Free Brand Audit →</a>
+        <a href="bermo-contact.html#contact-form" class="pkg-cta">Book Intro Call</a>
+      </div>
+    </div>
+
+    <div class="pkg-card">
+      <div class="pkg-num">02</div>
+      <div class="pkg-eyebrow">The Edit</div>
+      <div class="pkg-title">STRATEGY SESSION + CUSTOM PLAN</div>
+      <p class="pkg-body">You have ideas, but it's not translating into clear action. We turn scattered thinking into a focused, prioritized plan you can actually execute.</p>
+      <ul class="pkg-list">
+        <li>Deep-dive strategy session</li>
+        <li>Custom execution plan (deck you can use and keep)</li>
+        <li>Clear priorities and next steps</li>
+        <li>Messaging and positioning direction</li>
+        <li>Content and social structure (AI and human aligned)</li>
+        <li>Target market analysis</li>
+      </ul>
+      <div class="pkg-price">Custom <span>/ let's talk</span></div>
+      <a href="bermo-contact.html#contact-form" class="pkg-cta">Get Your Plan →</a>
+    </div>
+
+    <div class="pkg-card">
+      <div class="pkg-num">03</div>
+      <div class="pkg-eyebrow">The Launch</div>
+      <div class="pkg-title">A 12-WEEK BRAND BUILD</div>
+      <p class="pkg-body">We refine the strategy and take ownership of execution so your business starts moving and generating real revenue.</p>
+      <ul class="pkg-list">
+        <li>Brand profile alignment</li>
+        <li>Strategy refinement and alignment</li>
+        <li>Hands-on execution support</li>
+        <li>Content and messaging implementation</li>
+        <li>Hiring and partnerships as needed</li>
+        <li>Weekly direction and momentum tracking</li>
+        <li>AI and system integrations</li>
+        <li>Website and social media design support</li>
+      </ul>
+      <div class="pkg-price">Custom <span>/ let's talk</span></div>
+      <a href="bermo-contact.html#contact-form" class="pkg-cta">Let's Fix It →</a>
+    </div>
+
+    <div class="pkg-card pkg-dark">
+      <div class="pkg-num">04</div>
+      <div class="pkg-eyebrow">The Drop</div>
+      <div class="pkg-title">FRACTIONAL EXECUTIVE SUPPORT</div>
+      <p class="pkg-body">Targeted help, fast. Maybe you're not ready to hire full-time and it's too early for a specialist. We step in where needed and move things forward.</p>
+      <ul class="pkg-list">
+        <li>Targeted execution support</li>
+        <li>Hiring for specialists or internal staff</li>
+        <li>Social media, content, systems, website help</li>
+        <li>Event or tradeshow support</li>
+        <li>Quick-turn problem solving</li>
+        <li>Help getting unstuck and moving</li>
+      </ul>
+      <div class="pkg-price">Custom <span>/ let's talk</span></div>
+      <a href="bermo-contact.html#contact-form" class="pkg-cta">Get Support →</a>
+    </div>
+
+    <!-- The Pulse (Card 05): spans 2 cols via CSS class -->
+    <div class="pkg-card pkg-pulse-card">
+      <div class="pkg-num">05</div>
+      <div class="pkg-eyebrow">The Pulse</div>
+      <div class="pkg-title">OUR MEMBERSHIP</div>
+      <p class="pkg-body">Strategy doesn't stay static and neither should your business. We stay close through check-ins, realignment, and updates.</p>
+      <ul class="pkg-list">
+        <li>Ongoing check-ins and realignment</li>
+        <li>Updated direction as things shift</li>
+        <li>AI and market insight (what's changing, what matters)</li>
+        <li>Accountability and momentum support</li>
+      </ul>
+      <div class="pkg-price">Membership rates <span>/ let's talk</span></div>
+      <a href="bermo-contact.html#contact-form" class="pkg-cta cta-main">Stay Aligned →</a>
+    </div>
+
+    <!-- THE COLLECTIVE (Card 06): spans 2 cols, two internal sub-columns -->
+    <div id="collective" class="pkg-card pkg-collective" style="background:#00f5d4;display:grid;grid-template-columns:1fr 1fr;gap:0;padding:0;">
+      <!-- LEFT sub: title + bullets + CTA -->
+      <div style="padding:36px 28px;border-right:1px solid rgba(0,0,0,0.1);">
+        <div class="pkg-num" style="color:#fff;">06</div>
+        <div class="pkg-eyebrow" style="color:rgba(0,0,0,0.55);">The Collective</div>
+        <div class="pkg-title" style="margin-bottom:12px;">COLLABORATION +<br>AFFILIATE MARKETING</div>
+        <p class="pkg-body" style="color:rgba(0,0,0,0.75);margin-bottom:14px;">Growth doesn't happen alone. We connect brands through partnerships, pop-ups, and shared audiences, turning collaboration into real visibility and revenue.</p>
+        <ul class="pkg-list pkg-list-white" style="margin-bottom:14px;">
+          <li>Brand partnerships and collaborations</li>
+          <li>Affiliate marketing opportunities</li>
+          <li>Trusted network of specialists</li>
+          <li>Pop-ups and local activations</li>
+        </ul>
+        <div class="pkg-price" style="margin-bottom:8px;">Custom <span>/ let's talk</span></div>
+        <a href="bermo-CollabNation.html" class="pkg-cta" style="background:#0a0a0a;color:#00f5d4;border-color:#0a0a0a;">Join the Collective →</a>
+      </div>
+      <!-- RIGHT sub: referral box + Collab Nation -->
+      <div style="padding:36px 28px;display:flex;flex-direction:column;gap:16px;justify-content:center;">
+        <div style="padding:20px 22px;background:#fff;">
+          <p style="font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(13px,1.3vw,15px);letter-spacing:-0.01em;line-height:1.6;color:#0a0a0a;margin-bottom:12px;">We don't do everything. That's intentional. We partner with specialists we trust and refer when it matters. If your work complements ours, let's connect.</p>
+          <a href="bermo-contact.html#contact-form" class="pkg-cta" style="display:block;text-align:center;">→ Join our referral network</a>
+        </div>
+        <a href="bermo-CollabNation.html" style="display:inline-flex;align-items:center;gap:12px;text-decoration:none;align-self:flex-start;">
+          <div style="display:flex;flex-direction:column;align-items:flex-start;padding:14px 18px;background:rgba(0,0,0,0.08);gap:4px;">
+            <span style="font-family:'Inter Tight',sans-serif;font-weight:900;font-size:18px;line-height:0.88;letter-spacing:-0.04em;color:#0a0a0a;text-transform:uppercase;">COLLAB<br>NATION</span>
+            <span style="display:block;width:22px;height:3px;background:#ff2d7a;margin:4px 0;"></span>
+            <span style="font-family:'Inter',sans-serif;font-size:8px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(0,0,0,0.5);">The Social Pop-Up</span>
+          </div>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- IS THIS FOR YOU: interactive quiz -->
+<style>
+.quiz-wrap *,*::before,*::after{box-sizing:border-box;}
+:root{--cyan:#00f5d4;--lime:#c8f500;--black:#0a0a0a;--off:#f5f5f0;}
+
+
+.wrap{width:100%;max-width:640px;position:relative;}
+
+.step{display:none;}
+.step.active{display:block;animation:up .4s cubic-bezier(.4,0,.2,1);}
+@keyframes up{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+
+/* kicker */
+.kicker{
+  font-size:9px;letter-spacing:4px;text-transform:uppercase;
+  color:rgba(255,255,255,0.3);margin-bottom:14px;font-family:'Inter',sans-serif;
+  display:flex;align-items:center;gap:10px;
+}
+.kicker::before{content:'';width:20px;height:1px;background:rgba(255,255,255,0.3);}
+
+/* progress */
+.prog{display:flex;gap:5px;margin-bottom:40px;}
+.prog-dot{width:28px;height:3px;border-radius:2px;background:rgba(255,255,255,0.1);transition:background .3s;}
+.prog-dot.done{background:rgba(0,245,212,0.4);}
+.prog-dot.active{background:var(--cyan);}
+
+/* question */
+.q{
+  font-family:'Inter Tight',sans-serif;font-weight:900;
+  font-size:clamp(34px,6vw,62px);line-height:0.92;
+  letter-spacing:-0.04em;text-transform:uppercase;
+  color:#fff;margin-bottom:40px;
+}
+.q em{color:var(--cyan);font-style:normal;}
+
+/* options */
+.opts{display:flex;flex-direction:column;gap:10px;}
+
+.opt{
+  display:flex;align-items:center;gap:16px;
+  padding:18px 24px;
+  background:transparent;
+  border:1.5px solid rgba(255,255,255,0.1);
+  border-radius:100px;
+  color:rgba(255,255,255,0.6);
+  font-family:'Inter',sans-serif;font-size:14px;font-weight:500;
+  cursor:pointer;transition:all .2s;text-align:left;width:100%;
+}
+.opt:hover{border-color:var(--cyan);color:#fff;background:rgba(0,245,212,0.05);}
+.opt:hover .arrow{background:var(--cyan);border-color:var(--cyan);color:var(--black);}
+
+.arrow{
+  width:30px;height:30px;border-radius:50%;
+  border:1px solid rgba(255,255,255,0.2);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all .2s;font-size:13px;color:rgba(255,255,255,0.4);
+}
+
+/* back */
+.back{
+  display:inline-flex;align-items:center;gap:6px;
+  background:transparent;border:none;
+  color:rgba(255,255,255,0.25);font-family:'Inter',sans-serif;
+  font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  cursor:pointer;padding:0;margin-bottom:36px;transition:color .2s;
+}
+.back:hover{color:rgba(255,255,255,0.5);}
+
+/* RESULT */
+.ghost-num{
+  position:absolute;top:-16px;right:0;
+  font-family:'Inter Tight',sans-serif;font-weight:900;
+  font-size:clamp(80px,14vw,160px);
+  line-height:1;letter-spacing:-0.06em;
+  color:rgba(0,245,212,0.07);
+  pointer-events:none;user-select:none;
+}
+
+.r-tag{
+  font-size:9px;letter-spacing:4px;text-transform:uppercase;
+  color:var(--cyan);margin-bottom:8px;
+  display:flex;align-items:center;gap:8px;font-family:'Inter',sans-serif;
+}
+.r-tag::before{content:'';width:20px;height:2px;background:var(--cyan);}
+
+.r-name{
+  font-family:'Inter Tight',sans-serif;font-weight:900;
+  font-size:clamp(42px,8vw,88px);line-height:0.88;
+  letter-spacing:-0.04em;text-transform:uppercase;color:#fff;
+  margin-bottom:8px;
+}
+
+.r-eyebrow{
+  font-family:'Inter',sans-serif;font-size:11px;letter-spacing:2px;
+  text-transform:uppercase;color:rgba(255,255,255,0.3);
+  margin-bottom:20px;
+}
+
+.r-desc{
+  font-family:'Inter',sans-serif;font-size:15px;
+  color:rgba(255,255,255,0.5);line-height:1.8;
+  margin-bottom:24px;max-width:460px;
+}
+
+.r-list{list-style:none;display:flex;flex-direction:column;gap:6px;margin-bottom:36px;}
+.r-list li{
+  display:flex;align-items:flex-start;gap:10px;
+  font-family:'Inter',sans-serif;font-size:13px;
+  color:rgba(255,255,255,0.4);line-height:1.5;
+}
+.r-list li::before{content:'→';color:var(--cyan);flex-shrink:0;font-size:11px;margin-top:2px;}
+
+.r-btns{display:flex;gap:10px;flex-wrap:wrap;}
+
+.btn-main{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--cyan);color:var(--black);
+  font-family:'Inter',sans-serif;font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;font-weight:700;
+  padding:14px 28px;text-decoration:none;border-radius:100px;
+  border:none;cursor:pointer;transition:background .2s;
+}
+.btn-main:hover{background:var(--lime);}
+
+.btn-ghost{
+  display:inline-flex;align-items:center;gap:8px;
+  background:transparent;color:rgba(255,255,255,0.35);
+  font-family:'Inter',sans-serif;font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;font-weight:500;
+  padding:13px 24px;text-decoration:none;border-radius:100px;
+  border:1.5px solid rgba(255,255,255,0.12);cursor:pointer;transition:all .2s;
+}
+.btn-ghost:hover{border-color:rgba(255,255,255,0.3);color:rgba(255,255,255,0.6);}
+
+/* dead end */
+.dead-h{
+  font-family:'Inter Tight',sans-serif;font-weight:900;
+  font-size:clamp(32px,5vw,56px);line-height:0.9;letter-spacing:-0.04em;
+  text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:16px;
+}
+.dead-sub{
+  font-size:15px;color:rgba(255,255,255,0.2);line-height:1.8;margin-bottom:32px;
+}
+
+/* divider between steps */
+.step-divider{
+  width:40px;height:2px;background:rgba(255,255,255,0.08);
+  margin:32px 0;
+}
+@media(max-width:600px){
+  .wrap{padding:0 4px;}
+  .q{font-size:clamp(26px,8vw,40px);margin-bottom:28px;}
+  .r-name{font-size:clamp(34px,10vw,56px);}
+  .opt{padding:14px 16px;font-size:13px;border-radius:100px;}
+  .r-btns{flex-direction:column;}
+  .btn-main,.btn-ghost{justify-content:center;text-align:center;}
+  .ghost-num{font-size:clamp(60px,18vw,100px);}
+  .prog{margin-bottom:28px;}
+  .back{margin-bottom:24px;}
+  .r-desc{font-size:14px;}
+}
+</style>
+
+<div style="background:var(--black);padding:60px 24px;">
+<div class="quiz-wrap">
+<div class="wrap">
+
+  <!-- S0: START -->
+  <div class="step active" id="s0">
+    <div class="kicker">Built for Founders</div>
+    <h2 class="q">Is your brand<br>stuck or <em>stalling?</em></h2>
+    <div class="opts">
+      <button class="opt" onclick="go(&#39;s1&#39;)"><span class="arrow">→</span>Yes. Something isn't working and I know it</button>
+      <button class="opt" onclick="go(&#39;dead&#39;)"><span class="arrow">→</span>Not really. Things are going fine</button>
+    </div>
+  </div>
+
+  <!-- S1 -->
+  <div class="step" id="s1">
+    <button class="back" onclick="go(&#39;s0&#39;)">← back</button>
+    <div class="prog"><div class="prog-dot done"></div><div class="prog-dot active"></div><div class="prog-dot"></div><div class="prog-dot"></div></div>
+    <div class="kicker">Let's Find Your Starting Point</div>
+    <h2 class="q">Do you know what's<br><em>actually broken?</em></h2>
+    <div class="opts">
+      <button class="opt" onclick="go(&#39;s2&#39;)"><span class="arrow">→</span>Yes. I know the problem, I just can't fix it alone</button>
+      <button class="opt" onclick="go(&#39;r1&#39;)"><span class="arrow">→</span>No idea. I don't even know where to start</button>
+    </div>
+  </div>
+
+  <!-- S2 -->
+  <div class="step" id="s2">
+    <button class="back" onclick="go(&#39;s1&#39;)">← back</button>
+    <div class="prog"><div class="prog-dot done"></div><div class="prog-dot done"></div><div class="prog-dot active"></div><div class="prog-dot"></div></div>
+    <div class="kicker">Let's Find Your Starting Point</div>
+    <h2 class="q">What do you need<br><em>most right now?</em></h2>
+    <div class="opts">
+      <button class="opt" onclick="go(&#39;r2&#39;)"><span class="arrow">→</span>A clear plan. I need direction and strategy</button>
+      <button class="opt" onclick="go(&#39;s3&#39;)"><span class="arrow">→</span>Full execution. Strategy and someone doing it with me</button>
+      <button class="opt" onclick="go(&#39;r6&#39;)"><span class="arrow">→</span>Collabs and partnerships. Growth through community</button>
+    </div>
+  </div>
+
+  <!-- S3 -->
+  <div class="step" id="s3">
+    <button class="back" onclick="go(&#39;s2&#39;)">← back</button>
+    <div class="prog"><div class="prog-dot done"></div><div class="prog-dot done"></div><div class="prog-dot done"></div><div class="prog-dot active"></div></div>
+    <div class="kicker">Let's Find Your Starting Point</div>
+    <h2 class="q">Quick fix or<br><em>full build?</em></h2>
+    <div class="opts">
+      <button class="opt" onclick="go(&#39;r4&#39;)"><span class="arrow">→</span>Quick. Targeted help in a specific area</button>
+      <button class="opt" onclick="go(&#39;s4&#39;)"><span class="arrow">→</span>Full. I'm ready for a real transformation</button>
+    </div>
+  </div>
+
+  <!-- S4 -->
+  <div class="step" id="s4">
+    <button class="back" onclick="go(&#39;s3&#39;)">← back</button>
+    <div class="prog"><div class="prog-dot done"></div><div class="prog-dot done"></div><div class="prog-dot done"></div><div class="prog-dot active"></div></div>
+    <div class="kicker">Almost There</div>
+    <h2 class="q">Ready to commit<br>for <em>12 weeks?</em></h2>
+    <div class="opts">
+      <button class="opt" onclick="go(&#39;r3&#39;)"><span class="arrow">→</span>Yes. Let's go. I'm all in.</button>
+      <button class="opt" onclick="go(&#39;r5&#39;)"><span class="arrow">→</span>Not yet. I want to stay close and keep moving</button>
+    </div>
+  </div>
+
+  <!-- DEAD END -->
+  <div class="step" id="dead">
+    <button class="back" onclick="go(&#39;s0&#39;)">← back</button>
+    <div class="dead-h">You're good.</div>
+    <p class="dead-sub">Totally fine. Come back when something shifts.<br>We'll be here and ready to move when you are.</p>
+    <div class="r-btns">
+      <a href="bermo-audit.html" class="btn-main">Take the Free Audit Anyway →</a>
+      <button class="btn-ghost" onclick="go(&#39;s0&#39;)">Start Over</button>
+    </div>
+  </div>
+
+  <!-- R1: The Try On -->
+  <div class="step" id="r1">
+    <div class="ghost-num">01</div>
+    <button class="back" onclick="go(&#39;s1&#39;)">← back</button>
+    <div class="r-tag">Your Starting Point</div>
+    <h2 class="r-name">The Try On</h2>
+    <div class="r-eyebrow">Free Intro Call + Brand Audit</div>
+    <p class="r-desc">You know something's off but can't name it yet. Start with the free brand audit. 10 questions, 2 minutes, instant clarity on where you're breaking and what to fix first.</p>
+    <ul class="r-list">
+      <li>10-question brand audit (2 minutes)</li>
+      <li>Clear snapshot of what's actually off</li>
+      <li>Free 15-minute intro call</li>
+      <li>Direction on what to fix first</li>
+    </ul>
+    <div class="r-btns">
+      <a href="bermo-audit.html" class="btn-main">Start the Free Audit →</a>
+      <a href="bermo-contact.html#contact-form" class="btn-ghost">Book Intro Call</a>
+    </div>
+  </div>
+
+  <!-- R2: The Edit -->
+  <div class="step" id="r2">
+    <div class="ghost-num">02</div>
+    <button class="back" onclick="go(&#39;s2&#39;)">← back</button>
+    <div class="r-tag">Your Starting Point</div>
+    <h2 class="r-name">The Edit</h2>
+    <div class="r-eyebrow">Strategy Session + Custom Plan</div>
+    <p class="r-desc">You have ideas. They're just not translating into clear action. We turn scattered thinking into a focused, prioritized plan you can actually execute. You keep the deck.</p>
+    <ul class="r-list">
+      <li>Deep-dive strategy session</li>
+      <li>Custom execution plan you keep</li>
+      <li>Messaging and positioning direction</li>
+      <li>Clear priorities and next steps</li>
+    </ul>
+    <div class="r-btns">
+      <a href="bermo-contact.html#contact-form" class="btn-main">Get Your Plan →</a>
+      <button class="btn-ghost" onclick="go(&#39;s0&#39;)">Start Over</button>
+    </div>
+  </div>
+
+  <!-- R3: The Launch -->
+  <div class="step" id="r3">
+    <div class="ghost-num">03</div>
+    <button class="back" onclick="go(&#39;s4&#39;)">← back</button>
+    <div class="r-tag">Your Starting Point</div>
+    <h2 class="r-name">The Launch</h2>
+    <div class="r-eyebrow">12-Week Brand Build</div>
+    <p class="r-desc">You're ready to move and you want someone inside the business doing it with you. 12 weeks of real strategy and hands-on execution, from positioning to revenue.</p>
+    <ul class="r-list">
+      <li>Brand profile alignment</li>
+      <li>Hands-on execution support</li>
+      <li>Content and messaging implementation</li>
+      <li>Weekly direction and momentum tracking</li>
+    </ul>
+    <div class="r-btns">
+      <a href="bermo-contact.html#contact-form" class="btn-main">Let's Fix It →</a>
+      <button class="btn-ghost" onclick="go(&#39;s0&#39;)">Start Over</button>
+    </div>
+  </div>
+
+  <!-- R4: The Drop -->
+  <div class="step" id="r4">
+    <div class="ghost-num">04</div>
+    <button class="back" onclick="go(&#39;s3&#39;)">← back</button>
+    <div class="r-tag">Your Starting Point</div>
+    <h2 class="r-name">The Drop</h2>
+    <div class="r-eyebrow">Fractional Executive Support</div>
+    <p class="r-desc">Not ready for a full engagement but you need targeted help now. We step in where you need us, move things forward fast, and keep momentum building.</p>
+    <ul class="r-list">
+      <li>Targeted execution support</li>
+      <li>Social media, content, systems, website help</li>
+      <li>Quick-turn problem solving</li>
+      <li>Help getting unstuck and moving</li>
+    </ul>
+    <div class="r-btns">
+      <a href="bermo-contact.html#contact-form" class="btn-main">Get Support →</a>
+      <button class="btn-ghost" onclick="go(&#39;s0&#39;)">Start Over</button>
+    </div>
+  </div>
+
+  <!-- R5: The Pulse -->
+  <div class="step" id="r5">
+    <div class="ghost-num">05</div>
+    <button class="back" onclick="go(&#39;s4&#39;)">← back</button>
+    <div class="r-tag">Your Starting Point</div>
+    <h2 class="r-name">The Pulse</h2>
+    <div class="r-eyebrow">Our Membership</div>
+    <p class="r-desc">Not ready to go all in yet, but you want to stay close and keep things moving. Our membership keeps you aligned, updated, and on track as the market shifts.</p>
+    <ul class="r-list">
+      <li>Ongoing check-ins and realignment</li>
+      <li>Updated direction as things shift</li>
+      <li>AI and market insight</li>
+      <li>Accountability and momentum support</li>
+    </ul>
+    <div class="r-btns">
+      <a href="bermo-contact.html#contact-form" class="btn-main">Stay Aligned →</a>
+      <button class="btn-ghost" onclick="go(&#39;s0&#39;)">Start Over</button>
+    </div>
+  </div>
+
+  <!-- R6: The Collective -->
+  <div class="step" id="r6">
+    <div class="ghost-num">06</div>
+    <button class="back" onclick="go(&#39;s2&#39;)">← back</button>
+    <div class="r-tag">Your Starting Point</div>
+    <h2 class="r-name">The Collective</h2>
+    <div class="r-eyebrow">Collaboration + Affiliate</div>
+    <p class="r-desc">Growth doesn't happen alone. You're ready to connect, collaborate, and build visibility through brand partnerships, pop-ups, and shared audiences.</p>
+    <ul class="r-list">
+      <li>Brand partnerships and collaborations</li>
+      <li>Affiliate marketing opportunities</li>
+      <li>Pop-ups and local activations</li>
+      <li>Cross-promotion across aligned audiences</li>
+    </ul>
+    <div class="r-btns">
+      <a href="bermo-CollabNation.html" class="btn-main">Join the Collective →</a>
+      <button class="btn-ghost" onclick="go(&#39;s0&#39;)">Start Over</button>
+    </div>
+  </div>
+
+</div>
+<script>
+function go(id){
+  document.querySelector('.step.active').classList.remove('active');
+  document.getElementById(id).classList.add('active');
+  var qw=document.querySelector('.quiz-wrap');
+  if(qw){qw.scrollIntoView({behavior:'smooth',block:'start'});}
+}
+</script>
+</div>
+
+
+<!-- BOTTOM CTA -->
+<div style="overflow:hidden;">
+<div class="bot-cta">
+  <div class="bot-ghost">BERMO.</div>
+  <div class="bot-inner">
+    <div class="bot-kicker">Let's Build</div>
+    <h2 class="bot-hed">LET'S BUILD<br><em>MOMENTUM.</em></h2>
+    <p class="bot-body">The business keeps moving. The market doesn't wait. The cost of waiting is greater than the cost of moving.</p>
+    <div class="bot-btns" style="margin-top:8px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
+      <a href="bermo-audit.html" class="ctabn sl">Brand Audit + Free Guide</a>
+      <a href="bermo-contact.html#contact-form" class="ctabn sl">Book Intro Call</a>
+      <a href="bermo-contact.html" class="ctabn dk">Contact Me</a>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <a href="index.html" class="footer-logo">
+      <span class="fl-top"><span class="c">BERMO.</span></span>
+      <span class="fl-bot">COLLECTIVE</span>
+      <span class="fl-bar"></span>
+    </a>
+    <div class="footer-tagline">Brand Growth Strategy + Execution</div>
+  </div>
+  <ul class="footer-links">
+    <li><a href="bermo-services.html">Services</a></li>
+    <li><a href="bermo-CollabNation.html" class="footer-pink">Collab Nation</a></li>
+    <li><a href="bermo-audit.html">Free Audit</a></li>
+    <li><a href="bermo-contact.html">Contact</a></li>
+  </ul>
+  <div class="footer-right">
+    <div class="footer-social">
+      <a href="https://instagram.com/bermo.co" target="_blank"><svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"></path></svg></a>
+      <a href="https://tiktok.com/@bermo.co" target="_blank"><svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.17 8.17 0 004.78 1.52V6.75a4.85 4.85 0 01-1.01-.06z"></path></svg></a>
+      <a href="https://linkedin.com/company/bermo-collective" target="_blank"><svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"></path></svg></a>
+    </div>
+    <div class="footer-copy">© 2025 BERMO.COLLECTIVE. All rights reserved.</div>
+  </div>
+</footer>
+</div><!-- /scroll-over -->
+
+<script>
+(function() {
+
+  /* NAV: scroll triggers scrolled state */
+  var navEl = document.getElementById('mainNav');
+  function updateNav() {
+    navEl.classList.toggle('scrolled', window.scrollY > 50);
+  }
+  window.addEventListener('scroll', updateNav, { passive: true });
+  updateNav();
+
+  /* DROPDOWN MENU */
+  var menuBtn  = document.getElementById('menuBtn');
+  var menuDrop = document.getElementById('navDropdown');
+  if (menuBtn && menuDrop) {
+    menuBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      menuDrop.classList.toggle('open');
+    });
+    document.addEventListener('click', function(e) {
+      if (!menuDrop.contains(e.target) && !menuBtn.contains(e.target)) {
+        menuDrop.classList.remove('open');
+      }
+    });
+  }
+
+  /* TOUCH: service card tap-to-expand */
+  if (!('ontouchstart' in window)) return;
+  var s = document.createElement('style');
+  s.textContent = '.card-row:hover .svc-bubble{flex:1!important}.svc-bubble:hover{flex:1!important}.svc-bubble:hover .bubble-expand{max-height:0!important;opacity:0!important;margin-top:0!important}.svc-bubble.to{flex:2.8!important}.svc-bubble.to .bubble-expand{max-height:700px!important;opacity:1!important;margin-top:20px!important}';
+  document.head.appendChild(s);
+  document.querySelectorAll('.svc-bubble').forEach(function(el) {
+    el.addEventListener('click', function() {
+      var row = this.closest('.card-row');
+      var wasOpen = this.classList.contains('to');
+      if (row) row.querySelectorAll('.svc-bubble').forEach(function(b) { b.classList.remove('to'); });
+      if (!wasOpen) this.classList.add('to');
+    });
+  });
+
+})();
+</script>
+
+</div></body></html>

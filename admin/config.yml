@@ -1,0 +1,48 @@
+backend:
+  name: git-gateway
+  branch: main
+
+# Show login button after invite
+publish_mode: simple
+media_folder: "media"
+public_folder: "/media"
+
+site_url: https://bermoco.com
+display_url: https://bermoco.com
+logo_url: https://bermoco.com/lexi-photo.jpg
+
+collections:
+  # JOURNAL — write new posts, interview write-ups, etc.
+  - name: "journal"
+    label: "Journal & Interviews"
+    folder: "journal"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Publish Date", name: "date", widget: "datetime" }
+      - { label: "Cover Image", name: "cover", widget: "image", required: false }
+      - { label: "Subtitle / Hook", name: "subtitle", widget: "string", required: false }
+      - { label: "Type", name: "type", widget: "select", options: ["Journal", "Interview", "Case Study", "Note"], default: "Journal" }
+      - { label: "Video URL", name: "video", widget: "string", required: false, hint: "Paste a YouTube, Vimeo, or Loom URL if this post has a video" }
+      - { label: "Body", name: "body", widget: "markdown" }
+      - { label: "Published", name: "published", widget: "boolean", default: false }
+
+  # SITE CONTENT — quickly edit a few key strings on the homepage
+  - name: "site-content"
+    label: "Quick Site Edits"
+    files:
+      - name: "homepage"
+        label: "Homepage Headlines"
+        file: "content/homepage.json"
+        fields:
+          - { label: "Hero Headline", name: "heroHeadline", widget: "string", required: false }
+          - { label: "Hero Subtitle", name: "heroSubtitle", widget: "string", required: false }
+          - { label: "About Snippet", name: "aboutSnippet", widget: "text", required: false }
+      - name: "contact"
+        label: "Contact Page Info"
+        file: "content/contact.json"
+        fields:
+          - { label: "Email", name: "email", widget: "string", default: "lexi@bermoco.com" }
+          - { label: "Phone", name: "phone", widget: "string", required: false }
+          - { label: "Booking Link", name: "bookingLink", widget: "string", required: false }

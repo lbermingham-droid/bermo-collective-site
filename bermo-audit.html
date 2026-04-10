@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<!-- saved from url=(0057)bermo-audit.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Brand Audit. BERMO.COLLECTIVE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Inter+Tight:wght@800;900&family=Inter:wght@400;500;600&family=Montserrat:wght@900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;background:#fff;overflow-x:hidden}
+body{overflow-x:hidden}
+a{text-decoration:none}
+button{-webkit-tap-highlight-color:transparent;cursor:pointer}
+input,textarea{font-family:'Inter',sans-serif}
+input:focus,textarea:focus{outline:none}
+textarea{resize:none}
+@keyframes tk{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pp{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+@keyframes hburst{0%{transform:scale(1)}20%{transform:scale(1.6)}50%{transform:scale(0.85)}75%{transform:scale(1.15)}100%{transform:scale(1)}}
+@keyframes sburst{0%{transform:scale(1)}25%{transform:scale(1.5)}50%{transform:scale(0.9)}75%{transform:scale(1.2)}100%{transform:scale(1)}}
+@keyframes npop{0%{transform:scale(1)}30%{transform:scale(1.5);color:#00f5d4}70%{transform:scale(0.9);color:#00f5d4}100%{transform:scale(1)}}
+@keyframes ahain{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes lin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes lout{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-8px)}}
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+nav{position:fixed;top:0;left:0;right:0;z-index:500;background:transparent;display:flex;justify-content:space-between;align-items:center;padding:0 40px;height:58px;gap:16px;border-bottom:3px solid transparent;transition:background .35s,border-color .35s;}
+nav.scrolled{background:#0a0a0a;border-bottom-color:#00f5d4;}
+.nav-left{display:flex;align-items:center;gap:14px;}
+.nav-logo{display:flex;flex-direction:column;line-height:1;text-decoration:none;}
+.nav-logo .nl-top,.nav-logo .nl-bot{font-family:'Montserrat',sans-serif;font-weight:900;font-size:13px;line-height:0.9;letter-spacing:-0.01em;text-transform:uppercase;display:block;color:#0a0a0a;transition:color .35s;}
+nav.scrolled .nl-top,nav.scrolled .nl-bot{color:#fff;}
+.nl-top .c{color:#0a0a0a;}
+nav.scrolled .nl-top .c{color:#00f5d4;}
+.nav-back{display:flex;align-items:center;color:rgba(0,0,0,0.4);text-decoration:none;transition:color .35s;flex-shrink:0;}
+.nav-back:hover{color:#00f5d4;}
+.nav-back svg{width:16px;height:16px;}
+nav.scrolled .nav-back{color:rgba(255,255,255,0.45);}
+.nav-logo .nl-bar{width:28px;height:3px;background:#0a0a0a;margin-top:4px;}
+nav.scrolled .nl-bar{background:#00f5d4;}
+.nav-mid{display:flex;align-items:center;gap:24px;}
+.nav-mid a{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(0,0,0,0.5);text-decoration:none;transition:color .2s;}
+nav.scrolled .nav-mid a{color:rgba(255,255,255,0.45);}
+.nav-mid a:hover{color:#00f5d4;}
+.nav-social{display:flex;align-items:center;gap:10px;}
+.nav-social a{color:rgba(0,0,0,0.4);transition:color .2s;display:flex;}
+nav.scrolled .nav-social a{color:rgba(255,255,255,0.35);}
+.nav-social a:hover{color:#00f5d4;}
+.nav-social svg{width:16px;height:16px;}
+.nav-audit{display:inline-flex;align-items:center;gap:6px;background:#00f5d4;color:#0a0a0a;font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:10px 20px;text-decoration:none;border-radius:100px;transition:background .2s;}
+.nav-audit:hover{background:#c8f500;color:#0a0a0a;}
+.nav-menu-btn{display:flex;flex-direction:column;justify-content:center;align-items:center;width:34px;height:34px;border-radius:50%;border:1.5px solid rgba(0,0,0,0.25);gap:5px;cursor:pointer;transition:border-color .2s;flex-shrink:0;background:transparent;}
+nav.scrolled .nav-menu-btn{border-color:rgba(255,255,255,0.25);}
+.nav-menu-btn span{display:block;width:14px;height:1.5px;background:rgba(0,0,0,0.6);}
+nav.scrolled .nav-menu-btn span{background:rgba(255,255,255,0.7);}
+.nav-dropdown{display:none;position:absolute;top:calc(100% + 8px);right:0;background:#0a0a0a;border-top:4px solid #00f5d4;border-radius:16px;min-width:260px;padding:0;z-index:600;box-shadow:0 32px 80px rgba(0,0,0,0.65);overflow:hidden;}
+.nav-dropdown.open{display:block;}
+.nav-dropdown a{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;font-family:'Inter Tight',sans-serif;font-weight:900;font-size:20px;line-height:1;letter-spacing:-0.03em;text-transform:uppercase;text-decoration:none;color:#fff;border-bottom:1px solid rgba(255,255,255,0.07);transition:color .15s,background .15s,padding-left .15s;}
+.nav-dropdown a:last-child{border-bottom:none;}
+.nav-dropdown a::after{content:'→';font-size:14px;opacity:0;transform:translateX(-6px);transition:opacity .15s,transform .15s;}
+.nav-dropdown a:hover{color:#00f5d4;background:rgba(0,245,212,0.06);padding-left:32px;}
+.nav-dropdown a:hover::after{opacity:1;transform:translateX(0);}
+.nav-dropdown a.dd-active{color:#00f5d4;}
+.nav-dropdown a.dd-pink{color:#ff2d7a;}
+.nav-dropdown a.dd-pink:hover{color:#fff;background:rgba(255,45,122,0.08);}
+@media(max-width:860px){nav{padding:0 16px;height:52px;}.nav-mid{display:none};}
+.hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;padding-top:58px;background:#fff;position:relative;overflow:hidden}
+.hghost{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(100px,18vw,280px);color:rgba(0,245,212,0.055);white-space:nowrap;letter-spacing:-.04em;pointer-events:none;user-select:none;z-index:0;text-transform:uppercase}
+.hleft{padding:60px 56px;display:flex;flex-direction:column;justify-content:space-between;z-index:1;border-right:1px solid #e2e0db;min-height:calc(100vh - 58px)}
+.hl span{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(52px,9vw,136px);line-height:.88;letter-spacing:-.04em;text-transform:uppercase;color:#0a0a0a;display:block}
+.hl span.cy{color:#00f5d4;letter-spacing:-.01em}
+.hbar{height:12px;background:#00f5d4;margin:14px 0 10px;width:clamp(60px,8vw,120px)}
+.hsub{font-family:'Inter',sans-serif;font-weight:500;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#555}
+.hctat{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(22px,2.8vw,36px);line-height:1.15;letter-spacing:-.02em;color:#0a0a0a;max-width:460px;margin-bottom:8px}
+.hctai{font-family:'Inter',sans-serif;font-size:14px;color:#333;font-style:italic;margin-bottom:28px;line-height:1.5}
+.fgbtn{display:flex;align-items:stretch;width:100%;max-width:420px;background:#0a0a0a;color:#fff;transition:background .2s;border-radius:100px;overflow:hidden}
+.fgbtn:hover{background:#00f5d4}
+.fgtag{background:#00f5d4;color:#0a0a0a;font-family:'Inter Tight',sans-serif;font-weight:900;font-size:9px;letter-spacing:3px;text-transform:uppercase;padding:0 14px;display:flex;align-items:center;flex-shrink:0}
+.fgbody{padding:14px 16px;flex:1}
+.fgbody strong{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:13px;display:block;margin-bottom:3px;line-height:1.2}
+.fgbody small{font-size:11px;opacity:.6;line-height:1.4;display:block}
+.fgarr{display:flex;align-items:center;padding:0 16px;font-size:20px;flex-shrink:0}
+.hright{padding:96px 48px 56px;display:flex;flex-direction:column;justify-content:flex-start;gap:36px;z-index:1;position:relative;min-height:calc(100vh - 58px);background:#f5f5f0}
+.cbox{border:2px solid #00f5d4;padding:18px 22px;display:inline-block}
+.cbox span{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(24px,3.5vw,48px);line-height:.95;letter-spacing:-.02em;color:#0a0a0a;display:block}
+.cbox span.cy{color:#00f5d4}
+.wlbl{font-family:'Inter',sans-serif;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#444;margin-top:40px;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.wlbl::before{content:'';width:20px;height:1px;background:#00f5d4}
+.hdesc h2{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(22px,2.8vw,34px);line-height:1.2;letter-spacing:-.02em;margin-bottom:12px;color:#0a0a0a}
+.hdesc h2 em{color:#00f5d4;font-style:normal}
+.hdesc p{font-family:'Inter',sans-serif;font-size:14px;line-height:1.8;color:#333;max-width:380px}
+.howlbl{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:16px;letter-spacing:.08em;text-transform:uppercase;color:#00f5d4;margin-bottom:14px}
+.howstep{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid #e2e0db}
+.hownum{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:26px;color:rgba(0,245,212,0.25);line-height:1;flex-shrink:0;width:28px}
+.howtit{font-family:'Inter Tight',sans-serif;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:#00f5d4;margin-bottom:4px;font-weight:800}
+.howdsc{font-family:'Inter',sans-serif;font-size:11px;color:#333;line-height:1.5}
+.gaprow{margin-top:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.gaptxt{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:13px;color:#0a0a0a;white-space:nowrap}
+.gapln{flex:1;height:2px;background:#00f5d4;min-width:20px;max-width:60px;position:relative}
+.gapln::after{content:'▶';position:absolute;right:-7px;top:50%;transform:translateY(-50%);color:#00f5d4;font-size:9px}
+.abtn{display:inline-flex;align-items:center;gap:8px;background:#00f5d4;color:#0a0a0a;font-family:'Inter Tight',sans-serif;font-weight:900;font-size:11px;letter-spacing:.5px;text-transform:uppercase;padding:10px 22px;transition:background .2s;white-space:nowrap;border-radius:100px}
+.abtn:hover{background:rgba(0,245,212,0.8)}
+.hwm{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(0,0,0,0.1);writing-mode:vertical-rl;position:absolute;right:10px;top:56px;bottom:56px;display:flex;align-items:center}
+.ticker{overflow:hidden;border-top:2px solid #00f5d4;border-bottom:2px solid #00f5d4;padding:11px 0;background:#00f5d4}
+.tki{display:flex;white-space:nowrap;animation:tk 20s linear infinite}
+.tki span{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:4px;text-transform:uppercase;padding:0 22px;color:#0a0a0a}
+#quiz{background:#0a0e1a;padding:52px 0 60px}
+.qhdr{text-align:center;padding:0 20px 36px}
+.qey{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:#00f5d4;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:10px}
+.qey::before,.qey::after{content:'';width:20px;height:1px;background:#00f5d4}
+.qtit{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(52px,9vw,100px);line-height:.88;letter-spacing:-.04em;color:#fff;text-transform:uppercase;margin-bottom:12px}
+.qtit span{color:#00f5d4}
+.qsub{font-family:'Inter',sans-serif;font-size:14px;color:rgba(255,255,255,0.4);max-width:400px;margin:0 auto}
+.ttnw{max-width:800px;margin:0 auto 16px;padding:0 20px}
+.ttn{display:flex;align-items:center;justify-content:space-between;padding:6px 0 10px;overflow-x:auto}
+.ttis{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.ttlv{display:flex;align-items:center;gap:3px;padding:2px 7px;border:1px solid rgba(255,255,255,0.3);border-radius:4px;margin-right:4px}
+.ttlv span{font-family:'Inter Tight',sans-serif;font-weight:700;font-size:12px;color:rgba(255,255,255,0.7)}
+.ttit{font-family:'Inter',sans-serif;font-size:13px;color:rgba(255,255,255,0.45);padding:0 6px;white-space:nowrap}
+.ttfl{position:relative;padding:0 6px}
+.ttfl span{font-family:'Inter',sans-serif;font-size:13px;color:rgba(255,255,255,0.45);white-space:nowrap}
+.ttdt{position:absolute;top:-1px;right:2px;width:6px;height:6px;border-radius:50%;background:#ff2d55}
+.ttfy{display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 6px}
+.ttfy span{font-family:'Inter Tight',sans-serif;font-weight:700;font-size:14px;color:#fff;white-space:nowrap}
+.ttfyb{width:100%;height:2px;background:#fff;border-radius:2px}
+.pgw{height:3px;background:rgba(255,255,255,0.06);border-radius:2px}
+.pgf{height:100%;background:#00f5d4;width:0%;transition:width .4s ease;border-radius:2px}
+.pgl{display:flex;justify-content:space-between;margin-top:5px}
+.pgl span{font-family:'Inter',sans-serif;font-size:10px;color:rgba(255,255,255,0.3)}
+.pgl .an{font-family:'Inter Tight',sans-serif;font-weight:700;font-size:10px;color:rgba(255,255,255,0.3)}
+.pgl .an.done{color:#00f5d4}
+.qw{max-width:800px;margin:0 auto;padding:0 76px 0 20px;position:relative}
+@media(max-width:900px){.qw{max-width:740px;padding:0 70px 0 16px}}
+@media(max-width:600px){.qw{padding:0 58px 0 12px}}
+.pc{background:linear-gradient(170deg,#1a1a2e 0%,#16213e 45%,#0f3460 100%);border-radius:20px;border:1px solid rgba(255,255,255,0.07);overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.7)}
+.pact{padding:14px 18px 12px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between}
+.pav{width:36px;height:36px;border-radius:50%;background:#00f5d4;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,0.15);flex-shrink:0}
+.pav span{font-family:'Montserrat',sans-serif;font-weight:900;font-size:8px;color:#0a0a0a;letter-spacing:-.02em}
+.pnm{font-family:'Inter Tight',sans-serif;font-weight:700;font-size:14px;color:#fff}
+.pmt{font-family:'Inter',sans-serif;font-size:11px;color:rgba(255,255,255,0.4)}
+.pmt2{font-family:'Inter',sans-serif;font-size:10px;color:rgba(255,255,255,0.28)}
+.flwb{background:#00f5d4;color:#0a0a0a;font-family:'Inter Tight',sans-serif;font-weight:900;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 14px;border-radius:20px;border:none;cursor:pointer;flex-shrink:0}
+.qbl{border-top:1px solid rgba(255,255,255,0.05);padding:13px 18px}
+.qnr{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.qn{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:28px;color:rgba(0,245,212,0.25);line-height:1;flex-shrink:0;transition:color .3s}
+.qn.lit{color:#00f5d4}
+.aib{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#00f5d4;background:rgba(0,245,212,0.12);border:1px solid rgba(0,245,212,0.25);border-radius:8px;padding:1px 7px;flex-shrink:0}
+.qat{margin-left:auto;font-family:'Inter Tight',sans-serif;font-weight:700;font-size:10px;color:#00f5d4;letter-spacing:.08em;display:none}
+.qat.on{display:block}
+.qtx{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(13px,2.8vw,16px);color:#fff;line-height:1.25;margin-bottom:10px;letter-spacing:-.01em}
+.og{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.ob{display:flex;align-items:center;gap:8px;padding:9px 12px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.1);border-radius:40px;cursor:pointer;text-align:left;transition:all .2s;width:100%}
+.ob:hover:not(:disabled){background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.25)}
+.ob.sel{background:rgba(0,245,212,0.15);border-color:#00f5d4;box-shadow:0 0 14px rgba(0,245,212,0.18)}
+.ob.dim{opacity:.3}
+.ol{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.ob.sel .ol{background:#00f5d4;border-color:#00f5d4}
+.ol span{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:10px;color:rgba(255,255,255,0.5)}
+.ob.sel .ol span{color:#0a0a0a}
+.otx{font-family:'Inter Tight',sans-serif;font-weight:500;font-size:clamp(11px,2.5vw,13px);color:rgba(255,255,255,0.7);line-height:1.25;flex:1}
+.ob.sel .otx{color:#fff;font-weight:700}
+.ahab{margin-top:10px;padding:13px 16px;background:#00f5d4;border-radius:12px;display:none;gap:10px;align-items:flex-start;animation:ahain .35s ease forwards}
+.ahaav{width:22px;height:22px;border-radius:50%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.ahaav span{font-family:'Montserrat',sans-serif;font-weight:900;font-size:5px;color:#00f5d4;letter-spacing:-.02em}
+.ahatx{font-family:'Inter Tight',sans-serif;font-size:14px;color:#0a0a0a;line-height:1.5;font-weight:600}
+.bkdn{font-family:'Inter',sans-serif;font-size:11px;color:rgba(0,0,0,0.45);font-style:italic;margin-top:6px;text-align:right;display:none}
+.q9ta{width:100%;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.12);border-radius:12px;color:#fff;font-family:'Inter Tight',sans-serif;font-size:14px;font-weight:500;padding:12px 14px;transition:border-color .2s;line-height:1.5}
+.q9ta:focus{border-color:#00f5d4;outline:none}
+.q9nt{font-family:'Inter',sans-serif;font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:10px;line-height:1.5}
+.q10b{border-top:1px solid rgba(255,255,255,0.05);padding:16px 18px 20px}
+.q10h{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.q10n{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:28px;color:rgba(0,245,212,0.25);line-height:1}
+.q10t{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:14px;color:#fff}
+.q10ft{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(18px,2vw,26px);color:#fff;letter-spacing:-.02em;margin-bottom:4px}
+.q10fs{font-family:'Inter Tight',sans-serif;font-weight:700;font-size:clamp(14px,1.6vw,18px);color:rgba(255,255,255,0.5);letter-spacing:-.01em;margin-bottom:4px}
+.q10fs2{font-family:'Inter',sans-serif;font-size:12px;color:rgba(255,255,255,0.35);margin-bottom:18px;line-height:1.5}
+.q10fg{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin-bottom:18px}
+@media(min-width:700px){.q10fg{grid-template-columns:1fr 1fr 1fr}}
+.q10lb{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,0.3);font-weight:500;margin-bottom:4px;display:block}
+.q10lb .req{color:#00f5d4}
+.q10in{background:transparent;border:none;border-bottom:1.5px solid rgba(255,255,255,0.18);color:#fff;font-family:'Inter Tight',sans-serif;font-weight:700;font-size:14px;padding:7px 2px;width:100%;transition:border-color .2s}
+.q10in:focus{border-bottom-color:#00f5d4;outline:none}
+.q10in.err{border-bottom-color:#ff6b6b}
+.q10hi{font-family:'Inter',sans-serif;font-size:10px;color:rgba(255,255,255,0.2);margin-top:3px}
+.q10er{font-family:'Inter',sans-serif;font-size:11px;color:#ff9999;margin:10px 0;padding:8px 12px;background:rgba(255,60,60,0.08);border:1px solid rgba(255,80,80,0.2);display:none}
+.q10er.on{display:block}
+.q10sb{display:inline-flex;align-items:center;gap:16px;background:#0a0a0a;border:none;cursor:pointer;transition:all .2s;margin-top:14px;border-radius:100px;padding:0}
+.q10sb:hover{background:#111;transform:scale(1.02)}
+.q10st{color:#00f5d4;font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(14px,2vw,18px);letter-spacing:-.01em;padding:14px 28px;display:flex;align-items:center;white-space:nowrap;border-radius:50px}
+.q10sn{font-family:'Inter',sans-serif;font-size:11px;line-height:1.4;padding:0 20px 0 0;color:rgba(255,255,255,0.4);font-weight:400;white-space:nowrap}
+@media(max-width:700px){.q10sn{display:none}.q10sb{width:100%;justify-content:center}.q10st{font-size:15px;padding:14px 28px}}
+.htg{padding:14px 18px 18px;border-top:1px solid rgba(255,255,255,0.07);display:flex;gap:8px;flex-wrap:wrap}
+.htg span{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:.04em;color:#00f5d4}
+.ttbb{position:fixed;right:12px;top:50%;transform:translateY(-50%);display:none;flex-direction:column;align-items:center;gap:4px;z-index:90;background:rgba(8,8,8,0.75);backdrop-filter:blur(12px);border-radius:32px;padding:10px 8px;border:1px solid rgba(255,255,255,0.07);box-shadow:0 8px 32px rgba(0,0,0,0.5)}
+.ttbb.on{display:flex}
+.ttdi{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#00f5d4,#00d4b8);display:flex;align-items:center;justify-content:center;margin-bottom:2px;box-shadow:0 4px 16px rgba(0,245,212,0.4)}
+.ttdi span{font-family:'Montserrat',sans-serif;font-weight:900;font-size:8px;color:#0a0a0a;letter-spacing:-.02em}
+.ttbt{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0}
+.ttic{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;transition:all .2s}
+.ttcn{font-family:'Inter Tight',sans-serif;font-weight:800;font-size:12px;color:rgba(255,255,255,0.8);display:block;text-align:center;min-width:36px}
+.ttbt.lkd .ttic{background:rgba(255,45,85,0.2);box-shadow:0 0 0 2px #ff2d55,0 0 22px rgba(255,45,85,0.5);animation:hburst .4s ease}
+.ttbt.lkd .ttcn{color:#ff2d55}
+.ttbt.svd .ttic{background:rgba(0,245,212,0.15);box-shadow:0 0 0 2px #00f5d4,0 0 18px rgba(0,245,212,0.4);animation:sburst .4s ease}
+.ttbt.svd .ttcn{color:#00f5d4}
+.cnp{animation:npop .4s ease}
+.ttrg{margin-top:4px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.ttrg span{font-family:'Inter Tight',sans-serif;font-weight:700;font-size:9px;color:rgba(255,255,255,0.35)}
+#results{background:#0a0a0a;padding:32px 40px 40px;display:none;animation:fu .5s ease forwards;border-top:5px solid #00f5d4}
+#results.on{display:block}
+.rsi{max-width:680px;margin:0 auto}
+.rst{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:24px;padding-bottom:28px;border-bottom:1px solid rgba(255,255,255,0.07);margin-bottom:24px}
+.gsc{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:88px;line-height:1;letter-spacing:-.04em;color:#00f5d4;text-shadow:0 0 48px rgba(0,245,212,0.4);animation:pp .5s cubic-bezier(.34,1.56,.64,1)}
+.gdn{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:28px;color:rgba(255,255,255,0.12);letter-spacing:-.03em}
+.glb{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.3)}
+.gct{font-family:'Inter Tight',sans-serif;font-weight:700;font-size:18px;color:#fff}
+.gbb{width:120px;height:2px;background:#1a1a1a;margin-top:6px;overflow:hidden}
+.gbf{height:100%;background:#00f5d4;transition:width .5s}
+.rmg{font-family:'Inter',sans-serif;font-size:13px;color:rgba(255,255,255,0.5);line-height:1.7;max-width:280px;text-align:right}
+.rmg strong{color:#fff}
+.aic{display:none;gap:14px;background:rgba(0,245,212,0.05);border:1px solid rgba(0,245,212,0.15);padding:16px 18px;margin-bottom:20px}
+.aic.on{display:flex}
+.fds{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fd{padding:16px 18px;background:rgba(255,255,255,0.025);border-left:3px solid #00f5d4}
+.fl{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#00f5d4;margin-bottom:6px}
+.fb{font-family:'Inter',sans-serif;font-size:12px;color:rgba(255,255,255,0.55);line-height:1.55}
+.wkb{margin-top:20px;display:inline-flex;align-items:center;gap:8px;background:#00f5d4;color:#0a0a0a;font-family:'Inter Tight',sans-serif;font-weight:900;font-size:13px;letter-spacing:.12em;text-transform:uppercase;padding:14px 32px;border:none;cursor:pointer;transition:background .2s;border-radius:50px}
+.wkb:hover{background:rgba(0,245,212,0.8)}
+.cta{background:#00f5d4;padding:72px 40px;text-align:center;position:relative;overflow:hidden}
+.ctag{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Montserrat',sans-serif;font-weight:900;font-size:clamp(120px,20vw,300px);color:rgba(0,0,0,0.06);white-space:nowrap;pointer-events:none;user-select:none;letter-spacing:-.04em}
+.ctai{position:relative}
+.ctae{font-family:'Inter',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(0,0,0,0.5);margin-bottom:8px}
+.ctat{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(44px,7vw,96px);line-height:.88;letter-spacing:-.04em;color:#0a0a0a;margin-bottom:18px}
+.ctat span{color:#fff}
+.ctab{font-family:'Inter',sans-serif;font-size:15px;line-height:1.8;color:rgba(0,0,0,0.65);margin:0 auto 36px;max-width:480px}
+.ctab a{color:#0a0a0a;font-weight:600;text-decoration:underline}
+.ctabs{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.ctabn{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:14px 28px;font-weight:500;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;border-radius:100px;text-decoration:none;border:none;min-width:180px;text-align:center;line-height:1;}
+.ctabn.sl{background:#fff;color:#0a0a0a;border:none}
+.ctabn.sl:hover{background:#000;color:#fff}
+.ctabn.dk{background:#0a0a0a;color:#fff;}
+.ctabn.dk:hover{background:#fff;color:#0a0a0a;}
+.ctabn.ol{background:transparent;color:#0a0a0a;border:2px solid rgba(0,0,0,0.5)}
+.ctabn.ol:hover{background:#0a0a0a;color:#fff;border-color:#0a0a0a}
+.sf{position:relative;z-index:20;background:#0a0a0a;border-top:3px solid #00f5d4;padding:52px 48px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:32px;}
+.footer-logo{display:inline-flex;flex-direction:column;line-height:1;text-decoration:none;align-items:flex-start;}
+.footer-logo .fl-top,.footer-logo .fl-bot{font-family:'Montserrat',sans-serif;font-weight:900;font-size:13px;line-height:0.9;letter-spacing:-0.01em;text-transform:uppercase;display:block;color:#fff;}
+.footer-logo .fl-top .c{color:#00f5d4;}
+.footer-logo .fl-bar{width:28px;height:3px;background:#00f5d4;margin-top:4px;display:block;}
+.footer-tagline{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-top:10px;}
+.footer-links{display:flex;gap:24px;list-style:none;justify-content:center;flex-wrap:wrap;padding:0;margin:0;}
+.footer-links a{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);text-decoration:none;transition:color .2s;}
+.footer-links a:hover{color:#00f5d4;}
+.footer-links a.footer-pink{color:#ff2d7a !important;}
+.footer-right{text-align:right;}
+.footer-social{display:flex;gap:10px;justify-content:flex-end;margin-bottom:10px;}
+.footer-social a{color:rgba(255,255,255,0.25);transition:color .2s;display:flex;}
+.footer-social a:hover{color:#00f5d4;}
+.footer-social svg{width:17px;height:17px;}
+.footer-copy{font-family:'Inter',sans-serif;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.15);margin-top:6px;}
+@media(max-width:768px){.sf{grid-template-columns:1fr;gap:28px;padding:40px 24px;text-align:center;}.footer-social{justify-content:center;}.footer-right{text-align:center;}.footer-links{justify-content:center;}.footer-logo{align-items:center;}}
+/* legacy audit footer classes for backward compat (unused now) */
+.flo{display:flex;flex-direction:column;text-decoration:none;line-height:1}
+.flo .nl-top,.flo .nl-bot,.flo span{font-family:'Montserrat',sans-serif;font-weight:900;font-size:14px;color:#fff;line-height:.9;letter-spacing:.02em;text-transform:uppercase;padding-right:2px}
+.flo .cy{color:#00f5d4}
+.flb{width:100%;height:3px;background:#00f5d4;margin-top:4px}
+.fr{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.flk{display:flex;gap:18px}
+.flk a{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3)}
+.flk a:hover{color:#00f5d4}
+.fso{display:flex;gap:10px}
+.fso a{color:rgba(255,255,255,0.28);display:flex}
+.fso a:hover{color:#00f5d4}
+.fem{font-family:'Inter',sans-serif;font-size:10px;color:rgba(255,255,255,0.3)}
+.fem:hover{color:#00f5d4}
+.lf{position:fixed;bottom:20px;left:16px;z-index:85;display:none;flex-direction:column-reverse;gap:6px;max-height:200px;overflow:hidden;width:290px;pointer-events:none}
+.lf.on{display:flex}
+.le{background:rgba(10,10,10,0.88);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:8px 14px;display:flex;align-items:center;gap:8px;white-space:nowrap;animation:lin .3s ease forwards}
+.le.out{animation:lout .4s ease forwards}
+.lav{display:none}
+.ltx{font-family:'Inter',sans-serif;font-size:11px;color:rgba(255,255,255,0.8);overflow:hidden;text-overflow:ellipsis;font-style:italic}
+@media(max-width:860px){nav{padding:0 16px;height:52px}.nav-mid{display:none}.hero{grid-template-columns:1fr;padding-top:52px;min-height:auto}.hleft{padding:36px 20px 28px;border-right:none;min-height:auto}.hright{padding:32px 20px 40px;gap:28px;min-height:auto}.hwm{display:none}.cbox{padding:14px 16px}.cbox span{font-size:clamp(20px,6vw,28px)}.hdesc h2{font-size:clamp(20px,5vw,26px)}.hdesc p{font-size:13px;max-width:100%}.howlbl{font-size:14px}.howtit{font-size:12px}.howdsc{font-size:12px}.gaprow{flex-direction:column;align-items:flex-start;gap:14px}.gapln{display:none}.abtn{width:100%;justify-content:center;padding:14px 20px;font-size:12px}.fgbtn{max-width:100%}.hl span{font-size:clamp(44px,12vw,72px)}.hctat{font-size:clamp(20px,5vw,26px)}.fds{grid-template-columns:1fr}.cta{padding:48px 20px}.sf{padding:20px 20px}.flk{display:none}}@media(min-width:769px){}
+</style>
+</head>
+<body>
+<!-- Hidden form for Netlify form detection. Real submission happens via JS in doSub(). -->
+<form name="audit" netlify netlify-honeypot="bot-field" hidden>
+  <input type="text" name="first_name">
+  <input type="text" name="last_name">
+  <input type="email" name="email">
+  <input type="tel" name="phone">
+  <input type="text" name="brand_name">
+  <input type="text" name="website_handle">
+  <textarea name="biggest_problem"></textarea>
+  <input type="text" name="audit_gaps_score">
+  <textarea name="audit_summary"></textarea>
+  <textarea name="audit_insights"></textarea>
+  <input type="text" name="bot-field">
+</form>
+<nav id="mainNav">
+  <div class="nav-left">
+    <a href="index.html" class="nav-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"></path></svg>
+    </a>
+    <a href="index.html" class="nav-logo">
+      <span class="nl-top"><span class="c">BERMO.</span></span>
+      <span class="nl-bot">COLLECTIVE</span>
+      <div class="nl-bar"></div>
+    </a>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;position:relative;">
+    <div class="nav-social">
+      <a href="https://instagram.com/bermo.co" target="_blank"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"></path></svg></a>
+      <a href="https://tiktok.com/@bermo.co" target="_blank"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.89 2.89 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.95a8.2 8.2 0 0 0 4.78 1.52V7.01a4.85 4.85 0 0 1-1.01-.32z"></path></svg></a>
+      <a href="https://linkedin.com/company/bermo-collective" target="_blank"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"></path><circle cx="4" cy="4" r="2"></circle></svg></a>
+      <a href="mailto:hello@bermoco.com"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"></path></svg></a>
+    </div>
+    <a href="bermo-audit.html#quiz" class="nav-audit">Free Audit</a>
+    <button class="nav-menu-btn" id="menuBtn">
+      <span></span><span></span>
+    </button>
+    <div class="nav-dropdown" id="navDropdown">
+      <a href="index.html"><span style="display:flex;flex-direction:column;align-items:flex-start"><span>Home</span><span style="display:block;font-family:&#39;Inter&#39;,sans-serif;font-weight:400;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-top:3px;line-height:1.3">Where it all starts</span></span></a>
+      <a href="bermo-services.html"><span style="display:flex;flex-direction:column;align-items:flex-start"><span>The Bermo Shop</span><span style="display:block;font-family:&#39;Inter&#39;,sans-serif;font-weight:400;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-top:3px;line-height:1.3">Services + Pricing</span></span></a>
+      <a href="index.html#about"><span style="display:flex;flex-direction:column;align-items:flex-start"><span>About</span><span style="display:block;font-family:&#39;Inter&#39;,sans-serif;font-weight:400;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-top:3px;line-height:1.3">The person behind the work</span></span></a>
+      <a href="bermo-CollabNation.html" class="dd-pink"><span style="display:flex;flex-direction:column;align-items:flex-start"><span>Collab Nation</span><span style="display:block;font-family:&#39;Montserrat&#39;,sans-serif;font-weight:900;font-size:13px;color:#fff;letter-spacing:-.01em;text-transform:uppercase;margin-top:2px;line-height:1">by BERMO.</span><span style="display:block;font-family:&#39;Inter&#39;,sans-serif;font-weight:400;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-top:4px;line-height:1.3">The Social Pop-Up</span></span></a>
+      <a href="bermo-contact.html"><span style="display:flex;flex-direction:column;align-items:flex-start"><span>Contact</span><span style="display:block;font-family:&#39;Inter&#39;,sans-serif;font-weight:400;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-top:3px;line-height:1.3">Fix the Break</span></span></a>
+      <a href="bermo-audit.html" class="dd-active"><span style="display:flex;flex-direction:column;align-items:flex-start"><span>Free Brand Audit</span><span style="display:block;font-family:&#39;Inter&#39;,sans-serif;font-weight:400;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#00f5d4;margin-top:3px;line-height:1.3">Find the Break</span></span></a>
+    </div>
+  </div>
+</nav>
+<section class="hero">
+  <div class="hghost">FIND IT.</div>
+  <div class="hleft">
+    <div><div class="hl"><span>FIND THE</span><span>EXACT</span><span>PLACE</span><span class="cy">YOUR</span><span class="cy">BUSINESS</span><span class="cy">BREAKS.</span></div><div class="hbar"></div><div class="hsub">Free Brand Audit · BERMO.COLLECTIVE</div></div>
+    <div>
+      <p class="hctat">What is your business saying when you're not in the room?</p>
+      <p class="hctai">Growth breaks when translation breaks.</p>
+      <a href="bermo-audit.html#quiz" class="fgbtn" onmouseover="this.style.background=&#39;#00f5d4&#39;" onmouseout="this.style.background=&#39;#0a0a0a&#39;">
+        <div class="fgtag">FREE</div><div class="fgbody"><strong>Get My Free Guide</strong><small>It includes the 5 gaps most brands miss and things you can do now to fix them fast.</small></div><div class="fgarr">→</div>
+      </a>
+    </div>
+  </div>
+  <div class="hright">
+    <div><div class="cbox"><span>YOU ALREADY</span><span>KNOW SOMETHING</span><span class="cy">ISN'T WORKING.</span></div><div class="wlbl">WHAT THIS IS</div><div class="hdesc"><h2>A brand audit built to find exactly where your business <em>breaks.</em></h2><p>If you've tried everything and nothing sticks, start here.<br><br>10 questions. 2 minutes. Results that save you months. <strong>Walk away knowing the one thing to fix first</strong> and get my free guide the second you submit.</p></div></div>
+    <div>
+      <div class="howlbl">How It Works</div>
+      <div class="howstep"><span class="hownum">01</span><div><div class="howtit">Fill in your info</div><div class="howdsc">So I can send the free guide the second you submit</div></div></div>
+      <div class="howstep"><span class="hownum">02</span><div><div class="howtit">Answer 10 questions</div><div class="howdsc">4 choices each plus one open question. About 3 minutes.</div></div></div>
+      <div class="howstep"><span class="hownum">03</span><div><div class="howtit">Submit</div><div class="howdsc">See your results and get the free guide instantly</div></div></div>
+      <div class="howstep"><span class="hownum">04</span><div><div class="howtit">Result</div><div class="howdsc">I follow up personally within 24 hours to go deeper</div></div></div>
+      <div class="gaprow"><span class="gaptxt">Let's find the gap</span><div class="gapln"></div><a href="bermo-audit.html#quiz" class="abtn" onmouseover="this.style.background=&#39;rgba(0,245,212,0.8)&#39;" onmouseout="this.style.background=&#39;#00f5d4&#39;">Free Brand Audit →</a></div>
+    </div>
+    <div class="hwm">FREE AUDIT · BERMO.COLLECTIVE ·</div>
+  </div>
+</section>
+<div class="ticker"><div class="tki" id="tkinner"><span>clarity <span style="opacity:.35">·</span></span><span>consistency <span style="opacity:.35">·</span></span><span>positioning <span style="opacity:.35">·</span></span><span>demand readiness <span style="opacity:.35">·</span></span><span>AI visibility <span style="opacity:.35">·</span></span><span>execution <span style="opacity:.35">·</span></span><span>brand strategy <span style="opacity:.35">·</span></span><span>clarity <span style="opacity:.35">·</span></span><span>consistency <span style="opacity:.35">·</span></span><span>positioning <span style="opacity:.35">·</span></span><span>demand readiness <span style="opacity:.35">·</span></span><span>AI visibility <span style="opacity:.35">·</span></span><span>execution <span style="opacity:.35">·</span></span><span>brand strategy <span style="opacity:.35">·</span></span></div></div>
+<div id="quiz">
+  <div class="qhdr">
+    <div class="qey">Free Brand Audit</div>
+    <h2 class="qtit">THE<br><span>READ.</span></h2>
+    <p class="qsub">10 questions that find exactly where your brand breaks.</p>
+  </div>
+  <div class="ttnw">
+    <div class="ttn">
+      <div class="ttis">
+        <div class="ttlv"><svg width="12" height="10" viewBox="0 0 24 20" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"><rect x="1" y="3" width="22" height="14" rx="2"></rect><polyline points="7 20 12 17 17 20"></polyline></svg><span>LIVE</span></div>
+        <span class="ttit">Explore</span><span class="ttit">Local</span>
+        <div class="ttfl"><span>Following</span><div class="ttdt"></div></div>
+        <span class="ttit">Shop</span>
+        <div class="ttfy"><span>For You</span><div class="ttfyb"></div></div>
+      </div>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="2.5" style="flex-shrink:0;margin-left:8px"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+    </div>
+    <div class="pgw"><div class="pgf" id="pgf" style="width: 0%;"></div></div>
+    <div class="pgl"><span>bermo.co</span><span class="an" id="pgl">0/8 answered</span></div>
+  </div>
+  <div class="qw">
+    <div class="pc" id="pcard">
+      <div class="pact">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="pav"><span>BERMO.</span></div>
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><span class="pnm">bermo.co</span><span class="pmt">Brand Growth Strategy + Execution</span><span class="pmt2">· Free Brand Audit</span></div>
+        </div>
+        <a href="https://instagram.com/bermo.co" target="_blank" class="flwb" style="text-decoration:none">Follow</a>
+      </div>
+      <div id="qc"><div class="qbl" id="qb0"><div class="qnr"><span class="qn" id="qn0">01</span><span class="qat" id="qt0">✓ answered</span></div><p class="qtx">What is your business saying when you're not in the room?</p><div class="og" id="og0"><button class="ob" id="ob00" onclick="pick(0,0)"><div class="ol"><span>A</span></div><span class="otx">Yes. People get it immediately.</span></button><button class="ob" id="ob01" onclick="pick(0,1)"><div class="ol"><span>B</span></div><span class="otx">I have a version but it changes depending who I'm talking to.</span></button><button class="ob" id="ob02" onclick="pick(0,2)"><div class="ol"><span>C</span></div><span class="otx">I explain it and then I have to keep explaining. I can tell they're not getting it.</span></button><button class="ob" id="ob03" onclick="pick(0,3)"><div class="ol"><span>D</span></div><span class="otx">Honestly, I'm still figuring out how to say it.</span></button></div><div class="ahab" id="ah0"><div class="ahaav"><span>BERMO.</span></div><p class="ahatx" id="aht0"></p></div><div class="bkdn" id="bd0">(full breakdown and quick fix below)</div></div><div class="qbl" id="qb1"><div class="qnr"><span class="qn" id="qn1">02</span><span class="qat" id="qt1">✓ answered</span></div><p class="qtx">Can someone explain what you do in under 30 seconds, and do people actually get it?</p><div class="og" id="og1"><button class="ob" id="ob10" onclick="pick(1,0)"><div class="ol"><span>A</span></div><span class="otx">Yes. Short, clear, and it lands every time.</span></button><button class="ob" id="ob11" onclick="pick(1,1)"><div class="ol"><span>B</span></div><span class="otx">Yes, but it changes per person.</span></button><button class="ob" id="ob12" onclick="pick(1,2)"><div class="ol"><span>C</span></div><span class="otx">I explain it and I have to keep explaining, or I can tell they don't get it.</span></button><button class="ob" id="ob13" onclick="pick(1,3)"><div class="ol"><span>D</span></div><span class="otx">No. There's always more to say and people look confused.</span></button></div><div class="ahab" id="ah1"><div class="ahaav"><span>BERMO.</span></div><p class="ahatx" id="aht1"></p></div><div class="bkdn" id="bd1">(full breakdown and quick fix below)</div></div><div class="qbl" id="qb2"><div class="qnr"><span class="qn" id="qn2">03</span><span class="qat" id="qt2">✓ answered</span></div><p class="qtx">If you disappeared from your brand for 30 days, would anyone notice a difference?</p><div class="og" id="og2"><button class="ob" id="ob20" onclick="pick(2,0)"><div class="ol"><span>A</span></div><span class="otx">No. The voice and look hold without me.</span></button><button class="ob" id="ob21" onclick="pick(2,1)"><div class="ol"><span>B</span></div><span class="otx">It would drift a little but stay recognizable.</span></button><button class="ob" id="ob22" onclick="pick(2,2)"><div class="ol"><span>C</span></div><span class="otx">It would fall apart pretty fast.</span></button><button class="ob" id="ob23" onclick="pick(2,3)"><div class="ol"><span>D</span></div><span class="otx">It already doesn't feel consistent with me in it.</span></button></div><div class="ahab" id="ah2"><div class="ahaav"><span>BERMO.</span></div><p class="ahatx" id="aht2"></p></div><div class="bkdn" id="bd2">(full breakdown and quick fix below)</div></div><div class="qbl" id="qb3"><div class="qnr"><span class="qn" id="qn3">04</span><span class="qat" id="qt3">✓ answered</span></div><p class="qtx">When you post content, what actually happens?</p><div class="og" id="og3"><button class="ob" id="ob30" onclick="pick(3,0)"><div class="ol"><span>A</span></div><span class="otx">People respond, reach out, something moves.</span></button><button class="ob" id="ob31" onclick="pick(3,1)"><div class="ol"><span>B</span></div><span class="otx">Engagement but nothing that turns into business.</span></button><button class="ob" id="ob32" onclick="pick(3,2)"><div class="ol"><span>C</span></div><span class="otx">Hit or miss. No real pattern.</span></button><button class="ob" id="ob33" onclick="pick(3,3)"><div class="ol"><span>D</span></div><span class="otx">It goes quiet. Every time.</span></button></div><div class="ahab" id="ah3"><div class="ahaav"><span>BERMO.</span></div><p class="ahatx" id="aht3"></p></div><div class="bkdn" id="bd3">(full breakdown and quick fix below)</div></div><div class="qbl" id="qb4"><div class="qnr"><span class="qn" id="qn4">05</span><span class="qat" id="qt4">✓ answered</span></div><p class="qtx">Would a stranger see your website, your Instagram, and hear your pitch and feel like it's the same brand?</p><div class="og" id="og4"><button class="ob" id="ob40" onclick="pick(4,0)"><div class="ol"><span>A</span></div><span class="otx">Yes. Same energy everywhere.</span></button><button class="ob" id="ob41" onclick="pick(4,1)"><div class="ol"><span>B</span></div><span class="otx">Close, but one of them is off.</span></button><button class="ob" id="ob42" onclick="pick(4,2)"><div class="ol"><span>C</span></div><span class="otx">They'd feel like different businesses.</span></button><button class="ob" id="ob43" onclick="pick(4,3)"><div class="ol"><span>D</span></div><span class="otx">It looks more put together in my head than it actually is.</span></button></div><div class="ahab" id="ah4"><div class="ahaav"><span>BERMO.</span></div><p class="ahatx" id="aht4"></p></div><div class="bkdn" id="bd4">(full breakdown and quick fix below)</div></div><div class="qbl" id="qb5"><div class="qnr"><span class="qn" id="qn5">06</span><span class="qat" id="qt5">✓ answered</span></div><p class="qtx">Are you aware of who else is in your space, and do you know exactly why someone picks you over them?</p><div class="og" id="og5"><button class="ob" id="ob50" onclick="pick(5,0)"><div class="ol"><span>A</span></div><span class="otx">Yes. I know who they are and exactly where we win.</span></button><button class="ob" id="ob51" onclick="pick(5,1)"><div class="ol"><span>B</span></div><span class="otx">I know who they are, but I'm not always sure what tips the decision.</span></button><button class="ob" id="ob52" onclick="pick(5,2)"><div class="ol"><span>C</span></div><span class="otx">I have a general sense but nothing sharp enough to use.</span></button><button class="ob" id="ob53" onclick="pick(5,3)"><div class="ol"><span>D</span></div><span class="otx">Not really. I'm heads down in my own lane.</span></button></div><div class="ahab" id="ah5"><div class="ahaav"><span>BERMO.</span></div><p class="ahatx" id="aht5"></p></div><div class="bkdn" id="bd5">(full breakdown and quick fix below)</div></div><div class="qbl" id="qb6"><div class="qnr"><span class="qn" id="qn6">07</span><span class="qat" id="qt6">✓ answered</span></div><p class="qtx">What actually happens to your business if you step away for a week?</p><div class="og" id="og6"><button class="ob" id="ob60" onclick="pick(6,0)"><div class="ol"><span>A</span></div><span class="otx">It keeps moving. Systems are in place.</span></button><button class="ob" id="ob61" onclick="pick(6,1)"><div class="ol"><span>B</span></div><span class="otx">It slows but doesn't stop.</span></button><button class="ob" id="ob62" onclick="pick(6,2)"><div class="ol"><span>C</span></div><span class="otx">It stalls pretty quickly.</span></button><button class="ob" id="ob63" onclick="pick(6,3)"><div class="ol"><span>D</span></div><span class="otx">It stops. I am the system.</span></button></div><div class="ahab" id="ah6"><div class="ahaav"><span>BERMO.</span></div><p class="ahatx" id="aht6"></p></div><div class="bkdn" id="bd6">(full breakdown and quick fix below)</div></div><div class="qbl" id="qb7"><div class="qnr"><span class="qn" id="qn7">08</span><span class="qat" id="qt7">✓ answered</span></div><p class="qtx">Where does AI fit in your business right now?</p><div class="og" id="og7"><button class="ob" id="ob70" onclick="pick(7,0)"><div class="ol"><span>A</span></div><span class="otx">We use it and we still sound like us.</span></button><button class="ob" id="ob71" onclick="pick(7,1)"><div class="ol"><span>B</span></div><span class="otx">We use it but everything is starting to sound the same.</span></button><button class="ob" id="ob72" onclick="pick(7,2)"><div class="ol"><span>C</span></div><span class="otx">We're not really using it yet.</span></button><button class="ob" id="ob73" onclick="pick(7,3)"><div class="ol"><span>D</span></div><span class="otx">We're using it everywhere and honestly we might have lost our voice.</span></button></div><div class="ahab" id="ah7"><div class="ahaav"><span>BERMO.</span></div><p class="ahatx" id="aht7"></p></div><div class="bkdn" id="bd7">(full breakdown and quick fix below)</div></div></div>
+      <div class="qbl" id="q9b">
+        <div class="qnr"><span class="qn" id="qn9">09</span></div>
+        <p class="qtx">If you could change or add one thing in your business right now, what would it be?</p>
+        <p class="q9nt">Be specific. The more honest you are, the better the follow-up.</p>
+        <textarea id="fprob" class="q9ta" rows="3" placeholder="Type your answer here..." oninput="hQ9(this)"></textarea>
+        <div class="bkdn" id="bd9">(full breakdown and quick fix below)</div>
+      </div>
+      <div class="q10b" id="q10b">
+        <div class="q10h"><span class="q10n">10</span><span class="q10t">Last step. Enter your info to unlock your results.</span></div>
+        <div class="q10ft">Enter Your Info</div>
+        <div class="q10fs">to get the 5 gaps most people miss and how to fix them today.</div>
+        <div class="q10fs2">Free guide sent to your inbox the second you hit submit.</div>
+        <div class="q10fg">
+          <div><label class="q10lb">First Name <span class="req">*</span></label><input class="q10in" id="ffst" type="text" placeholder="Your first name"></div>
+          <div><label class="q10lb">Last Name</label><input class="q10in" id="flst" type="text" placeholder="Last name"></div>
+          <div><label class="q10lb">Email <span class="req">*</span></label><input class="q10in" id="feml" type="email" placeholder="your@email.com"><div class="q10hi">Guide lands here instantly.</div></div>
+          <div><label class="q10lb">Phone <span class="req">*</span></label><input class="q10in" id="fphn" type="tel" placeholder="+1 (___) ___-____"><div class="q10hi">I follow up personally, not a bot.</div></div>
+          <div><label class="q10lb">Brand Name <span class="req">*</span></label><input class="q10in" id="fbrd" type="text" placeholder="What&#39;s your brand called?"></div>
+          <div><label class="q10lb">Website / Handle</label><input class="q10in" id="fhdl" type="text" placeholder="yoursite.com or @handle"><div class="q10hi">Makes your audit 10x sharper.</div></div>
+        </div>
+        <div class="q10er" id="ferr">Please fill in all required fields.</div>
+        <button class="q10sb" onclick="doSub()">
+          <div class="q10st">Get My Read →</div>
+          <div class="q10sn">free breakdown and quick fix in your inbox</div>
+        </button>
+      </div>
+      <div class="htg"><span>#brandstrategy</span><span>#founderbrand</span><span>#AIvisibility</span><span>#growthhacking</span></div>
+    </div>
+    <div class="ttbb" id="ttbb">
+      <div class="ttdi"><span>BERMO.</span></div>
+      <button class="ttbt" id="lkbt" onclick="doLk()"><div class="ttic" id="lkic"><svg width="28" height="28" viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"><path d="M15 8C9.477 8 5 12.477 5 18c0 9.5 10 17 19 22 9-5 19-12.5 19-22 0-5.523-4.477-10-10-10-3.025 0-5.735 1.342-7.588 3.467A9.968 9.968 0 0 0 18 8"></path></svg></div><span class="ttcn" id="cnl">12</span></button>
+      <button class="ttbt" onclick="doCm()"><div class="ttic"><svg width="27" height="27" viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"><path d="M24 4C12.954 4 4 11.163 4 20c0 4.957 2.669 9.394 6.908 12.477L9 44l11.07-5.04C21.33 39.3 22.647 39.5 24 39.5c11.046 0 20-7.163 20-16S35.046 4 24 4z"></path><circle cx="16" cy="20" r="2" fill="#fff"></circle><circle cx="24" cy="20" r="2" fill="#fff"></circle><circle cx="32" cy="20" r="2" fill="#fff"></circle></svg></div><span class="ttcn" id="cnc">3</span></button>
+      <button class="ttbt" onclick="doSh()"><div class="ttic"><svg width="27" height="27" viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M30 8l10 10-10 10"></path><path d="M40 18H20C13.373 18 8 23.373 8 30v10"></path></svg></div><span class="ttcn" id="cns">1</span></button>
+      <button class="ttbt" id="svbt" onclick="doSv()"><div class="ttic" id="svic"><svg width="25" height="25" viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"><path d="M10 6h28v36l-14-9-14 9V6z"></path></svg></div><span class="ttcn" id="cnsv">5</span></button>
+      <div class="ttrg"><svg width="36" height="36" viewBox="0 0 40 40" style="transform:rotate(-90deg)"><circle cx="20" cy="20" r="16" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="3.5"></circle><circle cx="20" cy="20" r="16" fill="none" stroke="#00f5d4" stroke-width="3.5" stroke-dasharray="100.5" stroke-dashoffset="100.5" stroke-linecap="round" id="prg" style="transition: stroke-dashoffset 0.5s; stroke-dashoffset: 100.5;"></circle></svg><span id="rll">0/8</span></div>
+    </div>
+  </div>
+</div>
+<div id="results">
+  <div class="rsi">
+    <div class="rst">
+      <div style="display:flex;align-items:baseline;gap:10px"><div class="gsc" id="gsc">0</div><div class="gdn">/8</div><div><div class="glb">Gaps identified</div><div class="gct" id="gct">0 of 8</div><div class="gbb"><div class="gbf" id="gbf"></div></div></div></div>
+      <div class="rmg" id="rmg"></div>
+    </div>
+
+    <div class="fds">
+      <div class="fd"><div class="fl">What We See</div><p class="fb">A brand with real potential that hasn't been given a framework to grow from.</p></div>
+      <div class="fd"><div class="fl">The Real Gap</div><p class="fb">Strategy lives in your head. It doesn't exist in your market yet. That's the translation work.</p></div>
+      <div class="fd"><div class="fl">What Changes</div><p class="fb">Clarity first. Content second. Growth follows. Every single time.</p></div>
+      <div class="fd"><div class="fl">The BERMO Difference</div><p class="fb">I build inside your business until it's actually working. Not advice. Execution.</p></div>
+    </div>
+    <div style="margin:28px 0 22px;padding:24px 26px;background:#00f5d4;color:#0a0a0a;border-radius:4px;font-family:'Inter Tight',sans-serif;">
+      <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:900;margin-bottom:8px;">Sent</div>
+      <div style="font-size:20px;line-height:1.2;font-weight:900;letter-spacing:-0.02em;text-transform:uppercase;">Free guide and results sent to your email.</div>
+      <div style="font-size:14px;line-height:1.5;font-weight:500;margin-top:8px;">I will reach out within 24 hours.</div>
+    </div>
+    <button class="wkb" onclick="window.location=&#39;bermo-contact.html&#39;">Work With BERMO. →</button>
+  </div>
+</div>
+<div class="cta reveal"><div class="ctag">BERMO.</div><div class="ctai"><p class="ctae">YOU KNOW WHAT'S NOT WORKING.</p><h2 class="ctat">Now decide if<br><span>you're fixing it.</span></h2><p class="ctab">As soon as you submit, you get my free guide with 5 things you can do right now to fix it instantly. I will reach out within 24 hours or email me at <a href="mailto:lexi@bermoco.com" style="color:#0a0a0a;font-weight:600;text-decoration:underline">lexi@bermoco.com</a></p><div class="ctabs"><a href="bermo-services.html" class="ctabn sl">See Our Full Services</a><a href="bermo-audit.html#" class="ctabn sl">Get The Free Guide</a><a href="bermo-contact.html" class="ctabn dk">Contact Me</a></div></div></div>
+<footer class="sf">
+  <div>
+    <a href="index.html" class="footer-logo">
+      <span class="fl-top"><span class="c">BERMO.</span></span>
+      <span class="fl-bot">COLLECTIVE</span>
+      <span class="fl-bar"></span>
+    </a>
+    <div class="footer-tagline">Brand Growth Strategy + Execution</div>
+  </div>
+  <ul class="footer-links">
+    <li><a href="bermo-services.html">Services</a></li>
+    <li><a href="bermo-CollabNation.html" class="footer-pink">Collab Nation</a></li>
+    <li><a href="bermo-audit.html">Free Audit</a></li>
+    <li><a href="bermo-contact.html">Contact</a></li>
+  </ul>
+  <div class="footer-right">
+    <div class="footer-social">
+      <a href="https://instagram.com/bermo.co" target="_blank"><svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"></path></svg></a>
+      <a href="https://tiktok.com/@bermo.co" target="_blank"><svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.17 8.17 0 004.78 1.52V6.75a4.85 4.85 0 01-1.01-.06z"></path></svg></a>
+      <a href="https://linkedin.com/company/bermo-collective" target="_blank"><svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"></path></svg></a>
+    </div>
+    <div class="footer-copy">© 2025 BERMO.COLLECTIVE. All rights reserved.</div>
+  </div>
+</footer>
+<div class="lf" id="lf"></div>
+<script>
+var QS=[
+  {id:0,q:"What is your business saying when you're not in the room?",sub:"If someone asked what your business does right now, could you say it in one sentence, and would it land?",opts:["Yes. People get it immediately.","I have a version but it changes depending who I'm talking to.","I explain it and then I have to keep explaining. I can tell they're not getting it.","Honestly, I'm still figuring out how to say it."],aha:["One sentence, instant clarity. That's the whole game and you have it.","Every time the answer changes, a little trust leaks out. One version, everywhere.","If you have to keep explaining, the positioning isn't there yet. That's the work.","If you can't say it, they can't sell it for you. Let's find the sentence."],ai:false},
+  {id:1,q:"Can someone explain what you do in under 30 seconds, and do people actually get it?",opts:["Yes. Short, clear, and it lands every time.","Yes, but it changes per person.","I explain it and I have to keep explaining, or I can tell they don't get it.","No. There's always more to say and people look confused."],aha:["Under 30 seconds and it lands. That's a real competitive edge.","If it changes per person, it isn't a pitch yet. That's the thing to fix.","When you have to keep explaining, the gap is in the positioning, not the product.","Clarity isn't about saying more. It's about finding the one thing that makes it obvious."],ai:false},
+  {id:2,q:"If you disappeared from your brand for 30 days, would anyone notice a difference?",opts:["No. The voice and look hold without me.","It would drift a little but stay recognizable.","It would fall apart pretty fast.","It already doesn't feel consistent with me in it."],aha:["A brand that holds without you is a real brand. That's where you want to be.","Drift is fixable. The gaps just need to be named and closed.","If it falls apart without you, you're the brand. Let's fix that.","That's actually the most honest answer in this quiz. And the most solvable."],ai:false},
+  {id:3,q:"When you post content, what actually happens?",opts:["People respond, reach out, something moves.","Engagement but nothing that turns into business.","Hit or miss. No real pattern.","It goes quiet. Every time."],aha:["Content that moves people to act. That's the goal and you're there.","Likes without leads means the positioning in the content isn't landing yet.","Inconsistency is a content strategy problem, not a creativity problem.","Posting into silence is expensive. The content and the brand need to talk to each other."],ai:false},
+  {id:4,q:"Would a stranger see your website, your Instagram, and hear your pitch and feel like it's the same brand?",opts:["Yes. Same energy everywhere.","Close, but one of them is off.","They'd feel like different businesses.","It looks more put together in my head than it actually is."],aha:["Cohesion is trust. Buyers feel this before they even reach out.","One thing off breaks the whole chain. Let's find it.","Every gap between touchpoints is a reason for someone to hesitate.","That gap between vision and reality is exactly what we close."],ai:false},
+  {id:5,q:"Are you aware of who else is in your space, and do you know exactly why someone picks you over them?",opts:["Yes. I know who they are and exactly where we win.","I know who they are, but I'm not always sure what tips the decision.","I have a general sense but nothing sharp enough to use.","Not really. I'm heads down in my own lane."],aha:["Knowing where you win is one of the most powerful things in business. Protect it.","Knowing competitors without knowing the decision gap means you're guessing at the close.","Vague competitor awareness is invisible positioning. Let's make it specific.","Being heads down is necessary. Being unaware of the market is a gap."],ai:false},
+  {id:6,q:"What actually happens to your business if you step away for a week?",opts:["It keeps moving. Systems are in place.","It slows but doesn't stop.","It stalls pretty quickly.","It stops. I am the system."],aha:["A business that runs without you is a real business. You built that.","Slowing is a signal, not a failure. There's a system gap and it's fixable.","Stalling quickly means the business runs on your presence, not on process.","You are the system. That's the most common and the most fixable gap we see."],ai:false},
+  {id:7,q:"Where does AI fit in your business right now?",opts:["We use it and we still sound like us.","We use it but everything is starting to sound the same.","We're not really using it yet.","We're using it everywhere and honestly we might have lost our voice."],aha:["AI as a tool without losing your voice. That's exactly where you want to be.","When everything sounds the same, the brand disappears. Your voice is the differentiator.","Not using it yet means there's speed and leverage sitting on the table.","Using it everywhere and losing the voice is one of the most common gaps right now. Totally fixable."],ai:false}
+];
+var TOTAL=QS.length;
+var JUMPS=[80,400,2000,8000,30000,100000,350000,520000];
+var ans={},acnt=0,lks=12,cms=3,shs=1,svs=5,liked=false,saved=false;
+function fmt(n){if(n>=1000000)return(n/1000000).toFixed(1)+'M';if(n>=10000)return Math.round(n/1000)+'K';if(n>=1000)return(n/1000).toFixed(1)+'K';return String(n);}
+function cUp(el,from,to){var t0=performance.now(),d=800;(function s(t){var p=Math.min((t-t0)/d,1),e=p<0.5?2*p*p:(4-2*p)*p-1;el.textContent=fmt(Math.round(from+(to-from)*e));if(p<1)requestAnimationFrame(s);else el.textContent=fmt(to);})(t0);}
+function sCnt(id,o,n){var el=document.getElementById(id);if(!el)return;el.classList.remove('cnp');void el.offsetWidth;el.classList.add('cnp');cUp(el,o,n);}
+function bldQ(){
+  var c=document.getElementById('qc');if(!c)return;c.innerHTML='';
+  QS.forEach(function(q){
+    var d=document.createElement('div');d.className='qbl';d.id='qb'+q.id;
+    var oh=q.opts.map(function(o,j){return '<button class="ob" id="ob'+q.id+''+j+'" onclick="pick('+q.id+','+j+')"><div class="ol"><span>'+['A','B','C','D'][j]+'</span></div><span class="otx">'+o+'</span></button>';}).join('');
+    d.innerHTML='<div class="qnr"><span class="qn" id="qn'+q.id+'">'+String(q.id+1).padStart(2,'0')+'</span>'+(q.ai?'<span class="aib">&#129302; AI</span>':'')+'<span class="qat" id="qt'+q.id+'">&#10003; answered</span></div><p class="qtx">'+q.q+'</p><div class="og" id="og'+q.id+'">'+oh+'</div><div class="ahab" id="ah'+q.id+'"><div class="ahaav"><span>BERMO.</span></div><p class="ahatx" id="aht'+q.id+'"></p></div><div class="bkdn" id="bd'+q.id+'">(full breakdown and quick fix below)</div>';
+    c.appendChild(d);
+  });
+}
+function pick(qId,j){
+  if(ans[qId]!==undefined)return;
+  ans[qId]=j;acnt++;
+  document.querySelectorAll('#og'+qId+' .ob').forEach(function(b,i){b.disabled=true;b.classList.add(i===j?'sel':'dim');});
+  var n=document.getElementById('qn'+qId);if(n)n.classList.add('lit');
+  var t=document.getElementById('qt'+qId);if(t)t.classList.add('on');
+  var ah=document.getElementById('ah'+qId);var aht=document.getElementById('aht'+qId);
+  if(ah&&aht){aht.textContent=QS[qId].aha[j];ah.style.display='flex';}
+  var bd=document.getElementById('bd'+qId);if(bd)bd.style.display='block';
+  var jump=JUMPS[Math.min(acnt-1,7)]*(0.85+Math.random()*0.3);
+  var ol=lks,oc=cms,os=shs,osv=svs;
+  lks+=Math.floor(jump);cms+=Math.floor(jump*0.11*(0.8+Math.random()*0.4));shs+=Math.floor(jump*0.055*(0.8+Math.random()*0.4));svs+=Math.floor(jump*0.075*(0.8+Math.random()*0.4));
+  sCnt('cnl',ol,lks);sCnt('cnc',oc,cms);sCnt('cns',os,shs);sCnt('cnsv',osv,svs);
+  updPg();addLv(qId+1);
+}
+function updPg(){
+  var pf=document.getElementById('pgf');if(pf)pf.style.width=(acnt/TOTAL*100)+'%';
+  var pl=document.getElementById('pgl');if(pl){pl.textContent=acnt+'/'+TOTAL+' answered';if(acnt===TOTAL)pl.classList.add('done');}
+  var r=document.getElementById('prg');if(r)r.style.strokeDashoffset=100.5*(1-acnt/TOTAL);
+  var rl=document.getElementById('rll');if(rl)rl.textContent=acnt+'/'+TOTAL;
+}
+var q9d=false;
+function hQ9(el){
+  el.style.borderColor=el.value.trim()?'#00f5d4':'rgba(255,255,255,0.12)';
+  if(el.value.trim().length>3&&!q9d){
+    q9d=true;
+    var n=document.getElementById('qn9');if(n)n.style.color='#00f5d4';
+    var bd=document.getElementById('bd9');if(bd)bd.style.display='block';
+  }
+}
+function doLk(){var o=lks;liked=!liked;lks+=liked?1:-1;var b=document.getElementById('lkbt');var sv=document.getElementById('lkic').querySelector('svg');if(liked){b.classList.add('lkd');sv.setAttribute('fill','#ff2d55');sv.setAttribute('stroke','#ff2d55');}else{b.classList.remove('lkd');sv.setAttribute('fill','none');sv.setAttribute('stroke','#fff');}sCnt('cnl',o,lks);}
+function doCm(){var o=cms;cms++;sCnt('cnc',o,cms);}
+function doSh(){var o=shs;shs++;sCnt('cns',o,shs);}
+function doSv(){var o=svs;saved=!saved;svs+=saved?1:-1;var b=document.getElementById('svbt');var sv=document.getElementById('svic').querySelector('svg');if(saved){b.classList.add('svd');sv.setAttribute('fill','#00f5d4');sv.setAttribute('stroke','#00f5d4');}else{b.classList.remove('svd');sv.setAttribute('fill','none');sv.setAttribute('stroke','#fff');}sCnt('cnsv',o,svs);}
+function doSub(){
+  var first=document.getElementById('ffst').value.trim();
+  var last=document.getElementById('flst').value.trim();
+  var email=document.getElementById('feml').value.trim();
+  var phone=document.getElementById('fphn').value.trim();
+  var brand=document.getElementById('fbrd').value.trim();
+  var handle=document.getElementById('fhdl').value.trim();
+  var prob=document.getElementById('fprob').value.trim();
+  var err=document.getElementById('ferr');var hasErr=false;
+  [['ffst',first],['feml',email],['fphn',phone],['fbrd',brand]].forEach(function(p){var el=document.getElementById(p[0]);if(!p[1]){el.classList.add('err');hasErr=true;}else{el.classList.remove('err');}});
+  var pe=document.getElementById('fprob');if(!prob){pe.style.borderColor='#ff4444';hasErr=true;}else{pe.style.borderColor='';}
+  if(hasErr){err.classList.add('on');return;}err.classList.remove('on');
+  var gaps=Object.values(ans).filter(function(v){return v>=2;}).length;
+  var total=Object.keys(ans).length;
+  var res=document.getElementById('results');res.classList.add('on');
+  var sc=document.getElementById('gsc');sc.textContent=gaps;sc.style.color='#00f5d4';sc.style.textShadow='0 0 48px rgba(0,245,212,0.4)';sc.style.animation='none';void sc.offsetWidth;sc.style.animation='pp .5s cubic-bezier(.34,1.56,.64,1)';
+  document.getElementById('gct').textContent=total+' of '+TOTAL;
+  var gb=document.getElementById('gbf');gb.style.background='#00f5d4';gb.style.width=((gaps/TOTAL)*100)+'%';
+  var msgs=['<strong style="color:#fff">Solid foundation.</strong><br>Let\'s talk about where to push harder.','<strong style="color:#fff">One clear gap.</strong><br>One conversation shows you what to fix first.','<strong style="color:#fff">There is a pattern here.</strong><br>Not a tweaks situation.','<strong style="color:#fff">Real gaps, real fixes.</strong><br>I have seen this exact pattern before.'];
+  document.getElementById('rmg').innerHTML=msgs[gaps===0?0:gaps===1?1:gaps<=3?2:3];
+
+  setTimeout(function(){res.scrollIntoView({behavior:'smooth'});},100);
+
+  // Build a readable summary of all multiple-choice Q&A for the internal email
+  var summaryLines=[];
+  for(var i=0;i<TOTAL;i++){
+    if(ans[i]!=null){
+      summaryLines.push('Q'+(i+1)+'. '+QS[i].q);
+      summaryLines.push('A. '+QS[i].opts[ans[i]]);
+      summaryLines.push('');
+    }
+  }
+  var auditSummary=summaryLines.join('\n').trim();
+
+  // Build customer-facing insights: the aha messages for their gap answers (index >= 2).
+  // Take top 3 gap insights to keep the email concise. If no gaps, use the "solid foundation" messages.
+  var gapInsights=[];
+  for(var j=0;j<TOTAL;j++){
+    if(ans[j]!=null && ans[j]>=2 && QS[j].aha && QS[j].aha[ans[j]]){
+      gapInsights.push(QS[j].aha[ans[j]]);
+    }
+  }
+  if(gapInsights.length===0){
+    for(var k=0;k<TOTAL && gapInsights.length<3;k++){
+      if(ans[k]!=null && QS[k].aha && QS[k].aha[ans[k]]) gapInsights.push(QS[k].aha[ans[k]]);
+    }
+  }
+  gapInsights=gapInsights.slice(0,3);
+  var auditInsights=gapInsights.join('||');
+
+  // Payload for both Netlify Forms (storage + built-in notification) and the Resend function (fancy emails)
+  var payload={
+    'first_name':first,
+    'last_name':last,
+    'email':email,
+    'phone':phone,
+    'brand_name':brand,
+    'website_handle':handle,
+    'biggest_problem':prob,
+    'audit_gaps_score':gaps+' of '+TOTAL,
+    'audit_summary':auditSummary,
+    'audit_insights':auditInsights
+  };
+
+  // 1. Submit to Netlify Forms for storage + built-in email notification
+  var netlifyPayload=Object.assign({'form-name':'audit'},payload);
+  var body=Object.keys(netlifyPayload).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(netlifyPayload[k]);}).join('&');
+  fetch('/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body}).catch(function(e){console.error('Netlify submission failed',e);});
+
+  // 2. Directly invoke Resend function for branded customer email + internal notification
+  fetch('/.netlify/functions/submission-created',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({payload:{form_name:'audit',data:payload}})
+  }).catch(function(e){console.error('Resend function call failed',e);});
+}
+var QLIVE={
+  1:["I don't actually know what we're saying out there.","...okay that one hit.","I thought I knew. I don't."],
+  2:["I don't actually know our positioning.","We've never put it in one sentence. Ever.","Yeah this is the problem isn't it."],
+  3:["Yeah\u2026 we're not ready.","This is the question I've been avoiding.","I know exactly what breaks first."],
+  4:["We definitely look like five different companies.","Our Instagram and our website don't even match.","This is kind of uncomfortable."],
+  5:["Honestly? Probably not.","I'd know us anywhere but would a stranger?","\u2026no. The answer is no."],
+  6:["I'd have to think about it. That's the problem isn't it.","We sound different everywhere and I knew it.","Okay yeah\u2026 this is me."],
+  7:["Okay yeah\u2026 this is me.","Everything stops if I step away.","I am the system. That's not good."],
+  8:["Wait, this is exactly it.","We're not showing up anywhere. Not even Google.","This is kind of uncomfortable."],
+  9:["This is kind of uncomfortable.","I've never said this out loud before.","Okay I'm being honest now."]
+};
+var LNAMES=['@westcoastmade','@drifterbrand','@ridgeline.co','@sunsetfounder','@wavemade','@peakandco','@canyonbrand','@thepackco','@campfounder','@mountainmade','@desertco','@saltandstone','@trailheadco','@dunesbrand','@coldwatermade','@localwaveco','@openroadco','@highaltitude','@deepwoodsbrand','@tidalwave.co','@brandpulse','@growthloop','@pitchstack','@foundry.co','@brandhive','@scalepath','@markethive','@growthdeck'];
+var lvi=0,lni=Math.floor(Math.random()*LNAMES.length);
+function dism(el){el.classList.add('out');setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},400);}
+function addLv(qNum){
+  var feed=document.getElementById('lf');if(!feed)return;
+  feed.classList.add('on');
+  var msgs=QLIVE[qNum]||QLIVE[1];
+  var msg=msgs[lvi%msgs.length];lvi++;
+  var name=LNAMES[lni%LNAMES.length];lni++;
+  var e=document.createElement('div');e.className='le';
+  e.innerHTML='<span class="ltx"><strong>'+name+'</strong> “'+msg+'”</span>';
+  feed.insertBefore(e,feed.firstChild);
+  setTimeout(function(){dism(e);},5000);
+  setTimeout(function(){
+    var msgs2=QLIVE[Math.max(1,qNum-1)]||QLIVE[1];
+    var msg2=msgs2[lvi%msgs2.length];lvi++;
+    var name2=LNAMES[lni%LNAMES.length];lni++;
+    var e2=document.createElement('div');e2.className='le';
+    e2.innerHTML='<span class="ltx"><strong>'+name2+'</strong> “'+msg2+'”</span>';
+    feed.insertBefore(e2,feed.firstChild);
+    while(feed.children.length>3)feed.removeChild(feed.lastChild);
+    setTimeout(function(){dism(e2);},4500);
+  },1200+Math.random()*800);
+}
+function bldTk(){
+  var w=['clarity','consistency','positioning','demand readiness','AI visibility','execution','brand strategy'];
+  var inn=document.getElementById('tkinner');if(!inn)return;
+  [0,1].forEach(function(){w.forEach(function(t){var s=document.createElement('span');s.innerHTML=t+' <span style="opacity:.35">·</span>';inn.appendChild(s);});});
+}
+function initObs(){
+  var card=document.getElementById('pcard');
+  var btns=document.getElementById('ttbb');
+  if(!card||!btns)return;
+  var qz=document.getElementById('quiz');
+  if(qz){new IntersectionObserver(function(en){btns.classList.toggle('on',en[0].isIntersecting);},{threshold:0}).observe(qz);}
+}
+
+// Nav scroll - starts transparent, goes black after 50px
+var navEl=document.getElementById('mainNav');
+function updNav(){navEl.classList.toggle('scrolled',window.scrollY>50);}
+window.addEventListener('scroll',updNav,{passive:true});
+updNav();
+
+// Dropdown
+var mBtn=document.getElementById('menuBtn');
+var mDrop=document.getElementById('navDropdown');
+if(mBtn&&mDrop){
+  mBtn.addEventListener('click',function(e){e.stopPropagation();mDrop.classList.toggle('open');});
+  document.addEventListener('click',function(e){if(!ins(e.target)&&!mBtn.contains(e.target))mDrop.classList.remove('open');});
+}
+
+bldTk();
+bldQ();
+updPg();
+initObs();
+
+function chkReveal(){document.querySelectorAll('.reveal').forEach(function(el){if(el.getBoundingClientRect().top<window.innerHeight)el.classList.add('visible');});}
+window.addEventListener('scroll',chkReveal,{passive:true});
+setTimeout(chkReveal,100);
+</script>
+
+</body></html>

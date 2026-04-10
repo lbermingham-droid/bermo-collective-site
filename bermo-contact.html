@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<!-- saved from url=(0063)file:///Users/lexibermingham/Downloads/bermo-contact%20(3).html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact · BERMO.COLLECTIVE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Inter+Tight:wght@800;900&family=Inter:wght@400;500;600&family=Montserrat:wght@900&display=swap" rel="stylesheet">
+<style>
+/* ================================
+   ROOT + RESET
+================================ */
+:root {
+  --cyan:  #00f5d4;
+  --lime:  #c8f500;
+  --pink:  #ff2d7a;
+  --black: #0a0a0a;
+  --white: #ffffff;
+  --off:   #f5f5f0;
+  --cream: #f0efe9;
+  --gray:  #888888;
+  --lgray: #e2e0db;
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body { background:#f5f5f0; color:var(--black); font-family:'Inter',sans-serif; }
+html { overflow-x:hidden; }
+
+/* ================================
+   NAV
+================================ */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:500;
+  background:transparent;
+  display:flex; justify-content:space-between; align-items:center;
+  padding:0 40px; height:58px; gap:16px;
+  border-bottom:3px solid transparent;
+  transition:background .35s, border-color .35s;
+}
+nav.scrolled {
+  background:var(--black);
+  border-bottom-color:var(--cyan);
+}
+.nav-left { display:flex; align-items:center; gap:14px; }
+.nav-back { display:flex; align-items:center; color:rgba(0,0,0,0.45); text-decoration:none; transition:color .2s; }
+nav.scrolled .nav-back { color:rgba(255,255,255,0.45); }
+.nav-back:hover { color:var(--black); }
+nav.scrolled .nav-back:hover { color:var(--cyan); }
+.nav-back svg { width:16px; height:16px; }
+.nav-logo { display:flex; flex-direction:column; line-height:1; text-decoration:none; }
+.nav-logo .nl-top,
+.nav-logo .nl-bot { font-family:'Montserrat',sans-serif; font-weight:900; font-size:13px; line-height:0.9; letter-spacing:-0.01em; text-transform:uppercase; display:block; color:var(--black); }
+nav.scrolled .nl-top,
+nav.scrolled .nl-bot { color:#fff; }
+.nl-top .c { color:var(--black); }
+nav.scrolled .nl-top .c { color:var(--cyan); }
+.nav-logo .nl-bar { width:28px; height:3px; background:var(--black); margin-top:4px; }
+nav.scrolled .nl-bar { background:var(--cyan); }
+.nav-social { display:flex; align-items:center; gap:10px; }
+.nav-social a { color:rgba(0,0,0,0.35); transition:color .2s; display:flex; }
+nav.scrolled .nav-social a { color:rgba(255,255,255,0.35); }
+.nav-social a:hover { color:var(--black); }
+nav.scrolled .nav-social a:hover { color:var(--cyan); }
+.nav-social svg { width:16px; height:16px; }
+.nav-audit {
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--black); color:#fff;
+  font-family:'Inter',sans-serif; font-size:9px; letter-spacing:2px;
+  text-transform:uppercase; font-weight:600;
+  padding:10px 20px; text-decoration:none; border-radius:100px;
+  transition:background .2s;
+}
+nav.scrolled .nav-audit { background:var(--cyan); color:var(--black); }
+.nav-audit:hover { background:var(--lime) !important; color:var(--black) !important; }
+.nav-menu-btn {
+  display:flex; flex-direction:column; justify-content:center; align-items:center;
+  width:34px; height:34px; border-radius:50%;
+  border:1.5px solid rgba(0,0,0,0.25);
+  gap:5px; cursor:pointer; transition:border-color .2s; flex-shrink:0; background:transparent;
+}
+nav.scrolled .nav-menu-btn { border-color:rgba(255,255,255,0.25); }
+.nav-menu-btn span { display:block; width:14px; height:1.5px; background:rgba(0,0,0,0.6); }
+nav.scrolled .nav-menu-btn span { background:rgba(255,255,255,0.7); }
+
+/* Dropdown menu */
+.nav-dropdown{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--black);border-top:4px solid var(--cyan);border-radius:16px;min-width:320px;padding:0;z-index:600;box-shadow:0 32px 80px rgba(0,0,0,0.65);overflow:hidden;}
+.nav-dropdown.open{display:block;}
+.nav-dropdown a{display:flex;align-items:center;justify-content:flex-start;gap:10px;padding:18px 28px;font-family:'Inter Tight',sans-serif;font-weight:900;font-size:22px;line-height:1;letter-spacing:-0.03em;text-transform:uppercase;text-decoration:none;color:#fff;border-bottom:1px solid rgba(255,255,255,0.07);transition:color .15s,background .15s,padding-left .15s;}
+.nav-dropdown a:last-child{border-bottom:none;}
+.nav-dropdown a::after{content:'→';font-size:16px;opacity:0;transform:translateX(-6px);transition:opacity .15s,transform .15s;}
+.nav-dropdown a:hover{color:var(--cyan);background:rgba(0,245,212,0.06);padding-left:36px;}
+.nav-dropdown a:hover::after{opacity:1;transform:translateX(0);}
+.nav-dropdown a.dd-active{color:var(--cyan);}
+.nav-dropdown a.dd-active:hover{color:var(--cyan);background:rgba(0,245,212,0.06);}
+.nav-dropdown a.dd-pink{color:var(--pink);}
+.nav-dropdown a.dd-pink:hover{color:#fff;background:rgba(255,45,122,0.08);}
+.nav-dropdown a.dd-num{font-family:'Inter',sans-serif;font-weight:400;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,0.2);margin-right:10px;flex-shrink:0;}
+
+/* ================================
+   HERO
+================================ */
+.hero {
+  position:sticky; top:0; z-index:1;
+  height:100vh; min-height:600px;
+  display:flex; flex-direction:column;
+  align-items:flex-start; justify-content:center;
+  overflow:hidden; transform-origin:top center;
+}
+.hero-bg {
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse 55% 65% at 96% 4%, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.08) 45%, transparent 65%),
+    #00f5d4;
+}
+.hero-noise {
+  position:absolute; inset:0; pointer-events:none; z-index:1;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity:.25; mix-blend-mode:multiply;
+}
+.hero-content {
+  position:relative; z-index:2;
+  display:flex; flex-direction:column; align-items:flex-start;
+  padding:0 56px;
+}
+.hero-logo-word {
+  font-family:'Montserrat',sans-serif; font-weight:900;
+  font-size:clamp(96px,16vw,240px);
+  color:var(--white);
+  line-height:0.88; letter-spacing:-0.04em;
+  text-transform:uppercase; display:block;
+}
+.hero-logo-word .c { color:var(--white); opacity:.7; }
+.hero-logo-underbar { width:52px; height:4px; background:var(--white); opacity:.5; margin-top:14px; }
+.hero-sub {
+  font-family:'Inter Tight',sans-serif; font-weight:800;
+  font-size:clamp(14px,1.8vw,22px);
+  letter-spacing:0.05em; text-transform:uppercase;
+  color:rgba(255,255,255,0.85); margin-top:20px;
+}
+.scroll-cue {
+  position:absolute; bottom:32px; left:50%; transform:translateX(-50%);
+  z-index:2; display:flex; flex-direction:column; align-items:center; gap:7px;
+  font-family:'Inter',sans-serif; font-size:8px; letter-spacing:3px;
+  text-transform:uppercase; color:rgba(0,0,0,0.3);
+  animation:bob 2.2s ease infinite;
+}
+.scroll-cue svg { width:18px; height:18px; color:rgba(0,0,0,0.3); }
+@keyframes bob { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(8px)} }
+
+/* ================================
+   CONTACT FORM
+================================ */
+.contact-section {
+  position:relative; z-index:10;
+  background:var(--white);
+  border-radius:28px 28px 0 0;
+  box-shadow:0 -32px 80px rgba(0,0,0,0.18);
+  padding:88px 56px;
+}
+.contact-ghost {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  font-family:'Inter Tight',sans-serif; font-weight:900;
+  font-size:clamp(80px,14vw,200px); color:rgba(0,245,212,0.07);
+  white-space:nowrap; pointer-events:none; user-select:none; letter-spacing:-0.04em;
+}
+.contact-inner {
+  position:relative; z-index:1;
+  max-width:1100px; margin:0 auto;
+  display:grid; grid-template-columns:1fr 1.5fr; gap:72px;
+}
+.c-kicker {
+  font-family:'Inter',sans-serif; font-size:9px; letter-spacing:4px;
+  text-transform:uppercase; color:var(--gray); margin-bottom:16px;
+  display:flex; align-items:center; gap:10px;
+}
+.c-kicker::before { content:''; width:24px; height:1px; background:var(--black); display:block; }
+.c-title {
+  font-family:'Inter Tight',sans-serif; font-weight:900;
+  font-size:clamp(44px,5.5vw,72px); line-height:0.88;
+  letter-spacing:-0.04em; color:var(--black); text-transform:uppercase; margin-bottom:16px;
+}
+.c-title em { color:var(--cyan); font-style:normal; }
+.c-body { font-family:'Inter',sans-serif; font-size:14px; color:#555; line-height:1.85; margin-bottom:32px; }
+.c-details { display:flex; flex-direction:column; }
+.c-detail-row { display:flex; align-items:flex-start; gap:12px; padding:16px 0; border-bottom:1px solid var(--lgray); }
+.c-detail-row:last-of-type { border-bottom:none; }
+.c-arrow { font-size:18px; color:var(--cyan); font-weight:900; flex-shrink:0; padding-top:3px; line-height:1; }
+.c-detail-label { font-family:'Inter',sans-serif; font-size:8px; letter-spacing:3px; text-transform:uppercase; color:var(--gray); margin-bottom:3px; }
+.c-detail-value { font-family:'Inter Tight',sans-serif; font-weight:800; font-size:clamp(13px,1.5vw,17px); letter-spacing:-0.01em; color:var(--black); }
+.c-detail-link { font-family:'Inter',sans-serif; font-size:11px; color:var(--black); text-decoration:underline; text-underline-offset:3px; display:inline-flex; align-items:center; gap:5px; margin-top:5px; transition:color .2s; }
+.c-detail-link:hover { color:var(--cyan); }
+.f-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+.f-field { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
+.f-field label { font-family:'Inter',sans-serif; font-size:9px; letter-spacing:3px; text-transform:uppercase; color:#333; font-weight:500; }
+.f-field label .req { color:var(--cyan); }
+.f-field input, .f-field select, .f-field textarea {
+  background:#fff; border:1.5px solid var(--lgray);
+  color:var(--black); font-family:'Inter',sans-serif; font-size:13px;
+  padding:12px 14px; outline:none; transition:border-color .2s;
+  -webkit-appearance:none; appearance:none;
+}
+.f-field input::placeholder, .f-field textarea::placeholder { color:rgba(0,0,0,0.28); }
+.f-field input:focus, .f-field select:focus, .f-field textarea:focus { border-color:var(--black); }
+.f-field select { cursor:pointer; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; background-color:#fff; padding-right:36px; }
+.f-field select option { background:#fff; color:var(--black); }
+.f-field textarea { resize:vertical; min-height:150px; }
+.submit-row {
+  display:flex; align-items:center; gap:16px;
+  width:auto; flex-wrap:nowrap; justify-content:flex-start;
+  background:transparent; border:none; cursor:pointer;
+  padding:0; margin-top:12px; overflow:visible;
+}
+.submit-row:hover .submit-badge { background:var(--pink); }
+.submit-badge { background:var(--cyan); color:var(--black); font-family:'Inter Tight',sans-serif; font-weight:900; font-size:clamp(16px,2vw,22px); letter-spacing:-0.02em; padding:16px 28px; border-radius:999px; display:flex; align-items:center; white-space:nowrap; }
+.submit-body { display:flex; align-items:center; justify-content:space-between; flex:none; font-family:'Inter',sans-serif; font-size:9px; letter-spacing:2.5px; text-transform:uppercase; font-weight:500; background:var(--white); color:var(--black); padding:0; }
+.form-success { display:none; }
+.form-success.on { display:block; background:rgba(0,245,212,0.08); border:1.5px solid var(--cyan); padding:28px; margin-top:16px; }
+.form-success-title { font-family:'Inter Tight',sans-serif; font-weight:900; font-size:22px; color:var(--black); margin-bottom:8px; }
+.form-success-body { font-family:'Inter',sans-serif; font-size:13px; color:#555; line-height:1.7; }
+
+/* Submit arrow */
+.submit-arrow { width:180px; height:45px; display:block; position:relative; }
+.submit-arrow::before { content:''; position:absolute; top:50%; left:0; width:100%; height:5px; background:var(--cyan); transform:translateY(-50%); }
+.submit-arrow::after { content:''; position:absolute; top:50%; right:0; width:20px; height:20px; border-top:5px solid var(--cyan); border-right:5px solid var(--cyan); transform:translateY(-50%) rotate(45deg); }
+
+/* ================================
+   SPLIT ZONE
+================================ */
+.contact-photo-wrap {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:auto 1fr;
+  position:relative;
+  z-index:5;
+}
+.contact-section { grid-row:1; }
+.palm-panel {
+  position:sticky;
+  top:0;
+  height:120vh;
+  align-self:start;
+  grid-column:2;
+  grid-row:2;
+  background:var(--cyan);
+  overflow:hidden;
+  z-index:4;
+}
+.palm-glow {
+  position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(ellipse 70% 70% at 50% 35%, rgba(255,255,255,0.28) 0%, transparent 65%);
+}
+.palm-image {
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background-image:url('bermo-contact.jpg');
+  background-size:cover;
+  background-position:50% 20%;
+  background-repeat:no-repeat;
+  z-index:1;
+}
+.about-panel {
+  grid-column:1;
+  grid-row:2;
+  background:var(--off);
+  border-right:5px solid var(--pink);
+  padding:88px 56px;
+  display:flex; flex-direction:column; justify-content:flex-start;
+}
+@media(max-width:900px){
+  .contact-photo-wrap{grid-template-columns:1fr;grid-template-rows:auto auto auto;}
+  .contact-section{grid-row:1;grid-column:1;}
+  .about-panel{grid-row:2;grid-column:1;border-right:none;border-bottom:5px solid var(--pink);}
+  .palm-panel{grid-row:3;grid-column:1;height:60vh;position:relative;align-self:auto;}
+}
+.about-label {
+  font-family:'Inter',sans-serif; font-size:9px; letter-spacing:4px;
+  text-transform:uppercase; color:var(--gray); margin-bottom:16px;
+  display:flex; align-items:center; gap:10px;
+}
+.about-label::before { content:''; width:20px; height:1px; background:var(--black); display:block; }
+.about-headline {
+  font-family:'Inter Tight',sans-serif; font-weight:900;
+  font-size:clamp(36px,4.5vw,60px); line-height:0.9;
+  letter-spacing:-0.04em; color:var(--black); text-transform:uppercase; margin-bottom:24px;
+}
+.about-headline em { color:var(--cyan); font-style:normal; }
+.about-body { font-family:'Inter',sans-serif; font-size:14px; color:#555; line-height:1.9; margin-bottom:12px; max-width:420px; }
+.about-body strong { color:var(--black); font-weight:600; }
+.about-body em { font-style:italic; color:#444; }
+.about-trait { display:flex; align-items:flex-start; gap:14px; padding:16px 0; border-bottom:1px solid var(--lgray); }
+.about-trait:first-of-type { border-top:1px solid var(--lgray); margin-top:28px; }
+.about-trait-arrow { font-family:'Inter Tight',sans-serif; font-weight:900; font-size:22px; color:var(--cyan); flex-shrink:0; padding-top:1px; line-height:1; }
+.about-trait-title { font-family:'Inter Tight',sans-serif; font-weight:800; font-size:15px; letter-spacing:-0.01em; color:var(--black); margin-bottom:3px; }
+.about-trait-sub { font-family:'Inter',sans-serif; font-size:12px; color:var(--gray); line-height:1.6; }
+.about-quote { font-family:'Inter Tight',sans-serif; font-weight:900; font-size:clamp(15px,1.8vw,20px); line-height:1.25; letter-spacing:-0.02em; color:var(--black); margin-top:28px; padding-top:28px; border-top:1px solid var(--lgray); }
+.about-quote em { color:var(--cyan); font-style:normal; }
+.about-attr { font-family:'Inter',sans-serif; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--gray); margin-top:8px; }
+
+/* ================================
+   SOCIAL SECTION
+================================ */
+.social-section {
+  position:relative; z-index:10;
+  isolation:isolate; background:#fff;
+  border-radius:28px 28px 0 0;
+  box-shadow:0 -28px 80px rgba(0,0,0,0.22);
+  padding:88px 56px 100px; margin-top:-32px;
+}
+.social-inner { max-width:1100px; margin:0 auto; }
+.social-header { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:44px; flex-wrap:wrap; gap:20px; }
+.social-eyebrow { font-family:'Inter',sans-serif; font-size:9px; letter-spacing:4px; text-transform:uppercase; color:var(--gray); margin-bottom:14px; display:flex; align-items:center; gap:10px; }
+.social-eyebrow::before { content:''; width:20px; height:1px; background:var(--black); display:block; }
+.social-title { font-family:'Inter Tight',sans-serif; font-weight:900; font-size:clamp(40px,6vw,80px); line-height:0.88; letter-spacing:-0.04em; color:var(--black); text-transform:uppercase; }
+.social-title em { color:var(--cyan); font-style:normal; }
+.float-socials { display:flex; align-items:center; gap:10px; padding-bottom:4px; }
+.float-btn { width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; text-decoration:none; color:var(--black); border:1.5px solid var(--lgray); background:#fff; transition:border-color .2s, background .2s, transform .2s, box-shadow .2s; }
+.float-btn svg { width:20px; height:20px; }
+.float-btn:hover { border-color:var(--black); background:var(--black); color:#fff; transform:translateY(-4px); box-shadow:0 10px 28px rgba(0,0,0,0.14); }
+.float-btn.email:hover { background:var(--cyan); border-color:var(--cyan); color:var(--black); }
+.insta-label { font-family:'Inter',sans-serif; font-size:9px; letter-spacing:4px; text-transform:uppercase; color:var(--gray); margin-bottom:14px; display:flex; align-items:center; gap:10px; }
+.insta-label::before { content:''; width:20px; height:1px; background:var(--black); display:block; }
+/* Instagram mosaic grid */
+.insta-grid { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; grid-template-rows:200px 200px; gap:6px; }
+.insta-tile { overflow:hidden; position:relative; cursor:pointer; display:block; text-decoration:none; background:var(--lgray); }
+.insta-tile.span2 { grid-row:span 2; }
+.insta-tile-bg { position:absolute; inset:0; background-size:cover; background-position:center; transition:transform .45s cubic-bezier(.22,1,.36,1); }
+.insta-tile:hover .insta-tile-bg { transform:scale(1.06); }
+.insta-tile-ov { position:absolute; inset:0; background:rgba(0,0,0,0); transition:background .3s; }
+.insta-tile:hover .insta-tile-ov { background:rgba(0,245,212,0.2); }
+.insta-tile.p1 .insta-tile-bg { background:linear-gradient(135deg,#0a3d32 0%,#0d5040 100%); }
+.insta-tile.p2 .insta-tile-bg { background:linear-gradient(135deg,#1a3a30 0%,#0a4838 100%); }
+.insta-tile.p3 .insta-tile-bg { background:linear-gradient(135deg,#0d3a30 0%,#0f4a3a 100%); }
+.insta-tile.p4 .insta-tile-bg { background:linear-gradient(135deg,#122a28 0%,#1a4038 100%); }
+.insta-tile.p5 .insta-tile-bg { background:linear-gradient(135deg,#0a2020 0%,#143830 100%); }
+.insta-tile.p6 .insta-tile-bg { background:linear-gradient(135deg,#162828 0%,#0d3030 100%); }
+.insta-tile.p7 .insta-tile-bg { background:linear-gradient(135deg,#0e2424 0%,#1a3838 100%); }
+/* Live feed note overlay on large tile */
+.insta-tile.p1 .insta-tile-bg::after {
+  content: 'CONNECT LIGHTWIDGET FOR LIVE FEED';
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-family:'Inter',sans-serif; font-size:9px; letter-spacing:2px;
+  color:rgba(255,255,255,0.25); text-align:center; padding:20px;
+}
+.insta-more-row { margin-top:18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+.insta-more { display:inline-flex; align-items:center; gap:10px; text-decoration:none; font-family:'Inter',sans-serif; font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:var(--black); font-weight:500; transition:color .2s; }
+.insta-more:hover { color:var(--cyan); }
+.insta-more::before { content:''; width:20px; height:1px; background:currentColor; display:block; }
+.insta-handle { font-family:'Inter Tight',sans-serif; font-weight:800; font-size:13px; color:var(--gray); }
+
+/* ================================
+   FOOTER
+================================ */
+footer{position:relative;z-index:20;background:#0a0a0a;border-top:3px solid #00f5d4;padding:52px 48px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:32px;}
+.footer-logo{display:inline-flex;flex-direction:column;line-height:1;text-decoration:none;align-items:flex-start;}
+.footer-logo .fl-top,.footer-logo .fl-bot{font-family:'Montserrat',sans-serif;font-weight:900;font-size:13px;line-height:0.9;letter-spacing:-0.01em;text-transform:uppercase;display:block;color:#fff;}
+.footer-logo .fl-top .c{color:#00f5d4;}
+.footer-logo .fl-bar{width:28px;height:3px;background:#00f5d4;margin-top:4px;display:block;}
+.footer-tagline{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-top:10px;}
+.footer-links{display:flex;gap:24px;list-style:none;justify-content:center;flex-wrap:wrap;padding:0;margin:0;}
+.footer-links a{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);text-decoration:none;transition:color .2s;}
+.footer-links a:hover{color:#00f5d4;}
+.footer-links a.footer-pink{color:#ff2d7a !important;}
+.footer-right{text-align:right;}
+.footer-social{display:flex;gap:10px;justify-content:flex-end;margin-bottom:10px;}
+.footer-social a{color:rgba(255,255,255,0.25);transition:color .2s;display:flex;}
+.footer-social a:hover{color:#00f5d4;}
+.footer-social svg{width:17px;height:17px;}
+.footer-copy{font-family:'Inter',sans-serif;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.15);margin-top:6px;}
+
+/* ================================
+   ANIMATIONS
+================================ */
+.fade-up { opacity:0; transform:translateY(44px); transition:opacity .9s cubic-bezier(.22,1,.36,1), transform .9s cubic-bezier(.22,1,.36,1); }
+.fade-up.in { opacity:1; transform:translateY(0); }
+
+/* ================================
+   MOBILE
+================================ */
+@media (max-width:900px) {
+  .contact-section, .social-section { padding:56px 24px; border-radius:20px 20px 0 0; }
+  .contact-inner { grid-template-columns:1fr; gap:48px; }
+  .f-row { grid-template-columns:1fr; }
+  .about-panel { padding:56px 32px; }
+  .insta-grid { grid-template-columns:repeat(3,1fr); grid-template-rows:auto; }
+  .insta-tile.span2 { grid-row:span 1; }
+}
+@media (max-width:768px) {
+  nav { padding:0 20px; }
+  .hero-content { padding:0 28px; }
+  footer { grid-template-columns:1fr; gap:28px; padding:40px 24px; text-align:center; }
+  .footer-social { justify-content:center; }
+  .footer-right { text-align:center; }
+  .footer-links { justify-content:center; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="mainNav" class="scrolled">
+  <div class="nav-left">
+    <a href="index.html" class="nav-back" title="Back to Home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"></path></svg>
+    </a>
+    <a href="index.html" class="nav-logo">
+      <span class="nl-top"><span class="c">BERMO.</span></span>
+      <span class="nl-bot">COLLECTIVE</span>
+      <div class="nl-bar"></div>
+    </a>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:12px;position:relative;">
+    <div class="nav-social">
+      <a href="https://instagram.com/bermo.co" target="_blank" title="Instagram"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"></path></svg></a>
+      <a href="https://tiktok.com/@bermo.co" target="_blank" title="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.89 2.89 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.95a8.2 8.2 0 0 0 4.78 1.52V7.01a4.85 4.85 0 0 1-1.01-.32z"></path></svg></a>
+      <a href="https://linkedin.com/company/bermo-collective" target="_blank" title="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"></path><circle cx="4" cy="4" r="2"></circle></svg></a>
+      <a href="mailto:hello@bermoco.com" title="Email"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"></path></svg></a>
+    </div>
+    <a href="bermo-audit.html#quiz" class="nav-audit">Free Audit</a>
+    <button class="nav-menu-btn" id="menuBtn">
+      <span></span><span></span>
+    </button>
+    <div class="nav-dropdown" id="navDropdown">
+      <a href="index.html"><span style="display:flex;flex-direction:column;align-items:flex-start"><span>Home</span><span style="display:block;font-family:'Inter',sans-serif;font-weight:400;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-top:3px;line-height:1.3">Where it all starts</span></span></a>
+      <a href="bermo-services.html"><span style="display:flex;flex-direction:column;align-items:flex-start"><span>The Bermo Shop</span><span style="display:block;font-family:'Inter',sans-serif;font-weight:400;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-top:3px;line-height:1.3">Services + Pricing</span></span></a>
+      <a href="index.html#about"><span style="display:flex;flex-direction:column;align-items:flex-start"><span>About</span><span style="display:block;font-family:'Inter',sans-serif;font-weight:400;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-top:3px;line-height:1.3">The person behind the work</span></span></a>
+      <a href="bermo-CollabNation.html" class="dd-pink"><span style="display:flex;flex-direction:column;align-items:flex-start"><span>Collab Nation</span><span style="display:block;font-family:'Montserrat',sans-serif;font-weight:900;font-size:13px;color:#fff;letter-spacing:-.01em;text-transform:uppercase;margin-top:2px;line-height:1">by BERMO.</span><span style="display:block;font-family:'Inter',sans-serif;font-weight:400;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-top:4px;line-height:1.3">The Social Pop-Up</span></span></a>
+      <a href="bermo-contact.html" class="dd-active"><span style="display:flex;flex-direction:column;align-items:flex-start"><span>Contact</span><span style="display:block;font-family:'Inter',sans-serif;font-weight:400;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-top:3px;line-height:1.3">Fix the Break</span></span></a>
+      <a href="bermo-audit.html"><span style="display:flex;flex-direction:column;align-items:flex-start"><span>Free Brand Audit</span><span style="display:block;font-family:'Inter',sans-serif;font-weight:400;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#00f5d4;margin-top:3px;line-height:1.3">Find the Break</span></span></a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero" style="transform: scale(0.960526); opacity: 0.753289;">
+  <div class="hero-bg"></div>
+  <div class="hero-noise"></div>
+  <div class="hero-content">
+    <div>
+      <span class="hero-logo-word">BERMO<span class="c">.</span></span>
+      <div class="hero-logo-underbar"></div>
+    </div>
+    <p class="hero-sub">Let's Chat.</p>
+  </div>
+  <div class="scroll-cue">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"></path></svg>
+    scroll
+  </div>
+</section>
+
+<!-- CONTACT FORM: sits above the grid wrapper so shadow isn't clipped -->
+<section class="contact-section fade-up in" id="contact-form">
+  <div class="contact-ghost">CHAT</div>
+  <div class="contact-inner">
+
+    <!-- Left: info -->
+    <div>
+      <div class="c-kicker">Get in Touch</div>
+      <h2 class="c-title">LET'S<br><em>CHAT.</em></h2>
+      <p class="c-body">Not sure which service fits? Tell us what's going on. <br><br>If you've tried everything and nothing sticks, start here. We step inside your business, clarify what matters, and then actually do it. If it's blocking momentum, we're in. It's kind of our thing.</p>
+      <div class="c-details">
+        <div class="c-detail-row">
+          <div class="c-arrow">→</div>
+          <div>
+            <div class="c-detail-label">Direct Email</div>
+            <div class="c-detail-value">lexi@bermoco.com</div>
+            <a href="mailto:lexi@bermoco.com" class="c-detail-link">Send a direct email →</a>
+          </div>
+        </div>
+        <div class="c-detail-row">
+          <div class="c-arrow">→</div>
+          <div>
+            <div class="c-detail-label">Not sure where to start?</div>
+            <div class="c-detail-value">Take the Free Brand Audit<br>and Get Our Free Guide<br><br>Walk away knowing the one thing to fix first<br>and what you can do to fix them fast.</div>
+            <a href="bermo-audit.html" class="c-detail-link">Start free →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: form -->
+    <div>
+      <form id="contactForm" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" onsubmit="return submitContact(event)">
+        <input type="hidden" name="form-name" value="contact">
+        <p style="display:none"><label>Don't fill this out if you're human: <input name="bot-field"></label></p>
+        <div class="f-row">
+          <div class="f-field">
+            <label>First Name <span class="req">*</span></label>
+            <input type="text" id="firstName" name="first_name" placeholder="First name" required>
+          </div>
+          <div class="f-field">
+            <label>Last Name <span class="req">*</span></label>
+            <input type="text" id="lastName" name="last_name" placeholder="Last name" required>
+          </div>
+        </div>
+        <div class="f-row">
+          <div class="f-field">
+            <label>Email <span class="req">*</span></label>
+            <input type="email" id="email" name="email" placeholder="hello@yourbrand.com" required>
+          </div>
+          <div class="f-field">
+            <label>Phone Number</label>
+            <input type="tel" id="phone" name="phone" placeholder="+1 (000) 000-0000">
+          </div>
+        </div>
+        <div class="f-field">
+          <label>Company / Brand</label>
+          <input type="text" id="company" name="company" placeholder="Your brand name">
+        </div>
+        <div class="f-field">
+          <label>What brings you here? <span class="req">*</span></label>
+          <select id="interest" name="interest" required>
+            <option value="" disabled="" selected="">Select a topic...</option>
+            <option value="growth">Growth Strategy + Execution</option>
+            <option value="ai">AI Visibility + Translation</option>
+            <option value="content">Content + Social Media</option>
+            <option value="collab">Collab Nation</option>
+            <option value="audit">Free Brand Audit</option>
+            <option value="other">Something else</option>
+          </select>
+        </div>
+        <div class="f-field">
+          <label>Tell us more <span class="req">*</span></label>
+          <textarea id="message" name="message" placeholder="What&#39;s going on in your business right now? Where do you feel invisible? What does a win look like for you? The more you share, the better we can show up for you." required></textarea>
+        </div>
+        <button type="submit" class="submit-row">
+          <div class="submit-body">
+            <span class="submit-arrow"></span>
+          </div>
+          <span class="submit-badge">Send It</span>
+        </button>
+      </form>
+      <div class="form-success" id="formSuccess">
+        <div class="form-success-title">Got it. Talk soon.</div>
+        <div class="form-success-body">I'll be in touch within one business day. A confirmation just landed in your inbox. While you wait, take the free brand audit. It gives us both a head start.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PHOTO WRAPPER: grid with photo sticky through disclosure -->
+<div class="contact-photo-wrap">
+  <div class="about-panel">
+    <div class="about-label">If You Made It This Far</div>
+    <h2 class="about-headline">FULL<br><em>DISCLOSURE.</em></h2>
+    <p class="about-body">BERMO is what happens when <strong>"I have a feeling about this"</strong> turns out to be right. 90% of the time, it works every time. (Yes, that's exactly what I mean.)</p>
+    <p class="about-body">Collective is built on the belief that we should all be pushing each other up. When one of us wins, we all win. <em>And then we get cheese fries.</em></p>
+    <div class="about-trait">
+      <div class="about-trait-arrow">→</div>
+      <div>
+        <div class="about-trait-title">The Superpower</div>
+        <div class="about-trait-sub">I walk into a brand, a restaurant, a town I've never been to and within five minutes I know what's working, what's a miss, and what would fix it. I've found brands before they were brands. Called trends before they trended. It didn't take long for my husband to stop doubting it, admit he may have been wrong (I know!) through a lot of "okay fine, you were right." I don't predict the future. I just pay attention in a way most people don't.</div>
+      </div>
+    </div>
+    <div class="about-trait">
+      <div class="about-trait-arrow">→</div>
+      <div>
+        <div class="about-trait-title">The Spidey Sense</div>
+        <div class="about-trait-sub">If it's off, I feel it before anyone can name it. Someone shows me their brand and I immediately feel the gap. Not what they're doing wrong, but what they don't know they're missing yet. The niche that's sitting right there. The customer they're walking past. The thing that would make this actually theirs. Girl World taught me to read a room fast. Turns out that transfers. The curse: my brain doesn't stop until it's solved. Ask anyone who has sat next to me when I'm on to something big.</div>
+      </div>
+    </div>
+    <div class="about-trait">
+      <div class="about-trait-arrow">→</div>
+      <div>
+        <div class="about-trait-title">The Care</div>
+        <div class="about-trait-sub">I actually care. Like genuinely. I root for people. Not the loudest ones in the room. The ones who are quietly building something real and just need someone to believe in it as much as they do. I've shown up for people in moments that had nothing to do with business, because that's just how I'm wired. The work is personal to me because the people are personal to me. Most people just need someone in their corner.</div>
+      </div>
+    </div>
+    <div class="about-trait">
+      <div class="about-trait-arrow">→</div>
+      <div>
+        <div class="about-trait-title">Controlled Chaos</div>
+        <div class="about-trait-sub">Millennial, raised on "find your passion," strong work ethic, boomer loyalty baked in. Add a strong Gen Z aura and you get the perfect mixture. My phone may always be missing. My keys are not where I left them. But I just connected something from a conversation we had, a trend I noticed a subtle buzz on, to a problem you have right now. It looks like chaos. From the inside it's just signal over structure.</div>
+      </div>
+    </div>
+    <div class="about-quote">
+      "And yes. I will find your brand's blind spot <em>before you finish explaining it to me.</em>"
+    </div>
+    <div class="about-attr">Lexi Bermingham, Founder</div>
+  </div>
+
+  <!-- RIGHT: photo sticks through full disclosure section -->
+  <div class="palm-panel" id="palmPanel">
+    <div class="palm-glow"></div>
+    <div class="palm-image"></div>
+  </div>
+</div><!-- end .contact-photo-wrap -->
+
+<!-- SOCIAL SECTION -->
+<!--
+  LIVE INSTAGRAM FEED NOTE:
+  The photo tiles below link to your Instagram page but show placeholder gradients.
+  To get a live auto-updating feed, sign up free at lightwidget.com, connect @bermo.co,
+  copy the embed code, and replace the .insta-grid div below with it.
+  LightWidget is free and the easiest option for a static Netlify site.
+-->
+<section class="social-section" id="socialSection">
+  <div class="social-inner">
+    <div class="social-header">
+      <div>
+        <div class="social-eyebrow">Find Us Online</div>
+        <h2 class="social-title">#BERMO.CO<br>ON <em>SOCIAL.</em></h2>
+      </div>
+      <div class="float-socials">
+        <!-- Instagram -->
+        <a href="https://instagram.com/bermo.co" target="_blank" class="float-btn" title="Instagram @bermo.co">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"></path></svg>
+        </a>
+        <!-- TikTok -->
+        <a href="https://tiktok.com/@bermocollective" target="_blank" class="float-btn" title="TikTok @bermocollective">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.17 8.17 0 004.78 1.52V6.75a4.85 4.85 0 01-1.01-.06z"></path></svg>
+        </a>
+        <!-- LinkedIn - company page -->
+        <a href="https://linkedin.com/company/bermo-collective" target="_blank" class="float-btn" title="LinkedIn @bermo-collective">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"></path></svg>
+        </a>
+        <!-- Email -->
+        <a href="mailto:hello@bermoco.com" class="float-btn email" title="Email hello@bermoco.com">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"></path></svg>
+        </a>
+      </div>
+    </div>
+    <div class="insta-label">#bermo.co on Instagram</div>
+    <!-- LIVE INSTAGRAM FEED (LightWidget). Set the LW_ID in script below once you have your widget ID. -->
+    <div id="lwLiveFeed2" class="lw-feed" style="display:none;">
+      <iframe id="lwIframe2" src="" scrolling="no" allowtransparency="true" class="lightwidget-widget" style="width:100%;border:0;overflow:hidden;min-height:520px;"></iframe>
+    </div>
+    <div class="insta-grid" id="instaStaticGrid2">
+      <a href="https://instagram.com/bermo.co" target="_blank" class="insta-tile p1 span2">
+        <div class="insta-tile-bg"></div><div class="insta-tile-ov"></div>
+      </a>
+      <a href="https://instagram.com/bermo.co" target="_blank" class="insta-tile p2">
+        <div class="insta-tile-bg"></div><div class="insta-tile-ov"></div>
+      </a>
+      <a href="https://instagram.com/bermo.co" target="_blank" class="insta-tile p3">
+        <div class="insta-tile-bg"></div><div class="insta-tile-ov"></div>
+      </a>
+      <a href="https://instagram.com/bermo.co" target="_blank" class="insta-tile p4">
+        <div class="insta-tile-bg"></div><div class="insta-tile-ov"></div>
+      </a>
+      <a href="https://instagram.com/bermo.co" target="_blank" class="insta-tile p5">
+        <div class="insta-tile-bg"></div><div class="insta-tile-ov"></div>
+      </a>
+      <a href="https://instagram.com/bermo.co" target="_blank" class="insta-tile p6">
+        <div class="insta-tile-bg"></div><div class="insta-tile-ov"></div>
+      </a>
+      <a href="https://instagram.com/bermo.co" target="_blank" class="insta-tile p7">
+        <div class="insta-tile-bg"></div><div class="insta-tile-ov"></div>
+      </a>
+    </div>
+    <script>
+      (function(){
+        var LW_ID = 'REPLACE_WITH_LIGHTWIDGET_ID';
+        if (LW_ID && LW_ID !== 'REPLACE_WITH_LIGHTWIDGET_ID') {
+          var iframe = document.getElementById('lwIframe2');
+          iframe.src = 'https://cdn.lightwidget.com/widgets/' + LW_ID + '.html';
+          document.getElementById('lwLiveFeed2').style.display = 'block';
+          document.getElementById('instaStaticGrid2').style.display = 'none';
+        }
+      })();
+    </script>
+    <div class="insta-more-row">
+      <a href="https://instagram.com/bermo.co" target="_blank" class="insta-more">View all on Instagram</a>
+      <span class="insta-handle">@bermo.co</span>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <a href="index.html" class="footer-logo">
+      <span class="fl-top"><span class="c">BERMO.</span></span>
+      <span class="fl-bot">COLLECTIVE</span>
+      <span class="fl-bar"></span>
+    </a>
+    <div class="footer-tagline">Brand Growth Strategy + Execution</div>
+  </div>
+  <ul class="footer-links">
+    <li><a href="bermo-services.html">Services</a></li>
+    <li><a href="bermo-CollabNation.html" class="footer-pink">Collab Nation</a></li>
+    <li><a href="bermo-audit.html">Free Audit</a></li>
+    <li><a href="bermo-contact.html">Contact</a></li>
+  </ul>
+  <div class="footer-right">
+    <div class="footer-social">
+      <!-- Instagram -->
+      <a href="https://instagram.com/bermo.co" target="_blank" title="Instagram">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"></path></svg>
+      </a>
+      <!-- TikTok -->
+      <a href="https://tiktok.com/@bermocollective" target="_blank" title="TikTok">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.17 8.17 0 004.78 1.52V6.75a4.85 4.85 0 01-1.01-.06z"></path></svg>
+      </a>
+      <!-- LinkedIn - company page -->
+      <a href="https://linkedin.com/company/bermo-collective" target="_blank" title="LinkedIn">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"></path></svg>
+      </a>
+    </div>
+    <div class="footer-copy">© 2025 BERMO.COLLECTIVE. All rights reserved.</div>
+  </div>
+</footer>
+
+<script>
+/* ================================
+   NAV - transparent over hero, solid after
+================================ */
+const nav = document.getElementById('mainNav');
+const hero = document.getElementById('hero');
+
+function updateNav() {
+  nav.classList.toggle('scrolled', window.scrollY > hero.offsetHeight * 0.75);
+}
+window.addEventListener('scroll', updateNav, { passive: true });
+updateNav();
+
+/* Hero subtle scale */
+window.addEventListener('scroll', () => {
+  const s = window.scrollY;
+  const h = hero.offsetHeight;
+  if (s < h) {
+    hero.style.transform = `scale(${1 - (s / h) * 0.04})`;
+    hero.style.opacity = Math.max(1 - (s / h) * 0.25, 0.75);
+  }
+}, { passive: true });
+
+/* ================================
+   MENU DROPDOWN TOGGLE
+================================ */
+var menuBtn  = document.getElementById('menuBtn');
+var menuDrop = document.getElementById('navDropdown');
+
+if (menuBtn && menuDrop) {
+  menuBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    menuDrop.classList.toggle('open');
+  });
+  document.addEventListener('click', function(e) {
+    if (!menuDrop.contains(e.target) && !menuBtn.contains(e.target)) {
+      menuDrop.classList.remove('open');
+    }
+  });
+}
+
+/* Palm panel now uses CSS position: sticky — no JS needed */
+
+/* ================================
+   FADE-UP REVEAL
+================================ */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in'); observer.unobserve(e.target); }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+/* ================================
+   FORM SUBMIT - sends to lexi@bermoco.com via mailto
+================================ */
+function submitContact(e){
+  e.preventDefault();
+  var form = document.getElementById('contactForm');
+  var fd = new FormData(form);
+
+  // Convert FormData to a plain object for the function payload
+  var dataObj = {};
+  fd.forEach(function(v,k){ dataObj[k]=v; });
+
+  // 1. Submit to Netlify Forms for storage + built-in email notification
+  fetch('/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(fd).toString()
+  }).catch(function(err){ console.error('Netlify submission failed',err); });
+
+  // 2. Directly invoke Resend function for branded customer thank-you email
+  fetch('/.netlify/functions/submission-created',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({payload:{form_name:'contact',data:dataObj}})
+  }).catch(function(err){ console.error('Resend function call failed',err); });
+
+  // Show success state immediately (optimistic UI)
+  form.style.display = 'none';
+  document.getElementById('formSuccess').classList.add('on');
+  return false;
+}
+</script>
+
+
+</body></html>

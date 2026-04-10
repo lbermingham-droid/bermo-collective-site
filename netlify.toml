@@ -1,0 +1,48 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Cache static assets aggressively
+[[headers]]
+  for = "/*.jpg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.pdf"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+# Friendly URLs (so /audit works as well as /bermo-audit.html)
+[[redirects]]
+  from = "/audit"
+  to = "/bermo-audit.html"
+  status = 200
+
+[[redirects]]
+  from = "/services"
+  to = "/bermo-services.html"
+  status = 200
+
+[[redirects]]
+  from = "/contact"
+  to = "/bermo-contact.html"
+  status = 200
+
+[[redirects]]
+  from = "/collab"
+  to = "/bermo-CollabNation.html"
+  status = 200
+
+[[redirects]]
+  from = "/collabnation"
+  to = "/bermo-CollabNation.html"
+  status = 200

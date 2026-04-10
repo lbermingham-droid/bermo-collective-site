@@ -1,4 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="12" fill="#0a0a0a"/>
-  <text x="8" y="48" font-family="sans-serif" font-weight="900" font-size="42" fill="#00f5d4">B.</text>
+  <rect width="64" height="64" rx="14" fill="#00f5d4"/>
+  <text x="4" y="52" font-family="'Arial Black','Helvetica',sans-serif" font-weight="900" font-size="52" fill="#ffffff" letter-spacing="-3">B</text>
+  <circle cx="50" cy="44" r="6" fill="#ffffff"/>
 </svg>

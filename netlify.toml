@@ -46,3 +46,13 @@
   from = "/collabnation"
   to = "/bermo-CollabNation.html"
   status = 200
+
+[[redirects]]
+  from = "/about"
+  to = "/about.html"
+  status = 200
+
+[[redirects]]
+  from = "/journal"
+  to = "/journal/index.html"
+  status = 200

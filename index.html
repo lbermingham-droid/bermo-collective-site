@@ -113,15 +113,16 @@ nav.scrolled .nav-menu-btn span{background:rgba(255,255,255,0.7);}
 
 /* VALUE STATEMENT */
 .value-section{background:linear-gradient(160deg,#0d2820 0%,#061410 60%,#020a08 100%);padding:80px 56px 72px;}
-.value-inner{max-width:800px;}
+.value-inner{max-width:960px;}
 .value-kicker{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:20px;display:flex;align-items:center;gap:10px;}
 .value-kicker::before{content:'';width:20px;height:1px;background:rgba(255,255,255,0.5);display:block;}
 .value-headline{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(36px,5vw,64px);line-height:0.88;letter-spacing:-0.04em;color:#fff;text-transform:uppercase;margin-bottom:28px;}
 .value-headline em{color:var(--cyan);font-style:normal;}
-.value-body{font-family:'Inter',sans-serif;font-size:16px;color:rgba(255,255,255,0.75);line-height:1.85;margin-bottom:12px;max-width:640px;}
+.value-headline .bm{font-size:1em;letter-spacing:-0.04em;}
+.value-body{font-family:'Inter',sans-serif;font-size:16px;color:rgba(255,255,255,0.65);line-height:1.85;margin-bottom:12px;max-width:720px;}
 .value-body strong{color:#fff;font-weight:600;}
-.value-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px;}
-.value-tag{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:9px 14px;border:1.5px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);transition:all .2s;cursor:default;white-space:nowrap;}
+.value-tags{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px;}
+.value-tag{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;border:1.5px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);transition:all .2s;cursor:default;white-space:nowrap;}
 .value-tag:hover{background:rgba(255,255,255,0.05);border-color:var(--cyan);color:var(--cyan);}
 .value-btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:36px;}
 .btn-primary{display:inline-flex;align-items:center;gap:8px;background:var(--cyan);color:var(--black);font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:14px 28px;text-decoration:none;border-radius:100px;transition:background .2s;white-space:nowrap;}
@@ -155,28 +156,33 @@ nav.scrolled .nav-menu-btn span{background:rgba(255,255,255,0.7);}
 .pillar-link{display:inline-flex;align-items:center;gap:8px;font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);text-decoration:none;margin-top:16px;font-weight:600;transition:color .2s;}
 .pillar-link:hover{color:var(--lime);}
 .pillar-services{font-family:'Inter',sans-serif;font-size:10px;color:rgba(255,255,255,0.35);line-height:1.7;margin-top:10px;}
-.shop-footer{margin-top:36px;padding:28px 0;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:flex-end;}
+.shop-footer{margin-top:36px;padding:28px 0;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;}
+.shop-footer-services{font-family:'Inter',sans-serif;font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:1.5px;text-transform:uppercase;line-height:1.8;}
 
 /* COLLAB BAR */
 .collab-bar{background:var(--black);padding:0 56px 80px;}
-.collab-inner{background:rgba(0,245,212,0.06);border:1px solid rgba(0,245,212,0.15);border-radius:16px;padding:32px 36px;display:flex;align-items:center;justify-content:space-between;gap:28px;flex-wrap:wrap;}
-.collab-text{display:flex;flex-direction:column;gap:6px;}
-.collab-label{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--cyan);font-weight:600;}
-.collab-headline{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(16px,1.8vw,22px);letter-spacing:-0.02em;color:#fff;text-transform:uppercase;line-height:1.1;}
-.collab-desc{font-family:'Inter',sans-serif;font-size:13px;color:rgba(255,255,255,0.55);line-height:1.7;max-width:520px;}
-.collab-btn{display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--cyan);font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:12px 24px;text-decoration:none;border-radius:100px;border:1.5px solid var(--cyan);transition:all .2s;white-space:nowrap;flex-shrink:0;}
-.collab-btn:hover{background:var(--cyan);color:var(--black);}
+.collab-bar .collab-label{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--cyan);font-weight:600;margin-bottom:20px;}
+.collab-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start;border-top:3px solid var(--cyan);padding-top:40px;}
+.collab-headline{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(20px,2.4vw,32px);letter-spacing:-0.025em;line-height:1.2;color:#fff;text-transform:uppercase;margin:0 0 24px;}
+.collab-sub{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(15px,1.5vw,18px);letter-spacing:-0.01em;line-height:1.45;color:rgba(255,255,255,0.85);margin:0 0 24px;}
+.collab-right{border-left:1px solid rgba(255,255,255,0.2);padding-left:40px;}
+.collab-desc{font-family:'Inter',sans-serif;font-size:15px;color:rgba(255,255,255,0.85);line-height:1.85;margin:0 0 18px;}
+.collab-collective{font-family:'Inter Tight',sans-serif;font-weight:700;font-size:16px;color:var(--cyan);margin:0 0 18px;letter-spacing:-0.01em;}
 
-/* STATS STRIP */
-.stats-strip{background:var(--cyan);padding:48px 56px;display:grid;grid-template-columns:repeat(4,1fr);gap:0;}
+/* STATS */
 .stat{padding:0 28px;border-right:2px solid rgba(0,0,0,0.1);display:flex;flex-direction:column;gap:6px;}
 .stat:last-child{border-right:none;}
 .stat-num{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(32px,4vw,52px);line-height:0.88;letter-spacing:-0.04em;color:var(--black);}
 .stat-label{font-family:'Inter',sans-serif;font-size:12px;letter-spacing:0.5px;color:rgba(0,0,0,0.6);line-height:1.5;margin-top:4px;}
 
 /* ABOUT TEASER */
-.about-teaser{background:var(--off);padding:80px 56px;}
-.about-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:320px 1fr;gap:56px;align-items:start;}
+.about-teaser{background:var(--off);padding:0;}
+.about-stats-block{background:var(--cyan);padding:64px 56px 48px;}
+.about-stats-top{max-width:1100px;margin:0 auto 40px;}
+.about-stats-top .about-kicker::before{background:rgba(0,0,0,0.4);}
+.about-stats-top .about-headline{margin-bottom:0;}
+.stats-row{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:0;}
+.about-inner{max-width:1100px;margin:0 auto;padding:56px 56px 80px;display:grid;grid-template-columns:320px 1fr;gap:56px;align-items:start;}
 .about-photo{position:relative;width:100%;aspect-ratio:3/4;overflow:hidden;background:linear-gradient(135deg,#1a1a1a,#2a2a2a);}
 .about-photo img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;}
 .about-caption{position:absolute;bottom:0;left:0;right:0;padding:36px 20px 20px;background:linear-gradient(to top,rgba(10,10,10,0.9) 0%,transparent 100%);}
@@ -246,9 +252,11 @@ footer{position:relative;z-index:20;background:var(--black);border-top:3px solid
 /* MOBILE */
 @media(max-width:900px){
   .pillars-grid{grid-template-columns:1fr;}
-  .stats-strip{grid-template-columns:1fr 1fr;gap:28px 0;}
+  .stats-row{grid-template-columns:1fr 1fr;gap:28px 0;}
   .stat{padding:16px 0;border-right:none;border-bottom:1px solid rgba(0,0,0,0.1);}
   .stat:nth-child(even){padding-left:28px;border-left:2px solid rgba(0,0,0,0.1);}
+  .collab-grid{grid-template-columns:1fr;}
+  .collab-right{border-left:none;padding-left:0;border-top:1px solid rgba(255,255,255,0.1);padding-top:28px;}
   .about-inner{grid-template-columns:1fr;gap:40px;}
   .about-photo{aspect-ratio:1/1;max-width:360px;}
 }
@@ -260,7 +268,10 @@ footer{position:relative;z-index:20;background:var(--black);border-top:3px solid
   .shop-section{padding:56px 24px 0;}
   .collab-bar{padding:0 24px 56px;}
   .stats-strip{padding:36px 24px;}
-  .about-teaser{padding:56px 24px;}
+  .about-teaser{padding:0;}
+  .about-stats-block{padding:48px 24px 36px;}
+  .about-inner{padding:36px 24px 56px;}
+  .collab-bar{padding:0 24px 56px;}
   .bot-cta{padding:64px 24px;}
   footer{grid-template-columns:1fr;gap:28px;padding:40px 24px;text-align:center;}
   .footer-social{justify-content:center;}
@@ -326,9 +337,9 @@ footer{position:relative;z-index:20;background:var(--black);border-top:3px solid
   <section class="value-section fade-up" id="value">
     <div class="value-inner">
       <div class="value-kicker">Human-Led. AI-Leveraged.</div>
-      <h1 class="value-headline">WHAT IS YOUR BUSINESS SAYING WHEN YOU'RE <em>NOT IN THE ROOM?</em></h1>
-      <p class="value-body"><strong>Growth breaks when translation breaks.</strong> Most founder-led businesses don't stall because of demand. They stall because priorities, messaging, and execution aren't aligned.</p>
-      <p class="value-body"><span class="bm bm-light"><span class="bm-b">BERMO</span><span class="bm-dot">.</span><span class="bm-c">COLLECTIVE</span></span> steps inside your business, clarifies what matters, then actually does it. Think of us as your fractional growth partner. We move the right things forward, at the right time.</p>
+      <h1 class="value-headline">WE STEP INSIDE YOUR BUSINESS, CLARIFY WHAT MATTERS, THEN ACTUALLY <em>DO IT.</em></h1>
+      <p class="value-body">What is your business saying when you're not in the room? <strong>Growth breaks when translation breaks.</strong> Most founder-led businesses don't stall because of demand. They stall because priorities, messaging, and execution aren't aligned.</p>
+      <p class="value-body"><span class="bm bm-light"><span class="bm-b">BERMO</span><span class="bm-dot">.</span><span class="bm-c">COLLECTIVE</span></span> is your fractional growth partner. We move the right things forward, at the right time.</p>
       <div class="value-tags">
         <span class="value-tag">Founder-Led Businesses</span>
         <span class="value-tag">Startups</span>
@@ -339,6 +350,7 @@ footer{position:relative;z-index:20;background:var(--black);border-top:3px solid
       <div class="value-btns">
         <a href="bermo-audit.html" class="btn-primary">Free Brand Audit →</a>
         <a href="bermo-services.html" class="btn-ghost">See Services + Pricing</a>
+        <a href="bermo-contact.html" class="btn-ghost">Contact</a>
       </div>
     </div>
   </section>
@@ -382,44 +394,55 @@ footer{position:relative;z-index:20;background:var(--black);border-top:3px solid
       </article>
     </div>
     <div class="shop-footer">
+      <div class="shop-footer-services">Also: AI Translation · Brand Positioning · Social Content · Hiring + Recruiting · Affiliate Marketing</div>
       <a href="bermo-services.html" class="btn-primary">Browse the Full Shop + Pricing →</a>
     </div>
   </section>
 
   <!-- COLLAB BAR -->
   <div class="collab-bar">
-    <div class="collab-inner">
-      <div class="collab-text">
-        <div class="collab-label">The Collective, Your Referral Network</div>
-        <div class="collab-headline">WE DON'T DO EVERYTHING. THAT'S INTENTIONAL.</div>
-        <p class="collab-desc"><span class="bm bm-light"><span class="bm-b">BERMO</span><span class="bm-dot">.</span><span class="bm-c">COLLECTIVE</span></span> is not a directory or a referral list. It's a curated network of founder led businesses, specialists, and creators who actually show up for each other. Real introductions. Real collaborations. Real visibility. We lock in your foundation, then connect you with the right expert at the right moment from a network we actually trust.</p>
+    <div class="collab-label">The Collective Is Your Referral Network</div>
+    <div class="collab-grid">
+      <div>
+        <p class="collab-headline">WE DON'T DO EVERYTHING. THAT'S INTENTIONAL. WE PARTNER WITH SPECIALISTS WE TRUST AND REFER WHEN IT MATTERS.</p>
+        <p class="collab-sub">I'm not competing with the specialists. I'm the move <span style="color:var(--cyan);">before</span> one makes sense. I lock in your foundation, then connect you with the right expert at the right moment, from a network I actually trust.</p>
+        <a href="bermo-contact.html" class="btn-primary">If Your Work Complements Ours, Let's Connect →</a>
       </div>
-      <a href="bermo-services.html#collective" class="collab-btn">Join the Collective →</a>
-    </div>
-  </div>
-
-  <!-- STATS STRIP -->
-  <div class="stats-strip fade-up">
-    <div class="stat">
-      <div class="stat-num">15+</div>
-      <div class="stat-label">Years scaling businesses</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num">$5M+</div>
-      <div class="stat-label">Revenue scaled in under 2 years</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num">$350K</div>
-      <div class="stat-label">Revenue rebuilt in under 6 months</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num">16+</div>
-      <div class="stat-label">Industries served</div>
+      <div class="collab-right">
+        <p class="collab-desc">It's not a directory. It's not a referral list. It's a curated network of founder led businesses, specialists, and creators who actually show up for each other.</p>
+        <p class="collab-desc">Real introductions. Real collaborations. Real visibility, without the cold outreach grind.</p>
+        <p class="collab-collective">That's why it's a Collective.</p>
+        <a href="bermo-services.html#collective" class="btn-ghost">See How It Works →</a>
+      </div>
     </div>
   </div>
 
   <!-- ABOUT TEASER -->
   <section class="about-teaser fade-up" id="about">
+    <div class="about-stats-block">
+      <div class="about-stats-top">
+        <div class="about-kicker" style="color:rgba(0,0,0,0.5);">Who You're Getting</div>
+        <h2 class="about-headline" style="color:var(--black);">THE PERSON BROUGHT IN WHEN THINGS <em style="color:#fff;font-style:normal;">NEED TO MOVE.</em></h2>
+      </div>
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-num">15+</div>
+          <div class="stat-label">Years scaling businesses</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">$5M+</div>
+          <div class="stat-label">Revenue scaled in under 2 years</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">$350K</div>
+          <div class="stat-label">Revenue rebuilt in under 6 months</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">16+</div>
+          <div class="stat-label">Industries served</div>
+        </div>
+      </div>
+    </div>
     <div class="about-inner">
       <div class="about-photo">
         <img loading="lazy" decoding="async" src="lexi-photo.jpg" alt="Lexi Bermingham, Founder of BERMO.COLLECTIVE" width="320" height="427">
@@ -428,8 +451,6 @@ footer{position:relative;z-index:20;background:var(--black);border-top:3px solid
         </div>
       </div>
       <div class="about-text-col">
-        <div class="about-kicker">Who You're Getting</div>
-        <h2 class="about-headline">THE PERSON BROUGHT IN WHEN THINGS <em>NEED TO MOVE.</em></h2>
         <p class="about-body"><span class="bm bm-dark"><span class="bm-b">BERMO</span><span class="bm-dot">.</span><span class="bm-c">COLLECTIVE</span></span> is what happens when <strong>"I have a feeling about this"</strong> turns out to be right. 15+ years of scaling businesses across 16+ industries. From revenue rebuilds to brand launches to the hires that change everything.</p>
         <p class="about-body">We don't do everything. That's intentional. <span class="bm bm-dark"><span class="bm-b">BERMO</span><span class="bm-dot">.</span><span class="bm-c">COLLECTIVE</span></span> locks in your foundation, then connects you with the right specialist at the right moment from a network we actually trust.</p>
         <div class="trait">

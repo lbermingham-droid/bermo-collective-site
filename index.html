@@ -112,19 +112,18 @@ nav.scrolled .nav-menu-btn span{background:rgba(255,255,255,0.7);}
 .main-content{position:relative;z-index:5;background:var(--black);border-radius:28px 28px 0 0;box-shadow:0 -32px 80px rgba(0,0,0,0.3);}
 
 /* VALUE STATEMENT */
-.value-section{background:linear-gradient(160deg,#0d2820 0%,#061410 60%,#020a08 100%);padding:80px 56px 72px;}
-.value-inner{max-width:960px;}
-.value-kicker{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:20px;display:flex;align-items:center;gap:10px;}
-.value-kicker::before{content:'';width:20px;height:1px;background:rgba(255,255,255,0.5);display:block;}
-.value-headline{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(36px,5vw,64px);line-height:0.88;letter-spacing:-0.04em;color:#fff;text-transform:uppercase;margin-bottom:28px;}
+.value-section{background:linear-gradient(160deg,#0d2820 0%,#061410 60%,#020a08 100%);padding:100px 56px 80px;text-align:center;}
+.value-inner{max-width:1100px;margin:0 auto;}
+.value-kicker{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:28px;display:flex;align-items:center;justify-content:center;gap:10px;}
+.value-kicker::before,.value-kicker::after{content:'';width:20px;height:1px;background:rgba(255,255,255,0.3);display:block;}
+.value-headline{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(36px,5.5vw,72px);line-height:1.05;letter-spacing:-0.02em;color:#fff;text-transform:uppercase;margin-bottom:36px;}
 .value-headline em{color:var(--cyan);font-style:normal;}
-.value-headline .bm{font-size:1em;letter-spacing:-0.04em;}
-.value-body{font-family:'Inter',sans-serif;font-size:16px;color:rgba(255,255,255,0.65);line-height:1.85;margin-bottom:12px;max-width:720px;}
+.value-body{font-family:'Inter',sans-serif;font-size:17px;color:rgba(255,255,255,0.6);line-height:1.9;margin:0 auto 16px;max-width:640px;}
 .value-body strong{color:#fff;font-weight:600;}
-.value-tags{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px;}
-.value-tag{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;border:1.5px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);transition:all .2s;cursor:default;white-space:nowrap;}
+.value-tags{display:flex;flex-wrap:wrap;gap:10px;margin-top:32px;justify-content:center;}
+.value-tag{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:10px 18px;border:1.5px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.55);transition:all .2s;cursor:default;white-space:nowrap;}
 .value-tag:hover{background:rgba(255,255,255,0.05);border-color:var(--cyan);color:var(--cyan);}
-.value-btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:36px;}
+.value-btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:40px;justify-content:center;}
 .btn-primary{display:inline-flex;align-items:center;gap:8px;background:var(--cyan);color:var(--black);font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:14px 28px;text-decoration:none;border-radius:100px;transition:background .2s;white-space:nowrap;}
 .btn-primary:hover{background:var(--lime);}
 .btn-ghost{display:inline-flex;align-items:center;gap:8px;background:transparent;color:#fff;font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:13px 28px;text-decoration:none;border-radius:100px;border:1.5px solid rgba(255,255,255,0.3);transition:all .2s;white-space:nowrap;}
@@ -337,9 +336,8 @@ footer{position:relative;z-index:20;background:var(--black);border-top:3px solid
   <section class="value-section fade-up" id="value">
     <div class="value-inner">
       <div class="value-kicker">Human-Led. AI-Leveraged.</div>
-      <h1 class="value-headline">WE STEP INSIDE YOUR BUSINESS, CLARIFY WHAT MATTERS, THEN ACTUALLY <em>DO IT.</em></h1>
-      <p class="value-body">What is your business saying when you're not in the room? <strong>Growth breaks when translation breaks.</strong> Most founder-led businesses don't stall because of demand. They stall because priorities, messaging, and execution aren't aligned.</p>
-      <p class="value-body"><span class="bm bm-light"><span class="bm-b">BERMO</span><span class="bm-dot">.</span><span class="bm-c">COLLECTIVE</span></span> is your fractional growth partner. We move the right things forward, at the right time.</p>
+      <h1 class="value-headline">WE STEP INSIDE YOUR BUSINESS, CLARIFY WHAT <em>MATTERS,</em> THEN ACTUALLY <em>DO IT.</em></h1>
+      <p class="value-body">Most founder-led businesses don't stall because of demand. They stall because priorities, messaging, and execution aren't aligned. <span class="bm bm-light"><span class="bm-b">BERMO</span><span class="bm-dot">.</span><span class="bm-c">COLLECTIVE</span></span> is your fractional growth partner. We move the right things forward, at the right time.</p>
       <div class="value-tags">
         <span class="value-tag">Founder-Led Businesses</span>
         <span class="value-tag">Startups</span>
@@ -481,7 +479,7 @@ footer{position:relative;z-index:20;background:var(--black);border-top:3px solid
 
   <!-- BOTTOM CTA -->
   <section class="bot-cta">
-    <div class="bot-ghost">BERMO.</div>
+    <!-- ghost removed -->
     <div class="bot-inner">
       <h2 class="bot-headline">LET'S BUILD<br><em>MOMENTUM.</em></h2>
       <p class="bot-body">The business keeps moving. The market doesn't wait. The cost of waiting is greater than the cost of moving.</p>

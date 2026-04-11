@@ -46,6 +46,23 @@
   }
 }
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "I've hired before or I'm thinking of hiring. Why didn't it work?", "acceptedAnswer": {"@type": "Answer", "text": "Most hires fail before they even start. The role wasn't clearly defined, so you hired someone and expected them to figure it out. That's not a talent problem — it's a clarity problem. An $80K hire can easily cost you $120K+ when you factor in wasted time and lost momentum. I fix that before you hire or while you're hiring so the role actually works."}},
+    {"@type": "Question", "name": "I'm not sure I'm big enough for this. Who do you work with?", "acceptedAnswer": {"@type": "Answer", "text": "You don't need to be big. You need to feel the friction. Most clients are already generating revenue, but growth feels inconsistent, messy, or harder than it should be. If things should be working better than they are, you're ready."}},
+    {"@type": "Question", "name": "What is the ROI? I can't afford strategy.", "acceptedAnswer": {"@type": "Answer", "text": "You can't afford not to fix what's slowing you down. A slow quarter, missed launch, or underperforming funnel can easily cost $20K to $100K+ in lost revenue. This isn't strategy for the sake of it — this is identifying exactly where growth is leaking and fixing it fast."}},
+    {"@type": "Question", "name": "Why not just hire a specialist?", "acceptedAnswer": {"@type": "Answer", "text": "You should — just not too early. Most people hire specialists before the problem is clear, then expect them to figure it out. I come in first, define what actually needs to happen, then help you hire the right specialist at the right time. I don't compete with specialists. I make them work."}},
+    {"@type": "Question", "name": "What does fractional mean? Am I getting your full attention?", "acceptedAnswer": {"@type": "Answer", "text": "It means you get me where it matters most. Not full-time overhead. Not diluted attention. Focused involvement on the decisions and execution that actually move your business. You're not paying for hours. You're getting leverage."}},
+    {"@type": "Question", "name": "How fast will I see results?", "acceptedAnswer": {"@type": "Answer", "text": "You'll feel clarity almost immediately. Most clients see real movement within a few weeks because we remove what's been slowing everything down. We don't sit in ideas. We move."}},
+    {"@type": "Question", "name": "I already have a brand. I just need execution.", "acceptedAnswer": {"@type": "Answer", "text": "If execution was the only issue, it would already be working. Most of the time, it's a direction problem. Messaging isn't tight. Priorities aren't clear. So execution stays inconsistent. We fix that first. Then execution works."}},
+    {"@type": "Question", "name": "Can't I just use AI to do this myself?", "acceptedAnswer": {"@type": "Answer", "text": "AI doesn't fix confusion. It speeds it up. Without clarity, you get more content, more noise, and a brand that starts to sound like everyone else. AI should amplify you, not replace you. This is AI leveraged, human led."}},
+    {"@type": "Question", "name": "What if I don't know what I need yet?", "acceptedAnswer": {"@type": "Answer", "text": "That's where most people start. If you're circling decisions, second guessing hires, or feel like things should be working better by now, that's your signal. You don't need a full plan. You need a clear read on what's actually broken and what to do next."}}
+  ]
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com/">
 <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Inter+Tight:wght@800;900&family=Inter:wght@400;500;600&family=Montserrat:wght@900&display=swap" rel="stylesheet">
@@ -469,6 +486,33 @@ footer{position:relative;z-index:20;background:#0a0a0a;border-top:3px solid #00f
   .collection-cards { padding:32px 24px 0 !important; }
   footer { padding:28px 24px; flex-direction:column; align-items:flex-start; }
 }
+
+/* FAQ */
+.faq-section{background:#fff;padding:80px 56px;}
+.faq-inner{max-width:900px;margin:0 auto;}
+.faq-kicker{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--gray);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.faq-kicker::before{content:'';width:20px;height:1px;background:var(--black);display:block;}
+.faq-headline{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(36px,5vw,64px);line-height:0.88;letter-spacing:-0.04em;color:var(--black);text-transform:uppercase;margin-bottom:48px;}
+.faq-headline em{color:var(--cyan);font-style:normal;}
+.faq-item{border-bottom:1px solid var(--lgray);padding:28px 0;}
+.faq-item:first-child{border-top:1px solid var(--lgray);}
+.faq-q{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(16px,1.8vw,22px);letter-spacing:-0.02em;color:var(--black);text-transform:uppercase;line-height:1.15;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.faq-q::after{content:'+';font-family:'Inter Tight',sans-serif;font-weight:900;font-size:24px;color:var(--cyan);flex-shrink:0;transition:transform .3s;}
+.faq-item.open .faq-q::after{transform:rotate(45deg);}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .4s ease,padding .3s ease;padding-top:0;}
+.faq-item.open .faq-a{max-height:600px;padding-top:16px;}
+.faq-a-body{font-family:'Inter',sans-serif;font-size:14px;color:#555;line-height:1.85;margin-bottom:8px;}
+.faq-a-body strong{color:var(--black);font-weight:600;}
+.faq-a-hook{font-family:'Inter Tight',sans-serif;font-weight:800;font-size:13px;color:var(--black);margin-top:12px;margin-bottom:4px;}
+.faq-a-link{display:inline-flex;align-items:center;gap:6px;font-family:'Inter',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);text-decoration:none;font-weight:600;margin-top:8px;transition:color .2s;}
+.faq-a-link:hover{color:var(--lime);}
+.faq-closer{margin-top:48px;padding:36px;background:var(--black);text-align:center;}
+.faq-closer-text{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(18px,2vw,26px);letter-spacing:-0.02em;color:#fff;text-transform:uppercase;line-height:1.15;margin-bottom:8px;}
+.faq-closer-text em{color:var(--cyan);font-style:normal;}
+.faq-closer-sub{font-family:'Inter Tight',sans-serif;font-weight:800;font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:16px;}
+.faq-closer-btn{display:inline-flex;align-items:center;gap:8px;background:var(--cyan);color:var(--black);font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:14px 28px;text-decoration:none;border-radius:100px;transition:background .2s;}
+.faq-closer-btn:hover{background:var(--lime);}
+@media(max-width:768px){.faq-section{padding:56px 24px;}}
 </style>
 </head>
 <body>
@@ -1320,6 +1364,117 @@ function go(id){
 </div>
 
 
+<!-- FAQ -->
+<section class="faq-section" id="faq">
+  <div class="faq-inner">
+    <div class="faq-kicker">Real Questions, Real Answers</div>
+    <h2 class="faq-headline">BEFORE YOU <em>DECIDE.</em></h2>
+
+    <div class="faq-item">
+      <div class="faq-q">I've hired before or I'm thinking of hiring. Why didn't it work?</div>
+      <div class="faq-a">
+        <p class="faq-a-body">Most hires fail before they even start.</p>
+        <p class="faq-a-body">The role wasn't clearly defined, so you hired someone and expected them to figure it out. They guessed, stalled, or built the wrong thing.</p>
+        <p class="faq-a-body"><strong>That's not a talent problem. It's a clarity problem.</strong></p>
+        <p class="faq-a-body">An $80K hire can easily cost you $120K+ when you factor in wasted time and lost momentum. I fix that before you hire or while you're hiring so the role actually works.</p>
+        <div class="faq-a-hook">Waiting costs more than moving.</div>
+        <a href="bermo-audit.html" class="faq-a-link">Start with clarity →</a>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">I'm not sure I'm big enough for this. Who do you work with?</div>
+      <div class="faq-a">
+        <p class="faq-a-body">You don't need to be big. You need to feel the friction.</p>
+        <p class="faq-a-body">Most clients are already generating revenue, but growth feels inconsistent, messy, or harder than it should be.</p>
+        <p class="faq-a-body"><strong>If things should be working better than they are, you're ready.</strong></p>
+        <div class="faq-a-hook">The longer you wait, the more that friction compounds.</div>
+        <a href="bermo-audit.html" class="faq-a-link">Get a clear read →</a>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">What is the ROI? I can't afford strategy.</div>
+      <div class="faq-a">
+        <p class="faq-a-body">You can't afford not to fix what's slowing you down.</p>
+        <p class="faq-a-body">A slow quarter, missed launch, or underperforming funnel can easily cost $20K to $100K+ in lost revenue. Not from one decision, but from months of misalignment.</p>
+        <p class="faq-a-body"><strong>This isn't strategy for the sake of it. This is identifying exactly where growth is leaking and fixing it fast.</strong></p>
+        <div class="faq-a-hook">Waiting costs more than moving. Every time.</div>
+        <a href="bermo-audit.html" class="faq-a-link">See what's costing you →</a>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">Why not just hire a specialist?</div>
+      <div class="faq-a">
+        <p class="faq-a-body">You should. Just not too early.</p>
+        <p class="faq-a-body">Most people hire specialists before the problem is clear, then expect them to figure it out. That's where it breaks.</p>
+        <p class="faq-a-body"><strong>I come in first, define what actually needs to happen, then help you hire the right specialist at the right time.</strong></p>
+        <p class="faq-a-body">I don't compete with specialists. I make them work.</p>
+        <a href="bermo-audit.html" class="faq-a-link">Get clear before you hire →</a>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">What does "fractional" mean? Am I getting your full attention?</div>
+      <div class="faq-a">
+        <p class="faq-a-body">It means you get me where it matters most.</p>
+        <p class="faq-a-body">Not full-time overhead. Not diluted attention. Focused involvement on the decisions and execution that actually move your business.</p>
+        <p class="faq-a-body"><strong>You're not paying for hours. You're getting leverage.</strong></p>
+        <a href="bermo-contact.html" class="faq-a-link">If you need leverage, not another employee, start here →</a>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">How fast will I see results?</div>
+      <div class="faq-a">
+        <p class="faq-a-body">You'll feel clarity almost immediately.</p>
+        <p class="faq-a-body">Most clients see real movement within a few weeks because we remove what's been slowing everything down.</p>
+        <p class="faq-a-body"><strong>We don't sit in ideas. We move.</strong></p>
+        <a href="bermo-contact.html" class="faq-a-link">If speed matters, don't wait →</a>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">I already have a brand. I just need execution.</div>
+      <div class="faq-a">
+        <p class="faq-a-body">If execution was the only issue, it would already be working.</p>
+        <p class="faq-a-body">Most of the time, it's a direction problem. Messaging isn't tight. Priorities aren't clear. So execution stays inconsistent.</p>
+        <p class="faq-a-body"><strong>We fix that first. Then execution works.</strong></p>
+        <a href="bermo-audit.html" class="faq-a-link">Fix what's underneath →</a>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">Can't I just use AI to do this myself?</div>
+      <div class="faq-a">
+        <p class="faq-a-body">AI doesn't fix confusion. It speeds it up.</p>
+        <p class="faq-a-body">Without clarity, you get more content, more noise, and a brand that starts to sound like everyone else. This is where you lose your voice and blend in.</p>
+        <p class="faq-a-body"><strong>AI should amplify you, not replace you.</strong></p>
+        <p class="faq-a-body">This is AI leveraged, human led.</p>
+        <a href="bermo-services.html" class="faq-a-link">Use it the right way →</a>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">What if I don't know what I need yet?</div>
+      <div class="faq-a">
+        <p class="faq-a-body">That's where most people start.</p>
+        <p class="faq-a-body">If you're circling decisions, second guessing hires, or feel like things should be working better by now, that's your signal.</p>
+        <p class="faq-a-body"><strong>You don't need a full plan. You need a clear read on what's actually broken and what to do next.</strong></p>
+        <div class="faq-a-hook">Waiting keeps you stuck in the same loop.</div>
+        <a href="bermo-audit.html" class="faq-a-link">Start with the read →</a>
+      </div>
+    </div>
+
+    <div class="faq-closer">
+      <div class="faq-closer-text">IF EVEN ONE OF THESE <em>FELT FAMILIAR,</em> YOU ALREADY KNOW.</div>
+      <div class="faq-closer-sub">Waiting costs more than moving.</div>
+      <a href="bermo-audit.html" class="faq-closer-btn">Start Here →</a>
+    </div>
+  </div>
+</section>
+
 <!-- BOTTOM CTA -->
 <div style="overflow:hidden;">
 <div class="bot-cta">
@@ -1392,6 +1547,16 @@ function go(id){
       }
     });
   }
+
+  /* FAQ ACCORDION */
+  document.querySelectorAll('.faq-q').forEach(function(q) {
+    q.addEventListener('click', function() {
+      var item = this.closest('.faq-item');
+      var wasOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(function(i) { i.classList.remove('open'); });
+      if (!wasOpen) item.classList.add('open');
+    });
+  });
 
   /* TOUCH: service card tap-to-expand */
   if (!('ontouchstart' in window)) return;

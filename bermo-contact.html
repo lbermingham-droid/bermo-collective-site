@@ -376,13 +376,6 @@ nav.scrolled .nav-menu-btn span { background:rgba(255,255,255,0.7); }
 .insta-tile.p5 .insta-tile-bg { background:linear-gradient(135deg,#0a2020 0%,#143830 100%); }
 .insta-tile.p6 .insta-tile-bg { background:linear-gradient(135deg,#162828 0%,#0d3030 100%); }
 .insta-tile.p7 .insta-tile-bg { background:linear-gradient(135deg,#0e2424 0%,#1a3838 100%); }
-/* Live feed note overlay on large tile */
-.insta-tile.p1 .insta-tile-bg::after {
-  content: 'CONNECT LIGHTWIDGET FOR LIVE FEED';
-  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-  font-family:'Inter',sans-serif; font-size:9px; letter-spacing:2px;
-  color:rgba(255,255,255,0.25); text-align:center; padding:20px;
-}
 .insta-more-row { margin-top:18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
 .insta-more { display:inline-flex; align-items:center; gap:10px; text-decoration:none; font-family:'Inter',sans-serif; font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:var(--black); font-weight:500; transition:color .2s; }
 .insta-more:hover { color:var(--cyan); }
@@ -631,13 +624,6 @@ footer{position:relative;z-index:20;background:#0a0a0a;border-top:3px solid #00f
 </div><!-- end .contact-photo-wrap -->
 
 <!-- SOCIAL SECTION -->
-<!--
-  LIVE INSTAGRAM FEED NOTE:
-  The photo tiles below link to your Instagram page but show placeholder gradients.
-  To get a live auto-updating feed, sign up free at lightwidget.com, connect @bermo.co,
-  copy the embed code, and replace the .insta-grid div below with it.
-  LightWidget is free and the easiest option for a static Netlify site.
--->
 <section class="social-section" id="socialSection">
   <div class="social-inner">
     <div class="social-header">

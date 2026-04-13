@@ -94,6 +94,10 @@ nav.scrolled .nav-social a{color:rgba(255,255,255,0.35);}
 .nav-social a:hover{color:var(--black);}
 nav.scrolled .nav-social a:hover{color:var(--cyan);}
 .nav-social svg{width:16px;height:16px;}
+.nav-back{display:flex;align-items:center;color:rgba(0,0,0,0.4);text-decoration:none;transition:color .35s;flex-shrink:0;}
+.nav-back:hover{color:var(--cyan);}
+.nav-back svg{width:16px;height:16px;}
+nav.scrolled .nav-back{color:rgba(255,255,255,0.45);}
 .nav-audit{display:inline-flex;align-items:center;gap:6px;background:var(--black);color:#fff;font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:10px 20px;text-decoration:none;border-radius:100px;transition:background .2s;}
 nav.scrolled .nav-audit{background:var(--cyan);color:var(--black);}
 .nav-audit:hover{background:var(--lime) !important;color:var(--black) !important;}
@@ -484,6 +488,9 @@ footer{position:relative;z-index:20;background:#0a0a0a;border-top:3px solid #00f
   .fit-grid { grid-template-columns:1fr; }
   .collection-cards { padding:32px 24px 0 !important; }
   footer { padding:28px 24px; flex-direction:column; align-items:flex-start; }
+  .nav-dropdown{min-width:0;width:calc(100vw - 32px);right:-12px;border-radius:12px;}
+  .nav-dropdown a{font-size:16px;padding:14px 20px;}
+  .nav-dropdown a span span{font-size:8px !important;}
 }
 
 /* FAQ */

@@ -212,7 +212,7 @@ ${insightsBlock}
         </td></tr>
 
         <tr><td style="background:#0a0a0a;padding:18px 36px;text-align:center;">
-          <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.5);font-weight:500;">bermoco.com</div>
+          <a href="https://bermoco.com" style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.5);font-weight:500;text-decoration:none;">bermoco.com</a>
         </td></tr>
 
       </table>
@@ -249,8 +249,7 @@ function buildContactCustomerEmail({ firstName, siteUrl }) {
           </h1>
           <div style="height:8px;width:72px;background:#00f5d4;margin:20px 0 24px;"></div>
           <p style="font-size:15px;line-height:1.7;color:#0a0a0a;margin:0 0 14px;">It's in front of me right now. <strong>Real humans still read these.</strong></p>
-          <p style="font-size:15px;line-height:1.7;color:#333;margin:0 0 14px;">I'll sit with it, think on it, and come back inside 24 hours with something useful. Not a template. Not an autoresponder. A real answer from the person whose name is on the door.</p>
-          <p style="font-size:15px;line-height:1.7;color:#333;margin:0 0 28px;">Until then, think about what a win actually looks like for you. Be specific. The sharper you are, the sharper I can be when we talk.</p>
+          <p style="font-size:15px;line-height:1.7;color:#333;margin:0 0 14px;">I will reach out within the next 24 hours to chat! If this is urgent, shoot me an email at <a href="mailto:lexi@bermoco.com" style="color:#0a0a0a;font-weight:600;">lexi@bermoco.com</a>, otherwise I look forward to discussing your growth plan.</p>
 
           <div style="border-top:1px solid #e2e0db;padding-top:22px;margin-top:8px;">
             <p style="font-size:13px;line-height:1.6;color:#0a0a0a;margin:0 0 4px;font-weight:700;">Talk soon,</p>
@@ -268,7 +267,7 @@ function buildContactCustomerEmail({ firstName, siteUrl }) {
         </td></tr>
 
         <tr><td style="background:#0a0a0a;padding:18px 36px;text-align:center;">
-          <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.5);font-weight:500;">bermoco.com</div>
+          <a href="https://bermoco.com" style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.5);font-weight:500;text-decoration:none;">bermoco.com</a>
         </td></tr>
 
       </table>

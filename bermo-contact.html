@@ -423,6 +423,9 @@ footer{position:relative;z-index:20;background:#0a0a0a;border-top:3px solid #00f
   .nav-social{display:none !important;}
   nav { padding:0 20px; }
   .hero-content { padding:0 28px; }
+  .hero-logo-word { font-size:clamp(64px,14vw,160px); }
+  .contact-ghost { display:none; }
+  .f-field input, .f-field select, .f-field textarea { font-size:16px; }
   footer { grid-template-columns:1fr; gap:28px; padding:40px 24px; text-align:center; }
   .footer-social { justify-content:center; }
   .footer-right { text-align:center; }
@@ -797,6 +800,10 @@ function submitContact(e){
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({payload:{form_name:'contact',data:dataObj}})
   }).catch(function(err){ console.error('Resend function call failed',err); });
+
+  // Blur any focused input to prevent iOS zoom/scroll on submit
+  if (document.activeElement) document.activeElement.blur();
+  window.scrollTo({ top: document.getElementById('contact-form').offsetTop - 80, behavior: 'smooth' });
 
   // Show success state immediately (optimistic UI)
   form.style.display = 'none';

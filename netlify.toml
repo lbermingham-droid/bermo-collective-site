@@ -21,9 +21,58 @@
   [headers.values]
     Cache-Control = "public, max-age=86400"
 
-# Friendly URLs (so /audit works as well as /bermo-audit.html)
+# Serve llms.txt as plain text with correct content type
+[[headers]]
+  for = "/llms.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+    Cache-Control = "public, max-age=86400"
+
+# 301 redirects from old .html URLs to clean paths (SEO + AI visibility)
+[[redirects]]
+  from = "/bermo-audit.html"
+  to = "/audit"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/bermo-services.html"
+  to = "/services"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/bermo-contact.html"
+  to = "/contact"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/bermo-CollabNation.html"
+  to = "/collabnation"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/about.html"
+  to = "/about"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/index.html"
+  to = "/"
+  status = 301
+  force = true
+
+# Clean URL rewrites (serve the actual files)
 [[redirects]]
   from = "/audit"
+  to = "/bermo-audit.html"
+  status = 200
+
+[[redirects]]
+  from = "/audit/*"
   to = "/bermo-audit.html"
   status = 200
 
@@ -39,8 +88,8 @@
 
 [[redirects]]
   from = "/collab"
-  to = "/bermo-CollabNation.html"
-  status = 200
+  to = "/collabnation"
+  status = 301
 
 [[redirects]]
   from = "/collabnation"

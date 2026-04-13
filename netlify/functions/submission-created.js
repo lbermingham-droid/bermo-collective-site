@@ -149,7 +149,7 @@ function buildAuditCustomerEmail({ firstName, gapsScore, brand, auditInsights, s
   const safeGaps = escapeHtml(gapsScore);
   const safeBrand = escapeHtml(brand);
   const guideUrl = siteUrl + '/free-guide.pdf';
-  const contactUrl = siteUrl + '/bermo-contact.html';
+  const contactUrl = siteUrl + '/contact';
 
   // Parse insights (separated by ||) and build a bullet list
   const insights = (auditInsights || '').split('||').map(s => s.trim()).filter(Boolean);
@@ -227,7 +227,7 @@ ${insightsBlock}
 // ============================================================================
 function buildContactCustomerEmail({ firstName, siteUrl }) {
   const safeName = escapeHtml(firstName);
-  const auditUrl = siteUrl + '/bermo-audit.html';
+  const auditUrl = siteUrl + '/audit';
 
   return `<!doctype html>
 <html lang="en">

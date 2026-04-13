@@ -1,4 +1,43 @@
+# BERMO.COLLECTIVE — bermoco.com
+# Allow all crawlers including AI systems
+
 User-agent: *
 Allow: /
+
+# Explicitly allow AI crawlers
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: CohereForAI
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# Block prototype/backup files and admin
+Disallow: /proto-*.html
+Disallow: /index-*.html
+Disallow: /admin/
 
 Sitemap: https://bermoco.com/sitemap.xml

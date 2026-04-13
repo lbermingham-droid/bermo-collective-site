@@ -641,12 +641,7 @@ function doSub(){
   var body=Object.keys(netlifyPayload).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(netlifyPayload[k]);}).join('&');
   fetch('/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body}).catch(function(e){console.error('Netlify submission failed',e);});
 
-  // 2. Directly invoke Resend function for branded customer email + internal notification
-  fetch('/.netlify/functions/submission-created',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({payload:{form_name:'audit',data:payload}})
-  }).catch(function(e){console.error('Resend function call failed',e);});
+  // Resend function is triggered automatically by Netlify on form submission
 }
 var QLIVE={
   1:["I don't actually know what we're saying out there.","...okay that one hit.","I thought I knew. I don't."],

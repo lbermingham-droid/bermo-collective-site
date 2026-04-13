@@ -1356,12 +1356,7 @@ footer {
       body: netlifyBody
     }).catch(function(err){ console.error('Netlify submission failed', err); });
 
-    // 2. Directly invoke Resend function for branded customer email + internal pink notification
-    fetch('/.netlify/functions/submission-created', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ payload: { form_name: 'collabnation', data: dataObj } })
-    }).catch(function(err){ console.error('Resend function call failed', err); });
+    // Resend function is triggered automatically by Netlify on form submission
 
     // Show success state immediately
     f.style.display = 'none';

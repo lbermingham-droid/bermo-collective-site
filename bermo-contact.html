@@ -800,12 +800,7 @@ function submitContact(e){
     body: new URLSearchParams(fd).toString()
   }).catch(function(err){ console.error('Netlify submission failed',err); });
 
-  // 2. Directly invoke Resend function for branded customer thank-you email
-  fetch('/.netlify/functions/submission-created',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({payload:{form_name:'contact',data:dataObj}})
-  }).catch(function(err){ console.error('Resend function call failed',err); });
+  // Resend function is triggered automatically by Netlify on form submission
 
   // Blur any focused input to prevent iOS zoom/scroll on submit
   if (document.activeElement) document.activeElement.blur();

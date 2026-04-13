@@ -204,7 +204,7 @@ footer{position:relative;z-index:20;background:var(--black);border-top:3px solid
 @media(max-width:768px){
   nav{padding:0 20px;} .nav-social{display:none;}
   .hero{padding:120px 24px 56px;}
-  .hero-ghost{display:none;}
+  .hero-ghost{font-size:clamp(60px,15vw,100px);opacity:0.04;}
   .bot-ghost{display:none;}
   .about-section{padding:56px 24px;}
   .record-section{padding:56px 24px;}
@@ -213,9 +213,6 @@ footer{position:relative;z-index:20;background:var(--black);border-top:3px solid
   footer{grid-template-columns:1fr;gap:28px;padding:40px 24px;text-align:center;}
   .footer-social{justify-content:center;}
   .footer-right{text-align:center;}
-  .nav-dropdown{min-width:0;width:calc(100vw - 32px);right:-12px;border-radius:12px;}
-  .nav-dropdown a{font-size:16px;padding:14px 20px;}
-  .nav-dropdown a span span{font-size:8px !important;}
 }
 </style>
 </head>

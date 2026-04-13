@@ -92,7 +92,22 @@ nav.scrolled .nav-menu-btn span{background:rgba(255,255,255,0.7);}
 .nav-dropdown a.dd-pink{color:var(--pink);}
 .nav-dropdown a.dd-pink.dd-active{color:var(--pink);}
 .nav-dropdown a.dd-pink:hover{color:#fff;background:rgba(255,45,122,0.08);}
-@media(max-width:860px){nav{padding:0 16px;height:52px;}.nav-social{display:none !important;}}
+@media(max-width:860px){
+  nav{padding:0 16px;height:52px;}
+  .nav-social{display:none !important;}
+  .hero{grid-template-columns:1fr;min-height:auto;}
+  .hero-left{min-height:auto;padding:80px 28px 40px;border-right:none;border-bottom:1px solid var(--lgray);}
+  .hero-right{min-height:auto;padding:40px 28px 56px;}
+  .hw-collab,.hw-nation{font-size:clamp(48px,14vw,80px);}
+  .hero-r-hed{font-size:clamp(28px,5vw,40px);}
+  .hero-vert{display:none;}
+  .cards{grid-template-columns:1fr !important;}
+  .card{min-height:auto;}
+  .join{padding:80px 24px 60px;}
+  .collab{grid-template-columns:1fr;}
+  .manifesto{padding:56px 24px 80px;}
+  .manifesto-label{font-size:clamp(48px,10vw,80px);}
+}
 
 /* ================================
    HERO

@@ -9,7 +9,7 @@ exports.handler = async function (event) {
     const data = payload.data || {};
 
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
-    const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'BERMO.COLLECTIVE <onboarding@resend.dev>';
+    const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'BERMO.COLLECTIVE <lexi@bermoco.com>';
     const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL || 'lbermingham@bermoco.com';
     const SITE_URL = process.env.SITE_URL || 'https://bermoco.com';
 
@@ -85,6 +85,7 @@ exports.handler = async function (event) {
       // Customer-facing thank-you email (brand voice, no dashes)
       const userEmail = (data.email || '').trim();
       const firstName = (data.first_name || 'there').trim();
+      console.log('Contact form - userEmail:', userEmail, 'firstName:', firstName, 'FROM:', FROM_EMAIL);
 
       if (userEmail) {
         const customerHtml = buildContactCustomerEmail({ firstName, siteUrl: SITE_URL });

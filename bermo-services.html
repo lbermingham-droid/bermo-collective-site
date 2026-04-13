@@ -512,6 +512,22 @@ footer{position:relative;z-index:20;background:#0a0a0a;border-top:3px solid #00f
 .faq-closer-btn{display:inline-flex;align-items:center;gap:8px;background:var(--cyan);color:var(--black);font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:14px 28px;text-decoration:none;border-radius:100px;transition:background .2s;}
 .faq-closer-btn:hover{background:var(--lime);}
 @media(max-width:768px){.faq-section{padding:56px 24px;}}
+/* COLLAB MODAL */
+.collab-modal-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);align-items:center;justify-content:center;}
+.collab-modal-overlay.open{display:flex;}
+.collab-modal{background:var(--black);border:1px solid rgba(0,245,212,0.15);border-top:4px solid var(--cyan);border-radius:20px;max-width:560px;width:90%;max-height:90vh;overflow-y:auto;padding:48px 44px;position:relative;box-shadow:0 40px 100px rgba(0,0,0,0.6);}
+.collab-modal-close{position:absolute;top:16px;right:20px;background:none;border:none;color:rgba(255,255,255,0.4);font-size:28px;cursor:pointer;transition:color .2s;line-height:1;}
+.collab-modal-close:hover{color:var(--cyan);}
+.collab-modal-label{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--cyan);font-weight:600;margin-bottom:14px;}
+.collab-modal-title{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(24px,3vw,36px);line-height:0.9;letter-spacing:-0.04em;color:#fff;text-transform:uppercase;margin-bottom:24px;}
+.collab-modal-title em{color:var(--cyan);font-style:normal;}
+.collab-modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:32px;}
+.collab-spec{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px 16px;font-family:'Inter',sans-serif;font-size:13px;color:rgba(255,255,255,0.8);transition:background .2s,border-color .2s;}
+.collab-spec:hover{background:rgba(0,245,212,0.06);border-color:rgba(0,245,212,0.2);}
+.collab-modal-foot{font-family:'Inter',sans-serif;font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:20px;line-height:1.6;}
+.collab-modal-cta{display:inline-flex;align-items:center;gap:8px;background:var(--cyan);color:var(--black);font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:14px 28px;text-decoration:none;border-radius:100px;transition:background .2s;white-space:nowrap;border:1.5px solid var(--cyan);}
+.collab-modal-cta:hover{background:var(--lime);border-color:var(--lime);}
+@media(max-width:768px){.collab-modal-grid{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -547,6 +563,12 @@ footer{position:relative;z-index:20;background:#0a0a0a;border-top:3px solid #00f
       <a href="/contact"><span style="display:flex;flex-direction:column;align-items:flex-start"><span>Contact</span><span style="display:block;font-family:'Inter',sans-serif;font-weight:400;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-top:3px;line-height:1.3">Fix the Break</span></span></a>
       <a href="/audit"><span style="display:flex;flex-direction:column;align-items:flex-start"><span>Free Brand Audit</span><span style="display:block;font-family:'Inter',sans-serif;font-weight:400;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#00f5d4;margin-top:3px;line-height:1.3">Find the Break</span></span></a>
       <a href="/journal"><span style="display:flex;flex-direction:column;align-items:flex-start"><span>Journal</span><span style="display:block;font-family:'Inter',sans-serif;font-weight:400;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-top:3px;line-height:1.3">Insights + Ideas</span></span></a>
+      <div style="display:flex;justify-content:center;gap:16px;padding:16px 28px 20px;border-top:1px solid rgba(255,255,255,0.07);">
+        <a href="https://instagram.com/bermo.co" target="_blank" rel="noopener" style="color:rgba(255,255,255,0.4);display:flex;"><svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+        <a href="https://tiktok.com/@bermo.co" target="_blank" rel="noopener" style="color:rgba(255,255,255,0.4);display:flex;"><svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.89 2.89 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.95a8.2 8.2 0 0 0 4.78 1.52V7.01a4.85 4.85 0 0 1-1.01-.32z"/></svg></a>
+        <a href="https://linkedin.com/company/bermo-collective" target="_blank" rel="noopener" style="color:rgba(255,255,255,0.4);display:flex;"><svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg></a>
+        <a href="mailto:hello@bermoco.com" style="color:rgba(255,255,255,0.4);display:flex;"><svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></a>
+      </div>
     </div>
   </div>
 </nav>
@@ -979,7 +1001,7 @@ Growth breaks when translation breaks. If your positioning isn't clear, your con
       <div style="padding:36px 28px;display:flex;flex-direction:column;gap:16px;justify-content:center;">
         <div style="padding:20px 22px;background:#fff;">
           <p style="font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(13px,1.3vw,15px);letter-spacing:-0.01em;line-height:1.6;color:#0a0a0a;margin-bottom:12px;">We don't do everything. That's intentional. We partner with specialists we trust and refer when it matters. If your work complements ours, let's connect.</p>
-          <a href="/contact#contact-form" class="pkg-cta" style="display:block;text-align:center;">→ Join our referral network</a>
+          <button id="collabBtn" class="pkg-cta" style="display:block;text-align:center;width:100%;cursor:pointer;background:#fff;border:none;font:inherit;">→ Join our referral network</button>
         </div>
         <a href="/collabnation" style="display:inline-flex;align-items:center;gap:12px;text-decoration:none;align-self:flex-start;">
           <div style="display:flex;flex-direction:column;align-items:flex-start;padding:14px 18px;background:rgba(0,0,0,0.08);gap:4px;">
@@ -1492,6 +1514,29 @@ function go(id){
 </div>
 </div>
 
+<!-- COLLAB MODAL -->
+<div class="collab-modal-overlay" id="collabModal">
+  <div class="collab-modal">
+    <button class="collab-modal-close" id="collabClose">&times;</button>
+    <div class="collab-modal-label">The Collective Network</div>
+    <h3 class="collab-modal-title">SPECIALISTS IN <em>OUR NETWORK.</em></h3>
+    <div class="collab-modal-grid">
+      <div class="collab-spec">AI Visibility</div>
+      <div class="collab-spec">Staffing + Recruiting</div>
+      <div class="collab-spec">Resume Writing</div>
+      <div class="collab-spec">Finance + Accounting</div>
+      <div class="collab-spec">Bookkeeping</div>
+      <div class="collab-spec">Payroll Services</div>
+      <div class="collab-spec">Graphic Design</div>
+      <div class="collab-spec">IT + Technology</div>
+      <div class="collab-spec">Event Planning</div>
+      <div class="collab-spec">+ More Coming</div>
+    </div>
+    <p class="collab-modal-foot">We don't do everything. That's intentional. If your work complements ours, we want to hear from you.</p>
+    <a href="/contact" class="collab-modal-cta" style="width:100%;justify-content:center;">Let's Connect</a>
+  </div>
+</div>
+
 <!-- FOOTER -->
 <footer>
   <div>
@@ -1572,6 +1617,16 @@ function go(id){
   });
 
 })();
+
+// COLLAB MODAL
+var collabBtn=document.getElementById('collabBtn');
+var collabModal=document.getElementById('collabModal');
+var collabClose=document.getElementById('collabClose');
+if(collabBtn&&collabModal&&collabClose){
+  collabBtn.addEventListener('click',function(){collabModal.classList.add('open');document.body.style.overflow='hidden';});
+  collabClose.addEventListener('click',function(){collabModal.classList.remove('open');document.body.style.overflow='';});
+  collabModal.addEventListener('click',function(e){if(e.target===collabModal){collabModal.classList.remove('open');document.body.style.overflow='';}});
+}
 </script>
 
 </div></body></html>

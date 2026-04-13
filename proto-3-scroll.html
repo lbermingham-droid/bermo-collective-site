@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prototype 3 — Scroll-Driven Transformation</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@800;900&family=Inter:wght@400;500;600&family=Montserrat:wght@900&display=swap" rel="stylesheet">
+<style>
+:root{--cyan:#00f5d4;--lime:#c8f500;--pink:#ff2d7a;--black:#0a0a0a;--cream:#f0efe9;--lgray:#e2e0db;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--black);font-family:'Inter',sans-serif;overflow-x:hidden;}
+
+.spacer-top{height:60vh;background:var(--black);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;}
+.spacer-top h2{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(36px,5vw,56px);color:#fff;text-transform:uppercase;letter-spacing:-0.04em;line-height:0.88;text-align:center;}
+.spacer-top p{font-family:'Inter',sans-serif;font-size:14px;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase;}
+
+/* SCROLL TRANSFORMATION */
+.scroll-section{position:relative;height:400vh;background:var(--black);}
+.scroll-sticky{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:0 56px;}
+
+/* Progress indicator */
+.scroll-progress{position:absolute;top:40px;left:56px;display:flex;flex-direction:column;gap:6px;z-index:20;}
+.scroll-progress-label{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:4px;}
+.scroll-progress-bar{width:3px;height:120px;background:rgba(255,255,255,0.06);border-radius:2px;position:relative;overflow:hidden;}
+.scroll-progress-fill{position:absolute;top:0;left:0;right:0;height:0%;background:var(--cyan);border-radius:2px;transition:height 0.1s;}
+
+/* Phase labels */
+.phase-label{position:absolute;top:40px;right:56px;z-index:20;text-align:right;}
+.phase-text{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(14px,1.5vw,18px);text-transform:uppercase;letter-spacing:-0.02em;color:rgba(255,255,255,0.15);transition:color 0.4s,opacity 0.4s;display:block;line-height:1.4;}
+.phase-text.active{color:#fff;}
+.phase-text.active .phase-dot{background:var(--cyan);}
+.phase-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.1);margin-right:8px;transition:background 0.4s;vertical-align:middle;}
+
+/* The canvas area */
+.transform-canvas{position:relative;width:100%;max-width:900px;height:420px;border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);background:#111;}
+
+/* Scattered words (phase 1 — chaos) */
+.word{position:absolute;font-family:'Inter Tight',sans-serif;font-weight:900;text-transform:uppercase;transition:all 1.2s cubic-bezier(.4,0,.2,1);white-space:nowrap;pointer-events:none;}
+.w1{font-size:52px;color:rgba(255,255,255,0.06);top:15%;left:5%;letter-spacing:-0.03em;}
+.w2{font-size:28px;color:rgba(255,255,255,0.04);top:55%;left:60%;letter-spacing:0.1em;}
+.w3{font-size:38px;color:rgba(255,255,255,0.05);top:75%;left:10%;letter-spacing:-0.02em;}
+.w4{font-size:22px;color:rgba(255,255,255,0.03);top:30%;left:70%;letter-spacing:0.15em;}
+.w5{font-size:44px;color:rgba(255,255,255,0.04);top:8%;left:45%;letter-spacing:-0.04em;}
+.w6{font-size:18px;color:rgba(255,255,255,0.03);top:65%;left:35%;letter-spacing:0.08em;}
+.w7{font-size:60px;color:rgba(255,255,255,0.05);top:40%;left:15%;letter-spacing:-0.03em;}
+
+/* Color blocks (scattered, then organize) */
+.color-block{position:absolute;border-radius:8px;transition:all 1.2s cubic-bezier(.4,0,.2,1);opacity:0.15;}
+.cb1{width:80px;height:80px;background:var(--pink);top:10%;right:15%;transform:rotate(25deg);}
+.cb2{width:60px;height:60px;background:var(--cyan);bottom:20%;left:8%;transform:rotate(-15deg);}
+.cb3{width:50px;height:50px;background:var(--lime);top:50%;right:35%;transform:rotate(40deg);}
+.cb4{width:70px;height:40px;background:#8855ff;bottom:10%;right:10%;transform:rotate(-30deg);}
+.cb5{width:40px;height:70px;background:#ff8800;top:20%;left:40%;transform:rotate(20deg);}
+
+/* Content cards (hidden, then appear) */
+.content-card{position:absolute;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.04);border-radius:12px;padding:20px;opacity:0;transform:translateY(20px);transition:all 1s cubic-bezier(.4,0,.2,1);}
+.cc1{bottom:16px;left:16px;width:260px;}
+.cc2{bottom:16px;left:290px;width:260px;}
+.cc3{bottom:16px;right:16px;width:260px;}
+.cc-line{height:6px;border-radius:3px;margin-bottom:8px;background:rgba(255,255,255,0.08);transition:background 1s;}
+.cc-line:nth-child(2){width:70%;}
+.cc-line:nth-child(3){width:45%;}
+
+/* Organized tagline (hidden, then appears) */
+.org-tagline{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.8);opacity:0;transition:all 1s cubic-bezier(.4,0,.2,1);text-align:center;pointer-events:none;width:90%;}
+.org-tagline h2{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(36px,5vw,64px);line-height:0.88;letter-spacing:-0.04em;color:#fff;text-transform:uppercase;}
+.org-tagline h2 em{color:var(--cyan);font-style:normal;}
+.org-tagline p{font-family:'Inter',sans-serif;font-size:14px;color:rgba(255,255,255,0.5);margin-top:16px;line-height:1.7;}
+
+/* Palette strip (appears in phase 3) */
+.palette-strip{position:absolute;top:20px;left:50%;transform:translateX(-50%);display:flex;gap:6px;opacity:0;transition:opacity 1s;}
+.palette-swatch{width:36px;height:36px;border-radius:8px;transition:transform 0.3s;cursor:default;}
+.palette-swatch:hover{transform:scale(1.15);}
+.ps1{background:var(--cyan);}
+.ps2{background:var(--black);border:1px solid rgba(255,255,255,0.2);}
+.ps3{background:#fff;}
+.ps4{background:var(--pink);}
+.ps5{background:var(--lime);}
+
+/* Final CTA overlay */
+.scroll-finale{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity 0.8s;pointer-events:none;z-index:10;}
+.scroll-finale.show{opacity:1;pointer-events:auto;}
+.finale-text{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(28px,4vw,52px);color:#fff;text-transform:uppercase;letter-spacing:-0.04em;line-height:0.88;text-align:center;margin-bottom:8px;}
+.finale-text em{color:var(--cyan);font-style:normal;}
+.finale-sub{font-family:'Inter',sans-serif;font-size:14px;color:rgba(255,255,255,0.45);margin-bottom:28px;text-align:center;}
+.finale-btn{display:inline-flex;align-items:center;gap:8px;background:var(--cyan);color:var(--black);font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:16px 36px;border-radius:100px;text-decoration:none;cursor:pointer;border:none;transition:background 0.2s;}
+.finale-btn:hover{background:var(--lime);}
+
+/* Counter labels on the side */
+.scroll-counter{position:absolute;bottom:40px;left:56px;z-index:20;}
+.counter-main{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(48px,6vw,80px);color:var(--cyan);opacity:0.1;letter-spacing:-0.04em;line-height:0.85;transition:opacity 0.4s;}
+.counter-sub{font-family:'Inter',sans-serif;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-top:4px;}
+
+.spacer-bottom{height:40vh;background:var(--black);display:flex;align-items:center;justify-content:center;}
+.spacer-bottom p{font-family:'Inter',sans-serif;font-size:14px;color:rgba(255,255,255,0.2);letter-spacing:2px;text-transform:uppercase;}
+</style>
+</head>
+<body>
+
+<div class="spacer-top">
+  <p>Scroll slowly through this demo</p>
+  <h2>SCROLL-DRIVEN<br>TRANSFORMATION</h2>
+</div>
+
+<div class="scroll-section" id="scrollSection">
+  <div class="scroll-sticky">
+
+    <!-- Progress -->
+    <div class="scroll-progress">
+      <div class="scroll-progress-label">Scroll</div>
+      <div class="scroll-progress-bar"><div class="scroll-progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <!-- Phase labels -->
+    <div class="phase-label">
+      <span class="phase-text active" id="phase1"><span class="phase-dot"></span>The Noise</span>
+      <span class="phase-text" id="phase2"><span class="phase-dot"></span>The Signal</span>
+      <span class="phase-text" id="phase3"><span class="phase-dot"></span>The Clarity</span>
+      <span class="phase-text" id="phase4"><span class="phase-dot"></span>The Brand</span>
+    </div>
+
+    <!-- Counter -->
+    <div class="scroll-counter">
+      <div class="counter-main" id="counterMain">01</div>
+      <div class="counter-sub" id="counterSub">Chaos</div>
+    </div>
+
+    <!-- Canvas -->
+    <div class="transform-canvas" id="canvas">
+      <!-- Scattered words -->
+      <div class="word w1" id="wGrowth">GROWTH</div>
+      <div class="word w2" id="wSocial">SOCIAL MEDIA</div>
+      <div class="word w3" id="wBrand">BRANDING</div>
+      <div class="word w4" id="wContent">CONTENT</div>
+      <div class="word w5" id="wStrategy">STRATEGY</div>
+      <div class="word w6" id="wHiring">HIRING</div>
+      <div class="word w7" id="wSales">SALES</div>
+
+      <!-- Color blocks -->
+      <div class="color-block cb1"></div>
+      <div class="color-block cb2"></div>
+      <div class="color-block cb3"></div>
+      <div class="color-block cb4"></div>
+      <div class="color-block cb5"></div>
+
+      <!-- Content cards (appear later) -->
+      <div class="content-card cc1" id="cc1">
+        <div class="cc-line"></div><div class="cc-line"></div><div class="cc-line"></div>
+      </div>
+      <div class="content-card cc2" id="cc2">
+        <div class="cc-line"></div><div class="cc-line"></div><div class="cc-line"></div>
+      </div>
+      <div class="content-card cc3" id="cc3">
+        <div class="cc-line"></div><div class="cc-line"></div><div class="cc-line"></div>
+      </div>
+
+      <!-- Organized tagline -->
+      <div class="org-tagline" id="orgTagline">
+        <h2>CLARITY BUILDS<br><em>MOMENTUM.</em></h2>
+        <p>From noise to signal. From scattered to strategic. This is what we do.</p>
+      </div>
+
+      <!-- Palette -->
+      <div class="palette-strip" id="paletteStrip">
+        <div class="palette-swatch ps1"></div>
+        <div class="palette-swatch ps2"></div>
+        <div class="palette-swatch ps3"></div>
+        <div class="palette-swatch ps4"></div>
+        <div class="palette-swatch ps5"></div>
+      </div>
+
+      <!-- Finale -->
+      <div class="scroll-finale" id="finale">
+        <div class="finale-text">THIS IS WHAT <em>CLARITY</em> LOOKS LIKE.</div>
+        <div class="finale-sub">Your brand deserves this. Let's build it.</div>
+        <button class="finale-btn">Take the Free Brand Audit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="spacer-bottom">
+  <p>End of demo</p>
+</div>
+
+<script>
+const section = document.getElementById('scrollSection');
+const progressFill = document.getElementById('progressFill');
+const phases = [document.getElementById('phase1'), document.getElementById('phase2'), document.getElementById('phase3'), document.getElementById('phase4')];
+const counterMain = document.getElementById('counterMain');
+const counterSub = document.getElementById('counterSub');
+const words = document.querySelectorAll('.word');
+const colorBlocks = document.querySelectorAll('.color-block');
+const cards = [document.getElementById('cc1'), document.getElementById('cc2'), document.getElementById('cc3')];
+const orgTagline = document.getElementById('orgTagline');
+const paletteStrip = document.getElementById('paletteStrip');
+const finale = document.getElementById('finale');
+const canvas = document.getElementById('canvas');
+
+const counterLabels = ['Chaos', 'Finding Signal', 'Building Clarity', 'Your Brand'];
+
+function lerp(a, b, t) { return a + (b - a) * Math.max(0, Math.min(1, t)); }
+
+window.addEventListener('scroll', () => {
+  const rect = section.getBoundingClientRect();
+  const sectionHeight = section.offsetHeight - window.innerHeight;
+  const scrolled = -rect.top;
+  const progress = Math.max(0, Math.min(1, scrolled / sectionHeight));
+
+  // Progress bar
+  progressFill.style.height = (progress * 100) + '%';
+
+  // Phase (0-0.25, 0.25-0.5, 0.5-0.75, 0.75-1)
+  const phaseIdx = Math.min(3, Math.floor(progress * 4));
+  phases.forEach((p, i) => p.classList.toggle('active', i === phaseIdx));
+  counterMain.textContent = '0' + (phaseIdx + 1);
+  counterSub.textContent = counterLabels[phaseIdx];
+
+  // ── PHASE 1: CHAOS (0 - 0.25) ──
+  // Words are scattered and faint — slight drift
+  if (progress < 0.25) {
+    const t = progress / 0.25;
+    words.forEach((w, i) => {
+      const drift = Math.sin(t * Math.PI * 2 + i) * 10;
+      w.style.transform = `translate(${drift}px, ${drift * 0.5}px) rotate(${(i % 2 === 0 ? 1 : -1) * t * 5}deg)`;
+      w.style.opacity = lerp(0.04, 0.08, t);
+    });
+    colorBlocks.forEach(cb => {
+      cb.style.opacity = '0.15';
+    });
+    cards.forEach(c => { c.style.opacity = '0'; c.style.transform = 'translateY(20px)'; });
+    orgTagline.style.opacity = '0';
+    paletteStrip.style.opacity = '0';
+    finale.classList.remove('show');
+    canvas.style.borderColor = 'rgba(255,255,255,0.06)';
+  }
+
+  // ── PHASE 2: FINDING SIGNAL (0.25 - 0.5) ──
+  // Words start moving toward center, getting brighter, colors begin to settle
+  else if (progress < 0.5) {
+    const t = (progress - 0.25) / 0.25;
+    words.forEach((w, i) => {
+      const centerX = lerp(0, 0, t); // start drifting center-ish
+      w.style.transform = `translate(${lerp(0, 50 - i * 15, t)}px, ${lerp(0, 30 - i * 10, t)}px) rotate(${lerp((i % 2 === 0 ? 1 : -1) * 1.25, 0, t)}deg)`;
+      w.style.opacity = lerp(0.08, 0.03, t);
+      w.style.fontSize = lerp(parseInt(getComputedStyle(w).fontSize), 20, t * 0.3) + 'px';
+    });
+    colorBlocks.forEach((cb, i) => {
+      cb.style.opacity = lerp(0.15, 0, t);
+      cb.style.transform = `rotate(0deg) scale(${lerp(1, 0.5, t)})`;
+    });
+    cards.forEach(c => { c.style.opacity = '0'; });
+    orgTagline.style.opacity = '0';
+    paletteStrip.style.opacity = '0';
+    finale.classList.remove('show');
+    canvas.style.borderColor = `rgba(0,245,212,${lerp(0.06, 0.12, t)})`;
+  }
+
+  // ── PHASE 3: BUILDING CLARITY (0.5 - 0.75) ──
+  // Words fade out, tagline appears, cards rise up, palette forms
+  else if (progress < 0.75) {
+    const t = (progress - 0.5) / 0.25;
+    words.forEach(w => {
+      w.style.opacity = '0';
+    });
+    colorBlocks.forEach(cb => {
+      cb.style.opacity = '0';
+    });
+
+    orgTagline.style.opacity = lerp(0, 1, t * 2);
+    orgTagline.style.transform = `translate(-50%,-50%) scale(${lerp(0.8, 1, t)})`;
+
+    // Tagline moves up as cards appear
+    if (t > 0.4) {
+      const ct = (t - 0.4) / 0.6;
+      orgTagline.style.transform = `translate(-50%,${lerp(-50, -70, ct)}%) scale(1)`;
+      cards.forEach((c, i) => {
+        const delay = i * 0.15;
+        const ct2 = Math.max(0, (ct - delay) / (1 - delay));
+        c.style.opacity = ct2;
+        c.style.transform = `translateY(${lerp(20, 0, ct2)}px)`;
+        c.style.background = `rgba(0,245,212,${lerp(0.03, 0.05, ct2)})`;
+        c.style.borderColor = `rgba(0,245,212,${lerp(0.04, 0.12, ct2)})`;
+        c.querySelectorAll('.cc-line').forEach((l, li) => {
+          const colors = ['var(--cyan)', 'rgba(0,245,212,0.4)', 'rgba(0,245,212,0.2)'];
+          l.style.background = ct2 > 0.5 ? colors[li] : 'rgba(255,255,255,0.08)';
+        });
+      });
+    }
+
+    paletteStrip.style.opacity = t > 0.6 ? lerp(0, 1, (t - 0.6) / 0.4) : '0';
+    finale.classList.remove('show');
+    canvas.style.borderColor = `rgba(0,245,212,${lerp(0.12, 0.2, t)})`;
+    canvas.style.background = `rgba(0,245,212,${lerp(0, 0.02, t)})`;
+  }
+
+  // ── PHASE 4: THE BRAND (0.75 - 1) ──
+  // Everything settles, finale CTA appears
+  else {
+    const t = (progress - 0.75) / 0.25;
+    words.forEach(w => { w.style.opacity = '0'; });
+    colorBlocks.forEach(cb => { cb.style.opacity = '0'; });
+
+    if (t < 0.4) {
+      orgTagline.style.opacity = lerp(1, 1, t);
+      cards.forEach(c => { c.style.opacity = '1'; c.style.transform = 'translateY(0)'; });
+      paletteStrip.style.opacity = '1';
+    }
+
+    if (t > 0.3) {
+      const ft = (t - 0.3) / 0.7;
+      orgTagline.style.opacity = lerp(1, 0, ft);
+      cards.forEach(c => { c.style.opacity = lerp(1, 0, ft); });
+      paletteStrip.style.opacity = lerp(1, 0, ft);
+    }
+
+    if (t > 0.5) {
+      finale.classList.add('show');
+    }
+
+    canvas.style.borderColor = 'rgba(0,245,212,0.2)';
+    canvas.style.background = `rgba(0,245,212,${lerp(0.02, 0.03, t)})`;
+  }
+});
+</script>
+</body>
+</html>

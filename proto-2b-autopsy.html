@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prototype 2B — Brand Ecosystem Autopsy</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@800;900&family=Inter:wght@400;500;600&family=Montserrat:wght@900&display=swap" rel="stylesheet">
+<style>
+:root{--cyan:#00f5d4;--lime:#c8f500;--pink:#ff2d7a;--black:#0a0a0a;--cream:#f0efe9;--lgray:#e2e0db;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--black);font-family:'Inter',sans-serif;overflow-x:hidden;}
+
+.spacer{height:50vh;background:var(--black);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;}
+.spacer h2{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(32px,5vw,52px);color:#fff;text-transform:uppercase;letter-spacing:-0.04em;line-height:0.88;text-align:center;}
+.spacer p{font-family:'Inter',sans-serif;font-size:13px;color:rgba(255,255,255,0.35);letter-spacing:2px;text-transform:uppercase;}
+
+.autopsy-section{background:var(--black);padding:60px 56px 80px;min-height:100vh;}
+.autopsy-kicker{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:12px;display:flex;align-items:center;gap:10px;}
+.autopsy-kicker::before{content:'';width:20px;height:1px;background:rgba(255,255,255,0.4);}
+.autopsy-headline{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(32px,4.5vw,56px);line-height:0.88;letter-spacing:-0.04em;color:#fff;text-transform:uppercase;margin-bottom:8px;}
+.autopsy-headline em{color:var(--cyan);font-style:normal;}
+.autopsy-sub{font-family:'Inter',sans-serif;font-size:14px;color:rgba(255,255,255,0.4);margin-bottom:48px;max-width:520px;line-height:1.7;}
+
+/* Ecosystem grid */
+.eco-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;max-width:960px;margin:0 auto 48px;}
+
+.eco-card{position:relative;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:14px;padding:28px 24px;min-height:200px;cursor:pointer;transition:all 0.35s cubic-bezier(.4,0,.2,1);overflow:hidden;display:flex;flex-direction:column;}
+.eco-card:hover{background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.1);transform:translateY(-2px);}
+.eco-card.diagnosed{border-color:rgba(255,45,122,0.25);background:rgba(255,45,122,0.04);}
+.eco-card.diagnosed:hover{border-color:rgba(255,45,122,0.4);}
+
+/* Card icon area */
+.eco-icon{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;margin-bottom:16px;transition:background 0.3s,border-color 0.3s;border:1px solid rgba(255,255,255,0.06);}
+.eco-card.diagnosed .eco-icon{background:rgba(255,45,122,0.1);border-color:rgba(255,45,122,0.2);}
+.eco-icon svg{width:20px;height:20px;color:rgba(255,255,255,0.3);transition:color 0.3s;}
+.eco-card.diagnosed .eco-icon svg{color:var(--pink);}
+
+.eco-label{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:8px;transition:color 0.3s;}
+.eco-card.diagnosed .eco-label{color:var(--pink);}
+
+.eco-title{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:16px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:-0.02em;line-height:1.05;margin-bottom:10px;transition:color 0.3s;}
+.eco-card.diagnosed .eco-title{color:#fff;}
+
+.eco-preview{font-family:'Inter',sans-serif;font-size:11px;color:rgba(255,255,255,0.15);line-height:1.6;font-style:italic;flex:1;}
+
+/* Hotspot pulse */
+.eco-pulse{position:absolute;top:16px;right:16px;width:10px;height:10px;border-radius:50%;background:var(--pink);opacity:0.6;animation:ePulse 2s ease infinite;}
+.eco-card.diagnosed .eco-pulse{animation:none;background:var(--cyan);opacity:0.8;}
+@keyframes ePulse{0%,100%{transform:scale(1);opacity:0.6}50%{transform:scale(1.5);opacity:0.3}}
+
+/* Diagnosis reveal panel */
+.eco-diag{position:absolute;inset:0;background:rgba(10,10,10,0.96);backdrop-filter:blur(6px);display:flex;flex-direction:column;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity 0.3s;border-radius:14px;z-index:2;}
+.eco-card.diagnosed .eco-diag{opacity:1;pointer-events:auto;}
+
+.diag-badge{font-family:'Inter',sans-serif;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--pink);font-weight:600;margin-bottom:8px;}
+.diag-verdict{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:14px;color:#fff;text-transform:uppercase;letter-spacing:-0.02em;line-height:1.05;margin-bottom:10px;}
+.diag-verdict em{color:var(--pink);font-style:normal;}
+.diag-body{font-family:'Inter',sans-serif;font-size:11px;color:rgba(255,255,255,0.5);line-height:1.7;margin-bottom:12px;}
+.diag-body strong{color:#fff;font-weight:600;}
+.diag-same{font-family:'Inter Tight',sans-serif;font-weight:800;font-size:11px;color:var(--cyan);text-transform:uppercase;letter-spacing:1px;}
+
+/* Score + throughline */
+.score-row{display:flex;align-items:center;gap:28px;max-width:960px;margin:0 auto 32px;}
+.score-bar-track{flex:1;height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;}
+.score-bar-fill{height:100%;background:var(--pink);border-radius:2px;width:0%;transition:width 0.6s cubic-bezier(.4,0,.2,1);}
+.score-count{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:24px;color:var(--pink);letter-spacing:-0.02em;min-width:50px;}
+.score-label{font-family:'Inter',sans-serif;font-size:11px;color:rgba(255,255,255,0.3);line-height:1.5;}
+
+/* Throughline message */
+.throughline{max-width:960px;margin:0 auto;text-align:center;opacity:0;transform:translateY(16px);transition:all 0.6s;padding-top:32px;border-top:1px solid rgba(255,255,255,0.06);}
+.throughline.show{opacity:1;transform:translateY(0);}
+.throughline-text{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(20px,3vw,36px);color:#fff;text-transform:uppercase;letter-spacing:-0.04em;line-height:0.88;margin-bottom:8px;}
+.throughline-text em{color:var(--cyan);font-style:normal;}
+.throughline-sub{font-family:'Inter',sans-serif;font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:24px;line-height:1.7;}
+.throughline-btn{display:inline-flex;align-items:center;gap:8px;background:var(--cyan);color:var(--black);font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:14px 32px;border-radius:100px;text-decoration:none;cursor:pointer;border:none;transition:background 0.2s;}
+.throughline-btn:hover{background:var(--lime);}
+
+@media(max-width:768px){
+  .eco-grid{grid-template-columns:1fr 1fr;gap:3px;}
+  .autopsy-section{padding:48px 20px 60px;}
+}
+@media(max-width:520px){
+  .eco-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="spacer">
+  <p>Click each touchpoint to diagnose</p>
+  <h2>BRAND ECOSYSTEM<br>AUTOPSY</h2>
+</div>
+
+<section class="autopsy-section">
+  <div class="autopsy-kicker">Brand Autopsy</div>
+  <h2 class="autopsy-headline">SIX TOUCHPOINTS. <em>ONE BREAK.</em></h2>
+  <p class="autopsy-sub">Your brand shows up in six places every day. Click each one to see what a stranger actually sees — and where the translation breaks.</p>
+
+  <div class="eco-grid" id="ecoGrid">
+
+    <!-- 1: Website -->
+    <div class="eco-card" data-idx="0">
+      <div class="eco-pulse"></div>
+      <div class="eco-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+      <div class="eco-label">Your Website</div>
+      <div class="eco-title">THE HOMEPAGE</div>
+      <div class="eco-preview">"Innovative solutions for growing businesses..."</div>
+      <div class="eco-diag">
+        <div class="diag-badge">Diagnosis</div>
+        <div class="diag-verdict">SAYS EVERYTHING. <em>MEANS NOTHING.</em></div>
+        <div class="diag-body">"Innovative solutions" is the brand equivalent of <strong>white noise</strong>. Your visitor's brain literally skips it. They can't tell what you do, who it's for, or why they should care.</div>
+        <div class="diag-same">Translation: Broken.</div>
+      </div>
+    </div>
+
+    <!-- 2: Social -->
+    <div class="eco-card" data-idx="1">
+      <div class="eco-pulse"></div>
+      <div class="eco-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="18" cy="6" r="1.5" fill="currentColor"/></svg></div>
+      <div class="eco-label">Your Social</div>
+      <div class="eco-title">THE INSTAGRAM</div>
+      <div class="eco-preview">"Believe in the process. Trust the journey." #motivation</div>
+      <div class="eco-diag">
+        <div class="diag-badge">Diagnosis</div>
+        <div class="diag-verdict">POSTING 5X A WEEK. <em>NOBODY KNOWS WHAT YOU SELL.</em></div>
+        <div class="diag-body">Motivational quotes and stock sunsets aren't a content strategy — they're <strong>noise that looks like effort</strong>. Your feed has no point of view, no hook, and no reason to follow.</div>
+        <div class="diag-same">Translation: Broken.</div>
+      </div>
+    </div>
+
+    <!-- 3: Hiring -->
+    <div class="eco-card" data-idx="2">
+      <div class="eco-pulse"></div>
+      <div class="eco-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div class="eco-label">Your Hiring</div>
+      <div class="eco-title">THE JOB POST</div>
+      <div class="eco-preview">"Fast-paced environment, self-starter, wear many hats..."</div>
+      <div class="eco-diag">
+        <div class="diag-badge">Diagnosis</div>
+        <div class="diag-verdict">200 APPLICANTS. <em>ZERO FITS.</em></div>
+        <div class="diag-body">Your job post reads like every other one. "Wear many hats" tells top talent to <strong>run the other way</strong>. If your brand can't attract the right hire, it definitely can't attract the right customer.</div>
+        <div class="diag-same">Translation: Broken.</div>
+      </div>
+    </div>
+
+    <!-- 4: Sales -->
+    <div class="eco-card" data-idx="3">
+      <div class="eco-pulse"></div>
+      <div class="eco-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+      <div class="eco-label">Your Sales</div>
+      <div class="eco-title">THE PITCH DECK</div>
+      <div class="eco-preview">"38 slides. Company history first. Pricing on slide 34."</div>
+      <div class="eco-diag">
+        <div class="diag-badge">Diagnosis</div>
+        <div class="diag-verdict">38 SLIDES. THEY STOPPED <em>LISTENING AT 3.</em></div>
+        <div class="diag-body">Your deck talks about <strong>you</strong> for 30 slides before addressing <strong>them</strong>. By the time you get to the point, the decision is already made. Nobody reads a pitch deck — they feel one.</div>
+        <div class="diag-same">Translation: Broken.</div>
+      </div>
+    </div>
+
+    <!-- 5: AI Content -->
+    <div class="eco-card" data-idx="4">
+      <div class="eco-pulse"></div>
+      <div class="eco-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.57-3.25 3.92"/><path d="M8.56 13.53A6 6 0 0 1 12 2"/><path d="M15.44 13.53A6 6 0 0 0 12 2"/><path d="M12 22v-6"/><path d="M9 18h6"/><circle cx="12" cy="14" r="2"/></svg></div>
+      <div class="eco-label">Your AI Content</div>
+      <div class="eco-title">THE AI OUTPUT</div>
+      <div class="eco-preview">"In today's competitive landscape, leveraging synergies..."</div>
+      <div class="eco-diag">
+        <div class="diag-badge">Diagnosis</div>
+        <div class="diag-verdict">YOU USED AI TO SCALE. <em>YOU SCALED CONFUSION.</em></div>
+        <div class="diag-body">AI doesn't fix a broken brand — it <strong>amplifies it faster</strong>. When there's no clear positioning underneath, every AI-generated email, caption, and blog post sounds exactly like your competitor's.</div>
+        <div class="diag-same">Translation: Broken.</div>
+      </div>
+    </div>
+
+    <!-- 6: Experience -->
+    <div class="eco-card" data-idx="5">
+      <div class="eco-pulse"></div>
+      <div class="eco-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+      <div class="eco-label">Your Experience</div>
+      <div class="eco-title">THE CUSTOMER JOURNEY</div>
+      <div class="eco-preview">"The onboarding felt nothing like what the website promised."</div>
+      <div class="eco-diag">
+        <div class="diag-badge">Diagnosis</div>
+        <div class="diag-verdict">THE PROMISE AND THE EXPERIENCE <em>DON'T MATCH.</em></div>
+        <div class="diag-body">Your website says "premium." Your onboarding feels <strong>rushed and impersonal</strong>. That gap between promise and experience is the fastest way to lose a customer who was ready to stay.</div>
+        <div class="diag-same">Translation: Broken.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Score -->
+  <div class="score-row">
+    <div class="score-count" id="scoreCount">0/6</div>
+    <div class="score-bar-track"><div class="score-bar-fill" id="scoreFill"></div></div>
+    <div class="score-label" id="scoreLabel">Click a touchpoint to start the autopsy.</div>
+  </div>
+
+  <!-- Throughline -->
+  <div class="throughline" id="throughline">
+    <div class="throughline-text">SIX TOUCHPOINTS. ONE ROOT CAUSE.<br><em>WE FIX THE TRANSLATION.</em></div>
+    <div class="throughline-sub">It's not six different problems — it's the same break showing up everywhere. Fix the root, and every channel aligns. That's what we do.</div>
+    <button class="throughline-btn">Find Your Break — Free Audit</button>
+  </div>
+
+</section>
+
+<script>
+const cards = document.querySelectorAll('.eco-card');
+const scoreFill = document.getElementById('scoreFill');
+const scoreCount = document.getElementById('scoreCount');
+const scoreLabel = document.getElementById('scoreLabel');
+const throughline = document.getElementById('throughline');
+let visited = new Set();
+
+cards.forEach(card => {
+  card.addEventListener('click', () => {
+    const idx = parseInt(card.dataset.idx);
+    const wasDiagnosed = card.classList.contains('diagnosed');
+
+    if (wasDiagnosed) {
+      card.classList.remove('diagnosed');
+      return;
+    }
+
+    card.classList.add('diagnosed');
+    visited.add(idx);
+    const count = visited.size;
+    scoreCount.textContent = count + '/6';
+    scoreFill.style.width = (count / 6 * 100) + '%';
+
+    if (count === 1) scoreLabel.textContent = 'The pattern is emerging...';
+    if (count === 3) scoreLabel.textContent = 'See it yet? Same break. Every channel.';
+    if (count === 5) scoreLabel.textContent = 'One more...';
+    if (count === 6) {
+      scoreLabel.textContent = 'Autopsy complete. Every channel. One root cause.';
+      scoreFill.style.background = 'var(--cyan)';
+      scoreCount.style.color = 'var(--cyan)';
+      throughline.classList.add('show');
+    }
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prototype 3B — Scroll: From Noise to Brand</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@800;900&family=Inter:wght@400;500;600&family=Montserrat:wght@900&display=swap" rel="stylesheet">
+<style>
+:root{--cyan:#00f5d4;--lime:#c8f500;--pink:#ff2d7a;--black:#0a0a0a;--cream:#f0efe9;--lgray:#e2e0db;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--black);font-family:'Inter',sans-serif;overflow-x:hidden;}
+
+.spacer-top{height:50vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;}
+.spacer-top h2{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(32px,5vw,52px);color:#fff;text-transform:uppercase;letter-spacing:-0.04em;line-height:0.88;text-align:center;}
+.spacer-top p{font-family:'Inter',sans-serif;font-size:13px;color:rgba(255,255,255,0.35);letter-spacing:2px;text-transform:uppercase;}
+
+/* Scroll container */
+.scroll-section{position:relative;height:500vh;}
+.scroll-sticky{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 40px;}
+
+/* Progress bar left */
+.s-progress{position:absolute;left:40px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;z-index:20;}
+.s-progress-label{font-family:'Inter',sans-serif;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.2);writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);margin-bottom:8px;}
+.s-progress-track{width:3px;height:140px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;position:relative;}
+.s-progress-fill{position:absolute;top:0;left:0;right:0;height:0%;background:var(--cyan);border-radius:2px;}
+
+/* Phase indicator right */
+.s-phases{position:absolute;right:40px;top:50%;transform:translateY(-50%);z-index:20;text-align:right;}
+.s-phase{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:13px;text-transform:uppercase;letter-spacing:-0.01em;color:rgba(255,255,255,0.08);line-height:1.6;transition:color 0.4s;display:flex;align-items:center;justify-content:flex-end;gap:8px;}
+.s-phase.active{color:rgba(255,255,255,0.6);}
+.s-phase-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.06);transition:background 0.4s;flex-shrink:0;}
+.s-phase.active .s-phase-dot{background:var(--cyan);}
+
+/* Main canvas */
+.s-canvas{width:100%;max-width:920px;height:460px;position:relative;border-radius:20px;border:1px solid rgba(255,255,255,0.06);background:#0e0e0e;overflow:hidden;transition:border-color 1s,background 1s;}
+
+/* ─── TOUCHPOINT FRAGMENTS ─── */
+.frag{position:absolute;transition:all 1.4s cubic-bezier(.4,0,.2,1);pointer-events:none;}
+
+/* Social post fragment */
+.frag-social{width:180px;background:#1a1a1a;border-radius:10px;border:1px solid rgba(255,255,255,0.04);overflow:hidden;top:5%;left:3%;}
+.frag-social-img{height:90px;background:linear-gradient(135deg,rgba(255,255,255,0.02),rgba(255,255,255,0.04));display:flex;align-items:center;justify-content:center;}
+.frag-social-img span{font-size:8px;color:rgba(255,255,255,0.06);text-transform:uppercase;letter-spacing:2px;}
+.frag-social-text{padding:8px 10px;font-size:8px;color:rgba(255,255,255,0.08);line-height:1.4;}
+
+/* Job listing fragment */
+.frag-job{width:200px;background:#1a1a1a;border-radius:10px;border:1px solid rgba(255,255,255,0.04);padding:14px;top:55%;right:5%;}
+.frag-job-title{font-family:'Inter Tight',sans-serif;font-weight:800;font-size:11px;color:rgba(255,255,255,0.12);margin-bottom:6px;text-transform:uppercase;}
+.frag-job-line{height:4px;background:rgba(255,255,255,0.04);border-radius:2px;margin-bottom:5px;}
+.frag-job-line:nth-child(3){width:70%;}
+.frag-job-line:nth-child(4){width:50%;}
+.frag-job-tag{font-size:8px;color:rgba(255,255,255,0.06);margin-top:8px;}
+
+/* Website fragment */
+.frag-web{width:220px;background:#1a1a1a;border-radius:10px;border:1px solid rgba(255,255,255,0.04);padding:14px;top:8%;right:15%;}
+.frag-web-nav{display:flex;gap:12px;margin-bottom:10px;}
+.frag-web-nav span{width:24px;height:3px;background:rgba(255,255,255,0.04);border-radius:1px;}
+.frag-web-headline{font-family:'Inter',sans-serif;font-weight:600;font-size:12px;color:rgba(255,255,255,0.1);line-height:1.3;margin-bottom:8px;}
+.frag-web-body{height:3px;background:rgba(255,255,255,0.03);border-radius:1px;margin-bottom:4px;}
+.frag-web-body:last-child{width:60%;}
+.frag-web-btn{display:inline-block;margin-top:8px;padding:4px 12px;background:rgba(255,255,255,0.04);border-radius:3px;font-size:7px;color:rgba(255,255,255,0.06);text-transform:uppercase;letter-spacing:2px;}
+
+/* Email fragment */
+.frag-email{width:190px;background:#1a1a1a;border-radius:10px;border:1px solid rgba(255,255,255,0.04);padding:14px;bottom:8%;left:15%;}
+.frag-email-to{font-size:8px;color:rgba(255,255,255,0.06);margin-bottom:4px;}
+.frag-email-subject{font-family:'Inter',sans-serif;font-weight:600;font-size:10px;color:rgba(255,255,255,0.1);margin-bottom:8px;}
+.frag-email-line{height:3px;background:rgba(255,255,255,0.03);border-radius:1px;margin-bottom:4px;}
+.frag-email-line:nth-child(4){width:80%;}
+.frag-email-line:nth-child(5){width:55%;}
+
+/* Sales deck fragment */
+.frag-deck{width:170px;background:#1a1a1a;border-radius:10px;border:1px solid rgba(255,255,255,0.04);padding:14px;top:40%;left:35%;}
+.frag-deck-title{font-size:9px;color:rgba(255,255,255,0.05);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;}
+.frag-deck-bullet{display:flex;align-items:flex-start;gap:6px;margin-bottom:6px;}
+.frag-deck-bullet::before{content:'•';color:rgba(255,255,255,0.06);font-size:10px;flex-shrink:0;line-height:1.2;}
+.frag-deck-bullet span{height:3px;background:rgba(255,255,255,0.03);border-radius:1px;flex:1;margin-top:5px;}
+
+/* AI fragment */
+.frag-ai{width:180px;background:#1a1a1a;border-radius:10px;border:1px solid rgba(255,255,255,0.04);padding:14px;bottom:15%;right:25%;}
+.frag-ai-prompt{font-size:8px;color:rgba(255,255,255,0.06);margin-bottom:6px;display:flex;align-items:center;gap:4px;}
+.frag-ai-prompt::before{content:'>';color:rgba(255,255,255,0.08);}
+.frag-ai-output{font-size:9px;color:rgba(255,255,255,0.08);line-height:1.5;font-style:italic;}
+
+/* ─── SCAN ANNOTATIONS (Phase 2) ─── */
+.scan-tag{position:absolute;opacity:0;transition:opacity 0.6s,transform 0.4s;z-index:10;pointer-events:none;transform:translateY(4px);}
+.scan-tag.show{opacity:1;transform:translateY(0);}
+.scan-tag span{background:var(--pink);color:#fff;font-family:'Inter',sans-serif;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:4px 10px;border-radius:100px;white-space:nowrap;display:inline-block;}
+.st1{top:2%;left:3%;}
+.st2{top:5%;right:12%;}
+.st3{top:52%;right:2%;}
+.st4{top:37%;left:32%;}
+.st5{bottom:5%;left:12%;}
+.st6{bottom:12%;right:22%;}
+
+/* ─── ORGANIZED STATE (Phase 3-4) ─── */
+.org-headline{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.85);opacity:0;transition:all 1.2s cubic-bezier(.4,0,.2,1);text-align:center;width:85%;z-index:5;pointer-events:none;}
+.org-headline h2{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(28px,4.5vw,56px);line-height:0.88;letter-spacing:-0.04em;color:#fff;text-transform:uppercase;}
+.org-headline h2 em{color:var(--cyan);font-style:normal;}
+.org-headline p{font-family:'Inter',sans-serif;font-size:13px;color:rgba(255,255,255,0.45);margin-top:16px;line-height:1.7;}
+
+/* Aligned mini cards (phase 4) */
+.aligned-row{position:absolute;bottom:20px;left:20px;right:20px;display:flex;gap:4px;opacity:0;transition:opacity 1s;z-index:6;}
+.aligned-card{flex:1;background:rgba(0,245,212,0.04);border:1px solid rgba(0,245,212,0.1);border-radius:10px;padding:14px 12px;transition:all 0.6s;}
+.aligned-card-icon{font-size:14px;margin-bottom:6px;}
+.aligned-card-label{font-family:'Inter',sans-serif;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);margin-bottom:3px;}
+.aligned-card-status{font-family:'Inter Tight',sans-serif;font-weight:800;font-size:10px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:-0.01em;}
+
+/* Palette row (phase 4) */
+.palette-row{position:absolute;top:20px;left:50%;transform:translateX(-50%);display:flex;gap:5px;opacity:0;transition:opacity 0.8s;z-index:6;}
+.pal{width:28px;height:28px;border-radius:6px;}
+.pal-1{background:var(--cyan);}
+.pal-2{background:var(--black);border:1px solid rgba(255,255,255,0.2);}
+.pal-3{background:#fff;}
+.pal-4{background:var(--pink);}
+.pal-5{background:var(--lime);}
+
+/* Finale overlay */
+.s-finale{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity 0.8s;z-index:15;pointer-events:none;padding:32px;background:rgba(10,10,10,0.85);backdrop-filter:blur(8px);border-radius:20px;}
+.s-finale.show{opacity:1;pointer-events:auto;}
+.s-finale-text{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(22px,3.5vw,44px);color:#fff;text-transform:uppercase;letter-spacing:-0.04em;line-height:0.88;text-align:center;margin-bottom:8px;}
+.s-finale-text em{color:var(--cyan);font-style:normal;}
+.s-finale-sub{font-family:'Inter',sans-serif;font-size:13px;color:rgba(255,255,255,0.4);text-align:center;max-width:420px;line-height:1.7;margin-bottom:24px;}
+.s-finale-btn{display:inline-flex;align-items:center;gap:8px;background:var(--cyan);color:var(--black);font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:14px 32px;border-radius:100px;text-decoration:none;cursor:pointer;border:none;transition:background 0.2s;}
+.s-finale-btn:hover{background:var(--lime);}
+
+.spacer-bottom{height:30vh;display:flex;align-items:center;justify-content:center;}
+.spacer-bottom p{font-size:13px;color:rgba(255,255,255,0.15);letter-spacing:2px;text-transform:uppercase;}
+</style>
+</head>
+<body>
+
+<div class="spacer-top">
+  <p>Scroll slowly through this experience</p>
+  <h2>FROM NOISE<br>TO BRAND</h2>
+</div>
+
+<div class="scroll-section" id="scrollSection">
+  <div class="scroll-sticky">
+
+    <div class="s-progress">
+      <div class="s-progress-label">Scroll</div>
+      <div class="s-progress-track"><div class="s-progress-fill" id="pFill"></div></div>
+    </div>
+
+    <div class="s-phases">
+      <div class="s-phase active" id="ph1"><span>The Noise</span><span class="s-phase-dot"></span></div>
+      <div class="s-phase" id="ph2"><span>The Diagnosis</span><span class="s-phase-dot"></span></div>
+      <div class="s-phase" id="ph3"><span>The Alignment</span><span class="s-phase-dot"></span></div>
+      <div class="s-phase" id="ph4"><span>The Brand</span><span class="s-phase-dot"></span></div>
+    </div>
+
+    <div class="s-canvas" id="canvas">
+      <!-- Fragments -->
+      <div class="frag frag-social" id="fSocial">
+        <div class="frag-social-img"><span>Stock Photo</span></div>
+        <div class="frag-social-text">"Believe in the process. Trust the journey." #motivation #blessed</div>
+      </div>
+      <div class="frag frag-web" id="fWeb">
+        <div class="frag-web-nav"><span></span><span></span><span></span></div>
+        <div class="frag-web-headline">Innovative solutions for growing businesses</div>
+        <div class="frag-web-body"></div><div class="frag-web-body"></div><div class="frag-web-body"></div>
+        <div class="frag-web-btn">Learn More</div>
+      </div>
+      <div class="frag frag-job" id="fJob">
+        <div class="frag-job-title">Marketing Manager</div>
+        <div class="frag-job-line"></div><div class="frag-job-line"></div><div class="frag-job-line"></div>
+        <div class="frag-job-tag">Self-starter · Wear many hats · Fast-paced</div>
+      </div>
+      <div class="frag frag-email" id="fEmail">
+        <div class="frag-email-to">To: prospect@company.com</div>
+        <div class="frag-email-subject">Just checking in!</div>
+        <div class="frag-email-line"></div><div class="frag-email-line"></div><div class="frag-email-line"></div>
+      </div>
+      <div class="frag frag-deck" id="fDeck">
+        <div class="frag-deck-title">Q2 Strategy Deck</div>
+        <div class="frag-deck-bullet"><span></span></div>
+        <div class="frag-deck-bullet"><span></span></div>
+        <div class="frag-deck-bullet"><span></span></div>
+      </div>
+      <div class="frag frag-ai" id="fAi">
+        <div class="frag-ai-prompt">Write me a LinkedIn post</div>
+        <div class="frag-ai-output">"In today's competitive landscape, leveraging synergies is key to..."</div>
+      </div>
+
+      <!-- Scan tags (phase 2) -->
+      <div class="scan-tag st1" id="st1"><span>No point of view</span></div>
+      <div class="scan-tag st2" id="st2"><span>Could be anyone's</span></div>
+      <div class="scan-tag st3" id="st3"><span>Attracts wrong people</span></div>
+      <div class="scan-tag st4" id="st4"><span>38 slides of nothing</span></div>
+      <div class="scan-tag st5" id="st5"><span>Gets deleted</span></div>
+      <div class="scan-tag st6" id="st6"><span>Sounds like everyone</span></div>
+
+      <!-- Organized state -->
+      <div class="org-headline" id="orgHL">
+        <h2>EVERY CHANNEL. ONE VOICE.<br><em>ONE BRAND.</em></h2>
+        <p>When the translation works, everything aligns. Social, sales, hiring, content — all saying the same thing.</p>
+      </div>
+
+      <!-- Aligned cards -->
+      <div class="aligned-row" id="alignedRow">
+        <div class="aligned-card"><div class="aligned-card-label">Website</div><div class="aligned-card-status">Aligned</div></div>
+        <div class="aligned-card"><div class="aligned-card-label">Social</div><div class="aligned-card-status">Aligned</div></div>
+        <div class="aligned-card"><div class="aligned-card-label">Hiring</div><div class="aligned-card-status">Aligned</div></div>
+        <div class="aligned-card"><div class="aligned-card-label">Sales</div><div class="aligned-card-status">Aligned</div></div>
+        <div class="aligned-card"><div class="aligned-card-label">AI</div><div class="aligned-card-status">Aligned</div></div>
+        <div class="aligned-card"><div class="aligned-card-label">Experience</div><div class="aligned-card-status">Aligned</div></div>
+      </div>
+
+      <!-- Palette -->
+      <div class="palette-row" id="palRow">
+        <div class="pal pal-1"></div><div class="pal pal-2"></div><div class="pal pal-3"></div><div class="pal pal-4"></div><div class="pal pal-5"></div>
+      </div>
+
+      <!-- Finale -->
+      <div class="s-finale" id="finale">
+        <div class="s-finale-text">THIS IS WHAT HAPPENS WHEN<br><em>TRANSLATION WORKS.</em></div>
+        <div class="s-finale-sub">Six touchpoints. One clear message. Every channel building trust instead of breaking it. Ready to find where yours breaks?</div>
+        <button class="s-finale-btn">Take the Free Brand Audit</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="spacer-bottom"><p>End of demo</p></div>
+
+<script>
+const section = document.getElementById('scrollSection');
+const pFill = document.getElementById('pFill');
+const phases = [document.getElementById('ph1'),document.getElementById('ph2'),document.getElementById('ph3'),document.getElementById('ph4')];
+const frags = document.querySelectorAll('.frag');
+const tags = document.querySelectorAll('.scan-tag');
+const orgHL = document.getElementById('orgHL');
+const alignedRow = document.getElementById('alignedRow');
+const palRow = document.getElementById('palRow');
+const finale = document.getElementById('finale');
+const canvas = document.getElementById('canvas');
+
+function lerp(a,b,t){return a+(b-a)*Math.max(0,Math.min(1,t));}
+
+window.addEventListener('scroll',()=>{
+  const rect = section.getBoundingClientRect();
+  const total = section.offsetHeight - window.innerHeight;
+  const scrolled = -rect.top;
+  const p = Math.max(0,Math.min(1,scrolled/total));
+
+  pFill.style.height = (p*100)+'%';
+
+  const phaseIdx = Math.min(3,Math.floor(p*4));
+  phases.forEach((ph,i)=>ph.classList.toggle('active',i===phaseIdx));
+
+  // ── PHASE 1: NOISE (0-0.25) — fragments float, slight movement ──
+  if(p<0.25){
+    const t=p/0.25;
+    frags.forEach((f,i)=>{
+      f.style.opacity = lerp(0.5,0.8,t);
+      const drift = Math.sin(t*Math.PI*2+i*1.3)*8;
+      f.style.transform = `translate(${drift}px,${drift*0.6}px) rotate(${(i%2?1:-1)*t*3}deg)`;
+    });
+    tags.forEach(t=>t.classList.remove('show'));
+    orgHL.style.opacity='0';orgHL.style.transform='translate(-50%,-50%) scale(0.85)';
+    alignedRow.style.opacity='0';palRow.style.opacity='0';
+    finale.classList.remove('show');
+    canvas.style.borderColor='rgba(255,255,255,0.06)';
+    canvas.style.background='#0e0e0e';
+  }
+  // ── PHASE 2: DIAGNOSIS (0.25-0.5) — tags appear, fragments tint pink ──
+  else if(p<0.5){
+    const t=(p-0.25)/0.25;
+    frags.forEach((f,i)=>{
+      f.style.opacity = lerp(0.8,0.4,t);
+      f.style.transform = `translate(0,0) rotate(0deg)`;
+      f.style.borderColor = `rgba(255,45,122,${lerp(0.04,0.2,t)})`;
+    });
+    // Stagger tag reveals
+    tags.forEach((tag,i)=>{
+      const threshold = i*0.15;
+      tag.classList.toggle('show',t>threshold);
+    });
+    orgHL.style.opacity='0';
+    alignedRow.style.opacity='0';palRow.style.opacity='0';
+    finale.classList.remove('show');
+    canvas.style.borderColor=`rgba(255,45,122,${lerp(0.06,0.15,t)})`;
+  }
+  // ── PHASE 3: ALIGNMENT (0.5-0.75) — fragments fade, headline + cards appear ──
+  else if(p<0.75){
+    const t=(p-0.5)/0.25;
+    frags.forEach(f=>{
+      f.style.opacity=lerp(0.4,0,t);
+      f.style.borderColor='rgba(255,255,255,0.04)';
+    });
+    tags.forEach(tag=>tag.classList.toggle('show',t<0.3));
+
+    orgHL.style.opacity=lerp(0,1,t*1.5);
+    orgHL.style.transform=`translate(-50%,${lerp(-50,-55,t)}%) scale(${lerp(0.85,1,t)})`;
+
+    if(t>0.5){
+      alignedRow.style.opacity=lerp(0,1,(t-0.5)/0.5);
+      palRow.style.opacity=lerp(0,1,(t-0.5)/0.5);
+    } else {
+      alignedRow.style.opacity='0';palRow.style.opacity='0';
+    }
+    finale.classList.remove('show');
+    canvas.style.borderColor=`rgba(0,245,212,${lerp(0.06,0.2,t)})`;
+    canvas.style.background=`rgba(0,245,212,${lerp(0,0.02,t)})`;
+  }
+  // ── PHASE 4: THE BRAND (0.75-1) — finale ──
+  else{
+    const t=(p-0.75)/0.25;
+    frags.forEach(f=>{f.style.opacity='0';});
+    tags.forEach(tag=>tag.classList.remove('show'));
+
+    if(t<0.4){
+      orgHL.style.opacity=lerp(1,1,t);
+      alignedRow.style.opacity='1';palRow.style.opacity='1';
+    }
+    if(t>0.3){
+      const ft=(t-0.3)/0.7;
+      orgHL.style.opacity=lerp(1,0,ft);
+      alignedRow.style.opacity=lerp(1,0,ft);
+      palRow.style.opacity=lerp(1,0,ft);
+    }
+    if(t>0.45){
+      finale.classList.add('show');
+    } else {
+      finale.classList.remove('show');
+    }
+    canvas.style.borderColor='rgba(0,245,212,0.2)';
+    canvas.style.background=`rgba(0,245,212,${lerp(0.02,0.03,t)})`;
+  }
+});
+</script>
+</body>
+</html>

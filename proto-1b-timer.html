@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prototype 1B — 15-Second Brand Journey</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@800;900&family=Inter:wght@400;500;600&family=Montserrat:wght@900&display=swap" rel="stylesheet">
+<style>
+:root{--cyan:#00f5d4;--lime:#c8f500;--pink:#ff2d7a;--black:#0a0a0a;--cream:#f0efe9;--lgray:#e2e0db;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--black);font-family:'Inter',sans-serif;overflow-x:hidden;}
+
+.spacer{height:50vh;background:var(--black);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;}
+.spacer h2{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(32px,5vw,52px);color:#fff;text-transform:uppercase;letter-spacing:-0.04em;line-height:0.88;text-align:center;}
+.spacer p{font-family:'Inter',sans-serif;font-size:13px;color:rgba(255,255,255,0.35);letter-spacing:2px;text-transform:uppercase;}
+
+.test-section{background:var(--black);padding:60px 56px 80px;min-height:100vh;}
+.test-kicker{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:12px;display:flex;align-items:center;gap:10px;}
+.test-kicker::before{content:'';width:20px;height:1px;background:rgba(255,255,255,0.4);}
+.test-headline{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(32px,4.5vw,56px);line-height:0.88;letter-spacing:-0.04em;color:#fff;text-transform:uppercase;margin-bottom:8px;}
+.test-headline em{color:var(--cyan);font-style:normal;}
+.test-sub{font-family:'Inter',sans-serif;font-size:14px;color:rgba(255,255,255,0.4);margin-bottom:40px;max-width:500px;line-height:1.7;}
+
+/* Timer + stage label row */
+.timer-row{display:flex;align-items:center;gap:28px;margin-bottom:32px;}
+.timer-ring{width:72px;height:72px;position:relative;flex-shrink:0;}
+.timer-ring svg{width:100%;height:100%;transform:rotate(-90deg);}
+.timer-ring circle{fill:none;stroke-width:3;}
+.timer-track{stroke:rgba(255,255,255,0.06);}
+.timer-fill{stroke:var(--cyan);stroke-dasharray:207;stroke-dashoffset:207;stroke-linecap:round;transition:stroke-dashoffset 0.15s linear;}
+.timer-fill.danger{stroke:var(--pink);}
+.timer-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Inter Tight',sans-serif;font-weight:900;font-size:24px;color:#fff;letter-spacing:-0.02em;}
+.stage-label{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(16px,2vw,24px);color:rgba(255,255,255,0.2);text-transform:uppercase;letter-spacing:-0.02em;line-height:1.1;transition:color 0.3s;}
+.stage-label.active{color:#fff;}
+.stage-label .stage-channel{display:block;font-family:'Inter',sans-serif;font-size:9px;font-weight:600;letter-spacing:3px;color:var(--cyan);margin-bottom:4px;}
+
+/* Journey frame */
+.journey-frame{max-width:880px;margin:0 auto;position:relative;border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);background:#111;box-shadow:0 32px 80px rgba(0,0,0,0.5);min-height:420px;}
+
+/* Each touchpoint screen */
+.tp-screen{position:absolute;inset:0;opacity:0;transition:opacity 0.5s;display:flex;flex-direction:column;padding:0;}
+.tp-screen.active{opacity:1;}
+
+/* Browser chrome for website */
+.tp-chrome{padding:10px 16px;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.04);}
+.tp-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.1);}
+.tp-url{flex:1;background:rgba(255,255,255,0.04);border-radius:5px;padding:5px 12px;font-size:10px;color:rgba(255,255,255,0.2);}
+
+/* Phone frame for social */
+.tp-phone{width:280px;margin:32px auto;background:#1a1a1a;border-radius:28px;border:1px solid rgba(255,255,255,0.08);padding:12px;position:relative;}
+.tp-phone-notch{width:100px;height:5px;background:rgba(255,255,255,0.06);border-radius:3px;margin:0 auto 12px;}
+
+/* ── SCREEN 1: Instagram ── */
+.s1-body{flex:1;display:flex;align-items:center;justify-content:center;}
+.s1-post{width:280px;background:#1a1a1a;border-radius:16px;border:1px solid rgba(255,255,255,0.06);overflow:hidden;}
+.s1-post-header{display:flex;align-items:center;gap:8px;padding:12px;border-bottom:1px solid rgba(255,255,255,0.04);}
+.s1-avatar{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.08);}
+.s1-handle{font-size:11px;color:rgba(255,255,255,0.25);font-weight:600;}
+.s1-img{width:100%;height:200px;background:linear-gradient(135deg,rgba(255,255,255,0.02),rgba(255,255,255,0.05));display:flex;align-items:center;justify-content:center;}
+.s1-img span{font-family:'Inter',sans-serif;font-size:11px;color:rgba(255,255,255,0.08);text-transform:uppercase;letter-spacing:3px;}
+.s1-caption{padding:12px;font-size:11px;color:rgba(255,255,255,0.12);line-height:1.6;}
+.s1-likes{padding:0 12px 12px;font-size:10px;color:rgba(255,255,255,0.08);}
+
+/* Annotation overlay */
+.tp-annot{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);background:var(--pink);color:#fff;font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:8px 20px;border-radius:100px;white-space:nowrap;opacity:0;transition:opacity 0.4s 0.6s;z-index:5;}
+.tp-screen.active .tp-annot{opacity:1;}
+
+/* ── SCREEN 2: Website ── */
+.s2-body{flex:1;padding:36px 32px;}
+.s2-logo{font-family:serif;font-size:20px;color:rgba(255,255,255,0.12);letter-spacing:3px;margin-bottom:28px;}
+.s2-hero{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;align-items:center;}
+.s2-hero h2{font-family:'Inter',sans-serif;font-weight:600;font-size:18px;color:rgba(255,255,255,0.12);line-height:1.3;margin-bottom:10px;}
+.s2-hero p{font-size:11px;color:rgba(255,255,255,0.07);line-height:1.7;margin-bottom:14px;}
+.s2-btn{display:inline-block;padding:7px 18px;background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.1);font-size:9px;text-transform:uppercase;letter-spacing:2px;border-radius:4px;}
+.s2-hero-img{height:160px;background:linear-gradient(135deg,rgba(255,255,255,0.02),rgba(255,255,255,0.04));border-radius:8px;}
+
+/* ── SCREEN 3: Google/Reviews ── */
+.s3-body{flex:1;padding:32px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+.s3-search{width:420px;max-width:100%;background:rgba(255,255,255,0.04);border-radius:100px;padding:12px 24px;display:flex;align-items:center;gap:12px;border:1px solid rgba(255,255,255,0.06);margin-bottom:16px;}
+.s3-search-icon{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.1);flex-shrink:0;}
+.s3-search-text{font-size:12px;color:rgba(255,255,255,0.15);}
+.s3-results{width:420px;max-width:100%;display:flex;flex-direction:column;gap:12px;}
+.s3-result{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:10px;padding:16px 18px;}
+.s3-result-url{font-size:9px;color:rgba(255,255,255,0.08);margin-bottom:4px;}
+.s3-result-title{font-size:14px;color:rgba(255,255,255,0.15);margin-bottom:4px;}
+.s3-result-desc{font-size:10px;color:rgba(255,255,255,0.06);line-height:1.6;}
+.s3-result.you{border-color:rgba(255,45,122,0.15);}
+.s3-result.comp{border-color:rgba(255,255,255,0.06);}
+
+/* ── SCREEN 4: Competitor ── */
+.s4-body{flex:1;display:flex;align-items:center;justify-content:center;gap:2px;padding:32px;}
+.s4-card{flex:1;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:12px;padding:24px 20px;height:280px;display:flex;flex-direction:column;transition:border-color 0.4s;}
+.s4-card-label{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.1);margin-bottom:16px;}
+.s4-card-logo{font-family:serif;font-size:16px;color:rgba(255,255,255,0.1);letter-spacing:2px;margin-bottom:12px;}
+.s4-card-tag{font-size:11px;color:rgba(255,255,255,0.07);line-height:1.5;margin-bottom:12px;}
+.s4-card-btn{display:inline-block;padding:6px 16px;background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.08);font-size:9px;text-transform:uppercase;letter-spacing:2px;border-radius:4px;margin-top:auto;}
+.s4-card.you{border-color:rgba(255,45,122,0.12);}
+.s4-vs{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:14px;color:rgba(255,255,255,0.08);align-self:center;padding:0 16px;}
+
+/* ── SCREEN 5: They Leave ── */
+.s5-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;}
+.s5-cursor{width:20px;height:20px;border:2px solid rgba(255,255,255,0.15);border-radius:50%;margin-bottom:24px;animation:cursorLeave 2s ease forwards;}
+@keyframes cursorLeave{0%{opacity:1;transform:translate(0,0)}60%{opacity:1;transform:translate(120px,-60px)}100%{opacity:0;transform:translate(200px,-100px)}}
+.s5-tab{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px 8px 0 0;padding:8px 16px;margin-bottom:0;}
+.s5-tab-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.08);}
+.s5-tab-text{font-size:10px;color:rgba(255,255,255,0.1);}
+.s5-tab-x{font-size:12px;color:var(--pink);margin-left:12px;font-weight:700;}
+.s5-window{width:360px;height:200px;background:rgba(255,255,255,0.01);border:1px solid rgba(255,255,255,0.04);border-radius:0 8px 8px 8px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.s5-window::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,rgba(10,10,10,0.8));pointer-events:none;}
+
+/* ── VERDICT ── */
+.verdict-screen{position:absolute;inset:0;background:rgba(10,10,10,0.94);backdrop-filter:blur(10px);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:20;opacity:0;pointer-events:none;transition:opacity 0.6s;padding:32px;}
+.verdict-screen.show{opacity:1;pointer-events:auto;}
+.verdict-q{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(24px,3.5vw,44px);color:#fff;text-transform:uppercase;letter-spacing:-0.04em;line-height:0.88;text-align:center;margin-bottom:8px;}
+.verdict-a{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(24px,3.5vw,44px);color:var(--pink);text-transform:uppercase;letter-spacing:-0.04em;line-height:0.88;text-align:center;margin-bottom:20px;}
+.verdict-sub{font-family:'Inter',sans-serif;font-size:13px;color:rgba(255,255,255,0.4);text-align:center;max-width:400px;line-height:1.7;}
+
+/* ── REBUILD SCREENS ── */
+.rebuild-screen{position:absolute;inset:0;opacity:0;transition:opacity 0.6s;display:flex;flex-direction:column;z-index:15;}
+.rebuild-screen.active{opacity:1;}
+
+/* Rebuilt Instagram */
+.r1-body{flex:1;display:flex;align-items:center;justify-content:center;}
+.r1-post{width:280px;background:#1a1a1a;border-radius:16px;border:1px solid rgba(0,245,212,0.12);overflow:hidden;}
+.r1-post-header{display:flex;align-items:center;gap:8px;padding:12px;border-bottom:1px solid rgba(0,245,212,0.08);}
+.r1-avatar{width:28px;height:28px;border-radius:50%;background:var(--cyan);}
+.r1-handle{font-size:11px;color:var(--cyan);font-weight:600;}
+.r1-img{width:100%;height:200px;background:linear-gradient(135deg,rgba(0,245,212,0.08),rgba(0,245,212,0.02));display:flex;align-items:center;justify-content:center;padding:20px;}
+.r1-img span{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:18px;color:#fff;text-transform:uppercase;letter-spacing:-0.03em;line-height:1;text-align:center;}
+.r1-caption{padding:12px;font-size:11px;color:rgba(255,255,255,0.5);line-height:1.6;}
+.r1-caption strong{color:var(--cyan);}
+
+/* Rebuilt Website */
+.r2-body{flex:1;padding:36px 32px;}
+.r2-logo{font-family:'Montserrat',sans-serif;font-weight:900;font-size:16px;color:#fff;letter-spacing:-0.02em;margin-bottom:28px;text-transform:uppercase;}
+.r2-logo span{color:var(--cyan);}
+.r2-hero h2{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(24px,3vw,36px);color:#fff;text-transform:uppercase;letter-spacing:-0.04em;line-height:0.88;margin-bottom:12px;}
+.r2-hero h2 em{color:var(--cyan);font-style:normal;}
+.r2-hero p{font-size:13px;color:rgba(255,255,255,0.5);line-height:1.7;margin-bottom:14px;max-width:420px;}
+.r2-btn{display:inline-block;padding:10px 24px;background:var(--cyan);color:var(--black);font-size:9px;text-transform:uppercase;letter-spacing:2px;font-weight:600;border-radius:100px;}
+
+/* Rebuilt Competitor comparison */
+.r4-body{flex:1;display:flex;align-items:center;justify-content:center;gap:2px;padding:32px;}
+.r4-card{flex:1;border-radius:12px;padding:24px 20px;height:280px;display:flex;flex-direction:column;}
+.r4-card.comp{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);}
+.r4-card.you{background:rgba(0,245,212,0.04);border:1px solid rgba(0,245,212,0.15);}
+.r4-card-label{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;margin-bottom:16px;}
+.r4-card.comp .r4-card-label{color:rgba(255,255,255,0.1);}
+.r4-card.you .r4-card-label{color:var(--cyan);}
+.r4-card-logo{font-family:'Montserrat',sans-serif;font-weight:900;font-size:16px;margin-bottom:12px;text-transform:uppercase;letter-spacing:-0.02em;}
+.r4-card.comp .r4-card-logo{color:rgba(255,255,255,0.1);}
+.r4-card.you .r4-card-logo{color:#fff;}
+.r4-card.you .r4-card-logo span{color:var(--cyan);}
+.r4-card-tag{font-size:11px;line-height:1.5;margin-bottom:12px;}
+.r4-card.comp .r4-card-tag{color:rgba(255,255,255,0.07);}
+.r4-card.you .r4-card-tag{color:rgba(255,255,255,0.5);}
+.r4-card-btn{display:inline-block;padding:8px 18px;font-size:9px;text-transform:uppercase;letter-spacing:2px;border-radius:100px;margin-top:auto;width:fit-content;}
+.r4-card.comp .r4-card-btn{background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.08);}
+.r4-card.you .r4-card-btn{background:var(--cyan);color:var(--black);font-weight:600;}
+.r4-vs{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:14px;color:rgba(255,255,255,0.08);align-self:center;padding:0 16px;}
+
+/* Fixed annotation */
+.tp-annot-fix{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);background:var(--cyan);color:var(--black);font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:8px 20px;border-radius:100px;white-space:nowrap;opacity:0;transition:opacity 0.4s 0.4s;z-index:5;}
+.rebuild-screen.active .tp-annot-fix{opacity:1;}
+
+/* Finale */
+.finale-screen{position:absolute;inset:0;background:rgba(10,10,10,0.94);backdrop-filter:blur(10px);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:25;opacity:0;pointer-events:none;transition:opacity 0.6s;padding:32px;}
+.finale-screen.show{opacity:1;pointer-events:auto;}
+.finale-text{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(24px,3.5vw,44px);color:#fff;text-transform:uppercase;letter-spacing:-0.04em;line-height:0.88;text-align:center;margin-bottom:8px;}
+.finale-text em{color:var(--cyan);font-style:normal;}
+.finale-sub{font-family:'Inter',sans-serif;font-size:13px;color:rgba(255,255,255,0.4);text-align:center;margin-bottom:28px;max-width:400px;line-height:1.7;}
+.finale-btn{display:inline-flex;align-items:center;gap:8px;background:var(--cyan);color:var(--black);font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:14px 32px;border-radius:100px;text-decoration:none;cursor:pointer;border:none;transition:background 0.2s;}
+.finale-btn:hover{background:var(--lime);}
+
+/* Bottom */
+.test-bottom{text-align:center;margin-top:40px;opacity:0;transition:opacity 0.6s;}
+.test-bottom.show{opacity:1;}
+.restart-btn{background:none;border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.3);font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:10px 24px;border-radius:100px;cursor:pointer;transition:all 0.2s;}
+.restart-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+</style>
+</head>
+<body>
+
+<div class="spacer">
+  <p>Scroll down — timer starts automatically</p>
+  <h2>THE 15-SECOND<br>BRAND JOURNEY</h2>
+</div>
+
+<section class="test-section" id="testSection">
+  <div class="test-kicker">The 15-Second Test</div>
+  <h2 class="test-headline">THIS IS WHAT A STRANGER <em>SEES.</em></h2>
+  <p class="test-sub">Your brand gets 15 seconds. Here's what happens when every touchpoint tells a different story.</p>
+
+  <div class="timer-row">
+    <div class="timer-ring">
+      <svg viewBox="0 0 72 72"><circle class="timer-track" cx="36" cy="36" r="33"/><circle class="timer-fill" id="timerFill" cx="36" cy="36" r="33"/></svg>
+      <div class="timer-num" id="timerNum">15</div>
+    </div>
+    <div class="stage-label" id="stageLabel">
+      <span class="stage-channel" id="stageChannel">STARTING...</span>
+      <span id="stageText">A stranger just found your brand.</span>
+    </div>
+  </div>
+
+  <div class="journey-frame" id="journeyFrame">
+
+    <!-- BROKEN: Screen 1 — Instagram -->
+    <div class="tp-screen active" id="scr1">
+      <div class="s1-body">
+        <div class="s1-post">
+          <div class="s1-post-header"><div class="s1-avatar"></div><div class="s1-handle">@yourbrand</div></div>
+          <div class="s1-img"><span>Stock Sunset Photo</span></div>
+          <div class="s1-caption">"Believe in the process. Trust the journey. Growth starts from within." #motivation #entrepreneur #blessed</div>
+          <div class="s1-likes">12 likes</div>
+        </div>
+      </div>
+      <div class="tp-annot">Says nothing about what you do.</div>
+    </div>
+
+    <!-- BROKEN: Screen 2 — Website -->
+    <div class="tp-screen" id="scr2">
+      <div class="tp-chrome"><div class="tp-dot"></div><div class="tp-dot"></div><div class="tp-dot"></div><div class="tp-url">yourbrand.com</div></div>
+      <div class="s2-body">
+        <div class="s2-logo">YOUR BRAND CO.</div>
+        <div class="s2-hero">
+          <div>
+            <h2>Innovative solutions for your growing business needs</h2>
+            <p>We leverage cutting-edge technology and strategic partnerships to deliver results that matter for businesses of all sizes.</p>
+            <div class="s2-btn">Learn More</div>
+          </div>
+          <div class="s2-hero-img"></div>
+        </div>
+      </div>
+      <div class="tp-annot">Could be anyone's website.</div>
+    </div>
+
+    <!-- BROKEN: Screen 3 — Google -->
+    <div class="tp-screen" id="scr3">
+      <div class="s3-body">
+        <div class="s3-search"><div class="s3-search-icon"></div><div class="s3-search-text">"your brand" reviews</div></div>
+        <div class="s3-results">
+          <div class="s3-result you">
+            <div class="s3-result-url">yourbrand.com</div>
+            <div class="s3-result-title">Your Brand Co. — Innovative Solutions</div>
+            <div class="s3-result-desc">We help businesses grow with cutting-edge strategies and proven methods...</div>
+          </div>
+          <div class="s3-result comp">
+            <div class="s3-result-url">competitorbrand.com</div>
+            <div class="s3-result-title">Competitor — Innovative Growth Solutions</div>
+            <div class="s3-result-desc">Transform your business with our innovative approach to growth and strategy...</div>
+          </div>
+        </div>
+      </div>
+      <div class="tp-annot">You and your competitor sound identical.</div>
+    </div>
+
+    <!-- BROKEN: Screen 4 — Side by side -->
+    <div class="tp-screen" id="scr4">
+      <div class="s4-body">
+        <div class="s4-card you">
+          <div class="s4-card-label">Your Brand</div>
+          <div class="s4-card-logo">BRAND CO.</div>
+          <div class="s4-card-tag">Innovative solutions for growing businesses. We leverage technology to deliver results.</div>
+          <div class="s4-card-btn">Learn More</div>
+        </div>
+        <div class="s4-vs">VS</div>
+        <div class="s4-card">
+          <div class="s4-card-label">Competitor</div>
+          <div class="s4-card-logo">OTHER CO.</div>
+          <div class="s4-card-tag">Strategic solutions for modern businesses. We use technology to drive growth.</div>
+          <div class="s4-card-btn">Learn More</div>
+        </div>
+      </div>
+      <div class="tp-annot">They can't tell the difference. Can you?</div>
+    </div>
+
+    <!-- BROKEN: Screen 5 — They leave -->
+    <div class="tp-screen" id="scr5">
+      <div class="s5-body">
+        <div class="s5-cursor"></div>
+        <div class="s5-tab"><div class="s5-tab-dot"></div><div class="s5-tab-text">yourbrand.com</div><div class="s5-tab-x">x</div></div>
+        <div class="s5-window"></div>
+      </div>
+      <div class="tp-annot">They're gone.</div>
+    </div>
+
+    <!-- VERDICT -->
+    <div class="verdict-screen" id="verdict">
+      <div class="verdict-q">FIVE TOUCHPOINTS.</div>
+      <div class="verdict-a">NOTHING STUCK.</div>
+      <div class="verdict-sub">They saw your social. Your site. Your search results. Your competitor. And they couldn't tell you apart. That's the break.</div>
+    </div>
+
+    <!-- REBUILD: Instagram -->
+    <div class="rebuild-screen" id="rscr1">
+      <div class="r1-body">
+        <div class="r1-post">
+          <div class="r1-post-header"><div class="r1-avatar"></div><div class="r1-handle">@bermo.co</div></div>
+          <div class="r1-img"><span>YOUR BRAND GETS<br>15 SECONDS.<br>MAKE THEM COUNT.</span></div>
+          <div class="r1-caption"><strong>Stop posting. Start positioning.</strong> Most brands post 5x a week and nobody can tell what they sell. That's not a content problem. That's a translation problem.</div>
+        </div>
+      </div>
+      <div class="tp-annot-fix">Hooks immediately. Clear point of view.</div>
+    </div>
+
+    <!-- REBUILD: Website -->
+    <div class="rebuild-screen" id="rscr2">
+      <div class="tp-chrome"><div class="tp-dot"></div><div class="tp-dot"></div><div class="tp-dot"></div><div class="tp-url" style="color:var(--cyan);">bermoco.com</div></div>
+      <div class="r2-body">
+        <div class="r2-logo">BERMO<span>.</span>COLLECTIVE</div>
+        <div class="r2-hero">
+          <div>
+            <h2>WHAT IS YOUR BUSINESS SAYING WHEN YOU'RE NOT <em>IN THE ROOM?</em></h2>
+            <p>Growth breaks when translation breaks. We step inside your business, find where things disconnect, and fix the gap between what you mean and what they hear.</p>
+            <div class="r2-btn">Free Brand Audit</div>
+          </div>
+        </div>
+      </div>
+      <div class="tp-annot-fix">Specific. Provocative. Unmistakable.</div>
+    </div>
+
+    <!-- REBUILD: Competitor comparison -->
+    <div class="rebuild-screen" id="rscr3">
+      <div class="r4-body">
+        <div class="r4-card comp">
+          <div class="r4-card-label">Competitor</div>
+          <div class="r4-card-logo">OTHER CO.</div>
+          <div class="r4-card-tag">Strategic solutions for modern businesses. We use technology to drive growth.</div>
+          <div class="r4-card-btn">Learn More</div>
+        </div>
+        <div class="r4-vs">VS</div>
+        <div class="r4-card you">
+          <div class="r4-card-label">Your Brand (After)</div>
+          <div class="r4-card-logo">BERMO<span>.</span></div>
+          <div class="r4-card-tag">We find where your brand breaks and fix the translation. Strategy + execution. Momentum from day one.</div>
+          <div class="r4-card-btn">Free Brand Audit</div>
+        </div>
+      </div>
+      <div class="tp-annot-fix">Now there's no contest.</div>
+    </div>
+
+    <!-- FINALE -->
+    <div class="finale-screen" id="finale">
+      <div class="finale-text">SAME 15 SECONDS.<br><em>COMPLETELY DIFFERENT OUTCOME.</em></div>
+      <div class="finale-sub">Your brand touches more than a website. Social, search, hiring, sales — every channel either builds trust or breaks it. We make sure they all say the same thing.</div>
+      <button class="finale-btn">Find Your Break — Free Audit</button>
+    </div>
+
+  </div>
+
+  <div class="test-bottom" id="testBottom">
+    <button class="restart-btn" id="restartBtn">Replay the Journey</button>
+  </div>
+</section>
+
+<script>
+const section = document.getElementById('testSection');
+const timerFill = document.getElementById('timerFill');
+const timerNum = document.getElementById('timerNum');
+const stageChannel = document.getElementById('stageChannel');
+const stageText = document.getElementById('stageText');
+const stageLabel = document.getElementById('stageLabel');
+const verdict = document.getElementById('verdict');
+const finale = document.getElementById('finale');
+const testBottom = document.getElementById('testBottom');
+const restartBtn = document.getElementById('restartBtn');
+
+const circ = 2 * Math.PI * 33;
+const screens = [document.getElementById('scr1'),document.getElementById('scr2'),document.getElementById('scr3'),document.getElementById('scr4'),document.getElementById('scr5')];
+const rebuilds = [document.getElementById('rscr1'),document.getElementById('rscr2'),document.getElementById('rscr3')];
+
+const stages = [
+  {ch:'SOCIAL MEDIA',txt:'They found your Instagram first.',at:0},
+  {ch:'YOUR WEBSITE',txt:'They clicked through to your site.',at:3},
+  {ch:'SEARCH RESULTS',txt:'They Googled you.',at:6},
+  {ch:'VS COMPETITOR',txt:'They compared you side by side.',at:9},
+  {ch:'DECISION TIME',txt:'15 seconds are up.',at:12}
+];
+
+const rebuildStages = [
+  {ch:'SOCIAL — FIXED',txt:'Now your content hooks immediately.'},
+  {ch:'WEBSITE — FIXED',txt:'Now your message is unmistakable.'},
+  {ch:'VS COMPETITOR — FIXED',txt:'Now you stand out. No contest.'}
+];
+
+let started = false;
+let seconds = 15;
+let timer = null;
+
+function hideAll(){
+  screens.forEach(s=>s.classList.remove('active'));
+  rebuilds.forEach(r=>r.classList.remove('active'));
+  verdict.classList.remove('show');
+  finale.classList.remove('show');
+}
+
+function showScreen(idx){
+  hideAll();
+  if(screens[idx]) screens[idx].classList.add('active');
+}
+
+function reset(){
+  started=false;seconds=15;
+  if(timer)clearInterval(timer);
+  timerNum.textContent='15';
+  timerFill.style.strokeDashoffset=circ;
+  timerFill.classList.remove('danger');
+  stageChannel.textContent='STARTING...';
+  stageText.textContent='A stranger just found your brand.';
+  stageLabel.classList.remove('active');
+  hideAll();
+  screens[0].classList.add('active');
+  testBottom.classList.remove('show');
+}
+
+function startTest(){
+  if(started)return;
+  started=true;
+  stageLabel.classList.add('active');
+
+  timer=setInterval(()=>{
+    seconds--;
+    timerNum.textContent=Math.max(0,seconds);
+    const progress=(15-seconds)/15;
+    timerFill.style.strokeDashoffset=circ*(1-progress);
+    if(seconds<=5)timerFill.classList.add('danger');
+
+    // Switch screens
+    stages.forEach((s,i)=>{
+      if(seconds===15-s.at){
+        stageChannel.textContent=s.ch;
+        stageText.textContent=s.txt;
+        showScreen(i);
+      }
+    });
+
+    if(seconds<=0){
+      clearInterval(timer);
+      // Show verdict
+      setTimeout(()=>{hideAll();verdict.classList.add('show');},800);
+
+      // Rebuild sequence
+      setTimeout(()=>{
+        verdict.classList.remove('show');
+        stageChannel.textContent=rebuildStages[0].ch;
+        stageText.textContent=rebuildStages[0].txt;
+        timerFill.classList.remove('danger');
+        timerFill.style.strokeDashoffset=circ*0.66;
+        timerNum.textContent='';
+        hideAll();rebuilds[0].classList.add('active');
+      },4000);
+
+      setTimeout(()=>{
+        stageChannel.textContent=rebuildStages[1].ch;
+        stageText.textContent=rebuildStages[1].txt;
+        timerFill.style.strokeDashoffset=circ*0.33;
+        hideAll();rebuilds[1].classList.add('active');
+      },6500);
+
+      setTimeout(()=>{
+        stageChannel.textContent=rebuildStages[2].ch;
+        stageText.textContent=rebuildStages[2].txt;
+        timerFill.style.strokeDashoffset=0;
+        hideAll();rebuilds[2].classList.add('active');
+      },9000);
+
+      // Finale
+      setTimeout(()=>{
+        hideAll();
+        finale.classList.add('show');
+        stageChannel.textContent='THE RESULT';
+        stageText.textContent='Same 15 seconds. Everything changed.';
+        testBottom.classList.add('show');
+      },11500);
+    }
+  },1000);
+}
+
+const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting&&!started)startTest();});},{threshold:0.35});
+obs.observe(section);
+restartBtn.addEventListener('click',()=>{reset();setTimeout(startTest,300);});
+</script>
+</body>
+</html>

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prototype 2 — Brand Autopsy</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@800;900&family=Inter:wght@400;500;600&family=Montserrat:wght@900&display=swap" rel="stylesheet">
+<style>
+:root{--cyan:#00f5d4;--lime:#c8f500;--pink:#ff2d7a;--black:#0a0a0a;--cream:#f0efe9;--lgray:#e2e0db;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--cream);font-family:'Inter',sans-serif;overflow-x:hidden;}
+
+.spacer{height:60vh;background:var(--black);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;}
+.spacer h2{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(36px,5vw,56px);color:#fff;text-transform:uppercase;letter-spacing:-0.04em;line-height:0.88;text-align:center;}
+.spacer p{font-family:'Inter',sans-serif;font-size:14px;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase;}
+
+/* AUTOPSY SECTION */
+.autopsy-section{background:var(--black);padding:80px 56px;min-height:100vh;}
+.autopsy-kicker{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.autopsy-kicker::before{content:'';width:20px;height:1px;background:rgba(255,255,255,0.4);}
+.autopsy-headline{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(36px,5vw,64px);line-height:0.88;letter-spacing:-0.04em;color:#fff;text-transform:uppercase;margin-bottom:12px;}
+.autopsy-headline em{color:var(--cyan);font-style:normal;}
+.autopsy-sub{font-family:'Inter',sans-serif;font-size:14px;color:rgba(255,255,255,0.45);margin-bottom:48px;max-width:480px;line-height:1.7;}
+
+/* Mockup with hotspots */
+.autopsy-frame{position:relative;max-width:960px;margin:0 auto;border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);background:#111;box-shadow:0 32px 80px rgba(0,0,0,0.5);}
+.autopsy-browser{background:rgba(255,255,255,0.03);padding:12px 20px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,0.06);}
+.autopsy-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.12);}
+.autopsy-url{flex:1;background:rgba(255,255,255,0.04);border-radius:6px;padding:6px 14px;font-size:11px;color:rgba(255,255,255,0.25);font-family:'Inter',sans-serif;}
+
+.autopsy-page{position:relative;padding:48px 40px;min-height:440px;}
+
+/* Fake brand content (muted, generic) */
+.fake-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.04);}
+.fake-logo{font-family:serif;font-size:22px;color:rgba(255,255,255,0.2);letter-spacing:3px;}
+.fake-nav-links{display:flex;gap:20px;}
+.fake-nav-links span{font-size:10px;color:rgba(255,255,255,0.1);text-transform:uppercase;letter-spacing:2px;}
+.fake-hero{display:grid;grid-template-columns:1.2fr 1fr;gap:32px;margin-bottom:32px;align-items:center;}
+.fake-hero-text h2{font-family:'Inter',sans-serif;font-weight:600;font-size:22px;color:rgba(255,255,255,0.18);line-height:1.3;margin-bottom:12px;}
+.fake-hero-text p{font-size:12px;color:rgba(255,255,255,0.1);line-height:1.8;margin-bottom:16px;}
+.fake-hero-btn{display:inline-block;padding:8px 20px;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.15);font-size:10px;text-transform:uppercase;letter-spacing:2px;border-radius:4px;}
+.fake-hero-img{height:180px;background:linear-gradient(135deg,rgba(255,255,255,0.02),rgba(255,255,255,0.04));border-radius:8px;}
+.fake-features{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.fake-feat{background:rgba(255,255,255,0.02);border-radius:8px;padding:20px;border:1px solid rgba(255,255,255,0.03);}
+.fake-feat-icon{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.04);margin-bottom:10px;}
+.fake-feat h4{font-size:11px;color:rgba(255,255,255,0.12);margin-bottom:6px;}
+.fake-feat p{font-size:10px;color:rgba(255,255,255,0.07);line-height:1.6;}
+
+/* Hotspots */
+.hotspot{position:absolute;cursor:pointer;z-index:10;transition:transform 0.2s;}
+.hotspot:hover{transform:scale(1.1);}
+.hotspot-pulse{width:40px;height:40px;border-radius:50%;border:2px solid var(--pink);display:flex;align-items:center;justify-content:center;position:relative;background:rgba(255,45,122,0.1);}
+.hotspot-pulse::before{content:'';position:absolute;inset:-6px;border-radius:50%;border:1.5px solid var(--pink);animation:hPulse 2s ease infinite;opacity:0.4;}
+@keyframes hPulse{0%{transform:scale(1);opacity:0.4}100%{transform:scale(1.6);opacity:0}}
+.hotspot-plus{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:18px;color:var(--pink);line-height:1;}
+
+.hotspot.active .hotspot-pulse{background:var(--pink);border-color:var(--pink);}
+.hotspot.active .hotspot-plus{color:#fff;}
+
+/* Hotspot positions */
+.hs-logo{top:56px;left:70px;}
+.hs-headline{top:120px;left:200px;}
+.hs-image{top:140px;right:80px;}
+.hs-cta{top:230px;left:120px;}
+.hs-features{bottom:40px;left:50%;transform:translateX(-50%);}
+
+/* Diagnosis panel */
+.diag-panel{position:absolute;top:0;right:0;bottom:0;width:340px;background:linear-gradient(180deg,rgba(10,10,10,0.97),rgba(10,10,10,0.99));border-left:1px solid rgba(255,45,122,0.15);padding:40px 28px;transform:translateX(100%);transition:transform 0.4s cubic-bezier(.4,0,.2,1);z-index:20;display:flex;flex-direction:column;overflow-y:auto;}
+.diag-panel.open{transform:translateX(0);}
+.diag-close{position:absolute;top:16px;right:16px;background:none;border:none;color:rgba(255,255,255,0.3);font-size:24px;cursor:pointer;transition:color 0.2s;line-height:1;}
+.diag-close:hover{color:var(--pink);}
+.diag-zone{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--pink);font-weight:600;margin-bottom:12px;}
+.diag-title{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(22px,2.5vw,28px);color:#fff;text-transform:uppercase;letter-spacing:-0.03em;line-height:0.92;margin-bottom:16px;}
+.diag-title em{color:var(--pink);font-style:normal;}
+.diag-verdict{font-family:'Inter Tight',sans-serif;font-weight:800;font-size:15px;color:var(--cyan);margin-bottom:12px;}
+.diag-body{font-family:'Inter',sans-serif;font-size:13px;color:rgba(255,255,255,0.55);line-height:1.85;margin-bottom:20px;}
+.diag-body strong{color:#fff;font-weight:600;}
+.diag-fix{padding:16px;background:rgba(0,245,212,0.06);border:1px solid rgba(0,245,212,0.12);border-radius:10px;margin-bottom:20px;}
+.diag-fix-label{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--cyan);font-weight:600;margin-bottom:6px;}
+.diag-fix-text{font-family:'Inter',sans-serif;font-size:12px;color:rgba(255,255,255,0.7);line-height:1.7;}
+
+/* Score bar at bottom */
+.score-bar{margin-top:48px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
+.score-ring{width:64px;height:64px;position:relative;flex-shrink:0;}
+.score-ring svg{width:100%;height:100%;transform:rotate(-90deg);}
+.score-ring circle{fill:none;stroke-width:4;}
+.score-track{stroke:rgba(255,255,255,0.06);}
+.score-fill{stroke:var(--pink);stroke-dasharray:163;stroke-dashoffset:163;transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1);}
+.score-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Inter Tight',sans-serif;font-weight:900;font-size:18px;color:var(--pink);}
+.score-text{font-family:'Inter',sans-serif;font-size:12px;color:rgba(255,255,255,0.4);line-height:1.6;}
+.score-text strong{color:#fff;font-weight:600;display:block;font-size:14px;}
+
+.autopsy-cta{margin-top:48px;text-align:center;}
+.autopsy-btn{display:inline-flex;align-items:center;gap:8px;background:var(--cyan);color:var(--black);font-family:'Inter',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:16px 36px;border-radius:100px;text-decoration:none;border:none;cursor:pointer;transition:background 0.2s;}
+.autopsy-btn:hover{background:var(--lime);}
+</style>
+</head>
+<body>
+
+<div class="spacer">
+  <p>Scroll down to experience the demo</p>
+  <h2>BRAND AUTOPSY</h2>
+</div>
+
+<section class="autopsy-section">
+  <div class="autopsy-kicker">Brand Autopsy</div>
+  <h2 class="autopsy-headline">CLICK TO SEE WHAT'S <em>BROKEN.</em></h2>
+  <p class="autopsy-sub">Every brand has blind spots. Hover over the hot spots to see what a stranger sees in the first 15 seconds.</p>
+
+  <div class="autopsy-frame">
+    <div class="autopsy-browser">
+      <div class="autopsy-dot"></div>
+      <div class="autopsy-dot"></div>
+      <div class="autopsy-dot"></div>
+      <div class="autopsy-url">yourbrand.com</div>
+    </div>
+    <div class="autopsy-page">
+      <!-- Fake generic brand -->
+      <div class="fake-nav">
+        <div class="fake-logo">BRAND CO.</div>
+        <div class="fake-nav-links"><span>About</span><span>Services</span><span>Blog</span><span>Contact</span></div>
+      </div>
+      <div class="fake-hero">
+        <div class="fake-hero-text">
+          <h2>Innovative solutions for your growing business needs</h2>
+          <p>We leverage cutting-edge technology and strategic thinking to deliver results that matter. Our team of experts is here to help you succeed.</p>
+          <div class="fake-hero-btn">Learn More</div>
+        </div>
+        <div class="fake-hero-img"></div>
+      </div>
+      <div class="fake-features">
+        <div class="fake-feat"><div class="fake-feat-icon"></div><h4>Strategy</h4><p>We build strategies that work for your business.</p></div>
+        <div class="fake-feat"><div class="fake-feat-icon"></div><h4>Growth</h4><p>Scale your operations with our proven methods.</p></div>
+        <div class="fake-feat"><div class="fake-feat-icon"></div><h4>Results</h4><p>See measurable outcomes from day one.</p></div>
+      </div>
+
+      <!-- Hotspots -->
+      <div class="hotspot hs-logo" data-diag="0"><div class="hotspot-pulse"><span class="hotspot-plus">+</span></div></div>
+      <div class="hotspot hs-headline" data-diag="1"><div class="hotspot-pulse"><span class="hotspot-plus">+</span></div></div>
+      <div class="hotspot hs-image" data-diag="2"><div class="hotspot-pulse"><span class="hotspot-plus">+</span></div></div>
+      <div class="hotspot hs-cta" data-diag="3"><div class="hotspot-pulse"><span class="hotspot-plus">+</span></div></div>
+      <div class="hotspot hs-features" data-diag="4"><div class="hotspot-pulse"><span class="hotspot-plus">+</span></div></div>
+
+      <!-- Diagnosis slide-in panel -->
+      <div class="diag-panel" id="diagPanel">
+        <button class="diag-close" id="diagClose">&times;</button>
+        <div class="diag-zone" id="diagZone"></div>
+        <h3 class="diag-title" id="diagTitle"></h3>
+        <div class="diag-verdict" id="diagVerdict"></div>
+        <div class="diag-body" id="diagBody"></div>
+        <div class="diag-fix">
+          <div class="diag-fix-label">The Fix</div>
+          <div class="diag-fix-text" id="diagFix"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Score -->
+  <div class="score-bar" id="scoreBar">
+    <div class="score-ring">
+      <svg viewBox="0 0 64 64">
+        <circle class="score-track" cx="32" cy="32" r="26"/>
+        <circle class="score-fill" id="scoreFill" cx="32" cy="32" r="26"/>
+      </svg>
+      <div class="score-num" id="scoreNum">0/5</div>
+    </div>
+    <div class="score-text">
+      <strong>Blind spots uncovered</strong>
+      Click all 5 hotspots to complete the autopsy.
+    </div>
+  </div>
+
+  <div class="autopsy-cta" id="autopsyCta" style="opacity:0;transition:opacity 0.6s;">
+    <button class="autopsy-btn">Get Your Real Brand Autopsy Free</button>
+  </div>
+</section>
+
+<script>
+const diagnoses = [
+  {
+    zone: 'Logo + Identity',
+    title: 'SAYS NOTHING. <em>MEANS NOTHING.</em>',
+    verdict: 'That\'s a positioning problem.',
+    body: 'Your logo is the first thing people see. If it looks like a template, <strong>they assume the business is one too</strong>. "Brand Co." tells nobody what you do, why you\'re different, or why they should care.',
+    fix: 'A strong brand mark isn\'t just a logo \u2014 it\'s a signal. Position your identity so it communicates expertise, energy, and specificity before anyone reads a word.'
+  },
+  {
+    zone: 'Headline + Messaging',
+    title: 'EVERYONE SAYS THIS. <em>NOBODY REMEMBERS IT.</em>',
+    verdict: 'That\'s a translation problem.',
+    body: '"Innovative solutions for your growing business needs" is the brand equivalent of <strong>white noise</strong>. It describes nothing specific. It could be any company in any industry. Your visitor\'s brain literally skips it.',
+    fix: 'Your headline should make someone stop and think "wait \u2014 they\'re talking about ME." Specificity beats cleverness every time. Name the pain, not the promise.'
+  },
+  {
+    zone: 'Visual Identity',
+    title: 'STOCK PHOTO ENERGY. <em>ZERO TRUST.</em>',
+    verdict: 'That\'s a credibility problem.',
+    body: 'Generic imagery tells your visitor <strong>you didn\'t invest in your own brand</strong>. If you won\'t invest in how you show up, why would they trust you with their business? Every placeholder is a missed chance to build belief.',
+    fix: 'Real photos, real work, real people. Your visuals should feel owned, not rented. Even simple, authentic imagery outperforms polished stock every time.'
+  },
+  {
+    zone: 'Call to Action',
+    title: '"LEARN MORE" IS WHERE <em>LEADS GO TO DIE.</em>',
+    verdict: 'That\'s a conversion problem.',
+    body: '"Learn More" is passive. It puts all the work on the visitor. <strong>Nobody woke up today wanting to "learn more."</strong> They want their problem solved. Your CTA should tell them exactly what happens next and why it\'s worth 2 minutes.',
+    fix: 'CTAs should be specific, low-friction, and rewarding. "Get Your Free Brand Audit" beats "Learn More" because it promises a result, not homework.'
+  },
+  {
+    zone: 'Content Structure',
+    title: 'THREE COLUMNS OF <em>NOTHING.</em>',
+    verdict: 'That\'s a clarity problem.',
+    body: '"Strategy. Growth. Results." \u2014 that\'s not a value prop, <strong>that\'s a word cloud</strong>. When everything sounds important, nothing is. Your visitor can\'t tell what you actually do, how you\'re different, or what to do next.',
+    fix: 'Lead with the ONE thing that matters most. Show proof, not promises. Structure your page so the visitor always knows: what you do, who it\'s for, and what to do next.'
+  }
+];
+
+const hotspots = document.querySelectorAll('.hotspot');
+const panel = document.getElementById('diagPanel');
+const diagClose = document.getElementById('diagClose');
+const scoreFill = document.getElementById('scoreFill');
+const scoreNum = document.getElementById('scoreNum');
+const circumference = 2 * Math.PI * 26;
+let visited = new Set();
+
+hotspots.forEach(hs => {
+  hs.addEventListener('click', () => {
+    const idx = parseInt(hs.dataset.diag);
+    const d = diagnoses[idx];
+
+    // Update panel content
+    document.getElementById('diagZone').textContent = d.zone;
+    document.getElementById('diagTitle').innerHTML = d.title;
+    document.getElementById('diagVerdict').textContent = d.verdict;
+    document.getElementById('diagBody').innerHTML = d.body;
+    document.getElementById('diagFix').textContent = d.fix;
+
+    // Mark active
+    hotspots.forEach(h => h.classList.remove('active'));
+    hs.classList.add('active');
+
+    // Open panel
+    panel.classList.add('open');
+
+    // Track visited
+    visited.add(idx);
+    const count = visited.size;
+    scoreNum.textContent = count + '/5';
+    scoreFill.style.strokeDashoffset = circumference * (1 - count / 5);
+
+    if (count === 5) {
+      document.getElementById('autopsyCta').style.opacity = '1';
+      document.querySelector('.score-text strong').textContent = 'Autopsy complete.';
+      document.querySelector('.score-text').lastChild.textContent = ' Now imagine this is your brand. Ready to find out?';
+    }
+  });
+});
+
+diagClose.addEventListener('click', () => {
+  panel.classList.remove('open');
+  hotspots.forEach(h => h.classList.remove('active'));
+});
+</script>
+</body>
+</html>

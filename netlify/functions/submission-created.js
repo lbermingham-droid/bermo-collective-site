@@ -151,8 +151,8 @@ function buildAuditCustomerEmail({ firstName, gapsScore, brand, auditInsights, s
   const guideUrl = siteUrl + '/free-guide.pdf';
   const contactUrl = siteUrl + '/contact';
 
-  // Parse insights (separated by ||) and build a bullet list
-  const insights = (auditInsights || '').split('||').map(s => s.trim()).filter(Boolean);
+  // Parse insights (separated by ||) and build a bullet list. Fall back to summary if no insights.
+  let insights = (auditInsights || '').split('||').map(s => s.trim()).filter(Boolean);
   const insightsBlock = insights.length ? `
           <div style="margin:0 0 28px;padding:22px 24px;background:#f5f5f0;border-left:4px solid #00f5d4;">
             <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#0a0a0a;font-weight:900;margin-bottom:14px;">Here's What Stood Out</div>

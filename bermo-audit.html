@@ -609,16 +609,11 @@ function doSub(){
   // Take top 3 gap insights to keep the email concise. If no gaps, use the "solid foundation" messages.
   var gapInsights=[];
   for(var j=0;j<TOTAL;j++){
-    if(ans[j]!=null && ans[j]>=2 && QS[j].aha && QS[j].aha[ans[j]]){
+    if(ans[j]!=null && QS[j].aha && QS[j].aha[ans[j]]){
       gapInsights.push(QS[j].aha[ans[j]]);
     }
   }
-  if(gapInsights.length===0){
-    for(var k=0;k<TOTAL && gapInsights.length<3;k++){
-      if(ans[k]!=null && QS[k].aha && QS[k].aha[ans[k]]) gapInsights.push(QS[k].aha[ans[k]]);
-    }
-  }
-  gapInsights=gapInsights.slice(0,3);
+  gapInsights=gapInsights.slice(0,5);
   var auditInsights=gapInsights.join('||');
 
   // Payload for both Netlify Forms (storage + built-in notification) and the Resend function (fancy emails)

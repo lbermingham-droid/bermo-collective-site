@@ -489,6 +489,8 @@ footer{position:relative;z-index:20;background:#0a0a0a;border-top:3px solid #00f
   .fit-grid { grid-template-columns:1fr; }
   .collection-cards { padding:32px 24px 0 !important; }
   footer { padding:28px 24px; flex-direction:column; align-items:flex-start; }
+  /* Fix: scale down "BERMO" ghost text in the How We Work / Our Fit section on mobile */
+  .how-ghost { font-size: clamp(60px, 22vw, 120px); right: 0; bottom: 0; }
 }
 
 /* FAQ */

@@ -203,8 +203,8 @@ footer{position:relative;z-index:20;background:var(--black);border-top:3px solid
 }
 @media(max-width:768px){
   nav{padding:0 20px;} .nav-social{display:none;}
-  .nav-dropdown{min-width:0;width:calc(100vw - 32px);right:0;}
-  .nav-dropdown:not(.open){visibility:hidden;height:0;overflow:hidden;}
+  .nav-dropdown{min-width:0;width:calc(100vw - 32px);right:0;display:none !important;}
+  .nav-dropdown.open{display:block !important;}
   .hero{padding:120px 24px 56px;}
   .hero-ghost{font-size:clamp(60px,15vw,100px);opacity:0.04;}
   .bot-ghost{display:none;}

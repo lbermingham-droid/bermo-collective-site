@@ -802,7 +802,7 @@ function submitContact(e){
   }).catch(function(err){ console.error('Netlify submission failed',err); });
 
   // Send branded emails via Resend
-  fetch('/.netlify/functions/submission-created',{
+  fetch('/.netlify/functions/send-emails',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({payload:{form_name:'contact',data:dataObj}})

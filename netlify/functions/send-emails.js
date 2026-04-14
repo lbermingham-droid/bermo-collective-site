@@ -1,14 +1,8 @@
 // Netlify Function: triggered automatically every time a form is submitted.
 // Sends a brand-aligned auto-reply to the user (audit only) + internal notification to Lexi (all forms).
 
-exports.handler = async function (event, context) {
+exports.handler = async function (event) {
   try {
-    // Skip Netlify's auto-trigger — only run from our direct fetch calls
-    if (context && context.clientContext && context.clientContext.custom && context.clientContext.custom.netlify) {
-      console.log('Skipping Netlify auto-trigger, waiting for direct call');
-      return { statusCode: 200, body: JSON.stringify({ ok: true, skipped: true }) };
-    }
-
     const body = JSON.parse(event.body);
     const payload = body.payload || {};
     const formName = payload.form_name;

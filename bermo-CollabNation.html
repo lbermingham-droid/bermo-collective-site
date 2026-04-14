@@ -93,75 +93,84 @@ nav.scrolled .nav-menu-btn span{background:rgba(255,255,255,0.7);}
 .nav-dropdown a.dd-pink.dd-active{color:var(--pink);}
 .nav-dropdown a.dd-pink:hover{color:#fff;background:rgba(255,45,122,0.08);}
 @media(max-width:860px){
+  /* Nav */
   nav{padding:0 16px;height:52px;}
   .nav-social{display:none !important;}
   .nav-dropdown{min-width:0;width:calc(100vw - 32px);right:-8px;}
+
+  /* Hero */
   .hero{grid-template-columns:1fr;min-height:auto;}
-  .hero-left{min-height:auto;padding:64px 28px 24px;border-right:none;border-bottom:1px solid var(--lgray);}
-  .hero-right{min-height:auto;padding:24px 28px 32px;}
-  .hw{margin-bottom:24px;}
+  .hero-left{min-height:auto;padding:56px 24px 12px;border-right:none;border-bottom:1px solid var(--lgray);justify-content:flex-start;gap:8px;}
+  .hero-right{min-height:auto;padding:12px 24px 20px;justify-content:flex-start;gap:8px;}
+  .hw{margin-bottom:0;}
   .hw-collab,.hw-nation{font-size:clamp(48px,14vw,80px);}
-  .hero-r-hed{font-size:clamp(28px,5vw,40px);}
+  .hw-bar{height:6px;margin:6px 0;}
+  .hero-tagline{margin-bottom:0;font-size:13px;line-height:1.6;}
+  .hero-r-label{margin-bottom:4px;}
+  .hero-r-hed{font-size:clamp(24px,5vw,36px);margin-bottom:8px;}
+  .hero-r-body{font-size:12px;margin-bottom:4px;line-height:1.6;}
+  .hero-box{margin-bottom:8px;padding:10px 14px;}
+  .hb-line{font-size:clamp(18px,4vw,28px);}
+  .hero-callout{margin-top:2px;padding:6px 10px;}
+  .hero-callout p{font-size:11px;line-height:1.3;}
   .hero-vert{display:none;}
-  .cards{grid-template-columns:1fr !important;}
-  .card{min-height:auto;}
-  .join{padding:80px 24px 60px;}
+  .hero-ghost{display:none;}
+  .scribble{display:none;}
+  .scribble-with-arrow{display:none;}
+  .sticker-tape a{font-size:11px;}
+
+  /* Vibe + Collage */
+  .vibe{padding:24px 24px 16px;}
+  .vibe-collage-sticky{position:relative;height:auto;min-height:0;}
+  .vibe-after{padding:24px 24px 32px;}
+  .vibe-ghost{display:none;}
+  .vibe-hed{font-size:clamp(24px,6vw,36px);margin-bottom:12px;}
+
+  /* Collab grid */
   .collab{grid-template-columns:1fr;}
-  .manifesto{padding:56px 24px 80px;}
-  .manifesto-label{font-size:clamp(48px,10vw,80px);}
-  footer{grid-template-columns:1fr !important;gap:28px !important;padding:40px 24px !important;text-align:center !important;}
+  .cl-grid{gap:12px;}
+  .cl-card{padding:16px;min-height:auto;}
+  .cl-num{font-size:60px;}
+
+  /* Join / Pricing */
+  .join{padding:32px 24px 28px;}
+  .join-hed{font-size:clamp(32px,10vw,56px);margin-bottom:8px;}
+  .join-sub{font-size:clamp(14px,3vw,18px);margin-bottom:16px;}
+  .cards{grid-template-columns:1fr !important;}
+  .card{padding:20px 18px 18px;min-height:auto;}
+  .card>div:first-child{padding-top:40px;}
+  .card-num{font-size:80px;top:-20px;left:-20px;}
+  .card-title{font-size:clamp(16px,4vw,22px);}
+  .card-body{font-size:12px;}
+
+  /* Why section */
+  .why{padding:32px 24px;}
+  .why-grid{gap:12px;}
+  .why-stat{padding:16px;}
+
+  /* Manifesto */
+  .manifesto{padding:32px 24px 48px;}
+  .manifesto-label{font-size:clamp(36px,10vw,60px);}
+  .manifesto-text{font-size:clamp(16px,3vw,20px);}
+  .manifesto-sign{font-size:clamp(32px,6vw,44px);}
+  .manifesto-ps{font-size:clamp(14px,3vw,18px);}
+  .vibe-form{padding:14px 16px 18px;}
+
+  /* CTA */
+  .cta{padding:28px 24px 36px;}
+  .cta-ghost{font-size:clamp(48px,14vw,80px);}
+
+  /* Status bar */
+  .vibe-status{bottom:10px;padding:5px;gap:6px;}
+  .vibe-status .vs-avatar{width:30px;height:30px;}
+  .vibe-status .vs-tap{font-size:7px;padding:5px 10px;}
+  body{padding-bottom:56px;}
+
+  /* Footer */
+  footer{grid-template-columns:1fr !important;gap:28px !important;padding:32px 24px !important;text-align:center !important;}
   footer ul{justify-content:center;}
   footer div[style*="text-align:right"]{text-align:center !important;}
   footer div[style*="justify-content:flex-end"]{justify-content:center !important;}
-  /* Fix: hide decorative floating scribbles over collage and join section on mobile */
-  .scribble{display:none;}
-  .scribble-with-arrow{display:none;}
-  /* Fix: hide hero ghost text that overflows on mobile */
-  .hero-ghost{display:none;}
-  .cta-ghost{font-size:clamp(60px,16vw,100px);}
-  .cta{padding:48px 24px 56px;}
-  .hero-left{padding:60px 24px 16px;justify-content:flex-start;gap:16px;}
-  .hero-right{padding:16px 24px 24px;justify-content:flex-start;gap:16px;}
-  .hw{margin-bottom:0;}
-  .hw-bar{height:8px;margin:8px 0;}
-  .hero-box{margin-bottom:14px;padding:14px 18px;}
-  .hb-line{font-size:clamp(20px,4vw,32px);}
-  .hero-callout{margin-top:4px;padding:8px 10px;}
-  .hero-callout p{font-size:13px;line-height:1.3;}
-  .hero-r-body{font-size:13px;margin-bottom:8px;}
-  .hero-r-label{margin-bottom:8px;}
-  .hero-tagline{margin-bottom:0;font-size:14px;}
-  .vibe{padding:36px 24px 24px;}
-  .vibe-collage-sticky{position:relative;height:auto;min-height:0;}
-  .vibe-after{padding:32px 24px 40px;}
-  .vibe-ghost{display:none;}
-  .vibe-hed{font-size:clamp(28px,6vw,40px);margin-bottom:16px;}
-  .cl-grid{gap:16px;}
-  .cl-card{padding:20px;min-height:auto;}
-  .cl-num{font-size:80px;}
-  .join{padding:40px 24px 36px;}
-  .join-hed{font-size:clamp(36px,10vw,60px);margin-bottom:12px;}
-  .join-sub{font-size:clamp(16px,3vw,20px);margin-bottom:20px;}
-  .card{padding:24px 20px 20px;min-height:auto;}
-  .card>div:first-child{padding-top:48px;}
-  .card-num{font-size:100px;top:-24px;left:-24px;}
-  .card-title{font-size:clamp(18px,4vw,24px);}
-  .card-body{font-size:13px;}
-  .why{padding:48px 24px;}
-  .why-grid{gap:16px;}
-  .why-stat{padding:20px;}
-  .manifesto{padding:40px 24px 56px;}
-  .manifesto-label{font-size:clamp(40px,10vw,64px);}
-  .manifesto-text{font-size:clamp(16px,3vw,22px);}
-  .manifesto-sign{font-size:clamp(36px,6vw,48px);}
-  .manifesto-ps{font-size:clamp(16px,3vw,22px);}
-  .vibe-form{padding:16px 18px 20px;}
-  .sticker-tape a{font-size:12px;}
-  .cta{padding:36px 24px 44px;}
-  .vibe-status{bottom:12px;padding:6px;gap:8px;}
-  .vibe-status .vs-avatar{width:34px;height:34px;}
-  .vibe-status .vs-tap{font-size:8px;padding:6px 12px;}
-  body{padding-bottom:60px;}
 }
 
 /* ================================

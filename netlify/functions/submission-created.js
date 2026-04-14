@@ -177,11 +177,10 @@ function buildAuditCustomerEmail({ firstName, gapsScore, brand, auditInsights, s
         <tr><td style="padding:44px 36px 8px;">
           <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#0a0a0a;font-weight:900;margin-bottom:18px;">Your Read. Your Next Move.</div>
           <h1 style="font-size:38px;line-height:0.92;letter-spacing:-0.03em;margin:0 0 16px;text-transform:uppercase;font-weight:900;color:#0a0a0a;font-family:'Inter Tight','Helvetica Neue',Arial,sans-serif;">
-            ${safeName},<br>you told the<br>truth.
+            ${safeName},<br>your read<br>is in.
           </h1>
           <div style="height:8px;width:72px;background:#00f5d4;margin:20px 0 24px;"></div>
-          <p style="font-size:15px;line-height:1.7;color:#0a0a0a;margin:0 0 14px;"><strong>Most people don't.</strong> That part is harder than it sounds.</p>
-          <p style="font-size:15px;line-height:1.7;color:#333;margin:0 0 26px;">You answered the questions straight. That alone tells me you're ready to move on whatever is broken${safeBrand ? ' at <strong>' + safeBrand + '</strong>' : ''}.</p>
+          <p style="font-size:15px;line-height:1.7;color:#333;margin:0 0 26px;">Thanks for taking the audit! I will review everything you submitted and reach out within 24 hours. Excited to chat! In the meantime, I included the results summary and free guide below.</p>
 ${insightsBlock}
           <div style="background:#0a0a0a;padding:24px 26px;margin:0 0 28px;">
             <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#00f5d4;font-weight:900;margin-bottom:8px;">Your Read</div>

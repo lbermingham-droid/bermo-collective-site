@@ -6,7 +6,7 @@ ROOT = Path(__file__).parent
 PHOTO = ROOT.parent / "lexi-photo.jpg"
 FONTS = ROOT / "fonts"
 
-W = H = 1080
+W, H = 1080, 1350  # Instagram 4:5 portrait
 BG = (255, 255, 255)
 BLACK = (0, 0, 0)
 CYAN = (0, 245, 212)  # #00F5D4
@@ -162,15 +162,14 @@ def build_split_photo(out, **kw):
     img = Image.new("RGB", (W, H), BG)
     draw = ImageDraw.Draw(img)
 
-    # Photo: right half, cropped tighter (face/torso prominent)
+    # Photo: right half (taller for 4:5), cropped tighter
     photo = Image.open(PHOTO).convert("RGB")
     pw, ph = W // 2, H
-    # Zoom in more — scale up by 1.4x and crop to face/upper body
-    ratio = max(pw / photo.width, ph / photo.height) * 1.15
+    ratio = max(pw / photo.width, ph / photo.height) * 1.05
     nw, nh = int(photo.width * ratio), int(photo.height * ratio)
     photo_r = photo.resize((nw, nh), Image.LANCZOS)
     left = (nw - pw) // 2
-    top = max(0, int((nh - ph) * 0.25))  # bias upward
+    top = max(0, int((nh - ph) * 0.15))  # bias upward toward face
     photo_c = photo_r.crop((left, top, left + pw, top + ph))
     img.paste(photo_c, (W // 2, 0))
 

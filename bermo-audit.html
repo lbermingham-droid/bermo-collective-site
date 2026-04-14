@@ -641,7 +641,12 @@ function doSub(){
   var body=Object.keys(netlifyPayload).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(netlifyPayload[k]);}).join('&');
   fetch('/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body}).catch(function(e){console.error('Netlify submission failed',e);});
 
-  // Emails sent automatically by Netlify via submission-created function
+  // Send branded emails via Resend
+  fetch('/.netlify/functions/submission-created',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({payload:{form_name:'audit',data:payload}})
+  }).catch(function(err){ console.error('Email function failed',err); });
 }
 var QLIVE={
   1:["I don't actually know what we're saying out there.","...okay that one hit.","I thought I knew. I don't."],

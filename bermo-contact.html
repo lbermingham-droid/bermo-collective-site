@@ -801,7 +801,12 @@ function submitContact(e){
     body: new URLSearchParams(fd).toString()
   }).catch(function(err){ console.error('Netlify submission failed',err); });
 
-  // Emails sent automatically by Netlify via submission-created function
+  // Send branded emails via Resend
+  fetch('/.netlify/functions/submission-created',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({payload:{form_name:'contact',data:dataObj}})
+  }).catch(function(err){ console.error('Email function failed',err); });
 
   // Blur any focused input to prevent iOS zoom/scroll on submit
   if (document.activeElement) document.activeElement.blur();

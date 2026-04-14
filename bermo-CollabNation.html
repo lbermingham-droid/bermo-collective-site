@@ -1357,7 +1357,12 @@ footer {
       body: netlifyBody
     }).catch(function(err){ console.error('Netlify submission failed', err); });
 
-    // Emails sent automatically by Netlify via submission-created function
+    // Send branded emails via Resend
+    fetch('/.netlify/functions/submission-created',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({payload:{form_name:'collabnation',data:dataObj}})
+    }).catch(function(err){ console.error('Email function failed',err); });
 
     // Show success state immediately
     f.style.display = 'none';

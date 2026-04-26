@@ -78,6 +78,12 @@
 </section>
 
 <!-- ============ APP SHELL ============ -->
+<!-- Pull-to-refresh indicator -->
+<div class="ptr-indicator" id="ptrIndicator">
+  <span class="ptr-spin"></span>
+  <span class="ptr-text" id="ptrText">Pull to refresh</span>
+</div>
+
 <div id="app" class="app hidden">
 
   <!-- TOP BAR -->
@@ -139,6 +145,7 @@
         </div>
         <div class="view-head-actions">
           <button class="btn btn-ghost" id="dashCopyYesterday">Copy yesterday's meals</button>
+          <button class="btn btn-ghost" id="hubCustomizeBtn">⚙ Customize hubs</button>
           <button class="btn btn-cyan" data-go="nutrition">+ Quick log food</button>
         </div>
       </header>

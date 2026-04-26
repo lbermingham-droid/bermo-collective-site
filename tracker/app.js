@@ -4385,4 +4385,234 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+
+// =================================================================
+// POLISH — back arrow, mobile nav, hub timestamps, reorder, PTR
+// =================================================================
+
+// ---- HUB ORDER + VISIBILITY ----
+const ALL_HUBS = ["activity","nutrition","fitness","health","trends","weight"];
+const HUB_LABELS = {
+  activity: "Activity Rings",
+  nutrition: "Nutrition",
+  fitness: "Fitness",
+  health: "Health",
+  trends: "Trends",
+  weight: "Weight vs Goal",
+};
+function getHubPrefs(){
+  if(!state.hubPrefs) state.hubPrefs = { order: [...ALL_HUBS], hidden: [] };
+  // Heal: ensure order has all, no duplicates
+  const present = new Set(state.hubPrefs.order);
+  ALL_HUBS.forEach(h => { if(!present.has(h)) state.hubPrefs.order.push(h); });
+  state.hubPrefs.order = state.hubPrefs.order.filter(h => ALL_HUBS.includes(h));
+  return state.hubPrefs;
+}
+
+function applyHubPrefs(){
+  const prefs = getHubPrefs();
+  const grid = document.querySelector(".hubs-grid");
+  if(!grid) return;
+  // Reorder DOM
+  const map = {};
+  grid.querySelectorAll(".hub").forEach(el => { map[el.dataset.hub] = el; });
+  prefs.order.forEach(h => {
+    if(map[h]){
+      grid.appendChild(map[h]);
+      map[h].classList.toggle("hidden", prefs.hidden.includes(h));
+    }
+  });
+}
+
+function openCustomizeModal(){
+  const prefs = getHubPrefs();
+  const rows = prefs.order.map((h, i) => `
+    <div class="custom-row" data-hub="${h}">
+      <div class="cr-grip">⋮⋮</div>
+      <div class="cr-name">${HUB_LABELS[h]}</div>
+      <div class="cr-actions">
+        <button class="cr-up" data-up title="Move up">↑</button>
+        <button class="cr-dn" data-dn title="Move down">↓</button>
+        <label class="cr-vis">
+          <input type="checkbox" ${prefs.hidden.includes(h) ? "" : "checked"} data-vis>
+          <span>Show</span>
+        </label>
+      </div>
+    </div>
+  `).join("");
+  openModal("Customize dashboard hubs", `
+    <p style="font-size:12px;color:#666;margin:0 0 8px">Reorder with ↑↓. Uncheck to hide a hub. Changes save instantly.</p>
+    <div class="custom-list">${rows}</div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="hubReset">Reset to default</button>
+      <button class="btn btn-cyan" data-close>Done</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => { closeModal(); applyHubPrefs(); }));
+
+    const refresh = () => {
+      // Re-render the modal list to reflect new order
+      const list = document.querySelector(".custom-list");
+      const order = getHubPrefs().order;
+      list.innerHTML = order.map(h => `
+        <div class="custom-row" data-hub="${h}">
+          <div class="cr-grip">⋮⋮</div>
+          <div class="cr-name">${HUB_LABELS[h]}</div>
+          <div class="cr-actions">
+            <button class="cr-up" data-up title="Move up">↑</button>
+            <button class="cr-dn" data-dn title="Move down">↓</button>
+            <label class="cr-vis">
+              <input type="checkbox" ${getHubPrefs().hidden.includes(h) ? "" : "checked"} data-vis>
+              <span>Show</span>
+            </label>
+          </div>
+        </div>
+      `).join("");
+      bindRows();
+    };
+
+    function bindRows(){
+      document.querySelectorAll(".custom-row").forEach(row => {
+        const h = row.dataset.hub;
+        row.querySelector("[data-up]").addEventListener("click", () => {
+          const order = getHubPrefs().order;
+          const i = order.indexOf(h);
+          if(i > 0){ [order[i-1], order[i]] = [order[i], order[i-1]]; save(); refresh(); applyHubPrefs(); }
+        });
+        row.querySelector("[data-dn]").addEventListener("click", () => {
+          const order = getHubPrefs().order;
+          const i = order.indexOf(h);
+          if(i < order.length-1){ [order[i+1], order[i]] = [order[i], order[i+1]]; save(); refresh(); applyHubPrefs(); }
+        });
+        row.querySelector("[data-vis]").addEventListener("change", (e) => {
+          const prefs = getHubPrefs();
+          if(e.target.checked){ prefs.hidden = prefs.hidden.filter(x => x !== h); }
+          else if(!prefs.hidden.includes(h)){ prefs.hidden.push(h); }
+          save(); applyHubPrefs();
+        });
+      });
+    }
+    bindRows();
+    document.getElementById("hubReset").addEventListener("click", () => {
+      state.hubPrefs = { order: [...ALL_HUBS], hidden: [] };
+      save(); refresh(); applyHubPrefs();
+      toast("Reset","cyan");
+    });
+  });
+}
+
+// ---- PER-HUB TIMESTAMPS ("Last: X ago") ----
+function timeAgo(dateStr){
+  if(!dateStr) return null;
+  const d = new Date(dateStr+"T12:00:00");
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diffDays = Math.round((today - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 86400000);
+  if(diffDays === 0) return "today";
+  if(diffDays === 1) return "yesterday";
+  if(diffDays < 7) return `${diffDays}d ago`;
+  if(diffDays < 30) return `${Math.floor(diffDays/7)}w ago`;
+  return `${Math.floor(diffDays/30)}mo ago`;
+}
+function lastDateWith(predicate){
+  const keys = Object.keys(state.days).sort().reverse();
+  for(const k of keys){ if(predicate(state.days[k], k)) return k; }
+  return null;
+}
+function applyHubTimestamps(){
+  const stamps = {
+    activity: lastDateWith(d => d.activity && (d.activity.move > 0 || d.activity.exercise > 0 || d.activity.stand > 0)),
+    nutrition: lastDateWith(d => ["breakfast","lunch","dinner","snacks"].some(m => (d.meals||{})[m] && d.meals[m].length > 0)),
+    fitness: lastDateWith(d => (d.sessions||[]).length > 0 || d.wodResult),
+    health: lastDateWith(d => (d.symptoms||[]).length > 0 || d.checkin),
+    weight: (state.weights || []).length ? state.weights[state.weights.length-1].date : null,
+    trends: null, // derived
+  };
+  document.querySelectorAll(".hub").forEach(hub => {
+    const h = hub.dataset.hub;
+    let foot = hub.querySelector(".hub-foot .hub-stamp");
+    if(!foot){
+      const f = hub.querySelector(".hub-foot");
+      if(!f) return;
+      foot = document.createElement("span");
+      foot.className = "hub-stamp";
+      f.insertBefore(foot, f.firstChild);
+    }
+    const ago = timeAgo(stamps[h]);
+    foot.textContent = ago ? `Last: ${ago}` : "";
+  });
+}
+
+// Hook hub renders to also stamp + apply prefs
+const _origRenderHubsAll = (typeof renderHubsAll === "function") ? renderHubsAll : null;
+if(_origRenderHubsAll){
+  renderHubsAll = function(){
+    _origRenderHubsAll();
+    applyHubPrefs();
+    applyHubTimestamps();
+  };
+}
+
+// ---- PULL TO REFRESH ----
+function setupPTR(){
+  const indicator = document.getElementById("ptrIndicator");
+  const text = document.getElementById("ptrText");
+  if(!indicator) return;
+  let startY = 0, currentY = 0, pulling = false;
+  const THRESHOLD = 70;
+  const main = () => document.querySelector(".main") || document.body;
+
+  document.addEventListener("touchstart", (e) => {
+    if(window.scrollY > 0) { pulling = false; return; }
+    if(document.querySelector(".modal.open, .detail-overlay.open, .fab-sheet.open")) { pulling = false; return; }
+    startY = e.touches[0].clientY;
+    pulling = true;
+  }, { passive: true });
+
+  document.addEventListener("touchmove", (e) => {
+    if(!pulling) return;
+    currentY = e.touches[0].clientY;
+    const delta = currentY - startY;
+    if(delta < 0){ pulling = false; indicator.classList.remove("show","ready"); return; }
+    if(delta > 10){
+      indicator.classList.add("show");
+      indicator.style.transform = `translateY(${Math.min(delta * 0.4, 80)}px)`;
+      if(delta > THRESHOLD){
+        indicator.classList.add("ready");
+        text.textContent = "Release to refresh";
+      } else {
+        indicator.classList.remove("ready");
+        text.textContent = "Pull to refresh";
+      }
+    }
+  }, { passive: true });
+
+  document.addEventListener("touchend", () => {
+    if(!pulling) return;
+    const delta = currentY - startY;
+    indicator.style.transform = "";
+    if(delta > THRESHOLD){
+      text.textContent = "Refreshing…";
+      indicator.classList.add("refreshing");
+      setTimeout(() => {
+        if(typeof renderAll === "function") renderAll();
+        text.textContent = "Refreshed";
+        setTimeout(() => {
+          indicator.classList.remove("show","ready","refreshing");
+        }, 500);
+      }, 250);
+    } else {
+      indicator.classList.remove("show","ready");
+    }
+    pulling = false;
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("hubCustomizeBtn");
+  if(btn) btn.addEventListener("click", openCustomizeModal);
+  applyHubPrefs();
+  applyHubTimestamps();
+  setupPTR();
+});
+
 })();

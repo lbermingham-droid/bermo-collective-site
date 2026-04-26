@@ -2640,4 +2640,327 @@ document.addEventListener("DOMContentLoaded", () => {
   if(s) s.addEventListener("click", openSymptomModal);
 });
 
+
+// =================================================================
+// AI FOOD PARSING — photo + text → macros, BYOK (Anthropic / OpenAI)
+// =================================================================
+function getAI(){ if(!state.ai) state.ai = { provider:"claude", key:null }; return state.ai; }
+
+// ---- Settings UI ----
+function renderAISetup(){
+  const ai = getAI();
+  const meta = document.getElementById("aiStatusMeta");
+  if(meta) meta.textContent = ai.key ? `✓ ${ai.provider} configured` : "not configured";
+  const p = document.getElementById("aiProvider"); if(p) p.value = ai.provider || "claude";
+  const k = document.getElementById("aiKey"); if(k) k.value = ai.key ? "•".repeat(20) : "";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("aiSetupForm");
+  if(form){
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const provider = document.getElementById("aiProvider").value;
+      const keyVal = document.getElementById("aiKey").value.trim();
+      if(!keyVal || keyVal.startsWith("•")){ toast("Paste a valid key","pink"); return; }
+      state.ai = { provider, key: keyVal };
+      save(); renderAISetup();
+      toast("AI key saved","cyan");
+    });
+    const test = document.getElementById("aiTestBtn");
+    if(test) test.addEventListener("click", async () => {
+      const ai = getAI();
+      if(!ai.key) { toast("Save a key first","pink"); return; }
+      toast("Testing…","cyan");
+      try {
+        const r = await aiRequest("Reply with: OK", null);
+        toast(r.includes("OK") ? "✓ AI working" : "Got: " + r.slice(0,40), "cyan");
+      } catch(err){
+        toast("Failed: " + err.message, "pink");
+      }
+    });
+    const clear = document.getElementById("aiClearBtn");
+    if(clear) clear.addEventListener("click", () => {
+      if(!confirm("Remove AI key?")) return;
+      state.ai = { provider:"claude", key:null };
+      save(); renderAISetup();
+      toast("Key removed","cyan");
+    });
+  }
+  // Hook into renderSettings to refresh
+  const _origRS = (typeof renderSettings === "function") ? renderSettings : null;
+  if(_origRS){
+    renderSettings = function(){ _origRS(); renderAISetup(); };
+  }
+
+  // Wire AI buttons on Nutrition tab
+  const photo = document.getElementById("aiPhotoBtn");
+  if(photo) photo.addEventListener("click", openAIPhotoModal);
+  const text = document.getElementById("aiTextBtn");
+  if(text) text.addEventListener("click", openAITextModal);
+});
+
+// ---- API caller ----
+async function aiRequest(prompt, imageBase64){
+  const ai = getAI();
+  if(!ai.key) throw new Error("No AI key — set up in Settings first");
+  if(ai.provider === "openai") return openaiCall(prompt, imageBase64, ai.key);
+  return claudeCall(prompt, imageBase64, ai.key);
+}
+
+async function claudeCall(prompt, imageBase64, key){
+  const content = imageBase64
+    ? [
+        { type:"image", source:{ type:"base64", media_type:"image/jpeg", data:imageBase64 }},
+        { type:"text", text:prompt }
+      ]
+    : prompt;
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method:"POST",
+    headers:{
+      "x-api-key": key,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true",
+      "content-type":"application/json"
+    },
+    body: JSON.stringify({
+      model:"claude-sonnet-4-5",
+      max_tokens: 1024,
+      messages:[{ role:"user", content }]
+    })
+  });
+  const data = await res.json();
+  if(data.error) throw new Error(data.error.message || "API error");
+  return (data.content && data.content[0] && data.content[0].text) || "";
+}
+
+async function openaiCall(prompt, imageBase64, key){
+  const content = imageBase64
+    ? [
+        { type:"text", text: prompt },
+        { type:"image_url", image_url:{ url:`data:image/jpeg;base64,${imageBase64}` }}
+      ]
+    : [{ type:"text", text: prompt }];
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method:"POST",
+    headers:{
+      "Authorization": `Bearer ${key}`,
+      "content-type":"application/json"
+    },
+    body: JSON.stringify({
+      model:"gpt-4o-mini",
+      max_tokens: 1024,
+      messages:[{ role:"user", content }]
+    })
+  });
+  const data = await res.json();
+  if(data.error) throw new Error(data.error.message || "API error");
+  return (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || "";
+}
+
+// ---- Prompts ----
+const FOOD_PROMPT = `You are a precise nutrition database. Identify the food(s) shown and estimate calories + macros for the actual portion visible (or described).
+
+Respond with ONLY valid JSON in this exact shape (no markdown, no prose):
+{
+  "items": [
+    { "name": "Food name", "serving": "portion description", "cal": 0, "p": 0, "c": 0, "f": 0, "fiber": 0, "sugar": 0, "confidence": 0.0 }
+  ],
+  "notes": "Optional uncertainty notes"
+}
+
+Rules:
+- Return realistic numbers. Round cal to integers, macros to 0.1g.
+- If multiple foods are shown/listed, return one entry per food.
+- Confidence: 0.0 to 1.0 (your honest read on identification + portion accuracy).
+- fiber + sugar are optional; include if you can estimate.`;
+
+// ---- Image compression ----
+function compressImage(file, maxDim){
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const c = document.createElement("canvas");
+        const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        c.width = Math.round(img.width * scale);
+        c.height = Math.round(img.height * scale);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        const dataUrl = c.toDataURL("image/jpeg", 0.85);
+        resolve(dataUrl.split(",")[1]);
+      };
+      img.onerror = reject;
+      img.src = r.result;
+    };
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+// ---- Photo modal ----
+function openAIPhotoModal(){
+  if(!getAI().key){
+    toast("Set up your AI key in Settings first","pink");
+    setTimeout(() => {
+      const t = document.querySelector('.tab[data-tab="settings"], .mtab[data-tab="settings"]');
+      if(t) t.click();
+    }, 600);
+    return;
+  }
+  openModal("📸 Snap or upload food photo", `
+    <p style="font-size:12px;color:#666;margin:0">Upload a photo of your food. Claude/GPT analyzes it and fills in calories + macros. You'll review before saving.</p>
+    <input id="aiPhotoFile" type="file" accept="image/*" capture="environment" style="display:none">
+    <button id="aiPhotoPick" class="btn btn-cyan" style="width:100%;justify-content:center">📸 Choose photo</button>
+    <div id="aiPhotoPreview" style="display:none;margin-top:10px"></div>
+    <div id="aiPhotoStatus" style="font-size:13px;color:#666;text-align:center;padding:14px"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    const file = document.getElementById("aiPhotoFile");
+    const pick = document.getElementById("aiPhotoPick");
+    const prev = document.getElementById("aiPhotoPreview");
+    const status = document.getElementById("aiPhotoStatus");
+    pick.addEventListener("click", () => file.click());
+    file.addEventListener("change", async () => {
+      if(!file.files[0]) return;
+      status.textContent = "Compressing…";
+      try {
+        const b64 = await compressImage(file.files[0], 1024);
+        prev.style.display = "block";
+        prev.innerHTML = `<img src="data:image/jpeg;base64,${b64}" style="max-width:100%;border-radius:10px">`;
+        status.textContent = "Analyzing with AI…";
+        const text = await aiRequest(FOOD_PROMPT, b64);
+        const parsed = parseAIResponse(text);
+        closeModal();
+        openConfirmModal(parsed);
+      } catch(err){
+        status.innerHTML = `<span style="color:var(--pink)">Failed: ${escape(err.message)}</span>`;
+      }
+    });
+  });
+}
+
+// ---- Text modal ----
+function openAITextModal(){
+  if(!getAI().key){
+    toast("Set up your AI key in Settings first","pink");
+    setTimeout(() => {
+      const t = document.querySelector('.tab[data-tab="settings"], .mtab[data-tab="settings"]');
+      if(t) t.click();
+    }, 600);
+    return;
+  }
+  openModal("💬 Type what you ate", `
+    <p style="font-size:12px;color:#666;margin:0">Describe in plain English. Examples:<br>
+      <i style="color:#888">• 2 scrambled eggs, oatmeal with blueberries, large coffee with cream</i><br>
+      <i style="color:#888">• Chipotle bowl with double chicken, brown rice, fajita veg, mild salsa</i></p>
+    <textarea id="aiTextInput" class="search-input" rows="4" style="resize:vertical;min-height:90px" placeholder="What did you eat?" autofocus></textarea>
+    <div id="aiTextStatus" style="font-size:13px;color:#666;text-align:center;padding:8px"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-cyan" id="aiTextGo">Parse</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    document.getElementById("aiTextGo").addEventListener("click", async () => {
+      const text = document.getElementById("aiTextInput").value.trim();
+      if(!text){ toast("Type something","pink"); return; }
+      const status = document.getElementById("aiTextStatus");
+      status.textContent = "Parsing with AI…";
+      try {
+        const result = await aiRequest(FOOD_PROMPT + "\n\nUser ate: " + text, null);
+        const parsed = parseAIResponse(result);
+        closeModal();
+        openConfirmModal(parsed);
+      } catch(err){
+        status.innerHTML = `<span style="color:var(--pink)">Failed: ${escape(err.message)}</span>`;
+      }
+    });
+  });
+}
+
+function parseAIResponse(text){
+  // Strip markdown code fences if present
+  let t = text.trim();
+  t = t.replace(/^```(?:json)?\s*/i,"").replace(/```\s*$/,"");
+  let obj;
+  try { obj = JSON.parse(t); }
+  catch(e){
+    const m = t.match(/\{[\s\S]*\}/);
+    if(m) obj = JSON.parse(m[0]);
+    else throw new Error("AI response was not valid JSON");
+  }
+  if(!obj.items || !Array.isArray(obj.items)) throw new Error("No items in AI response");
+  return obj;
+}
+
+// ---- Confirm modal ----
+function openConfirmModal(parsed){
+  const itemsHtml = parsed.items.map((it, i) => `
+    <div class="cf-item" data-i="${i}">
+      <div class="cf-item-row">
+        <input data-f="name" type="text" value="${escape(it.name||"")}" placeholder="name">
+        <input data-f="serving" type="text" value="${escape(it.serving||"")}" placeholder="serving" style="max-width:120px">
+        <button class="cf-item-del" title="Remove">×</button>
+      </div>
+      <div class="cf-item-grid">
+        <label>kcal<input data-f="cal" type="number" value="${Math.round(it.cal||0)}"></label>
+        <label>P (g)<input data-f="p" type="number" step="0.1" value="${(it.p||0).toFixed(1)}"></label>
+        <label>C (g)<input data-f="c" type="number" step="0.1" value="${(it.c||0).toFixed(1)}"></label>
+        <label>F (g)<input data-f="f" type="number" step="0.1" value="${(it.f||0).toFixed(1)}"></label>
+      </div>
+      ${it.confidence != null ? `<div class="cf-confidence">Confidence: ${Math.round(it.confidence*100)}%</div>` : ""}
+    </div>
+  `).join("");
+
+  openModal("Confirm AI parsed items", `
+    <p style="font-size:11px;color:#888;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin:0">Review + edit before logging. Pick a meal slot.</p>
+    <div id="aiConfirmList">${itemsHtml}</div>
+    ${parsed.notes ? `<p style="font-size:11px;color:#999;font-style:italic;margin:6px 0 0">AI note: ${escape(parsed.notes)}</p>` : ""}
+    <div class="form-grid" style="margin-top:10px">
+      <label><span>Add to meal</span>
+        <select id="aiConfirmMeal">
+          <option value="breakfast">Breakfast</option>
+          <option value="lunch">Lunch</option>
+          <option value="dinner" selected>Dinner</option>
+          <option value="snacks">Snacks</option>
+        </select>
+      </label>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-cyan" id="aiConfirmSave">+ Add all</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    root.querySelectorAll(".cf-item-del").forEach(b => b.addEventListener("click", () => b.closest(".cf-item").remove()));
+    document.getElementById("aiConfirmSave").addEventListener("click", () => {
+      const meal = document.getElementById("aiConfirmMeal").value;
+      const day = dayObj(currentDate);
+      let added = 0;
+      root.querySelectorAll(".cf-item").forEach(div => {
+        const get = (k) => div.querySelector(`[data-f="${k}"]`).value;
+        const item = {
+          id: uid(),
+          name: get("name").trim(),
+          serving: get("serving").trim(),
+          cal: parseFloat(get("cal")) || 0,
+          p: parseFloat(get("p")) || 0,
+          c: parseFloat(get("c")) || 0,
+          f: parseFloat(get("f")) || 0,
+        };
+        if(item.name && item.cal > 0){
+          day.meals[meal].push(item);
+          added++;
+        }
+      });
+      save(); closeModal(); renderAll();
+      toast(`Added ${added} item${added===1?"":"s"} to ${meal}`, "cyan");
+    });
+  });
+}
+
 })();

@@ -279,6 +279,20 @@
       </header>
 
       <div class="over-banner hidden" id="overBanner"></div>
+
+      <div class="ai-quick-row">
+        <button class="ai-btn ai-btn-photo" id="aiPhotoBtn">
+          <span class="ai-icon">📸</span>
+          <span class="ai-label">Snap food photo</span>
+          <span class="ai-sub">AI estimates calories + macros</span>
+        </button>
+        <button class="ai-btn ai-btn-text" id="aiTextBtn">
+          <span class="ai-icon">💬</span>
+          <span class="ai-label">Type what you ate</span>
+          <span class="ai-sub">"2 eggs, oatmeal, coffee" → done</span>
+        </button>
+      </div>
+
       <div class="nut-summary">
         <div class="nut-pill"><span>Calories</span><strong id="nutCal">0</strong><em id="nutCalGoal">/ 2200</em></div>
         <div class="nut-pill"><span>Protein</span><strong id="nutP">0g</strong><em id="nutPGoal">/ 0g</em></div>
@@ -613,6 +627,36 @@
           </form>
           <ul class="cf-list" id="cfList"></ul>
         </div>
+        <div class="card span-12">
+          <div class="card-head">
+            <span class="card-eyebrow eb-cyan">AI Setup · photo + text food parsing</span>
+            <span class="card-meta" id="aiStatusMeta">not configured</span>
+          </div>
+          <p style="font-size:13px;color:#555;line-height:1.6;margin:0 0 12px">
+            Paste your <b>Anthropic</b> or <b>OpenAI</b> API key to unlock photo + text food logging.
+            Cost: ~$0.005 per photo (Claude) or ~$0.005 (GPT-4o-mini). Get a key at
+            <a href="https://console.anthropic.com" target="_blank" style="color:var(--cyan)">console.anthropic.com</a>
+            or <a href="https://platform.openai.com" target="_blank" style="color:var(--cyan)">platform.openai.com</a>.
+          </p>
+          <p style="font-size:12px;color:#888;line-height:1.5;margin:0 0 14px">
+            <b>⚠ Privacy:</b> The key is stored ONLY in this browser (localStorage). Photos and
+            text are sent directly from your browser to the AI provider for parsing. Set a spend
+            limit on your account to cap monthly cost.
+          </p>
+          <form id="aiSetupForm" class="form form-grid">
+            <label><span>Provider</span>
+              <select id="aiProvider">
+                <option value="claude">Anthropic Claude (Sonnet 4.5)</option>
+                <option value="openai">OpenAI (GPT-4o-mini)</option>
+              </select>
+            </label>
+            <label><span>API key</span><input type="password" id="aiKey" placeholder="sk-... or sk-ant-..." autocomplete="off"></label>
+            <button type="submit" class="btn btn-cyan span-2">Save AI key</button>
+            <button type="button" id="aiTestBtn" class="btn btn-ghost span-2">Test connection</button>
+            <button type="button" id="aiClearBtn" class="btn btn-pink span-2">Remove key</button>
+          </form>
+        </div>
+
         <div class="card span-12 card-danger">
           <div class="card-head"><span class="card-eyebrow eb-pink">Danger zone</span></div>
           <p class="danger-text">Reset wipes all your local data. There's no undo.</p>

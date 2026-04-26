@@ -516,17 +516,8 @@ function renderFitness(){
   $("#fitWodScript").textContent = wod.script;
   $("#fitWodType").textContent = wod.type;
 
-  // PR list
-  const pl = $("#prList");
-  const prs = Object.entries(state.prs).sort((a,b)=> (b[1].date||"").localeCompare(a[1].date||""));
-  pl.innerHTML = prs.length ? prs.map(([lift, p]) => `
-    <li class="pr-row">
-      <div>
-        <div class="pr-name">${escape(lift)}</div>
-        <div class="pr-date">${fmtDate(p.date)}</div>
-      </div>
-      <div class="pr-val">${p.val}${p.unit||unit()}</div>
-    </li>`).join("") : "";
+  // PR cards — SugarWOD-style per-lift rep-range board
+  $("#prList").outerHTML = `<div id="prList" class="pr-cards">${renderPrCards()}</div>`;
 
   // Today's sessions
   const list = $("#todaySessions");
@@ -963,5 +954,273 @@ function resetAll(){
 
 // ---------- BOOT ----------
 document.addEventListener("DOMContentLoaded", init);
+
+
+// =================================================================
+// PR REP-RANGE CARDS (SugarWOD-style)
+// =================================================================
+function getAllLifts(){
+  const set = new Set();
+  Object.values(state.days).forEach(day => {
+    (day.sessions || []).forEach(s => {
+      if(s.type === "strength" || s.type === "oly") set.add(s.name);
+    });
+  });
+  Object.keys(state.prs).forEach(n => set.add(n));
+  return Array.from(set).sort();
+}
+
+function getLiftRecords(liftName){
+  const sets = [];
+  Object.entries(state.days).forEach(([date, day]) => {
+    (day.sessions || []).forEach(s => {
+      if(s.name === liftName) sets.push({ ...s, date });
+    });
+  });
+  const ranges = {};
+  [1,3,5,10].forEach(target => {
+    let best = null;
+    sets.forEach(s => {
+      if(s.reps >= target && (!best || s.weight > best.weight)){
+        best = { weight: s.weight, reps: s.reps, date: s.date };
+      }
+    });
+    ranges[target] = best;
+  });
+  let bestEst = null;
+  sets.forEach(s => {
+    const est = Math.round(s.weight * (1 + s.reps/30));
+    if(!bestEst || est > bestEst.est){
+      bestEst = { est, weight: s.weight, reps: s.reps, date: s.date };
+    }
+  });
+  ranges.estimated = bestEst;
+  ranges.totalSets = sets.length;
+  return ranges;
+}
+
+function renderPrCards(){
+  const lifts = getAllLifts();
+  if(!lifts.length){
+    return `<div style="color:#bbb;font-style:italic;font-size:13px;padding:8px 4px">No PRs yet — log a strength or Oly lift to start tracking.</div>`;
+  }
+  return lifts.map(lift => {
+    const r = getLiftRecords(lift);
+    const manual = state.prs[lift];
+    return `<div class="pr-card">
+      <div class="pr-card-head">
+        <div class="pr-card-name">${escape(lift)}</div>
+        <div class="pr-card-est">${r.estimated ? `~${r.estimated.est}${unit()} 1RM est.` : (manual ? `${manual.val}${manual.unit||unit()} (manual)` : "")}</div>
+      </div>
+      <div class="pr-card-grid">
+        ${[1,3,5,10].map(reps => {
+          const v = r[reps];
+          return `<div class="pr-cell ${v ? "" : "pr-cell-empty"}">
+            <div class="pr-cell-lbl">${reps}RM</div>
+            <div class="pr-cell-val">${v ? v.weight + unit() : "—"}</div>
+            <div class="pr-cell-date">${v ? fmtDate(v.date) : ""}</div>
+          </div>`;
+        }).join("")}
+      </div>
+      <div class="pr-card-foot">${r.totalSets} set${r.totalSets===1?"":"s"} logged</div>
+    </div>`;
+  }).join("");
+}
+
+// =================================================================
+// APPLE HEALTH CSV IMPORT (Health Auto Export format)
+// =================================================================
+function bindImport(){
+  const btn = document.getElementById("importBtn");
+  const file = document.getElementById("importFile");
+  if(!btn || !file) return;
+  btn.addEventListener("click", () => file.click());
+  file.addEventListener("change", () => {
+    const f = file.files && file.files[0];
+    if(!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try{
+        const text = reader.result;
+        let result;
+        if(f.name.toLowerCase().endsWith(".json")){
+          result = importHealthJSON(text);
+        } else {
+          result = importHealthCSV(text);
+        }
+        save(); renderAll();
+        const parts = [];
+        if(result.weights) parts.push(`${result.weights} weigh-in${result.weights===1?"":"s"}`);
+        if(result.bf)      parts.push(`${result.bf} body fat`);
+        if(result.lean)    parts.push(`${result.lean} lean mass`);
+        if(result.other)   parts.push(`${result.other} other`);
+        toast(parts.length ? "Imported " + parts.join(" · ") : "Nothing imported", parts.length ? "cyan" : "pink");
+      } catch(err){
+        console.error(err);
+        toast("Import failed: " + err.message, "pink");
+      }
+      file.value = "";
+    };
+    reader.readAsText(f);
+  });
+}
+
+function importHealthCSV(text){
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if(lines.length < 2) throw new Error("CSV is empty");
+  const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g,"").toLowerCase());
+
+  // Find columns
+  const findCol = (...needles) => {
+    for(let i=0;i<headers.length;i++){
+      const h = headers[i];
+      if(needles.some(n => h.includes(n))) return i;
+    }
+    return -1;
+  };
+  const dateIdx   = findCol("date","start","time");
+  const typeIdx   = findCol("type","metric","name");
+  const valIdx    = findCol("value","amount","qty");
+  const weightCol = findCol("body mass","weight","bodymass");
+  const bfCol     = findCol("body fat percentage","body fat","bodyfat");
+  const leanCol   = findCol("lean body mass","lean mass");
+
+  if(dateIdx === -1) throw new Error("No date column found");
+
+  let added = { weights:0, bf:0, lean:0, other:0 };
+
+  for(let i=1; i<lines.length; i++){
+    const cells = parseCsvLine(lines[i]);
+    if(!cells.length) continue;
+    const dateStr = (cells[dateIdx]||"").trim();
+    if(!dateStr) continue;
+    const date = parseDate(dateStr);
+    if(!date) continue;
+
+    // Wide format: explicit metric columns
+    if(weightCol > -1){
+      const v = parseFloat(cells[weightCol]);
+      if(!isNaN(v) && v > 0){ state.weights.push({date, val:round1(v)}); added.weights++; }
+    }
+    if(bfCol > -1){
+      const v = parseFloat(cells[bfCol]);
+      if(!isNaN(v) && v > 0){ state.measurements.push({date, type:"bodyfat", val:round1(v)}); added.bf++; }
+    }
+    if(leanCol > -1){
+      const v = parseFloat(cells[leanCol]);
+      if(!isNaN(v) && v > 0){ state.measurements.push({date, type:"lean", val:round1(v)}); added.lean++; }
+    }
+
+    // Long format: type + value columns
+    if(weightCol === -1 && bfCol === -1 && leanCol === -1 && typeIdx > -1 && valIdx > -1){
+      const t = (cells[typeIdx]||"").toLowerCase();
+      const v = parseFloat(cells[valIdx]);
+      if(isNaN(v)) continue;
+      if(t.includes("body mass") || t === "weight" || t === "bodymass"){
+        state.weights.push({date, val:round1(v)}); added.weights++;
+      } else if(t.includes("body fat") || t.includes("bodyfat")){
+        state.measurements.push({date, type:"bodyfat", val:round1(v)}); added.bf++;
+      } else if(t.includes("lean")){
+        state.measurements.push({date, type:"lean", val:round1(v)}); added.lean++;
+      } else if(t.length){
+        state.measurements.push({date, type:t.slice(0,20), val:round1(v)}); added.other++;
+      }
+    }
+  }
+
+  // Sort weights by date for clean charting
+  state.weights.sort((a,b)=>a.date.localeCompare(b.date));
+  return added;
+}
+
+function importHealthJSON(text){
+  // Health Auto Export JSON: { data: { metrics: [{ name, units, data: [{date,qty}] }] } }
+  // Or our own tracker JSON export — detect by shape
+  const obj = JSON.parse(text);
+  if(obj && obj.profile && obj.days){
+    // Our own export — full state restore (with confirm)
+    if(!confirm("This looks like a tracker export. Replace ALL current data with it?")){
+      return { weights:0, bf:0, lean:0, other:0 };
+    }
+    state = obj;
+    return { weights: (obj.weights||[]).length, bf:0, lean:0, other:0 };
+  }
+  let added = { weights:0, bf:0, lean:0, other:0 };
+  const metrics = (obj.data && obj.data.metrics) || obj.metrics || [];
+  metrics.forEach(m => {
+    const name = (m.name||"").toLowerCase();
+    (m.data||[]).forEach(p => {
+      const date = parseDate(p.date || p.startDate);
+      const v = parseFloat(p.qty != null ? p.qty : p.value);
+      if(!date || isNaN(v) || v <= 0) return;
+      if(name.includes("body_mass") || name.includes("weight")){
+        state.weights.push({date, val:round1(v)}); added.weights++;
+      } else if(name.includes("body_fat")){
+        state.measurements.push({date, type:"bodyfat", val:round1(v)}); added.bf++;
+      } else if(name.includes("lean")){
+        state.measurements.push({date, type:"lean", val:round1(v)}); added.lean++;
+      }
+    });
+  });
+  state.weights.sort((a,b)=>a.date.localeCompare(b.date));
+  return added;
+}
+
+function parseCsvLine(line){
+  const out = []; let cur = ""; let inQ = false;
+  for(let i=0; i<line.length; i++){
+    const c = line[i];
+    if(c === '"'){ inQ = !inQ; continue; }
+    if(c === ',' && !inQ){ out.push(cur); cur = ""; continue; }
+    cur += c;
+  }
+  out.push(cur);
+  return out;
+}
+function parseDate(s){
+  if(!s) return null;
+  const d = new Date(s);
+  if(!isNaN(d.getTime())) return d.toISOString().slice(0,10);
+  // Try MM/DD/YYYY
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if(m){
+    let yr = m[3]; if(yr.length === 2) yr = "20" + yr;
+    return `${yr}-${m[1].padStart(2,"0")}-${m[2].padStart(2,"0")}`;
+  }
+  return null;
+}
+function round1(v){ return Math.round(v * 10) / 10; }
+
+// =================================================================
+// MACRO AUTO-REBALANCE on calorie change
+// =================================================================
+function rebalanceMacros(cal){
+  return {
+    protein: Math.round(cal * 0.30 / 4),
+    carbs:   Math.round(cal * 0.40 / 4),
+    fat:     Math.round(cal * 0.30 / 9),
+  };
+}
+
+// Boot extensions — call after main init
+document.addEventListener("DOMContentLoaded", () => {
+  bindImport();
+  // Auto-rebalance: when #setCal changes in settings, suggest new macros
+  const calInput = document.getElementById("setCal");
+  if(calInput){
+    calInput.addEventListener("change", () => {
+      const v = parseInt(calInput.value, 10);
+      if(!v || v < 800) return;
+      if(!confirm(`Auto-balance macros for ${v} kcal (30% protein / 40% carbs / 30% fat)?`)) return;
+      const m = rebalanceMacros(v);
+      const p = document.getElementById("setP");
+      const c = document.getElementById("setC");
+      const f = document.getElementById("setF");
+      if(p) p.value = m.protein;
+      if(c) c.value = m.carbs;
+      if(f) f.value = m.fat;
+    });
+  }
+});
 
 })();

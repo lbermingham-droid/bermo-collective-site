@@ -432,3 +432,20 @@ a{color:inherit}
   .water-grid{grid-template-columns:repeat(8,1fr);gap:4px}
   .nut-summary{gap:8px}
 }
+
+/* ---------- PR REP-RANGE CARDS (SugarWOD-style) ---------- */
+.pr-cards{display:flex;flex-direction:column;gap:10px;margin:0;padding:0}
+.pr-card{background:var(--cream);border:1px solid var(--lgray);border-radius:14px;padding:14px 14px 12px}
+.pr-card-head{display:flex;justify-content:space-between;align-items:flex-end;gap:8px;margin-bottom:10px}
+.pr-card-name{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:14px;letter-spacing:-.01em;text-transform:uppercase;line-height:1.1}
+.pr-card-est{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gray);font-weight:700;letter-spacing:.5px;white-space:nowrap}
+.pr-card-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.pr-cell{background:#fff;border:1px solid var(--lgray);border-radius:8px;padding:8px 6px;text-align:center}
+.pr-cell-empty{opacity:.4}
+.pr-cell-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--gray);font-weight:700}
+.pr-cell-val{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:16px;letter-spacing:-.02em;margin:2px 0;line-height:1}
+.pr-cell-date{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--gray)}
+.pr-card-foot{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gray);margin-top:8px;text-align:right}
+@media(max-width:720px){
+  .pr-card-grid{grid-template-columns:repeat(2,1fr)}
+}

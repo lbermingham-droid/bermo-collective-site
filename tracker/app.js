@@ -1873,4 +1873,408 @@ if(_origClassify){
   };
 }
 
+
+// =================================================================
+// TRENDS — Daily check-in (sleep, mood, energy), cycle tracking,
+//          pattern detection (rule-based, no AI)
+// =================================================================
+
+// ---------- Daily check-in ----------
+function openCheckinModal(){
+  const day = dayObj(currentDate);
+  if(!day.checkin) day.checkin = {};
+  const c = day.checkin;
+  openModal("Daily check-in · " + fmtDate(currentDate), `
+    <p style="font-size:11px;color:#888;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin:0">Track context once a day. Used for trend correlation.</p>
+    <div class="form-grid">
+      <label><span>Sleep (hrs)</span><input id="ciSleep" type="number" step="0.25" min="0" max="14" value="${c.sleep||""}"></label>
+      <label><span>Water (cups today)</span><input id="ciWater" type="number" min="0" max="20" value="${c.water!=null?c.water:""}" placeholder="optional"></label>
+    </div>
+    <label><span>How do you feel? (1=rough, 5=amazing)</span></label>
+    <div class="rating-row" id="ciMoodRow">
+      ${[1,2,3,4,5].map(v => `<button type="button" class="rate-btn ${c.mood===v?"on":""}" data-mood="${v}">${["😩","😕","😐","🙂","🤩"][v-1]}</button>`).join("")}
+    </div>
+    <label><span>Energy</span></label>
+    <div class="rating-row" id="ciEnergyRow">
+      ${[1,2,3,4,5].map(v => `<button type="button" class="rate-btn ${c.energy===v?"on":""}" data-energy="${v}">${v}</button>`).join("")}
+    </div>
+    <label><span>Stress</span></label>
+    <div class="rating-row" id="ciStressRow">
+      ${[1,2,3,4,5].map(v => `<button type="button" class="rate-btn ${c.stress===v?"on":""}" data-stress="${v}">${v}</button>`).join("")}
+    </div>
+    <label><span>Note (optional)</span><input id="ciNote" type="text" maxlength="120" value="${escape(c.note||"")}" placeholder="Slept badly, busy day, sore..."></label>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-cyan" id="ciSave">Save</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    let mood = c.mood, energy = c.energy, stress = c.stress;
+    root.querySelectorAll("[data-mood]").forEach(b => b.addEventListener("click", () => {
+      mood = parseInt(b.dataset.mood,10);
+      root.querySelectorAll("[data-mood]").forEach(x => x.classList.toggle("on", x === b));
+    }));
+    root.querySelectorAll("[data-energy]").forEach(b => b.addEventListener("click", () => {
+      energy = parseInt(b.dataset.energy,10);
+      root.querySelectorAll("[data-energy]").forEach(x => x.classList.toggle("on", x === b));
+    }));
+    root.querySelectorAll("[data-stress]").forEach(b => b.addEventListener("click", () => {
+      stress = parseInt(b.dataset.stress,10);
+      root.querySelectorAll("[data-stress]").forEach(x => x.classList.toggle("on", x === b));
+    }));
+    document.getElementById("ciSave").addEventListener("click", () => {
+      const sleep = parseFloat(document.getElementById("ciSleep").value);
+      const water = parseInt(document.getElementById("ciWater").value, 10);
+      const note  = document.getElementById("ciNote").value.trim();
+      day.checkin = {
+        sleep: isNaN(sleep) ? undefined : sleep,
+        mood, energy, stress, note: note || undefined,
+        ...(isNaN(water) ? {} : {})
+      };
+      // Don't override water count just from check-in; that lives elsewhere
+      save(); closeModal(); renderAll();
+      toast("Check-in saved","cyan");
+    });
+  });
+}
+
+// ---------- Cycle tracking ----------
+function getCycleData(){
+  if(!state.cycle) state.cycle = { periods:[], avgLen:28 };
+  return state.cycle;
+}
+function logPeriodStart(){
+  const date = prompt("Period start date (YYYY-MM-DD):", currentDate);
+  if(!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)){ toast("Need YYYY-MM-DD","pink"); return; }
+  const cycle = getCycleData();
+  cycle.periods.push({ start: date });
+  cycle.periods.sort((a,b) => a.start.localeCompare(b.start));
+  // recompute average cycle length
+  if(cycle.periods.length >= 2){
+    let total = 0, count = 0;
+    for(let i=1;i<cycle.periods.length;i++){
+      const a = new Date(cycle.periods[i-1].start);
+      const b = new Date(cycle.periods[i].start);
+      const days = Math.round((b - a) / 86400000);
+      if(days >= 18 && days <= 45){ total += days; count++; }
+    }
+    if(count) cycle.avgLen = Math.round(total / count);
+  }
+  save(); renderTrends();
+  toast("Period logged","cyan");
+}
+function cyclePhaseFor(dateKey){
+  const cycle = getCycleData();
+  if(!cycle.periods.length) return null;
+  // Find most recent period start <= dateKey
+  let last = null;
+  for(const p of cycle.periods){ if(p.start <= dateKey) last = p; }
+  if(!last) return null;
+  const days = Math.round((new Date(dateKey) - new Date(last.start)) / 86400000);
+  if(days < 0) return null;
+  if(days < 5)  return "menstrual";
+  if(days < 13) return "follicular";
+  if(days < 16) return "ovulation";
+  if(days <= cycle.avgLen) return "luteal";
+  // After expected next period — assume still luteal until logged
+  return "luteal";
+}
+function renderCyclePanel(){
+  const panel = document.getElementById("cyclePanel");
+  if(!panel) return;
+  const cycle = getCycleData();
+  if(!cycle.periods.length){
+    panel.innerHTML = `Cycle tracking is off. Click <b>+ Log period start</b> to enable phase-based pattern detection.`;
+    return;
+  }
+  const phase = cyclePhaseFor(currentDate);
+  const last = cycle.periods[cycle.periods.length-1];
+  const dayInCycle = Math.round((new Date(currentDate) - new Date(last.start))/86400000) + 1;
+  panel.innerHTML = `
+    <div class="cycle-row">
+      <div><div class="cycle-lbl">Today</div><div class="cycle-val">Cycle day ${dayInCycle}</div><div class="cycle-sub">${phase ? phase.charAt(0).toUpperCase()+phase.slice(1)+" phase" : "—"}</div></div>
+      <div><div class="cycle-lbl">Avg cycle</div><div class="cycle-val">${cycle.avgLen} days</div><div class="cycle-sub">from ${cycle.periods.length} period${cycle.periods.length===1?"":"s"} logged</div></div>
+      <div><div class="cycle-lbl">Last period</div><div class="cycle-val">${fmtDate(last.start)}</div><div class="cycle-sub">${Math.round((new Date(currentDate)-new Date(last.start))/86400000)} days ago</div></div>
+    </div>
+    <div class="cycle-bar">
+      ${[
+        ["menstrual","🌑","#ff2d7a","1-5"],
+        ["follicular","🌒","#c8f500","5-13"],
+        ["ovulation","🌕","#00f5d4","13-16"],
+        ["luteal","🌗","#888","16-"+cycle.avgLen],
+      ].map(([p,e,c,r]) => `<div class="cph ${p===phase?"on":""}" style="--cc:${c}">${e}<span>${p}</span><i>${r}</i></div>`).join("")}
+    </div>
+  `;
+}
+
+// ---------- Insight engine ----------
+function avg(arr){ return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0; }
+function pctDiff(a,b){ if(!b) return 0; return Math.round((a-b)/b*100); }
+
+function computeInsights(){
+  const insights = [];
+  const dayKeys = Object.keys(state.days).sort();
+  if(dayKeys.length < 7) return insights;
+
+  // 1) Day-of-week calorie pattern
+  const calByDow = [[],[],[],[],[],[],[]];
+  dayKeys.forEach(k => {
+    const dow = new Date(k+"T00:00:00").getDay();
+    const t = totalsFor(k);
+    if(t.cal > 0) calByDow[dow].push(t.cal);
+  });
+  const dowAvg = calByDow.map(arr => avg(arr));
+  const overall = avg(dowAvg.filter(v => v>0));
+  if(overall > 0){
+    dowAvg.forEach((v, i) => {
+      if(v > 0 && Math.abs(pctDiff(v, overall)) >= 18){
+        const day = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][i];
+        const dir = v > overall ? "more" : "fewer";
+        insights.push({
+          icon: v > overall ? "🍕" : "🥗",
+          tier: v > overall ? "watch" : "good",
+          headline: `You eat ${Math.abs(pctDiff(v, overall))}% ${dir} on ${day}s`,
+          body: `Average on ${day}s is ${Math.round(v)} kcal vs ${Math.round(overall)} kcal across the week. ${v > overall ? "Worth thinking about — that's where the slip happens." : "You're tighter on this day."}`
+        });
+      }
+    });
+  }
+
+  // 2) Sleep vs PR / workout days
+  const allSleep = dayKeys.map(k => (state.days[k].checkin && state.days[k].checkin.sleep)).filter(s => s != null);
+  if(allSleep.length >= 5){
+    const prDates = new Set();
+    Object.values(state.prs).forEach(p => p.date && prDates.add(p.date));
+    if(prDates.size >= 2){
+      const sleepOnPR = [...prDates].map(d => state.days[d] && state.days[d].checkin && state.days[d].checkin.sleep).filter(s => s != null);
+      const sleepOther = dayKeys.filter(k => !prDates.has(k)).map(k => state.days[k].checkin && state.days[k].checkin.sleep).filter(s => s != null);
+      if(sleepOnPR.length && sleepOther.length){
+        const a = avg(sleepOnPR), b = avg(sleepOther);
+        if(Math.abs(a-b) >= 0.5){
+          insights.push({
+            icon: "💤",
+            tier: a > b ? "good" : "watch",
+            headline: `PR days follow ${(a-b).toFixed(1)}h ${a>b?"more":"less"} sleep`,
+            body: `Average sleep on days you set a PR: ${a.toFixed(1)}h. Average other days: ${b.toFixed(1)}h. ${a > b ? "Sleep is helping you lift heavier — protect it." : "Interesting — your PRs aren't tied to sleep, or you've been pushing through tired."}`
+          });
+        }
+      }
+    }
+  }
+
+  // 3) Workout quality vs water
+  const workoutDays = dayKeys.filter(k => (state.days[k].sessions||[]).length > 0);
+  const restDays    = dayKeys.filter(k => !(state.days[k].sessions||[]).length);
+  if(workoutDays.length >= 3 && restDays.length >= 3){
+    const wWater = avg(workoutDays.map(k => state.days[k].water || 0));
+    const rWater = avg(restDays.map(k => state.days[k].water || 0));
+    if(Math.abs(wWater - rWater) >= 4){
+      insights.push({
+        icon: "💧",
+        tier: "info",
+        headline: `Workout days = ${Math.round(wWater)} oz water vs ${Math.round(rWater)} on rest days`,
+        body: `${wWater > rWater ? "You hydrate more on training days." : "You actually drink less on training days — easy fix to log a couple more cups around your session."}`
+      });
+    }
+  }
+
+  // 4) Cycle phase calorie shift
+  const cycle = getCycleData();
+  if(cycle.periods.length >= 2){
+    const phaseCal = { menstrual:[], follicular:[], ovulation:[], luteal:[] };
+    dayKeys.forEach(k => {
+      const ph = cyclePhaseFor(k);
+      if(!ph) return;
+      const t = totalsFor(k);
+      if(t.cal > 0) phaseCal[ph].push(t.cal);
+    });
+    const baseline = avg([].concat(phaseCal.follicular, phaseCal.ovulation));
+    if(baseline > 0 && phaseCal.luteal.length >= 3){
+      const lutealAvg = avg(phaseCal.luteal);
+      const diff = pctDiff(lutealAvg, baseline);
+      if(Math.abs(diff) >= 12){
+        insights.push({
+          icon: "🌗",
+          tier: "info",
+          headline: `${diff > 0 ? "+" : ""}${diff}% calories during your luteal phase`,
+          body: `Average ${Math.round(lutealAvg)} kcal in luteal vs ${Math.round(baseline)} kcal early-cycle. Real and normal — your TDEE is genuinely higher then. ${diff > 0 ? "Don't fight the cravings, just keep protein high." : "If under-eating, it can backfire."}`
+        });
+      }
+    }
+  }
+
+  // 5) Logging consistency
+  const logged = dayKeys.filter(k => totalsFor(k).cal > 0).length;
+  const pct = Math.round(logged/dayKeys.length*100);
+  if(dayKeys.length >= 14){
+    insights.push({
+      icon: pct > 70 ? "🔥" : "⚠️",
+      tier: pct > 70 ? "good" : "watch",
+      headline: `You've logged meals on ${pct}% of days (${logged}/${dayKeys.length})`,
+      body: pct > 70
+        ? "Strong consistency — that's the variable that actually predicts results."
+        : "Logging gaps are where most people slip. Try a one-tap usual on rough days."
+    });
+  }
+
+  // 6) Protein hit rate
+  const proteinHit = dayKeys.filter(k => totalsFor(k).p >= state.goals.protein * 0.9).length;
+  const proteinPct = Math.round(proteinHit/Math.max(1,logged)*100);
+  if(logged >= 7 && proteinPct < 50){
+    insights.push({
+      icon: "🥩",
+      tier: "watch",
+      headline: `Hit your protein goal on only ${proteinPct}% of logged days`,
+      body: `Goal is ${state.goals.protein}g. Adding a protein shake or extra serving once a day is the cheapest fix.`
+    });
+  }
+
+  return insights;
+}
+
+function renderInsights(){
+  const list = document.getElementById("insightsList");
+  if(!list) return;
+  const insights = computeInsights();
+  document.getElementById("trCount").textContent = insights.length + " insight" + (insights.length===1?"":"s");
+  if(!insights.length){
+    list.innerHTML = `<div class="ins-empty">Not enough data yet — log a few weeks of meals + workouts and patterns will surface here automatically.</div>`;
+    return;
+  }
+  list.innerHTML = insights.map(i => `
+    <div class="ins-card ins-${i.tier}">
+      <div class="ins-icon">${i.icon}</div>
+      <div class="ins-body">
+        <div class="ins-headline">${escape(i.headline)}</div>
+        <div class="ins-text">${escape(i.body)}</div>
+      </div>
+    </div>
+  `).join("");
+}
+
+function renderDowChart(){
+  const c = document.getElementById("dowCalChart");
+  if(!c || typeof Chart === "undefined") return;
+  const dayKeys = Object.keys(state.days);
+  const calByDow = [[],[],[],[],[],[],[]];
+  dayKeys.forEach(k => {
+    const dow = new Date(k+"T00:00:00").getDay();
+    const t = totalsFor(k);
+    if(t.cal > 0) calByDow[dow].push(t.cal);
+  });
+  const labels = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const data = calByDow.map(arr => arr.length ? Math.round(avg(arr)) : 0);
+  const overall = Math.round(avg(data.filter(v=>v>0)));
+  document.getElementById("dowCalMeta").textContent = "avg " + overall + " kcal";
+  if(window._dowChart) window._dowChart.destroy();
+  window._dowChart = new Chart(c.getContext("2d"), {
+    type:"bar",
+    data:{ labels, datasets:[{ data, backgroundColor:"#00f5d4", borderRadius:6, maxBarThickness:32 }] },
+    options:{
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>c.parsed.y+" kcal"}}},
+      scales:{ y:{beginAtZero:true, grid:{color:"#eee"}, ticks:{color:"#888",font:{size:10}}}, x:{grid:{display:false}, ticks:{color:"#888",font:{size:10}}} }
+    }
+  });
+}
+
+function renderSleepChart(){
+  const c = document.getElementById("sleepChart");
+  if(!c || typeof Chart === "undefined") return;
+  const dayKeys = Object.keys(state.days).sort().slice(-30);
+  const labels = dayKeys.map(k => fmtDate(k));
+  const data = dayKeys.map(k => (state.days[k].checkin && state.days[k].checkin.sleep) || null);
+  const known = data.filter(x => x != null);
+  document.getElementById("sleepMeta").textContent = known.length ? `avg ${avg(known).toFixed(1)} h · ${known.length}/${dayKeys.length} logged` : "no sleep data yet";
+  if(window._sleepChart) window._sleepChart.destroy();
+  window._sleepChart = new Chart(c.getContext("2d"), {
+    type:"line",
+    data:{ labels, datasets:[
+      { data, borderColor:"#c8f500", backgroundColor:"rgba(200,245,0,0.15)", fill:true, tension:.3, pointRadius:2, borderWidth:2, spanGaps:true },
+      { type:"line", data:labels.map(()=>7), borderColor:"#888", borderWidth:1, borderDash:[4,4], pointRadius:0 }
+    ] },
+    options:{ plugins:{legend:{display:false}}, scales:{ y:{min:0, max:12, grid:{color:"#eee"}, ticks:{color:"#888",font:{size:10}}}, x:{grid:{display:false}, ticks:{display:false}} } }
+  });
+}
+
+function renderCtxGrid(){
+  const grid = document.getElementById("ctxGrid");
+  if(!grid) return;
+  const dayKeys = Object.keys(state.days);
+  const workoutDays = dayKeys.filter(k => (state.days[k].sessions||[]).length > 0);
+  if(workoutDays.length === 0){ grid.innerHTML = `<div class="ins-empty">No workouts logged yet.</div>`; return; }
+  const sleep = workoutDays.map(k => state.days[k].checkin && state.days[k].checkin.sleep).filter(s=>s!=null);
+  const water = workoutDays.map(k => state.days[k].water || 0);
+  const protein = workoutDays.map(k => totalsFor(k).p);
+  const energy = workoutDays.map(k => state.days[k].checkin && state.days[k].checkin.energy).filter(s=>s!=null);
+  const cells = [
+    ["💤 Sleep on training days", sleep.length ? avg(sleep).toFixed(1)+" h" : "—", "Goal: 7+ h"],
+    ["💧 Water on training days", Math.round(avg(water))+" oz", "Goal: 64+ oz"],
+    ["🥩 Protein on training days", Math.round(avg(protein))+" g", "Goal: " + state.goals.protein + "+ g"],
+    ["⚡ Reported energy", energy.length ? (avg(energy).toFixed(1)+" / 5") : "—", "Log via daily check-in"],
+  ];
+  grid.innerHTML = cells.map(([h,v,sub]) => `<div class="ctx-cell"><div class="ctx-h">${h}</div><div class="ctx-v">${v}</div><div class="ctx-sub">${sub}</div></div>`).join("");
+}
+
+function renderTrends(){
+  // hero hides once enough data
+  const dayKeys = Object.keys(state.days);
+  const hero = document.getElementById("trendHero");
+  if(hero) hero.style.display = dayKeys.length >= 10 ? "none" : "flex";
+  renderInsights();
+  renderDowChart();
+  renderSleepChart();
+  renderCyclePanel();
+  renderCtxGrid();
+}
+
+// Hook tab routing — call renderTrends when "trends" view becomes active
+const _origGoForTrends = (typeof go === "function") ? go : null;
+if(_origGoForTrends){
+  go = function(tab){
+    _origGoForTrends(tab);
+    if(tab === "trends") renderTrends();
+  };
+}
+
+// Wire buttons
+document.addEventListener("DOMContentLoaded", () => {
+  const c = document.getElementById("trCheckinBtn");
+  if(c) c.addEventListener("click", openCheckinModal);
+  const r = document.getElementById("trRefreshBtn");
+  if(r) r.addEventListener("click", renderTrends);
+  const p = document.getElementById("trCyclePeriod");
+  if(p) p.addEventListener("click", logPeriodStart);
+});
+
+// Expand Apple Health CSV to also import Sleep Analysis hours
+const _origImportForSleep = (typeof importHealthCSV === "function") ? importHealthCSV : null;
+if(_origImportForSleep){
+  importHealthCSV = function(text){
+    const result = _origImportForSleep(text);
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    if(lines.length < 2) return result;
+    const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g,"").toLowerCase());
+    const findCol = (...n) => { for(let i=0;i<headers.length;i++) if(n.some(x => headers[i].includes(x))) return i; return -1; };
+    const dateIdx = findCol("date","start","time");
+    const sleepIdx = findCol("sleep analysis","sleep hours","asleep","sleep time");
+    if(dateIdx === -1 || sleepIdx === -1) return result;
+    let added = 0;
+    for(let i=1; i<lines.length; i++){
+      const cells = parseCsvLine(lines[i]);
+      const date = parseDate((cells[dateIdx]||"").trim());
+      if(!date) continue;
+      let hrs = parseFloat(cells[sleepIdx]);
+      if(isNaN(hrs) || hrs <= 0) continue;
+      // If value looks like minutes (>15), convert
+      if(hrs > 15) hrs = hrs / 60;
+      const day = dayObj(date);
+      if(!day.checkin) day.checkin = {};
+      day.checkin.sleep = Math.round(hrs * 4) / 4; // round to 0.25h
+      added++;
+    }
+    if(added) result.sleep = added;
+    return result;
+  };
+}
+
 })();

@@ -625,3 +625,50 @@ a{color:inherit}
 /* Custom food: fiber + sugar inputs (optional) */
 .cf-detail-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;grid-column:span 2}
 @media(max-width:720px){.cf-detail-row{grid-template-columns:1fr}}
+
+/* ---------- TRENDS HERO ---------- */
+.trend-hero{display:flex;gap:16px;align-items:center;background:linear-gradient(120deg,#0a0a0a 0%,#1a1a2e 50%,#0a0a0a 100%);color:#fff;border-radius:18px;padding:22px 24px;margin-bottom:24px;box-shadow:var(--shadow)}
+.trend-hero-icon{font-size:38px;flex-shrink:0;filter:drop-shadow(0 0 16px rgba(0,245,212,.4))}
+.trend-hero-title{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:18px;letter-spacing:-.01em;margin-bottom:4px}
+.trend-hero-sub{font-size:13px;color:rgba(255,255,255,.65);line-height:1.5}
+
+/* ---------- INSIGHT CARDS ---------- */
+.insights{display:flex;flex-direction:column;gap:10px}
+.ins-empty{color:#bbb;font-style:italic;padding:14px;text-align:center;font-size:13px}
+.ins-card{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;border-radius:14px;border:1px solid var(--lgray);background:#fff}
+.ins-card.ins-good{border-left:4px solid #0a8538;background:linear-gradient(90deg,#e6f9ec 0%,#fff 50%)}
+.ins-card.ins-watch{border-left:4px solid #ffb347;background:linear-gradient(90deg,#fff5e0 0%,#fff 50%)}
+.ins-card.ins-info{border-left:4px solid var(--cyan);background:linear-gradient(90deg,#e0fcf6 0%,#fff 50%)}
+.ins-icon{font-size:24px;flex-shrink:0;width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:var(--cream);border-radius:50%}
+.ins-headline{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:14px;letter-spacing:-.01em;line-height:1.2;margin-bottom:4px}
+.ins-text{font-size:12px;color:#555;line-height:1.55}
+
+/* ---------- CYCLE PANEL ---------- */
+.cycle-panel{font-size:13px;color:#666;line-height:1.5;padding:8px 0}
+.cycle-panel b{background:var(--lime);padding:2px 8px;border-radius:6px;font-weight:700;color:var(--black);font-size:12px}
+.cycle-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
+@media(max-width:720px){.cycle-row{grid-template-columns:1fr}}
+.cycle-row > div{background:var(--cream);border-radius:12px;padding:12px 14px}
+.cycle-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gray);font-weight:700}
+.cycle-val{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:22px;letter-spacing:-.02em;line-height:1;margin:2px 0}
+.cycle-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gray)}
+.cycle-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cph{background:var(--cream);padding:10px 6px;border-radius:10px;text-align:center;border:1px solid var(--lgray);transition:all .2s;font-size:18px;line-height:1.2}
+.cph span{display:block;font-family:'Inter Tight',sans-serif;font-weight:900;font-size:11px;letter-spacing:-.01em;text-transform:uppercase;margin-top:4px}
+.cph i{display:block;font-style:normal;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--gray);margin-top:2px}
+.cph.on{background:var(--cc,var(--cyan));color:var(--black);border-color:var(--cc,var(--cyan));transform:translateY(-2px)}
+.cph.on i{color:rgba(0,0,0,.55)}
+
+/* ---------- CONTEXT GRID ---------- */
+.ctx-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:720px){.ctx-grid{grid-template-columns:repeat(2,1fr)}}
+.ctx-cell{background:var(--cream);border:1px solid var(--lgray);border-radius:12px;padding:14px}
+.ctx-h{font-size:11px;letter-spacing:1px;color:#555;font-weight:600;margin-bottom:6px}
+.ctx-v{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:24px;letter-spacing:-.02em;line-height:1}
+.ctx-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gray);margin-top:4px}
+
+/* ---------- DAILY CHECK-IN MODAL ---------- */
+.rating-row{display:flex;gap:6px;margin-bottom:10px}
+.rate-btn{flex:1;padding:10px;background:var(--cream);border:1px solid var(--lgray);border-radius:10px;font-size:18px;cursor:pointer;transition:all .15s;font-weight:600}
+.rate-btn.on{background:var(--cyan);border-color:var(--cyan);transform:translateY(-1px)}
+.rate-btn:hover{border-color:var(--cyan)}

@@ -82,6 +82,7 @@
       <button class="tab" data-tab="nutrition">Nutrition</button>
       <button class="tab" data-tab="fitness">Fitness</button>
       <button class="tab" data-tab="body">Body</button>
+      <button class="tab" data-tab="trends">Trends</button>
       <button class="tab" data-tab="history">History</button>
     </nav>
     <div class="tb-right">
@@ -109,7 +110,7 @@
     <button class="mtab" data-tab="nutrition"><span>◍</span>Food</button>
     <button class="mtab" data-tab="fitness"><span>◈</span>Lift</button>
     <button class="mtab" data-tab="body"><span>◐</span>Body</button>
-    <button class="mtab" data-tab="history"><span>◇</span>Log</button>
+    <button class="mtab" data-tab="trends"><span>✦</span>Trends</button>
   </nav>
 
   <main class="main">
@@ -458,6 +459,70 @@
         <div class="card span-6">
           <div class="card-head"><span class="card-eyebrow">Recent weigh-ins</span></div>
           <ul class="weigh-list" id="weighList"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TRENDS ============ -->
+    <section class="view" id="view-trends">
+      <header class="view-head">
+        <div>
+          <p class="eyebrow">Trends · patterns from your log</p>
+          <h1 class="view-h1">Insights</h1>
+        </div>
+        <div class="view-head-actions">
+          <button class="btn btn-ghost" id="trCheckinBtn">+ Daily check-in</button>
+          <button class="btn btn-cyan" id="trRefreshBtn">⟳ Recompute</button>
+        </div>
+      </header>
+
+      <div class="trend-hero" id="trendHero">
+        <div class="trend-hero-icon">✦</div>
+        <div class="trend-hero-body">
+          <div class="trend-hero-title">Add a few weeks of data, then come back.</div>
+          <div class="trend-hero-sub">Insights need at least ~10 days of meals, workouts, sleep, or weigh-ins to spot patterns. Log consistently and patterns surface automatically.</div>
+        </div>
+      </div>
+
+      <div class="grid-12">
+        <div class="card span-12">
+          <div class="card-head">
+            <span class="card-eyebrow">Detected patterns</span>
+            <span class="card-meta" id="trCount">0 insights</span>
+          </div>
+          <div class="insights" id="insightsList"></div>
+        </div>
+
+        <div class="card span-6">
+          <div class="card-head">
+            <span class="card-eyebrow">Day-of-week · calories</span>
+            <span class="card-meta" id="dowCalMeta">—</span>
+          </div>
+          <canvas id="dowCalChart" height="140"></canvas>
+        </div>
+
+        <div class="card span-6">
+          <div class="card-head">
+            <span class="card-eyebrow">Sleep · last 30 days</span>
+            <span class="card-meta" id="sleepMeta">—</span>
+          </div>
+          <canvas id="sleepChart" height="140"></canvas>
+        </div>
+
+        <div class="card span-12">
+          <div class="card-head">
+            <span class="card-eyebrow">Cycle tracking</span>
+            <button class="link-btn-sm" id="trCyclePeriod">+ Log period start</button>
+          </div>
+          <div id="cyclePanel" class="cycle-panel">Cycle tracking is off. Log a period start date to enable phase-based pattern detection.</div>
+        </div>
+
+        <div class="card span-12">
+          <div class="card-head">
+            <span class="card-eyebrow">Workout quality vs context</span>
+            <span class="card-meta">strength + WOD days</span>
+          </div>
+          <div class="ctx-grid" id="ctxGrid"></div>
         </div>
       </div>
     </section>

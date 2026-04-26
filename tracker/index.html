@@ -115,6 +115,7 @@
         <div class="tb-menu" id="tbMenu">
           <button class="tbm-item" data-tab="settings">⚙ Profile + Goals</button>
           <button class="tbm-item" data-tab="history">📊 History + Export</button>
+          <button class="tbm-item" id="tbmCustomize">🎛 Customize hubs</button>
           <button class="tbm-item" id="pwaInstallBtn" style="display:none">📱 Install on phone</button>
           <div class="tbm-sep"></div>
           <button class="tbm-item tbm-pink" id="tbmSignOut">↩ Sign out</button>
@@ -180,23 +181,22 @@
           <h1 class="view-h1" id="dashGreeting">Let's go.</h1>
         </div>
         <div class="view-head-actions">
-          <button class="btn btn-ghost" id="dashCopyYesterday">Copy yesterday's meals</button>
-          <button class="btn btn-ghost" id="hubCustomizeBtn">⚙ Customize hubs</button>
-          <button class="btn btn-cyan" data-go="nutrition">+ Quick log food</button>
+          <button class="btn btn-cyan" id="dashOpenLog">+ Log anything</button>
         </div>
       </header>
 
       <div class="hubs-grid">
 
-        <!-- 1. ACTIVITY RINGS HUB -->
+        <!-- 1. ACTIVITY RINGS HUB (Accountability Tracker) -->
         <div class="hub" data-hub="activity">
           <div class="hub-head">
             <div>
-              <div class="hub-eyebrow">Activity Rings</div>
-              <div class="hub-title">Today's movement</div>
+              <div class="hub-eyebrow">Accountability Tracker</div>
+              <div class="hub-title">Today's rings</div>
             </div>
             <button class="hub-log" data-hub-log="activity">+ Log</button>
           </div>
+          <div class="hub-week" id="rings3Week"></div>
           <div class="rings4-wrap">
             <canvas id="rings3" width="180" height="180"></canvas>
             <div class="rings4-stats">
@@ -206,7 +206,6 @@
               <div class="r4-row r4-nut"><span>Nutrition</span><b id="r3Nut">0/2200</b></div>
             </div>
           </div>
-          <div class="hub-week" id="rings3Week"></div>
           <div class="hub-foot"><span>Tap for day / week / month / year detail</span><span class="hub-arrow">›</span></div>
         </div>
 
@@ -219,6 +218,7 @@
             </div>
             <button class="hub-log" data-hub-log="food">+ Log food</button>
           </div>
+          <div class="nut-week" id="nutWeek"></div>
           <div class="nut-hero">
             <div class="nh-block">
               <div class="nh-num" id="hubCalNum">0</div>
@@ -366,6 +366,11 @@
           <div class="hub-foot"><span>Tap for body metrics →</span><span class="hub-arrow">›</span></div>
         </div>
 
+      </div>
+
+      <div class="dash-bottom-actions">
+        <button class="btn btn-ghost" id="hubCustomizeBtn">⚙ Customize hubs</button>
+        <button class="btn btn-ghost" id="dashCopyYesterday">Copy yesterday's meals</button>
       </div>
 
       <!-- WOD CARD AT BOTTOM (de-emphasized, not a hub) -->

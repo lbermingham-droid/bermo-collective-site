@@ -4841,4 +4841,185 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+
+// =================================================================
+// FIXES — modal X, ring tap goes to page, nutrition week strip,
+//          metric tabs in detail overlay, customize relocations
+// =================================================================
+
+// ---- BULLETPROOF MODAL CLOSE via event delegation ----
+// Catches [data-close] clicks no matter when the element was added
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-close]");
+  if(!t) return;
+  // Check what's open and close the right thing
+  if(document.getElementById("modal").classList.contains("open")){
+    document.getElementById("modal").classList.remove("open");
+  }
+}, true);
+
+// Same for FAB close
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-fab-close]");
+  if(!t) return;
+  const sheet = document.getElementById("fabSheet");
+  if(sheet) sheet.classList.remove("open");
+}, true);
+
+// Detail overlay X
+document.addEventListener("click", (e) => {
+  if(e.target.closest("#detailClose,#detailBack")){
+    document.getElementById("detailOverlay").classList.remove("open");
+    document.body.style.overflow = "";
+  }
+}, true);
+
+// ---- RING/HUB TAP → STRAIGHT TO DETAIL (no picker) ----
+// Override openActivityDetail so it doesn't show a picker
+openActivityDetail = function(){
+  // Default to Move; tabs in the detail overlay let user switch
+  openDetail("move");
+};
+
+// Make the ring canvas itself tappable (was excluded by closest(canvas))
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".hub").forEach(hub => {
+    // Replace prior click handler with one that allows canvas/svg taps
+    const newHub = hub.cloneNode(true);
+    hub.parentNode.replaceChild(newHub, hub);
+    newHub.addEventListener("click", (e) => {
+      // Only ignore actual buttons / inputs / labels (not canvas)
+      if(e.target.closest(".hub-log") || e.target.tagName === "INPUT" ||
+         e.target.tagName === "SELECT" || e.target.tagName === "BUTTON" ||
+         e.target.tagName === "LABEL" || e.target.tagName === "A") return;
+      const target = newHub.dataset.hub;
+      if(target === "activity") openDetail("move");
+      else if(target === "nutrition") jumpToTab("nutrition");
+      else if(target === "fitness") jumpToTab("fitness");
+      else if(target === "health" || target === "trends") jumpToTab("trends");
+      else if(target === "weight") jumpToTab("body");
+    });
+  });
+  // Re-bind hub-log buttons (since we cloned the hubs)
+  document.querySelectorAll("[data-hub-log]").forEach(b => {
+    b.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const action = b.dataset.hubLog;
+      if(action === "activity" && typeof openActivityLogModal === "function") openActivityLogModal();
+      else if(action === "food"){
+        const h = new Date().getHours();
+        const meal = h < 10 ? "breakfast" : h < 14 ? "lunch" : h < 18 ? "snacks" : "dinner";
+        if(typeof openFoodModal === "function") openFoodModal(meal);
+      }
+      else if(action === "lift" && typeof openLiftModal === "function") openLiftModal();
+      else if(action === "symptom" && typeof openSymptomModal === "function") openSymptomModal();
+      else if(action === "checkin" && typeof openQuickCheckin === "function") openQuickCheckin();
+      else if(action === "weigh" && typeof openWeighInModal === "function") openWeighInModal();
+    });
+  });
+  // Re-trigger renders since we replaced hub DOM
+  if(typeof renderAll === "function") setTimeout(renderAll, 50);
+});
+
+// ---- METRIC TABS in detail overlay (for activity sub-rings) ----
+const RING_METRICS = ["move","exercise","stand","nutrition"];
+function ensureMetricTabs(){
+  const body = document.querySelector(".detail-body");
+  if(!body) return;
+  let tabs = document.getElementById("detailMetricTabs");
+  if(!RING_METRICS.includes(detailMetric)){
+    if(tabs) tabs.style.display = "none";
+    return;
+  }
+  if(!tabs){
+    tabs = document.createElement("div");
+    tabs.id = "detailMetricTabs";
+    tabs.className = "detail-metric-tabs";
+    body.insertBefore(tabs, body.firstChild);
+  }
+  tabs.style.display = "flex";
+  tabs.innerHTML = RING_METRICS.map(m => {
+    const lbl = m === "nutrition" ? "Nutrition" : m.charAt(0).toUpperCase()+m.slice(1);
+    const dotColor = m === "move" ? "#ff2d7a" : m === "exercise" ? "#c8f500" : m === "stand" ? "#00f5d4" : "#ffb347";
+    return `<button class="dmt ${m===detailMetric?"on":""}" data-mt="${m}"><span class="dmt-dot" style="background:${dotColor}"></span>${lbl}</button>`;
+  }).join("");
+  tabs.querySelectorAll("[data-mt]").forEach(b => b.addEventListener("click", () => {
+    detailMetric = b.dataset.mt;
+    renderDetailView();
+    ensureMetricTabs();
+  }));
+}
+const _origRenderDetailViewMT = renderDetailView;
+renderDetailView = function(){
+  _origRenderDetailViewMT();
+  ensureMetricTabs();
+};
+
+// ---- NUTRITION HUB WEEK STRIP (✓ for logged + within goal) ----
+function renderNutritionWeek(){
+  const wk = document.getElementById("nutWeek");
+  if(!wk) return;
+  let html = "";
+  for(let i = 6; i >= 0; i--){
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const k = todayKey(d);
+    const t = totalsFor(k);
+    const goal = state.goals.cal;
+    const day = state.days[k];
+    const hasFood = day && ["breakfast","lunch","dinner","snacks"].some(m => (day.meals||{})[m] && day.meals[m].length);
+    let status = "empty"; // no log
+    let icon = "·";
+    if(hasFood){
+      if(t.cal === 0){ status = "empty"; }
+      else if(t.cal > goal){ status = "over"; icon = "!"; }
+      else if(t.cal >= goal*0.7){ status = "good"; icon = "✓"; }
+      else { status = "low"; icon = "↓"; }
+    }
+    const dayLetter = d.toLocaleDateString(undefined,{weekday:"narrow"});
+    const isToday = i === 0;
+    html += `<div class="nw-day ${status} ${isToday?"today":""}" title="${k} · ${t.cal} kcal">
+      <div class="nw-letter">${dayLetter}</div>
+      <div class="nw-circle"><span>${icon}</span></div>
+    </div>`;
+  }
+  wk.innerHTML = html;
+}
+const _origRNH = renderNutritionHub;
+renderNutritionHub = function(){
+  if(_origRNH) _origRNH();
+  renderNutritionWeek();
+};
+
+// ---- BIGGER WEEK STRIP for activity (per screenshot) ----
+// Hook into existing drawActivityRings to make week strip more visible
+// (CSS does the visual work; just ensure it renders)
+
+// ---- CUSTOMIZE relocations ----
+document.addEventListener("DOMContentLoaded", () => {
+  // Bottom button (re-create binding since the cloned hubs may have shadowed)
+  const btn = document.getElementById("hubCustomizeBtn");
+  if(btn && typeof openCustomizeModal === "function"){
+    const nb = btn.cloneNode(true);
+    btn.parentNode.replaceChild(nb, btn);
+    nb.addEventListener("click", openCustomizeModal);
+  }
+  // User menu item
+  const menu = document.getElementById("tbmCustomize");
+  if(menu){
+    menu.addEventListener("click", (e) => {
+      e.stopPropagation();
+      document.getElementById("tbUser").classList.remove("open");
+      if(typeof openCustomizeModal === "function") openCustomizeModal();
+    });
+  }
+  // Top "+ Log anything" opens FAB sheet
+  const top = document.getElementById("dashOpenLog");
+  if(top){
+    top.addEventListener("click", () => {
+      const sheet = document.getElementById("fabSheet");
+      if(sheet) sheet.classList.add("open");
+    });
+  }
+});
+
 })();

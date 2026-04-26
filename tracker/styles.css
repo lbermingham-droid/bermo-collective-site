@@ -1305,3 +1305,51 @@ a{color:inherit}
 .qq-no{background:#fff;color:var(--pink);border-color:#ffe6ee}
 .qq-yes.on{background:#0a8538;color:#fff;border-color:#0a8538}
 .qq-no.on{background:var(--pink);color:#fff;border-color:var(--pink)}
+
+/* ---------- ACTIVITY WEEK STRIP — moved to TOP, bigger ---------- */
+.hub[data-hub="activity"] .hub-week{
+  border-top:none;border-bottom:1px solid var(--lgray);
+  padding:0 0 14px;margin-bottom:14px;padding-top:0;
+  grid-template-columns:repeat(7,1fr);gap:6px;
+}
+.hub[data-hub="activity"] .rwk-stack{height:38px;gap:3px}
+.hub[data-hub="activity"] .rwk-bar{width:7px;height:100%}
+.hub[data-hub="activity"] .rwk-day{font-size:10px;color:var(--gray);font-weight:700;letter-spacing:1px;text-transform:uppercase}
+
+/* ---------- NUTRITION HUB WEEK STRIP ---------- */
+.nut-week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;padding-bottom:14px;margin-bottom:6px;border-bottom:1px solid var(--lgray)}
+.nw-day{display:flex;flex-direction:column;align-items:center;gap:4px}
+.nw-letter{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray);font-weight:700}
+.nw-circle{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--cream);border:1.5px solid var(--lgray);
+  font-size:14px;font-weight:700;color:var(--gray);transition:all .15s;
+}
+.nw-day.empty .nw-circle{background:var(--cream);color:#bbb}
+.nw-day.good .nw-circle{background:#0a8538;border-color:#0a8538;color:#fff}
+.nw-day.over .nw-circle{background:var(--pink);border-color:var(--pink);color:#fff}
+.nw-day.low .nw-circle{background:#ffb347;border-color:#ffb347;color:#fff}
+.nw-day.today .nw-circle{box-shadow:0 0 0 2px var(--cyan)}
+.nw-day.today .nw-letter{color:var(--cyan)}
+
+/* ---------- DETAIL OVERLAY METRIC TABS ---------- */
+.detail-metric-tabs{
+  display:flex;gap:4px;background:#fff;border:1px solid var(--lgray);
+  padding:4px;border-radius:100px;margin-bottom:14px;overflow-x:auto;
+}
+.dmt{
+  flex:1;min-width:80px;padding:10px;font-size:11px;letter-spacing:.5px;
+  font-weight:700;border-radius:100px;color:var(--gray);
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  white-space:nowrap;transition:all .15s;
+}
+.dmt.on{background:var(--black);color:#fff}
+.dmt-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* ---------- DASHBOARD BOTTOM ACTIONS ---------- */
+.dash-bottom-actions{
+  display:flex;gap:10px;justify-content:center;flex-wrap:wrap;
+  padding:18px 0;margin-top:8px;border-top:1px solid var(--lgray);
+}
+.dash-bottom-actions .btn{font-size:10px;letter-spacing:1.5px}

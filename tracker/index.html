@@ -703,6 +703,39 @@
   </main>
 </div>
 
+<!-- ============ DETAIL OVERLAY (drill-down for dashboard cards) ============ -->
+<div class="detail-overlay" id="detailOverlay" aria-hidden="true">
+  <header class="detail-header">
+    <button class="detail-back" id="detailBack" aria-label="Back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="detail-title-block">
+      <div class="detail-eyebrow" id="detailEyebrow">—</div>
+      <div class="detail-title" id="detailTitle">—</div>
+    </div>
+    <button class="detail-close" id="detailClose" aria-label="Close">×</button>
+  </header>
+  <div class="detail-body">
+    <div class="detail-current">
+      <div class="dc-num" id="dcNum">—</div>
+      <div class="dc-sub" id="dcSub">today</div>
+    </div>
+    <div class="detail-scale">
+      <button class="ds-btn" data-scale="1d">Day</button>
+      <button class="ds-btn on" data-scale="7d">Week</button>
+      <button class="ds-btn" data-scale="30d">Month</button>
+      <button class="ds-btn" data-scale="90d">90 Days</button>
+      <button class="ds-btn" data-scale="365d">Year</button>
+    </div>
+    <div class="detail-chart-wrap">
+      <canvas id="detailChart"></canvas>
+    </div>
+    <div class="detail-stats" id="detailStats"></div>
+    <div class="detail-section-h">Recent</div>
+    <ul class="detail-list" id="detailList"></ul>
+  </div>
+</div>
+
 <!-- ============ FLOATING ACTION BUTTON (always visible) ============ -->
 <button class="fab" id="fab" title="Quick log" aria-label="Quick log">
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>

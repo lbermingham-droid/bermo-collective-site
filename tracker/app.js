@@ -3603,4 +3603,280 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+
+// =================================================================
+// DETAIL OVERLAY — drill-down for dashboard cards (D/W/M/90D/Y)
+// =================================================================
+let detailMetric = "calories";
+let detailScale = "7d";
+let _detailChart = null;
+
+const METRICS = {
+  calories: {
+    eyebrow: "Calories",
+    title: "Calories Eaten",
+    color: "#c8f500",
+    unitLbl: "kcal",
+    valueFor: (k) => totalsFor(k).cal,
+    goalFor: () => state.goals.cal,
+    todaySub: () => `${totalsFor(todayKey()).cal} of ${state.goals.cal} kcal goal`,
+  },
+  protein: {
+    eyebrow: "Protein", title: "Protein Intake", color: "#00f5d4", unitLbl: "g",
+    valueFor: (k) => totalsFor(k).p, goalFor: () => state.goals.protein,
+    todaySub: () => `${totalsFor(todayKey()).p}g of ${state.goals.protein}g goal`,
+  },
+  carbs: {
+    eyebrow: "Carbs", title: "Carbohydrates", color: "#a8f000", unitLbl: "g",
+    valueFor: (k) => totalsFor(k).c, goalFor: () => state.goals.carbs,
+    todaySub: () => `${totalsFor(todayKey()).c}g of ${state.goals.carbs}g goal`,
+  },
+  fat: {
+    eyebrow: "Fat", title: "Fat Intake", color: "#ff2d7a", unitLbl: "g",
+    valueFor: (k) => totalsFor(k).f, goalFor: () => state.goals.fat,
+    todaySub: () => `${totalsFor(todayKey()).f}g of ${state.goals.fat}g goal`,
+  },
+  water: {
+    eyebrow: "Water", title: "Water Intake", color: "#7cd9f1", unitLbl: "oz",
+    valueFor: (k) => (state.days[k] && state.days[k].water) || 0,
+    goalFor: () => state.goals.water,
+    todaySub: () => `${(state.days[todayKey()]||{}).water||0} of ${state.goals.water} oz goal`,
+  },
+  move: {
+    eyebrow: "Activity · Move", title: "Calories Burned", color: "#ff2d56", unitLbl: "cal",
+    valueFor: (k) => (state.days[k] && state.days[k].activity && state.days[k].activity.move) || 0,
+    goalFor: () => (state.activityGoals && state.activityGoals.move) || 800,
+    todaySub: () => `${Math.round((dayObj(todayKey()).activity||{move:0}).move)} of ${(state.activityGoals||{move:800}).move} cal`,
+  },
+  exercise: {
+    eyebrow: "Activity · Exercise", title: "Exercise Minutes", color: "#a8f000", unitLbl: "min",
+    valueFor: (k) => (state.days[k] && state.days[k].activity && state.days[k].activity.exercise) || 0,
+    goalFor: () => (state.activityGoals && state.activityGoals.exercise) || 60,
+    todaySub: () => `${Math.round((dayObj(todayKey()).activity||{exercise:0}).exercise)} of ${(state.activityGoals||{exercise:60}).exercise} min`,
+  },
+  stand: {
+    eyebrow: "Activity · Stand", title: "Stand Hours", color: "#00f5d4", unitLbl: "hrs",
+    valueFor: (k) => (state.days[k] && state.days[k].activity && state.days[k].activity.stand) || 0,
+    goalFor: () => (state.activityGoals && state.activityGoals.stand) || 16,
+    todaySub: () => `${Math.round((dayObj(todayKey()).activity||{stand:0}).stand)} of ${(state.activityGoals||{stand:16}).stand} hrs`,
+  },
+  weight: {
+    eyebrow: "Body weight", title: "Weight Trend", color: "#00f5d4", unitLbl: () => unit(),
+    valueFor: (k) => {
+      // Find last weight on or before this date
+      const ws = state.weights || [];
+      let last = null;
+      ws.forEach(w => { if(w.date <= k && (!last || w.date > last.date)) last = w; });
+      return last ? last.val : null;
+    },
+    goalFor: () => state.goals.weight || 0,
+    todaySub: () => {
+      const ws = state.weights || [];
+      const last = ws[ws.length-1];
+      return last ? `${last.val} ${unit()} as of ${fmtDate(last.date)}` : "No weigh-in yet";
+    },
+  },
+  sleep: {
+    eyebrow: "Sleep", title: "Sleep Hours", color: "#a78bfa", unitLbl: "hrs",
+    valueFor: (k) => (state.days[k] && state.days[k].checkin && state.days[k].checkin.sleep) || null,
+    goalFor: () => 7,
+    todaySub: () => {
+      const c = (state.days[todayKey()]||{}).checkin;
+      return c && c.sleep ? `${c.sleep} hrs last night` : "No sleep logged";
+    },
+  },
+};
+
+function openDetail(metric){
+  detailMetric = metric;
+  detailScale = "7d";
+  document.getElementById("detailOverlay").classList.add("open");
+  document.body.style.overflow = "hidden";
+  document.querySelectorAll(".ds-btn").forEach(b => b.classList.toggle("on", b.dataset.scale === "7d"));
+  renderDetailView();
+}
+function closeDetail(){
+  document.getElementById("detailOverlay").classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+function scaleDays(scale){
+  return scale === "1d" ? 1 : scale === "7d" ? 7 : scale === "30d" ? 30 : scale === "90d" ? 90 : 365;
+}
+
+function collectSeries(metric, scale){
+  const m = METRICS[metric];
+  const n = scaleDays(scale);
+  const series = [];
+  for(let i = n-1; i >= 0; i--){
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const k = todayKey(d);
+    series.push({ date:k, val: m.valueFor(k) });
+  }
+  return series;
+}
+
+function renderDetailView(){
+  const m = METRICS[detailMetric];
+  if(!m) return;
+  document.getElementById("detailEyebrow").textContent = m.eyebrow;
+  document.getElementById("detailTitle").textContent = m.title;
+
+  const today = m.valueFor(todayKey());
+  const unitStr = typeof m.unitLbl === "function" ? m.unitLbl() : m.unitLbl;
+  document.getElementById("dcNum").innerHTML = `${today != null && today !== 0 ? Math.round(today*10)/10 : (today === 0 ? "0" : "—")}<i>${unitStr}</i>`;
+  document.getElementById("dcSub").textContent = m.todaySub();
+
+  const series = collectSeries(detailMetric, detailScale);
+  const goal = m.goalFor();
+  const known = series.filter(s => s.val != null && s.val > 0);
+  const total = known.reduce((a,b)=>a+b.val,0);
+  const avg = known.length ? total/known.length : 0;
+  const best = known.length ? Math.max(...known.map(s => s.val)) : 0;
+  const worst = known.length ? Math.min(...known.map(s => s.val)) : 0;
+  const daysHit = goal ? known.filter(s => s.val >= goal*0.9).length : 0;
+  const hitPct = known.length ? Math.round(daysHit/known.length*100) : 0;
+
+  const fmt = (v) => v == null ? "—" : (Math.round(v*10)/10).toString();
+  let statsCells = `
+    <div class="dst-cell"><div class="dst-lbl">Average</div><div class="dst-val">${fmt(avg)}<i>${unitStr}</i></div></div>
+    <div class="dst-cell"><div class="dst-lbl">Total</div><div class="dst-val">${fmt(total)}<i>${unitStr}</i></div></div>
+    <div class="dst-cell"><div class="dst-lbl">Best day</div><div class="dst-val">${fmt(best)}<i>${unitStr}</i></div></div>
+    <div class="dst-cell"><div class="dst-lbl">Logged</div><div class="dst-val">${known.length}<i>/ ${series.length} days</i></div></div>
+  `;
+  if(goal && known.length){
+    statsCells += `<div class="dst-cell dst-wide"><div class="dst-lbl">Goal hit rate (>= 90%)</div><div class="dst-val">${hitPct}%<i>${daysHit}/${known.length} days</i></div><div class="dst-bar"><span style="width:${hitPct}%;background:${m.color}"></span></div></div>`;
+  }
+  document.getElementById("detailStats").innerHTML = statsCells;
+
+  // Recent list (last 14 entries with values)
+  const recent = series.slice().reverse().slice(0, 14);
+  document.getElementById("detailList").innerHTML = recent.map(s => `
+    <li class="dlist-row">
+      <span class="dl-d">${fmtDate(s.date)}</span>
+      <span class="dl-v">${s.val == null ? "—" : (Math.round(s.val*10)/10) + " " + unitStr}</span>
+      ${goal && s.val != null ? (s.val >= goal*0.9 ? `<span class="dl-tag good">on track</span>` : (s.val > goal ? `<span class="dl-tag over">over</span>` : `<span class="dl-tag under">under</span>`)) : ""}
+    </li>
+  `).join("") || `<li class="dlist-empty">No data for this range yet.</li>`;
+
+  drawDetailChart(series, goal, m.color, unitStr);
+}
+
+function drawDetailChart(series, goal, color, unitStr){
+  const ctx = document.getElementById("detailChart").getContext("2d");
+  if(_detailChart) _detailChart.destroy();
+  const labels = series.map(s => {
+    const d = new Date(s.date+"T00:00:00");
+    if(series.length <= 7) return d.toLocaleDateString(undefined,{weekday:"short"});
+    if(series.length <= 31) return d.toLocaleDateString(undefined,{day:"numeric"});
+    return d.toLocaleDateString(undefined,{month:"short",day:"numeric"});
+  });
+  const data = series.map(s => s.val == null ? null : s.val);
+  const datasets = [{
+    label: "Value",
+    data,
+    backgroundColor: color,
+    borderColor: color,
+    borderRadius: 4,
+    maxBarThickness: 26,
+    spanGaps: false,
+  }];
+  if(goal){
+    datasets.push({
+      type: "line",
+      data: labels.map(() => goal),
+      borderColor: "#666",
+      borderWidth: 1.5,
+      borderDash: [4,4],
+      pointRadius: 0,
+      label: "Goal"
+    });
+  }
+  _detailChart = new Chart(ctx, {
+    type: "bar",
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend:{display:false},
+        tooltip:{callbacks:{label:(c)=>`${c.parsed.y} ${unitStr}`}}
+      },
+      scales: {
+        y: { beginAtZero: true, grid:{color:"rgba(0,0,0,0.06)"}, ticks:{color:"#888",font:{size:10}}},
+        x: { grid:{display:false}, ticks:{color:"#888",font:{size:10},maxRotation:0,autoSkip:true,autoSkipPadding:8}}
+      }
+    }
+  });
+}
+
+// ---- Wire up ----
+document.addEventListener("DOMContentLoaded", () => {
+  const back = document.getElementById("detailBack");
+  if(back) back.addEventListener("click", closeDetail);
+  const close = document.getElementById("detailClose");
+  if(close) close.addEventListener("click", closeDetail);
+  document.querySelectorAll(".ds-btn").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll(".ds-btn").forEach(x => x.classList.toggle("on", x === b));
+    detailScale = b.dataset.scale;
+    renderDetailView();
+  }));
+  document.addEventListener("keydown", (e) => {
+    if(e.key === "Escape" && document.getElementById("detailOverlay").classList.contains("open")) closeDetail();
+  });
+
+  // Make dashboard cards open detail
+  setTimeout(() => {
+    // Calorie ring -> calories
+    const calRing = document.getElementById("calRing");
+    if(calRing){
+      const card = calRing.closest(".card");
+      if(card){
+        // Remove any prior tab-jump handler by replacing the listener model with a simple one
+        card.replaceWith(card.cloneNode(true));
+      }
+    }
+  }, 100);
+
+  // Use event delegation so we don't fight the existing handlers
+  document.addEventListener("click", (e) => {
+    const calRing = e.target.closest("#calRing");
+    if(calRing){ openDetail("calories"); return; }
+    // Activity rings card -> open with picker
+    const ringsC = e.target.closest(".card");
+    if(ringsC && ringsC.querySelector && ringsC.querySelector("#rings3")){
+      // Show a small picker via metric tabs at top of detail
+      openActivityDetail();
+      return;
+    }
+    // Macro rows on dashboard
+    const pBar = e.target.closest("#pBar"), cBar = e.target.closest("#cBar"), fBar = e.target.closest("#fBar");
+    if(pBar){ openDetail("protein"); return; }
+    if(cBar){ openDetail("carbs"); return; }
+    if(fBar){ openDetail("fat"); return; }
+    // Water card on dashboard
+    const water = e.target.closest("#waterGrid");
+    if(water){ openDetail("water"); return; }
+  }, true);
+});
+
+function openActivityDetail(){
+  // Quick chooser then open detail
+  openModal("Activity detail", `
+    <p style="font-size:12px;color:#666;margin:0 0 8px">Which ring?</p>
+    <div class="form-grid" style="grid-template-columns:repeat(3,1fr);gap:8px">
+      <button class="btn btn-pink" data-am="move" style="padding:14px;justify-content:center">🔴 Move</button>
+      <button class="btn btn-lime" data-am="exercise" style="padding:14px;justify-content:center">🟢 Exercise</button>
+      <button class="btn btn-cyan" data-am="stand" style="padding:14px;justify-content:center">🔵 Stand</button>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close>Cancel</button></div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    root.querySelectorAll("[data-am]").forEach(b => b.addEventListener("click", () => {
+      closeModal();
+      openDetail(b.dataset.am);
+    }));
+  });
+}
+
 })();

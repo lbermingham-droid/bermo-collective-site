@@ -4117,4 +4117,272 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+
+// =================================================================
+// DASHBOARD HUBS — 4-ring activity, hub renders, click-to-drill
+// =================================================================
+
+// Override drawActivityRings to draw 4 rings (Move/Exercise/Stand/Nutrition)
+// using brand colors (distinct from Apple's red/green/cyan)
+drawActivityRings = function(){
+  const canvas = document.getElementById("rings3");
+  if(!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0,0,w,h);
+  const cx = w/2, cy = h/2;
+  const a = getActivityForDay(currentDate);
+  const g = getActivityGoals();
+
+  // Nutrition ring: % of calorie goal eaten today (capped 1.0 for ring)
+  const t = totalsFor(currentDate);
+  const calVal = t.cal;
+  const calGoal = state.goals.cal || 2200;
+
+  // Brand-flavored colors (NOT Apple's exact)
+  const rings = [
+    { color:"#ff2d7a", track:"#3a0a18", val:a.move,     goal:g.move,     r:78, lw:14 }, // Move (pink)
+    { color:"#c8f500", track:"#2a3300", val:a.exercise, goal:g.exercise, r:60, lw:14 }, // Exercise (lime)
+    { color:"#00f5d4", track:"#003028", val:a.stand,    goal:g.stand,    r:42, lw:14 }, // Stand (cyan)
+    { color:"#ffb347", track:"#3a2b10", val:calVal,     goal:calGoal,    r:24, lw:14 }, // Nutrition (orange)
+  ];
+  rings.forEach(ring => {
+    ctx.beginPath();
+    ctx.lineWidth = ring.lw;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = ring.track;
+    ctx.arc(cx, cy, ring.r, 0, Math.PI*2);
+    ctx.stroke();
+    const pct = Math.min(1, ring.val / Math.max(1, ring.goal));
+    if(pct > 0){
+      ctx.beginPath();
+      ctx.strokeStyle = ring.color;
+      ctx.arc(cx, cy, ring.r, -Math.PI/2, -Math.PI/2 + pct * Math.PI*2);
+      ctx.stroke();
+    }
+  });
+
+  const setText = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = txt; };
+  setText("r3Move", `${Math.round(a.move)}/${g.move}`);
+  setText("r3Ex",   `${Math.round(a.exercise)}/${g.exercise}`);
+  setText("r3St",   `${Math.round(a.stand)}/${g.stand}`);
+  setText("r3Nut",  `${calVal}/${calGoal}`);
+
+  // 7-day strip (mini 4-bar stacks)
+  const wk = document.getElementById("rings3Week");
+  if(wk){
+    let html = "";
+    for(let i=6; i>=0; i--){
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const k = todayKey(d);
+      const da = (state.days[k] && state.days[k].activity) || { move:0, exercise:0, stand:0 };
+      const dt = totalsFor(k);
+      const m = Math.min(1, da.move/g.move) * 100;
+      const e = Math.min(1, da.exercise/g.exercise) * 100;
+      const s = Math.min(1, da.stand/g.stand) * 100;
+      const n = Math.min(1, dt.cal/calGoal) * 100;
+      const dayLetter = d.toLocaleDateString(undefined,{weekday:"narrow"});
+      html += `<div class="rwk" title="${k}">
+        <div class="rwk-stack">
+          <div class="rwk-bar rwk-move"><span style="height:${m}%;background:#ff2d7a"></span></div>
+          <div class="rwk-bar rwk-ex"><span style="height:${e}%;background:#c8f500"></span></div>
+          <div class="rwk-bar rwk-st"><span style="height:${s}%;background:#00f5d4"></span></div>
+          <div class="rwk-bar rwk-nut"><span style="height:${n}%;background:#ffb347"></span></div>
+        </div>
+        <div class="rwk-day">${dayLetter}</div>
+      </div>`;
+    }
+    wk.innerHTML = html;
+  }
+};
+
+// ---- Hub-specific renders ----
+function renderNutritionHub(){
+  const t = totalsFor(currentDate);
+  const g = state.goals;
+  const setText = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = txt; };
+  setText("hubCalNum", t.cal);
+  setText("hubCalGoal", g.cal);
+  setText("hubCalLeft", Math.max(0, g.cal - t.cal));
+  const bar = document.getElementById("hubCalBar");
+  if(bar){
+    const pct = Math.min(100, t.cal/g.cal*100);
+    bar.style.width = pct + "%";
+    if(t.cal > g.cal) bar.style.background = "var(--pink)";
+    else if(t.cal > g.cal*0.9) bar.style.background = "#ffb347";
+    else bar.style.background = "var(--cyan)";
+  }
+  // Macros bars are filled by existing applyRedFlags / dashboard render
+}
+
+function renderFitnessHub(){
+  const day = dayObj(currentDate);
+  const sessions = day.sessions || [];
+  const setText = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = txt; };
+  setText("hubTodaySets", sessions.length);
+
+  // Last lift across all days
+  let last = null;
+  Object.keys(state.days).sort().reverse().some(k => {
+    const ss = state.days[k].sessions || [];
+    if(ss.length){ last = {...ss[ss.length-1], date:k}; return true; }
+  });
+  if(last){
+    setText("hubLastLift", last.name.length > 16 ? last.name.slice(0,15)+"…" : last.name);
+    setText("hubLastLiftSub", `${last.weight}${unit()} × ${last.reps} · ${fmtDate(last.date)}`);
+  } else {
+    setText("hubLastLift", "—");
+    setText("hubLastLiftSub", "no sessions yet");
+  }
+
+  // Weekly volume
+  let weekReps = 0;
+  for(let i=0;i<7;i++){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const k = todayKey(d);
+    (state.days[k] && state.days[k].sessions || []).forEach(s => {
+      weekReps += (s.reps||0) * (s.sets||1);
+    });
+  }
+  setText("hubWeekVol", weekReps);
+}
+
+function renderHealthHub(){
+  const setText = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = txt; };
+  const c = (state.days[todayKey()]||{}).checkin;
+  setText("hubSleep", c && c.sleep ? c.sleep + "h" : "—");
+  if(c && c.mood){
+    setText("hubMood", ["😩","😕","😐","🙂","🤩"][c.mood-1]);
+    setText("hubMoodSub", "today");
+  } else {
+    setText("hubMood", "—");
+    setText("hubMoodSub", "no check-in today");
+  }
+  let count = 0;
+  for(let i=0;i<7;i++){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const k = todayKey(d);
+    count += (state.days[k] && state.days[k].symptoms || []).length;
+  }
+  setText("hubSymCount", count);
+}
+
+function renderTrendsHub(){
+  const list = document.getElementById("hubInsights");
+  if(!list) return;
+  let insights = [];
+  try { insights = computeInsights().concat(computeSymptomInsights ? computeSymptomInsights() : []); } catch(e){}
+  if(!insights.length){
+    list.innerHTML = `<div class="hi-empty">Log consistently for ~10 days and patterns surface here.</div>`;
+    return;
+  }
+  list.innerHTML = insights.slice(0,2).map(i => `
+    <div class="hi-card hi-${i.tier}">
+      <span class="hi-icon">${i.icon}</span>
+      <span class="hi-text">${escape(i.headline)}</span>
+    </div>
+  `).join("");
+}
+
+function renderWeightHub(){
+  const setText = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = txt; };
+  const ws = (state.weights||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
+  if(ws.length){
+    const last = ws[ws.length-1];
+    setText("hubWeightCur", last.val + " " + unit());
+    if(ws.length > 1){
+      const prev = ws[ws.length-2];
+      const d = (last.val - prev.val).toFixed(1);
+      setText("weightDelta", (d>0?"+":"") + d + " " + unit() + " vs prev");
+    } else {
+      setText("weightDelta", "first weigh-in");
+    }
+  } else {
+    setText("hubWeightCur", "—");
+    setText("weightDelta", "no weigh-in");
+  }
+  if(state.goals.weight){
+    setText("hubWeightGoal", state.goals.weight + " " + unit());
+    if(ws.length){
+      const diff = (ws[ws.length-1].val - state.goals.weight).toFixed(1);
+      setText("hubWeightDelta", (diff>0?"+":"") + diff + " from goal");
+    }
+  } else {
+    setText("hubWeightGoal", "Set in Settings");
+    setText("hubWeightDelta", "—");
+  }
+
+  // Mini line chart of last 30 weigh-ins
+  const c = document.getElementById("hubWeightChart");
+  if(c && typeof Chart !== "undefined"){
+    if(window._hubWeightChart) window._hubWeightChart.destroy();
+    const last30 = ws.slice(-30);
+    window._hubWeightChart = new Chart(c.getContext("2d"), {
+      type:"line",
+      data:{
+        labels: last30.map(()=>" "),
+        datasets:[{
+          data: last30.map(w=>w.val),
+          borderColor:"#00f5d4",
+          backgroundColor:"rgba(0,245,212,0.12)",
+          fill:true, tension:.3, pointRadius:0, borderWidth:2
+        }]
+      },
+      options:{
+        plugins:{legend:{display:false}, tooltip:{enabled:false}},
+        scales:{x:{display:false}, y:{display:false}}
+      }
+    });
+  }
+}
+
+function renderHubsAll(){
+  drawActivityRings();
+  renderNutritionHub();
+  renderFitnessHub();
+  renderHealthHub();
+  renderTrendsHub();
+  renderWeightHub();
+}
+
+// Hook into dashboard render
+const _origRDForHubs = renderDashboard;
+renderDashboard = function(){
+  if(_origRDForHubs) _origRDForHubs();
+  renderHubsAll();
+};
+
+// ---- Hub click + log button wiring ----
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".hub").forEach(hub => {
+    hub.addEventListener("click", (e) => {
+      // Don't intercept the inline log button or any inputs
+      if(e.target.closest(".hub-log,button,input,select,canvas,a")) return;
+      const target = hub.dataset.hub;
+      if(target === "activity") openActivityDetail();
+      else if(target === "nutrition") jumpToTab("nutrition");
+      else if(target === "fitness") jumpToTab("fitness");
+      else if(target === "health" || target === "trends") jumpToTab("trends");
+      else if(target === "weight") jumpToTab("body");
+    });
+  });
+  document.querySelectorAll("[data-hub-log]").forEach(b => {
+    b.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const action = b.dataset.hubLog;
+      if(action === "activity" && typeof openActivityLogModal === "function") openActivityLogModal();
+      else if(action === "food"){
+        // Open food modal (lunch by time of day)
+        const h = new Date().getHours();
+        const meal = h < 10 ? "breakfast" : h < 14 ? "lunch" : h < 18 ? "snacks" : "dinner";
+        if(typeof openFoodModal === "function") openFoodModal(meal);
+      }
+      else if(action === "lift" && typeof openLiftModal === "function") openLiftModal();
+      else if(action === "symptom" && typeof openSymptomModal === "function") openSymptomModal();
+      else if(action === "checkin" && typeof openCheckinModal === "function") openCheckinModal();
+      else if(action === "weigh" && typeof openWeighInModal === "function") openWeighInModal();
+    });
+  });
+});
+
 })();

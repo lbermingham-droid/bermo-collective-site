@@ -1053,3 +1053,106 @@ a{color:inherit}
   opacity:0;width:100%;height:100%;display:none;border:none;background:transparent;
   pointer-events:auto;font-size:0;
 }
+
+/* ---------- HUBS GRID — uniform dashboard layout ---------- */
+.hubs-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px}
+@media(max-width:780px){.hubs-grid{grid-template-columns:1fr}}
+
+.hub{
+  background:#fff;border:1px solid var(--lgray);border-radius:18px;
+  padding:18px 20px 16px;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;gap:14px;
+  cursor:pointer;transition:all .18s;position:relative;
+}
+.hub:hover{border-color:var(--cyan);transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,245,212,.10)}
+
+.hub-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.hub-eyebrow{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gray);font-weight:700;line-height:1;margin-bottom:4px}
+.hub-title{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:18px;letter-spacing:-.02em;text-transform:uppercase;line-height:1.05;color:var(--black)}
+.hub-log{
+  background:var(--cyan);color:var(--black);font-size:10px;letter-spacing:1.5px;
+  text-transform:uppercase;font-weight:700;padding:8px 14px;border-radius:100px;
+  flex-shrink:0;transition:background .15s;
+}
+.hub-log:hover{background:var(--lime)}
+
+.hub-foot{
+  margin-top:auto;padding-top:10px;border-top:1px solid var(--lgray);
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray);font-weight:700;
+}
+.hub-arrow{color:var(--cyan);font-size:18px;line-height:1}
+
+/* Stats row inside a hub */
+.hub-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:480px){.hub-stats{grid-template-columns:repeat(3,1fr)}}
+.hs-cell{background:var(--cream);border-radius:10px;padding:10px}
+.hs-lbl{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);font-weight:700;margin-bottom:2px}
+.hs-val{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:22px;letter-spacing:-.02em;line-height:1}
+.hs-val-text{font-size:14px;letter-spacing:-.01em}
+.hs-sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--gray);margin-top:2px}
+
+/* ---------- ACTIVITY RINGS HUB (4-ring) ---------- */
+.rings4-wrap{display:flex;align-items:center;gap:14px}
+.rings4-wrap canvas{flex-shrink:0}
+.rings4-stats{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}
+.r4-row{display:flex;align-items:baseline;gap:6px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
+.r4-row span:first-child{color:var(--gray);min-width:64px;font-size:9px}
+.r4-row b{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:14px;letter-spacing:-.02em}
+.r4-move b{color:#ff2d7a}
+.r4-ex b{color:#a8c500}
+.r4-st b{color:#00b89e}
+.r4-nut b{color:#d68a26}
+
+.hub-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding-top:10px;border-top:1px solid var(--lgray)}
+
+/* ---------- NUTRITION HUB (single-screen) ---------- */
+.nut-hero{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:flex-end;padding:4px 0 6px}
+.nh-block{display:flex;flex-direction:column;gap:2px}
+.nh-block-right{align-items:flex-end;text-align:right}
+.nh-num{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:42px;letter-spacing:-.04em;line-height:.92;color:var(--black)}
+.nh-of{font-size:11px;color:var(--gray);font-weight:600;letter-spacing:.3px}
+.nh-left-num{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:30px;letter-spacing:-.03em;line-height:1;color:var(--cyan)}
+
+.nh-bar-row{margin-bottom:8px}
+.nh-bar-cal{height:10px}
+
+.nh-macros{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.nh-macro{display:flex;flex-direction:column;gap:4px}
+.nm-h{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.5px}
+.nm-h span{color:var(--gray);font-weight:700;text-transform:uppercase;font-size:9px}
+.nm-h b{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--black)}
+
+.nh-water{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding-top:6px;border-top:1px solid var(--lgray)}
+.nw-h{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);font-weight:700}
+.water-mini{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;padding:0}
+.water-mini .water-cell{aspect-ratio:1;border-radius:4px;background:var(--cream);border:1px solid var(--lgray);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.water-mini .water-cell.filled{background:var(--cyan);border-color:var(--cyan);color:var(--black)}
+.nw-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gray);font-weight:700}
+
+/* ---------- TRENDS HUB ---------- */
+.hub-insights{display:flex;flex-direction:column;gap:6px}
+.hi-empty{font-size:11px;color:#bbb;font-style:italic;padding:10px 0;text-align:center}
+.hi-card{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--cream);border-radius:10px;font-size:12px;line-height:1.3}
+.hi-card.hi-good{border-left:3px solid #0a8538}
+.hi-card.hi-watch{border-left:3px solid #ffb347}
+.hi-card.hi-info{border-left:3px solid var(--cyan)}
+.hi-icon{font-size:16px;flex-shrink:0}
+.hi-text{font-weight:600;color:var(--black)}
+
+/* ---------- WEIGHT HUB MINI CHART ---------- */
+.hub-mini-chart{height:60px;margin-top:4px}
+
+/* ---------- WOD SUGGESTION (de-emphasized, at bottom) ---------- */
+.wod-suggestion{
+  background:var(--black);color:#fff;border-radius:18px;padding:18px 20px;
+  margin-top:24px;border:1px solid var(--black);
+}
+.ws-eyebrow{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--lime);font-weight:700;margin-bottom:8px}
+.ws-row{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:flex-start}
+@media(max-width:600px){.ws-row{grid-template-columns:1fr}}
+.ws-info{min-width:0}
+.ws-name{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:18px;letter-spacing:-.01em;text-transform:uppercase;margin-bottom:6px}
+.ws-script{font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;color:rgba(255,255,255,.78);background:rgba(255,255,255,.04);border-left:2px solid var(--lime);padding:10px 12px;border-radius:6px;white-space:pre-wrap;margin:0;max-height:140px;overflow:auto}
+.ws-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+@media(max-width:600px){.ws-actions{flex-direction:row}}

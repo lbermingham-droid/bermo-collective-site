@@ -143,138 +143,204 @@
         </div>
       </header>
 
-      <div class="grid-12">
-        <!-- Activity rings (Apple-style) -->
-        <div class="card span-4 card-black">
-          <div class="card-head">
-            <span class="card-eyebrow eb-cyan">Activity Rings</span>
-            <button class="link-btn-sm" id="logActivityBtn">+ Log</button>
+      <div class="hubs-grid">
+
+        <!-- 1. ACTIVITY RINGS HUB -->
+        <div class="hub" data-hub="activity">
+          <div class="hub-head">
+            <div>
+              <div class="hub-eyebrow">Activity Rings</div>
+              <div class="hub-title">Today's movement</div>
+            </div>
+            <button class="hub-log" data-hub-log="activity">+ Log</button>
           </div>
-          <div class="rings3-wrap">
-            <canvas id="rings3" width="220" height="220"></canvas>
-            <div class="rings3-stats">
-              <div class="r3-row r3-move"><span>Move</span><b id="r3Move">0/800</b><i>cal</i></div>
-              <div class="r3-row r3-ex"><span>Exercise</span><b id="r3Ex">0/60</b><i>min</i></div>
-              <div class="r3-row r3-st"><span>Stand</span><b id="r3St">0/16</b><i>hrs</i></div>
+          <div class="rings4-wrap">
+            <canvas id="rings3" width="180" height="180"></canvas>
+            <div class="rings4-stats">
+              <div class="r4-row r4-move"><span>Move</span><b id="r3Move">0/800</b></div>
+              <div class="r4-row r4-ex"><span>Exercise</span><b id="r3Ex">0/60</b></div>
+              <div class="r4-row r4-st"><span>Stand</span><b id="r3St">0/16</b></div>
+              <div class="r4-row r4-nut"><span>Nutrition</span><b id="r3Nut">0/2200</b></div>
             </div>
           </div>
-          <div class="rings3-week" id="rings3Week"></div>
-        </div>
-        <!-- Calorie ring -->
-        <div class="card span-4">
-          <div class="card-head">
-            <span class="card-eyebrow">Calories</span>
-            <span class="card-meta" id="calMeta">0 / 2200</span>
-          </div>
-          <div class="ring-wrap">
-            <canvas id="calRing" width="220" height="220"></canvas>
-            <div class="ring-center">
-              <span class="ring-val" id="calConsumed">0</span>
-              <span class="ring-lbl">eaten</span>
-              <span class="ring-rem" id="calRem">2200 left</span>
-            </div>
-          </div>
-          <div class="ring-foot">
-            <div><span class="dot dot-cyan"></span>Goal</div>
-            <div><span class="dot dot-lime"></span>Eaten</div>
-            <div><span class="dot dot-pink"></span>Burned</div>
-          </div>
+          <div class="hub-week" id="rings3Week"></div>
+          <div class="hub-foot"><span>Tap for day / week / month / year detail</span><span class="hub-arrow">›</span></div>
         </div>
 
-        <!-- Macros -->
-        <div class="card span-4">
-          <div class="card-head">
-            <span class="card-eyebrow">Macros</span>
-            <span class="card-meta">Protein · Carbs · Fat</span>
+        <!-- 2. NUTRITION HUB (everything in one screen) -->
+        <div class="hub" data-hub="nutrition">
+          <div class="hub-head">
+            <div>
+              <div class="hub-eyebrow">Nutrition</div>
+              <div class="hub-title">Today's food</div>
+            </div>
+            <button class="hub-log" data-hub-log="food">+ Log food</button>
           </div>
-          <div class="macro-block">
-            <div class="macro">
-              <div class="macro-row"><span>Protein</span><span id="pVal">0g / 0g</span></div>
+          <div class="nut-hero">
+            <div class="nh-block">
+              <div class="nh-num" id="hubCalNum">0</div>
+              <div class="nh-of">of <span id="hubCalGoal">2200</span> cal</div>
+            </div>
+            <div class="nh-block nh-block-right">
+              <div class="nh-left-num" id="hubCalLeft">2200</div>
+              <div class="nh-of">left</div>
+            </div>
+          </div>
+          <div class="nh-bar-row">
+            <div class="bar nh-bar-cal"><div class="bar-fill" id="hubCalBar" style="background:var(--cyan)"></div></div>
+          </div>
+          <div class="nh-macros">
+            <div class="nh-macro">
+              <div class="nm-h"><span>Protein</span><b id="pVal">0g / 0g</b></div>
               <div class="bar"><div class="bar-fill bf-cyan" id="pBar"></div></div>
             </div>
-            <div class="macro">
-              <div class="macro-row"><span>Carbs</span><span id="cVal">0g / 0g</span></div>
+            <div class="nh-macro">
+              <div class="nm-h"><span>Carbs</span><b id="cVal">0g / 0g</b></div>
               <div class="bar"><div class="bar-fill bf-lime" id="cBar"></div></div>
             </div>
-            <div class="macro">
-              <div class="macro-row"><span>Fat</span><span id="fVal">0g / 0g</span></div>
+            <div class="nh-macro">
+              <div class="nm-h"><span>Fat</span><b id="fVal">0g / 0g</b></div>
               <div class="bar"><div class="bar-fill bf-pink" id="fBar"></div></div>
             </div>
-            <div class="macro">
-              <div class="macro-row"><span>Fiber</span><span id="fbVal">0g / 30g</span></div>
-              <div class="bar"><div class="bar-fill bf-white" id="fbBar"></div></div>
+          </div>
+          <div class="nh-water">
+            <span class="nw-h">Water</span>
+            <div class="water-grid water-mini" id="waterGrid"></div>
+            <span class="nw-meta" id="waterMeta">0 / 64 oz</span>
+          </div>
+          <span id="fbVal" class="hidden">0g / 30g</span>
+          <span id="fbBar" class="hidden"></span>
+          <span id="calMeta" class="hidden">0/2200</span>
+          <span id="calConsumed" class="hidden">0</span>
+          <span id="calRem" class="hidden">2200 left</span>
+          <canvas id="calRing" width="1" height="1" class="hidden"></canvas>
+          <div class="hub-foot"><span>Tap to open food diary →</span><span class="hub-arrow">›</span></div>
+        </div>
+
+        <!-- 3. FITNESS HUB -->
+        <div class="hub" data-hub="fitness">
+          <div class="hub-head">
+            <div>
+              <div class="hub-eyebrow">Fitness</div>
+              <div class="hub-title">Lifts + workouts</div>
+            </div>
+            <button class="hub-log" data-hub-log="lift">+ Log lift</button>
+          </div>
+          <div class="hub-stats">
+            <div class="hs-cell">
+              <div class="hs-lbl">Today</div>
+              <div class="hs-val" id="hubTodaySets">0</div>
+              <div class="hs-sub">sets</div>
+            </div>
+            <div class="hs-cell">
+              <div class="hs-lbl">Last lift</div>
+              <div class="hs-val hs-val-text" id="hubLastLift">—</div>
+              <div class="hs-sub" id="hubLastLiftSub">no sessions yet</div>
+            </div>
+            <div class="hs-cell">
+              <div class="hs-lbl">Week vol.</div>
+              <div class="hs-val" id="hubWeekVol">0</div>
+              <div class="hs-sub">total reps</div>
             </div>
           </div>
+          <div class="hub-foot"><span>Tap to open lifts + PRs →</span><span class="hub-arrow">›</span></div>
         </div>
 
-        <!-- Water -->
-        <div class="card span-4 card-dark">
-          <div class="card-head">
-            <span class="card-eyebrow eb-cyan">Water</span>
-            <span class="card-meta" id="waterMeta">0 / 64 oz</span>
+        <!-- 4. HEALTH HUB -->
+        <div class="hub" data-hub="health">
+          <div class="hub-head">
+            <div>
+              <div class="hub-eyebrow">Health</div>
+              <div class="hub-title">Symptoms + check-in</div>
+            </div>
+            <button class="hub-log" data-hub-log="symptom">+ Log</button>
           </div>
-          <div class="water-grid" id="waterGrid"></div>
-          <div class="water-actions">
-            <button class="chip" data-water="8">+8 oz</button>
-            <button class="chip" data-water="16">+16 oz</button>
-            <button class="chip" data-water="-8">−8 oz</button>
-            <button class="chip chip-ghost" id="waterReset">Reset</button>
+          <div class="hub-stats">
+            <div class="hs-cell">
+              <div class="hs-lbl">Sleep</div>
+              <div class="hs-val" id="hubSleep">—</div>
+              <div class="hs-sub">last night</div>
+            </div>
+            <div class="hs-cell">
+              <div class="hs-lbl">Mood</div>
+              <div class="hs-val" id="hubMood">—</div>
+              <div class="hs-sub" id="hubMoodSub">no check-in</div>
+            </div>
+            <div class="hs-cell">
+              <div class="hs-lbl">Symptoms</div>
+              <div class="hs-val" id="hubSymCount">0</div>
+              <div class="hs-sub">last 7 days</div>
+            </div>
           </div>
+          <div class="hub-foot"><span>Tap for trends + insights →</span><span class="hub-arrow">›</span></div>
         </div>
 
-        <!-- WOD card -->
-        <div class="card span-6 card-black">
-          <div class="card-head">
-            <span class="card-eyebrow eb-lime">WOD · <span id="wodName">—</span></span>
-            <span class="card-meta" id="wodType">—</span>
+        <!-- 5. TRENDS HUB -->
+        <div class="hub" data-hub="trends">
+          <div class="hub-head">
+            <div>
+              <div class="hub-eyebrow">Trends</div>
+              <div class="hub-title">Patterns + insights</div>
+            </div>
+            <button class="hub-log" data-hub-log="checkin">+ Check-in</button>
           </div>
-          <h3 class="wod-title" id="wodTitle">—</h3>
-          <pre class="wod-script" id="wodScript">Loading workout…</pre>
-          <div class="wod-actions">
-            <button class="btn btn-lime" data-go="fitness">Log result &nbsp;→</button>
-            <button class="btn btn-ghost-light" id="wodShuffle">Shuffle</button>
+          <div id="hubInsights" class="hub-insights">
+            <div class="hi-empty">Log consistently for ~10 days and patterns surface here.</div>
           </div>
+          <div class="hub-foot"><span>Tap to open all insights →</span><span class="hub-arrow">›</span></div>
         </div>
 
-        <!-- Last lift -->
-        <div class="card span-3">
-          <div class="card-head"><span class="card-eyebrow">Last lift</span></div>
-          <div class="stat" id="lastLift">
-            <span class="stat-big">—</span>
-            <span class="stat-sub">No sessions yet</span>
+        <!-- 6. WEIGHT vs GOAL HUB -->
+        <div class="hub" data-hub="weight">
+          <div class="hub-head">
+            <div>
+              <div class="hub-eyebrow">Weight vs Goal</div>
+              <div class="hub-title">Body trend</div>
+            </div>
+            <button class="hub-log" data-hub-log="weigh">+ Weigh in</button>
           </div>
+          <div class="hub-stats">
+            <div class="hs-cell">
+              <div class="hs-lbl">Current</div>
+              <div class="hs-val" id="hubWeightCur">—</div>
+              <div class="hs-sub" id="weightDelta">no weigh-in</div>
+            </div>
+            <div class="hs-cell">
+              <div class="hs-lbl">Goal</div>
+              <div class="hs-val" id="hubWeightGoal">—</div>
+              <div class="hs-sub" id="hubWeightDelta">—</div>
+            </div>
+          </div>
+          <div class="hub-mini-chart">
+            <canvas id="hubWeightChart" height="60"></canvas>
+          </div>
+          <span id="weightBig" class="hidden">—</span>
+          <span id="lastLift" class="hidden"></span>
+          <span id="streakNum" class="hidden">0</span>
+          <span id="streakFoot" class="hidden"></span>
+          <span id="weeklyAvg" class="hidden">avg —</span>
+          <canvas id="weeklyChart" height="1" class="hidden"></canvas>
+          <div class="hub-foot"><span>Tap for body metrics →</span><span class="hub-arrow">›</span></div>
         </div>
 
-        <!-- Weight -->
-        <div class="card span-3">
-          <div class="card-head"><span class="card-eyebrow">Weight</span></div>
-          <div class="stat">
-            <span class="stat-big" id="weightBig">—</span>
-            <span class="stat-sub" id="weightDelta">Log your first weigh-in</span>
-          </div>
-          <button class="link-btn" data-go="body">Open body log →</button>
-        </div>
-
-        <!-- Weekly chart -->
-        <div class="card span-8">
-          <div class="card-head">
-            <span class="card-eyebrow">7-day calories</span>
-            <span class="card-meta" id="weeklyAvg">avg —</span>
-          </div>
-          <canvas id="weeklyChart" height="120"></canvas>
-        </div>
-
-        <!-- Streak -->
-        <div class="card span-4 card-cyan">
-          <div class="card-head"><span class="card-eyebrow eb-black">Streak</span></div>
-          <div class="streak">
-            <span class="streak-num" id="streakNum">0</span>
-            <span class="streak-lbl">days logged</span>
-          </div>
-          <p class="streak-foot" id="streakFoot">Log a meal or a workout today to start.</p>
-        </div>
       </div>
-    </section>
+
+      <!-- WOD CARD AT BOTTOM (de-emphasized, not a hub) -->
+      <div class="wod-suggestion" id="wodSuggestion">
+        <div class="ws-eyebrow">Today's workout suggestion</div>
+        <div class="ws-row">
+          <div class="ws-info">
+            <div class="ws-name">WOD · <span id="wodName">—</span></div>
+            <pre class="ws-script" id="wodScript">Loading workout…</pre>
+          </div>
+          <div class="ws-actions">
+            <button class="btn btn-lime" data-go="fitness">Log result →</button>
+            <button class="btn btn-ghost" id="wodShuffle">Shuffle</button>
+          </div>
+        </div>
+        <span id="wodType" class="hidden">—</span>
+        <span id="wodTitle" class="hidden">—</span>
+      </div>    </section>
 
     <!-- ============ NUTRITION ============ -->
     <section class="view" id="view-nutrition">

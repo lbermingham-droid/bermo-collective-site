@@ -72,9 +72,6 @@
   <!-- TOP BAR -->
   <header class="topbar">
     <div class="tb-left">
-      <a href="/" class="tb-home" title="Back to bermoco.com" aria-label="Home">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-      </a>
       <div class="tb-logo">
         <span class="tb-top">BERMO<span class="c">.</span></span>
         <span class="tb-bot">TRACKER</span>
@@ -86,13 +83,22 @@
       <button class="tab" data-tab="fitness">Fitness</button>
       <button class="tab" data-tab="body">Body</button>
       <button class="tab" data-tab="history">History</button>
-      <button class="tab" data-tab="settings">Settings</button>
     </nav>
     <div class="tb-right">
       <div class="tb-date" id="tbDate"></div>
-      <div class="tb-user" id="tbUser">
+      <button class="tb-icon" id="tbSettingsBtn" title="Settings" aria-label="Settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <div class="tb-user" id="tbUser" tabindex="0">
         <span class="tb-avatar" id="tbAvatar">L</span>
         <span class="tb-name" id="tbName">Athlete</span>
+        <svg class="tb-chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>
+        <div class="tb-menu" id="tbMenu">
+          <button class="tbm-item" data-tab="settings">⚙ Profile + Goals</button>
+          <button class="tbm-item" data-tab="history">📊 History + Export</button>
+          <div class="tbm-sep"></div>
+          <button class="tbm-item tbm-pink" id="tbmSignOut">↩ Sign out</button>
+        </div>
       </div>
     </div>
   </header>
@@ -319,6 +325,14 @@
         <div class="quick-chips" id="quickChips"></div>
       </div>
 
+      <details class="detail-card" id="detailCard">
+        <summary>
+          <span>Detailed Nutrition <span class="detail-sub">fiber · sugar · per-meal breakdown</span></span>
+        </summary>
+        <div class="detail-grid" id="detailGrid"></div>
+        <div class="detail-note" id="detailNote"></div>
+      </details>
+
       <div class="usuals-row" id="usualsRow">
         <div class="usuals-head">
           <h4>My Usuals · one-tap meals</h4>
@@ -517,6 +531,10 @@
             <label><span>Protein g</span><input type="number" id="cfP" min="0" max="200" step="0.1" required></label>
             <label><span>Carbs g</span><input type="number" id="cfC" min="0" max="500" step="0.1" required></label>
             <label><span>Fat g</span><input type="number" id="cfF" min="0" max="200" step="0.1" required></label>
+            <div class="cf-detail-row">
+              <label><span>Fiber g <em style="font-style:normal;color:#bbb;font-size:9px">optional</em></span><input type="number" id="cfFiber" min="0" max="100" step="0.1"></label>
+              <label><span>Sugar g <em style="font-style:normal;color:#bbb;font-size:9px">optional</em></span><input type="number" id="cfSugar" min="0" max="200" step="0.1"></label>
+            </div>
             <button type="submit" class="btn btn-lime span-2">+ Save custom food</button>
           </form>
           <ul class="cf-list" id="cfList"></ul>

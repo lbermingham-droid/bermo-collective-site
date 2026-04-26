@@ -1721,4 +1721,156 @@ function addSaveAsUsualButtons(){
 // Mark cheat foods in their data attribute when rendering meal items
 const _origRender = renderNutrition;
 
+
+// =================================================================
+// APP-LIKE TOPBAR — settings gear + user menu
+// =================================================================
+document.addEventListener("DOMContentLoaded", () => {
+  const sg = document.getElementById("tbSettingsBtn");
+  if(sg) sg.addEventListener("click", () => {
+    document.querySelectorAll(".tab,.mtab").forEach(t => t.classList.toggle("active", t.dataset.tab === "settings"));
+    document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === "view-settings"));
+    if(typeof renderAll === "function"){
+      // currentTab is inside the IIFE; trigger via simulated tab click instead
+      const ev = new Event("click");
+      // Find any settings-tab element and click it to keep state in sync
+      const t = document.querySelector('.tab[data-tab="settings"], .mtab[data-tab="settings"]');
+      if(t) t.click();
+    }
+  });
+
+  const user = document.getElementById("tbUser");
+  if(user){
+    user.addEventListener("click", (e) => {
+      e.stopPropagation();
+      user.classList.toggle("open");
+    });
+    document.addEventListener("click", () => user.classList.remove("open"));
+    user.querySelectorAll(".tbm-item[data-tab]").forEach(b => {
+      b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        user.classList.remove("open");
+        const tab = b.dataset.tab;
+        const t = document.querySelector(`.tab[data-tab="${tab}"], .mtab[data-tab="${tab}"]`);
+        if(t) t.click();
+      });
+    });
+    const out = document.getElementById("tbmSignOut");
+    if(out) out.addEventListener("click", (e) => {
+      e.stopPropagation();
+      user.classList.remove("open");
+      const lo = document.getElementById("logoutBtn");
+      if(lo) lo.click();
+    });
+  }
+});
+
+// =================================================================
+// FIBER + SUGAR — secondary detailed nutrition tracking
+// =================================================================
+function totalsDetailFor(key){
+  const day = dayObj(key);
+  let cal=0,p=0,c=0,f=0,fib=0,sug=0;
+  let knownFib = 0, knownSug = 0, count = 0;
+  ["breakfast","lunch","dinner","snacks"].forEach(meal => {
+    day.meals[meal].forEach(it => {
+      cal += it.cal; p += it.p; c += it.c; f += it.f;
+      count++;
+      if(it.fiber != null){ fib += it.fiber; knownFib++; } else { fib += (it.c || 0) * 0.10; }
+      if(it.sugar != null){ sug += it.sugar; knownSug++; } else { sug += (it.c || 0) * 0.30; }
+    });
+  });
+  return {
+    cal:Math.round(cal), p:Math.round(p), c:Math.round(c), f:Math.round(f),
+    fiber:Math.round(fib*10)/10, sugar:Math.round(sug*10)/10,
+    knownFib, knownSug, count
+  };
+}
+
+function renderDetail(){
+  const card = document.getElementById("detailCard");
+  if(!card) return;
+  const grid = document.getElementById("detailGrid");
+  const note = document.getElementById("detailNote");
+  const t = totalsDetailFor(currentDate);
+  const fiberGoal = state.goals.fiber || 30;
+  const sugarLimit = state.goals.sugar || 50; // soft cap (AHA: <25g women, <36g men, plus natural fruit sugar)
+  const proteinDensity = t.cal ? (t.p / t.cal * 100).toFixed(1) : "0.0";
+  const carbDensity    = t.cal ? (t.c / t.cal * 100).toFixed(1) : "0.0";
+
+  grid.innerHTML = `
+    <div class="detail-pill ${t.fiber < fiberGoal*0.5 ? "over" : ""}">
+      <div class="dp-lbl">Fiber</div>
+      <div class="dp-val">${t.fiber}<i>g / ${fiberGoal}g</i></div>
+      <div class="dp-bar"><span style="width:${Math.min(100, (t.fiber/fiberGoal)*100)}%;background:#0a8538"></span></div>
+    </div>
+    <div class="detail-pill ${t.sugar > sugarLimit ? "over" : ""}">
+      <div class="dp-lbl">Sugar</div>
+      <div class="dp-val">${t.sugar}<i>g / ${sugarLimit}g cap</i></div>
+      <div class="dp-bar"><span style="width:${Math.min(100, (t.sugar/sugarLimit)*100)}%;background:${t.sugar > sugarLimit ? 'var(--pink)' : '#ffb347'}"></span></div>
+    </div>
+    <div class="detail-pill">
+      <div class="dp-lbl">Protein density</div>
+      <div class="dp-val">${proteinDensity}<i>g / 100kcal</i></div>
+      <div class="dp-bar"><span style="width:${Math.min(100, (proteinDensity/10)*100)}%;background:var(--cyan)"></span></div>
+    </div>
+    <div class="detail-pill">
+      <div class="dp-lbl">Carb density</div>
+      <div class="dp-val">${carbDensity}<i>g / 100kcal</i></div>
+      <div class="dp-bar"><span style="width:${Math.min(100, (carbDensity/20)*100)}%;background:#888"></span></div>
+    </div>
+  `;
+  const unknown = t.count - t.knownFib;
+  const unknownSug = t.count - t.knownSug;
+  if(t.count === 0){
+    note.textContent = "No food logged today.";
+  } else if(unknown > 0 || unknownSug > 0){
+    note.textContent = `Note: ${unknown} of ${t.count} items have estimated fiber, ${unknownSug} have estimated sugar (10% / 30% of carbs as defaults). For exact values, add fiber + sugar when creating custom foods in Settings.`;
+  } else {
+    note.textContent = "All values from logged data — no estimates.";
+  }
+}
+
+// Hook into nutrition render
+const _origRenderNutritionForDetail = (typeof renderNutrition === "function") ? renderNutrition : null;
+if(_origRenderNutritionForDetail){
+  renderNutrition = function(){
+    _origRenderNutritionForDetail();
+    renderDetail();
+  };
+}
+
+// Extend custom food form to read fiber + sugar inputs
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("customFoodForm");
+  if(!form) return;
+  form.addEventListener("submit", (e) => {
+    // The original handler runs first and pushes the custom food.
+    // We piggyback to add fiber/sugar to the just-pushed item.
+    setTimeout(() => {
+      const fiber = parseFloat(document.getElementById("cfFiber") && document.getElementById("cfFiber").value);
+      const sugar = parseFloat(document.getElementById("cfSugar") && document.getElementById("cfSugar").value);
+      const last = state.customFoods[state.customFoods.length - 1];
+      if(last){
+        if(!isNaN(fiber)) last.fiber = fiber;
+        if(!isNaN(sugar)) last.sugar = sugar;
+        save();
+      }
+    }, 0);
+  });
+});
+
+// Refine classifier: use sugar when known
+const _origClassify = (typeof classifyFood === "function") ? classifyFood : null;
+if(_origClassify){
+  classifyFood = function(item){
+    const base = _origClassify(item);
+    if(item.sugar != null && item.sugar >= 15)
+      return { tier:"indulgent", reason:`high sugar — ${item.sugar}g per serving` };
+    if(item.sugar != null && item.sugar >= 8 && base.tier === "clean")
+      return { tier:"watch", reason:`moderate sugar — ${item.sugar}g per serving` };
+    return base;
+  };
+}
+
 })();

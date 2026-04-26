@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover">
+<title>BERMO.TRACKER | Nutrition + Fitness Portal</title>
+<meta name="description" content="A nutrition and fitness tracking portal. Log food, macros, water, workouts, PRs, and body metrics. Personal data stored locally in your browser.">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Inter+Tight:wght@600;700;800;900&family=Montserrat:wght@600;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+
+<!-- ============ AUTH / GATE ============ -->
+<section id="gate" class="gate">
+  <div class="gate-card">
+    <div class="gate-logo">
+      <span class="gl-top">BERMO<span class="c">.</span></span>
+      <span class="gl-bot">TRACKER</span>
+      <div class="gl-bar"></div>
+    </div>
+    <p class="gate-eyebrow">Nutrition + Fitness Portal</p>
+    <h1 class="gate-headline">Track what you <em>eat</em>. Track what you <em>lift</em>. Own the data.</h1>
+    <p class="gate-sub">A private tracker built for founders, athletes, and anyone tired of paying for ads to see their own food log. Your data stays in your browser.</p>
+    <form id="gateForm" class="gate-form" autocomplete="off">
+      <label>
+        <span>Athlete name</span>
+        <input type="text" id="gateName" placeholder="e.g. Lexi B." required maxlength="40">
+      </label>
+      <div class="gate-row">
+        <label>
+          <span>Units</span>
+          <select id="gateUnits">
+            <option value="imperial">Imperial (lb / oz)</option>
+            <option value="metric">Metric (kg / ml)</option>
+          </select>
+        </label>
+        <label>
+          <span>Daily calorie goal</span>
+          <input type="number" id="gateCal" value="2200" min="1000" max="6000" step="50" required>
+        </label>
+      </div>
+      <button type="submit" class="gate-btn">Enter portal &nbsp;→</button>
+      <p class="gate-foot">Already set up? Just hit enter — we'll restore your session.</p>
+    </form>
+  </div>
+  <div class="gate-aside">
+    <div class="ga-card ga-cyan">
+      <span class="ga-num">01</span>
+      <h3>Nutrition log</h3>
+      <p>Calories, macros, water. Built-in food database. Custom foods. Quick-add and copy yesterday.</p>
+    </div>
+    <div class="ga-card ga-lime">
+      <span class="ga-num">02</span>
+      <h3>Workout board</h3>
+      <p>Daily WOD, lift logs with sets/reps/weight, PR tracking, and a calendar heatmap of your training.</p>
+    </div>
+    <div class="ga-card ga-pink">
+      <span class="ga-num">03</span>
+      <h3>Body metrics</h3>
+      <p>Weight, measurements, body fat. Visual trends. Spot what's working without the noise.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ APP SHELL ============ -->
+<div id="app" class="app hidden">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="tb-left">
+      <a href="/" class="tb-home" title="Back to bermoco.com" aria-label="Home">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      </a>
+      <div class="tb-logo">
+        <span class="tb-top">BERMO<span class="c">.</span></span>
+        <span class="tb-bot">TRACKER</span>
+      </div>
+    </div>
+    <nav class="tb-nav" id="tabNav">
+      <button class="tab active" data-tab="dashboard">Dashboard</button>
+      <button class="tab" data-tab="nutrition">Nutrition</button>
+      <button class="tab" data-tab="fitness">Fitness</button>
+      <button class="tab" data-tab="body">Body</button>
+      <button class="tab" data-tab="history">History</button>
+      <button class="tab" data-tab="settings">Settings</button>
+    </nav>
+    <div class="tb-right">
+      <div class="tb-date" id="tbDate"></div>
+      <div class="tb-user" id="tbUser">
+        <span class="tb-avatar" id="tbAvatar">L</span>
+        <span class="tb-name" id="tbName">Athlete</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MOBILE TAB BAR -->
+  <nav class="mobnav" id="mobnav">
+    <button class="mtab active" data-tab="dashboard"><span>◎</span>Home</button>
+    <button class="mtab" data-tab="nutrition"><span>◍</span>Food</button>
+    <button class="mtab" data-tab="fitness"><span>◈</span>Lift</button>
+    <button class="mtab" data-tab="body"><span>◐</span>Body</button>
+    <button class="mtab" data-tab="history"><span>◇</span>Log</button>
+  </nav>
+
+  <main class="main">
+
+    <!-- ============ DASHBOARD ============ -->
+    <section class="view active" id="view-dashboard">
+      <header class="view-head">
+        <div>
+          <p class="eyebrow">Today · <span id="dashDate"></span></p>
+          <h1 class="view-h1" id="dashGreeting">Let's go.</h1>
+        </div>
+        <div class="view-head-actions">
+          <button class="btn btn-ghost" id="dashCopyYesterday">Copy yesterday's meals</button>
+          <button class="btn btn-cyan" data-go="nutrition">+ Quick log food</button>
+        </div>
+      </header>
+
+      <div class="grid-12">
+        <!-- Calorie ring -->
+        <div class="card span-4">
+          <div class="card-head">
+            <span class="card-eyebrow">Calories</span>
+            <span class="card-meta" id="calMeta">0 / 2200</span>
+          </div>
+          <div class="ring-wrap">
+            <canvas id="calRing" width="220" height="220"></canvas>
+            <div class="ring-center">
+              <span class="ring-val" id="calConsumed">0</span>
+              <span class="ring-lbl">eaten</span>
+              <span class="ring-rem" id="calRem">2200 left</span>
+            </div>
+          </div>
+          <div class="ring-foot">
+            <div><span class="dot dot-cyan"></span>Goal</div>
+            <div><span class="dot dot-lime"></span>Eaten</div>
+            <div><span class="dot dot-pink"></span>Burned</div>
+          </div>
+        </div>
+
+        <!-- Macros -->
+        <div class="card span-4">
+          <div class="card-head">
+            <span class="card-eyebrow">Macros</span>
+            <span class="card-meta">Protein · Carbs · Fat</span>
+          </div>
+          <div class="macro-block">
+            <div class="macro">
+              <div class="macro-row"><span>Protein</span><span id="pVal">0g / 0g</span></div>
+              <div class="bar"><div class="bar-fill bf-cyan" id="pBar"></div></div>
+            </div>
+            <div class="macro">
+              <div class="macro-row"><span>Carbs</span><span id="cVal">0g / 0g</span></div>
+              <div class="bar"><div class="bar-fill bf-lime" id="cBar"></div></div>
+            </div>
+            <div class="macro">
+              <div class="macro-row"><span>Fat</span><span id="fVal">0g / 0g</span></div>
+              <div class="bar"><div class="bar-fill bf-pink" id="fBar"></div></div>
+            </div>
+            <div class="macro">
+              <div class="macro-row"><span>Fiber</span><span id="fbVal">0g / 30g</span></div>
+              <div class="bar"><div class="bar-fill bf-white" id="fbBar"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Water -->
+        <div class="card span-4 card-dark">
+          <div class="card-head">
+            <span class="card-eyebrow eb-cyan">Water</span>
+            <span class="card-meta" id="waterMeta">0 / 64 oz</span>
+          </div>
+          <div class="water-grid" id="waterGrid"></div>
+          <div class="water-actions">
+            <button class="chip" data-water="8">+8 oz</button>
+            <button class="chip" data-water="16">+16 oz</button>
+            <button class="chip" data-water="-8">−8 oz</button>
+            <button class="chip chip-ghost" id="waterReset">Reset</button>
+          </div>
+        </div>
+
+        <!-- WOD card -->
+        <div class="card span-6 card-black">
+          <div class="card-head">
+            <span class="card-eyebrow eb-lime">WOD · <span id="wodName">—</span></span>
+            <span class="card-meta" id="wodType">—</span>
+          </div>
+          <h3 class="wod-title" id="wodTitle">—</h3>
+          <pre class="wod-script" id="wodScript">Loading workout…</pre>
+          <div class="wod-actions">
+            <button class="btn btn-lime" data-go="fitness">Log result &nbsp;→</button>
+            <button class="btn btn-ghost-light" id="wodShuffle">Shuffle</button>
+          </div>
+        </div>
+
+        <!-- Last lift -->
+        <div class="card span-3">
+          <div class="card-head"><span class="card-eyebrow">Last lift</span></div>
+          <div class="stat" id="lastLift">
+            <span class="stat-big">—</span>
+            <span class="stat-sub">No sessions yet</span>
+          </div>
+        </div>
+
+        <!-- Weight -->
+        <div class="card span-3">
+          <div class="card-head"><span class="card-eyebrow">Weight</span></div>
+          <div class="stat">
+            <span class="stat-big" id="weightBig">—</span>
+            <span class="stat-sub" id="weightDelta">Log your first weigh-in</span>
+          </div>
+          <button class="link-btn" data-go="body">Open body log →</button>
+        </div>
+
+        <!-- Weekly chart -->
+        <div class="card span-8">
+          <div class="card-head">
+            <span class="card-eyebrow">7-day calories</span>
+            <span class="card-meta" id="weeklyAvg">avg —</span>
+          </div>
+          <canvas id="weeklyChart" height="120"></canvas>
+        </div>
+
+        <!-- Streak -->
+        <div class="card span-4 card-cyan">
+          <div class="card-head"><span class="card-eyebrow eb-black">Streak</span></div>
+          <div class="streak">
+            <span class="streak-num" id="streakNum">0</span>
+            <span class="streak-lbl">days logged</span>
+          </div>
+          <p class="streak-foot" id="streakFoot">Log a meal or a workout today to start.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ NUTRITION ============ -->
+    <section class="view" id="view-nutrition">
+      <header class="view-head">
+        <div>
+          <p class="eyebrow">Nutrition · <span id="nutDate"></span></p>
+          <h1 class="view-h1">Food log</h1>
+        </div>
+        <div class="view-head-actions">
+          <div class="date-picker">
+            <button class="dp-btn" id="nutPrev" aria-label="Previous day">‹</button>
+            <input type="date" id="nutDateInput">
+            <button class="dp-btn" id="nutNext" aria-label="Next day">›</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="nut-summary">
+        <div class="nut-pill"><span>Calories</span><strong id="nutCal">0</strong><em id="nutCalGoal">/ 2200</em></div>
+        <div class="nut-pill"><span>Protein</span><strong id="nutP">0g</strong><em id="nutPGoal">/ 0g</em></div>
+        <div class="nut-pill"><span>Carbs</span><strong id="nutC">0g</strong><em id="nutCGoal">/ 0g</em></div>
+        <div class="nut-pill"><span>Fat</span><strong id="nutF">0g</strong><em id="nutFGoal">/ 0g</em></div>
+        <div class="nut-pill"><span>Remaining</span><strong id="nutRem">2200</strong><em>cal</em></div>
+      </div>
+
+      <div class="meal-grid">
+        <article class="meal" data-meal="breakfast">
+          <header class="meal-head">
+            <h3>Breakfast</h3>
+            <span class="meal-cal" data-cal="breakfast">0 cal</span>
+            <button class="btn-add" data-add-meal="breakfast">+ Add food</button>
+          </header>
+          <ul class="meal-list" data-list="breakfast"></ul>
+        </article>
+        <article class="meal" data-meal="lunch">
+          <header class="meal-head">
+            <h3>Lunch</h3>
+            <span class="meal-cal" data-cal="lunch">0 cal</span>
+            <button class="btn-add" data-add-meal="lunch">+ Add food</button>
+          </header>
+          <ul class="meal-list" data-list="lunch"></ul>
+        </article>
+        <article class="meal" data-meal="dinner">
+          <header class="meal-head">
+            <h3>Dinner</h3>
+            <span class="meal-cal" data-cal="dinner">0 cal</span>
+            <button class="btn-add" data-add-meal="dinner">+ Add food</button>
+          </header>
+          <ul class="meal-list" data-list="dinner"></ul>
+        </article>
+        <article class="meal" data-meal="snacks">
+          <header class="meal-head">
+            <h3>Snacks</h3>
+            <span class="meal-cal" data-cal="snacks">0 cal</span>
+            <button class="btn-add" data-add-meal="snacks">+ Add food</button>
+          </header>
+          <ul class="meal-list" data-list="snacks"></ul>
+        </article>
+      </div>
+
+      <div class="quick-row">
+        <h4>Quick add</h4>
+        <div class="quick-chips" id="quickChips"></div>
+      </div>
+    </section>
+
+    <!-- ============ FITNESS ============ -->
+    <section class="view" id="view-fitness">
+      <header class="view-head">
+        <div>
+          <p class="eyebrow">Fitness · <span id="fitDate"></span></p>
+          <h1 class="view-h1">Workout board</h1>
+        </div>
+        <div class="view-head-actions">
+          <button class="btn btn-ghost" id="fitNewLift">+ Log lift</button>
+          <button class="btn btn-cyan" id="fitNewWod">+ Log WOD</button>
+        </div>
+      </header>
+
+      <div class="grid-12">
+        <!-- Today's WOD -->
+        <div class="card span-7 card-black">
+          <div class="card-head">
+            <span class="card-eyebrow eb-lime">Today's WOD</span>
+            <span class="card-meta" id="fitWodType">—</span>
+          </div>
+          <h2 class="wod-title-lg" id="fitWodTitle">—</h2>
+          <pre class="wod-script" id="fitWodScript">—</pre>
+          <div class="wod-actions">
+            <button class="btn btn-lime" id="fitLogResult">+ Log result</button>
+            <button class="btn btn-ghost-light" id="fitShuffle">Shuffle</button>
+            <select id="fitWodPicker" class="wod-picker"></select>
+          </div>
+        </div>
+
+        <!-- PRs -->
+        <div class="card span-5">
+          <div class="card-head">
+            <span class="card-eyebrow">Personal records</span>
+            <button class="link-btn-sm" id="addPrBtn">+ Add</button>
+          </div>
+          <ul class="pr-list" id="prList"></ul>
+        </div>
+
+        <!-- Today's sessions -->
+        <div class="card span-12">
+          <div class="card-head">
+            <span class="card-eyebrow">Today's sessions</span>
+            <span class="card-meta" id="todaySessionsMeta">0 entries</span>
+          </div>
+          <ul class="session-list" id="todaySessions"></ul>
+        </div>
+
+        <!-- Heatmap -->
+        <div class="card span-12">
+          <div class="card-head">
+            <span class="card-eyebrow">Activity · last 12 weeks</span>
+            <span class="card-meta" id="heatMeta">—</span>
+          </div>
+          <div class="heatmap" id="heatmap"></div>
+          <div class="heat-legend">
+            <span>less</span>
+            <span class="heat-cell h0"></span>
+            <span class="heat-cell h1"></span>
+            <span class="heat-cell h2"></span>
+            <span class="heat-cell h3"></span>
+            <span class="heat-cell h4"></span>
+            <span>more</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ BODY ============ -->
+    <section class="view" id="view-body">
+      <header class="view-head">
+        <div>
+          <p class="eyebrow">Body · metrics</p>
+          <h1 class="view-h1">Weight + measurements</h1>
+        </div>
+        <div class="view-head-actions">
+          <button class="btn btn-cyan" id="weighInBtn">+ Weigh in</button>
+          <button class="btn btn-ghost" id="measureBtn">+ Measurements</button>
+        </div>
+      </header>
+
+      <div class="grid-12">
+        <div class="card span-4">
+          <div class="card-head"><span class="card-eyebrow">Current</span></div>
+          <div class="stat">
+            <span class="stat-big" id="bodyCurrent">—</span>
+            <span class="stat-sub" id="bodyDelta">—</span>
+          </div>
+        </div>
+        <div class="card span-4">
+          <div class="card-head"><span class="card-eyebrow">7-day avg</span></div>
+          <div class="stat">
+            <span class="stat-big" id="body7">—</span>
+            <span class="stat-sub">smoothed</span>
+          </div>
+        </div>
+        <div class="card span-4">
+          <div class="card-head"><span class="card-eyebrow">Goal</span></div>
+          <div class="stat">
+            <span class="stat-big" id="bodyGoal">—</span>
+            <span class="stat-sub" id="bodyGoalDelta">set in settings</span>
+          </div>
+        </div>
+        <div class="card span-12">
+          <div class="card-head">
+            <span class="card-eyebrow">Weight trend</span>
+            <span class="card-meta" id="bodyRange">—</span>
+          </div>
+          <canvas id="weightChart" height="110"></canvas>
+        </div>
+        <div class="card span-6">
+          <div class="card-head"><span class="card-eyebrow">Measurements</span></div>
+          <ul class="meas-list" id="measList"></ul>
+        </div>
+        <div class="card span-6">
+          <div class="card-head"><span class="card-eyebrow">Recent weigh-ins</span></div>
+          <ul class="weigh-list" id="weighList"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ HISTORY ============ -->
+    <section class="view" id="view-history">
+      <header class="view-head">
+        <div>
+          <p class="eyebrow">History · timeline</p>
+          <h1 class="view-h1">Everything you've logged</h1>
+        </div>
+        <div class="view-head-actions">
+          <select id="historyFilter" class="select">
+            <option value="all">All entries</option>
+            <option value="meal">Meals only</option>
+            <option value="workout">Workouts only</option>
+            <option value="weight">Weigh-ins only</option>
+          </select>
+          <button class="btn btn-ghost" id="exportBtn">Export JSON</button>
+        </div>
+      </header>
+      <ul class="timeline" id="timeline"></ul>
+    </section>
+
+    <!-- ============ SETTINGS ============ -->
+    <section class="view" id="view-settings">
+      <header class="view-head">
+        <div>
+          <p class="eyebrow">Settings</p>
+          <h1 class="view-h1">Goals + preferences</h1>
+        </div>
+      </header>
+
+      <div class="grid-12">
+        <div class="card span-6">
+          <div class="card-head"><span class="card-eyebrow">Profile</span></div>
+          <form id="profileForm" class="form">
+            <label><span>Athlete name</span><input type="text" name="name" id="setName" maxlength="40"></label>
+            <label><span>Units</span>
+              <select name="units" id="setUnits">
+                <option value="imperial">Imperial</option>
+                <option value="metric">Metric</option>
+              </select>
+            </label>
+            <button type="submit" class="btn btn-cyan">Save profile</button>
+          </form>
+        </div>
+        <div class="card span-6">
+          <div class="card-head"><span class="card-eyebrow">Daily goals</span></div>
+          <form id="goalsForm" class="form form-grid">
+            <label><span>Calories</span><input type="number" id="setCal" min="800" max="6000" step="50"></label>
+            <label><span>Protein (g)</span><input type="number" id="setP" min="0" max="500"></label>
+            <label><span>Carbs (g)</span><input type="number" id="setC" min="0" max="800"></label>
+            <label><span>Fat (g)</span><input type="number" id="setF" min="0" max="300"></label>
+            <label><span>Water (oz)</span><input type="number" id="setWater" min="0" max="200"></label>
+            <label><span>Goal weight</span><input type="number" id="setGoalWeight" min="50" max="500" step="0.1"></label>
+            <button type="submit" class="btn btn-cyan span-2">Save goals</button>
+          </form>
+        </div>
+        <div class="card span-12">
+          <div class="card-head"><span class="card-eyebrow">Custom foods</span></div>
+          <form id="customFoodForm" class="form form-grid">
+            <label><span>Name</span><input type="text" id="cfName" required maxlength="40"></label>
+            <label><span>Serving</span><input type="text" id="cfServing" placeholder="1 cup, 4 oz…" required maxlength="30"></label>
+            <label><span>Calories</span><input type="number" id="cfCal" min="0" max="3000" required></label>
+            <label><span>Protein g</span><input type="number" id="cfP" min="0" max="200" step="0.1" required></label>
+            <label><span>Carbs g</span><input type="number" id="cfC" min="0" max="500" step="0.1" required></label>
+            <label><span>Fat g</span><input type="number" id="cfF" min="0" max="200" step="0.1" required></label>
+            <button type="submit" class="btn btn-lime span-2">+ Save custom food</button>
+          </form>
+          <ul class="cf-list" id="cfList"></ul>
+        </div>
+        <div class="card span-12 card-danger">
+          <div class="card-head"><span class="card-eyebrow eb-pink">Danger zone</span></div>
+          <p class="danger-text">Reset wipes all your local data. There's no undo.</p>
+          <div class="danger-actions">
+            <button class="btn btn-ghost" id="logoutBtn">Sign out (keep data)</button>
+            <button class="btn btn-pink" id="resetBtn">Wipe all data</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ============ MODAL ============ -->
+<div class="modal" id="modal" aria-hidden="true">
+  <div class="modal-back" data-close></div>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <header class="modal-head">
+      <h3 id="modalTitle">—</h3>
+      <button class="modal-close" data-close aria-label="Close">×</button>
+    </header>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- ============ TOAST ============ -->
+<div class="toast" id="toast" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="./data.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>

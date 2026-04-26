@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#00f5d4">
+<title>BERMO.COLLECTIVE — Safe space, founders.</title>
+<meta property="og:title" content="Founders. Tell me the worst thing you've ever spent money on.">
+<meta property="og:description" content="A safe space :)  —  BERMO.COLLECTIVE">
+<meta property="og:site_name" content="BERMO.COLLECTIVE">
+<meta property="og:type" content="website">
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@800;900&family=Inter:wght@400;600;700&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --cyan:#00f5d4;
+    --lime:#c8f500;
+    --pink:#ff2d7a;
+    --black:#0a0a0a;
+    --white:#ffffff;
+    --cream:#f0efe9;
+    --gray:#888;
+  }
+  html,body{height:100%;background:#000;color:var(--black);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden;overscroll-behavior:none;}
+
+  /* 9:16 reel stage */
+  .stage{position:fixed;inset:0;display:grid;place-items:center;background:#000;}
+  .reel{
+    position:relative;
+    width:min(100vw, calc(100vh * 9 / 16));
+    height:min(100vh, calc(100vw * 16 / 9));
+    aspect-ratio:9/16;
+    overflow:hidden;
+    background:
+      radial-gradient(ellipse 60% 55% at 96% 4%, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.10) 45%, transparent 65%),
+      var(--cyan);
+    box-shadow:0 40px 120px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.18);
+    isolation:isolate;
+    user-select:none;
+    -webkit-tap-highlight-color:transparent;
+    cursor:crosshair;
+  }
+
+  /* signature noise (matches hero-noise) */
+  .noise{position:absolute;inset:0;pointer-events:none;z-index:2;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity:.28;mix-blend-mode:multiply;}
+
+  /* gigantic backdrop wordmark — drifting */
+  .backdrop{
+    position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden;
+  }
+  .backdrop .word{
+    position:absolute;left:-6%;top:38%;
+    font-family:'Montserrat',sans-serif;font-weight:900;
+    font-size:clamp(180px, 38vh, 520px);
+    line-height:.85;letter-spacing:-0.06em;text-transform:uppercase;
+    color:var(--white);opacity:.18;
+    white-space:nowrap;
+    transform-origin:left center;
+    will-change:transform;
+  }
+  .backdrop .word .c{opacity:.55}
+  .backdrop .ring{
+    position:absolute;right:-30%;top:-20%;width:120%;aspect-ratio:1;border-radius:50%;
+    border:2px solid rgba(255,255,255,.20);
+    mix-blend-mode:overlay;
+  }
+  .backdrop .bar{
+    position:absolute;height:6px;border-radius:4px;
+    box-shadow:0 6px 18px rgba(0,0,0,.10);
+    will-change:transform;
+  }
+  .backdrop .bar.b1{left:6%;top:10%;width:34%;background:var(--black);}
+  .backdrop .bar.b2{right:6%;top:18%;width:28%;background:var(--pink);}
+  .backdrop .bar.b3{left:6%;bottom:24%;width:22%;background:var(--lime);}
+  .backdrop .bar.b4{right:8%;bottom:32%;width:18%;background:var(--white);}
+
+  /* frame layout */
+  .frame{position:absolute;inset:0;z-index:6;display:flex;flex-direction:column;justify-content:space-between;padding:6.5% 6% 6%;}
+
+  /* tiny brand labels (— LIKE THIS) */
+  .label{
+    font-family:'Inter',sans-serif;font-weight:700;
+    font-size:clamp(9px, 1.3vh, 12px);letter-spacing:.32em;text-transform:uppercase;
+    color:var(--black);display:inline-flex;align-items:center;gap:10px;
+  }
+  .label::before{content:"";width:22px;height:1px;background:var(--black);display:block;}
+  .label.white{color:var(--white);}
+  .label.white::before{background:var(--white);}
+
+  .top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+  .brand-mini{
+    font-family:'Montserrat',sans-serif;font-weight:900;
+    font-size:clamp(13px, 1.9vh, 17px);letter-spacing:-.02em;text-transform:uppercase;color:var(--black);
+    display:inline-flex;align-items:baseline;gap:0;
+  }
+  .brand-mini .c{color:var(--black);opacity:.55}
+  .top-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+  .ticker{
+    display:flex;align-items:center;gap:8px;
+    font-family:'Inter',sans-serif;font-weight:700;
+    font-size:clamp(9px, 1.3vh, 11px);letter-spacing:.32em;text-transform:uppercase;color:var(--black);
+  }
+  .ticker .dot{width:7px;height:7px;border-radius:50%;background:var(--pink);box-shadow:0 0 0 0 var(--pink);animation:pulse 2.2s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,45,122,.7)}70%{box-shadow:0 0 0 12px rgba(255,45,122,0)}100%{box-shadow:0 0 0 0 rgba(255,45,122,0)}}
+
+  /* editorial headline */
+  .headline{display:flex;flex-direction:column;gap:18px;align-items:flex-start;justify-content:center;flex:1;margin-top:6%;}
+  .eyebrow-row{display:flex;align-items:center;gap:14px;}
+  .index{
+    font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(11px, 1.5vh, 13px);
+    letter-spacing:.2em;text-transform:uppercase;color:var(--black);opacity:.7;
+  }
+
+  h1{
+    font-family:'Inter Tight',sans-serif;font-weight:900;
+    font-size:clamp(36px, 7vh, 84px);
+    line-height:.86;letter-spacing:-0.04em;text-transform:uppercase;
+    color:var(--black);text-wrap:balance;
+  }
+  h1 em{color:var(--white);font-style:normal;}
+  h1 .word{display:inline-block;opacity:0;transform:translateY(22px);filter:blur(4px);animation:wordin .55s cubic-bezier(.2,.8,.2,1) forwards;}
+  h1 .period{color:var(--white);}
+  @keyframes wordin{to{opacity:1;transform:translateY(0);filter:blur(0)}}
+
+  .answer{
+    font-family:'Inter Tight',sans-serif;font-weight:900;
+    font-size:clamp(14px, 2vh, 20px);letter-spacing:.10em;text-transform:uppercase;color:var(--black);
+    padding-top:18px;border-top:1px solid rgba(10,10,10,.16);
+    display:flex;align-items:center;gap:10px;
+    width:100%;
+    opacity:0;animation:wordin .6s 1.5s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  .answer .smile{
+    width:22px;height:22px;border-radius:50%;background:var(--black);color:var(--cyan);
+    display:inline-grid;place-items:center;font-weight:900;font-size:12px;letter-spacing:0;
+  }
+
+  /* reveal panel — black editorial card mirrored from .statement-section */
+  .reveal{
+    background:var(--black);color:var(--white);border-radius:16px;padding:18px 18px 16px;width:100%;
+    box-shadow:0 18px 40px rgba(0,0,0,.28);
+    transform:translateY(8px);opacity:0;animation:wordin .6s 1.9s cubic-bezier(.2,.8,.2,1) forwards;
+    overflow:hidden;
+    position:relative;
+  }
+  .reveal::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cyan);
+  }
+  .reveal-top{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.10);padding-bottom:10px;margin-bottom:12px;}
+  .reveal-kick{
+    font-family:'Inter',sans-serif;font-weight:600;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--cyan);
+    display:flex;align-items:center;gap:8px;
+  }
+  .reveal-kick::before{content:"";width:18px;height:1px;background:var(--cyan);}
+  .reveal-num{
+    font-family:'Inter Tight',sans-serif;font-weight:900;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--cyan);
+  }
+  .reveal-text{
+    font-family:'Inter Tight',sans-serif;font-weight:900;
+    font-size:clamp(20px, 2.6vh, 28px);line-height:.96;letter-spacing:-.02em;text-transform:uppercase;
+    color:var(--white);min-height:2.6em;
+  }
+  .reveal-text em{color:var(--cyan);font-style:normal;}
+
+  /* step pips like .walk-steps */
+  .steps{display:flex;gap:6px;margin-top:14px;}
+  .step{flex:1;height:4px;background:rgba(255,255,255,.18);border:0;border-radius:2px;cursor:pointer;padding:0;transition:background .25s ease;}
+  .step.active{background:var(--cyan);}
+  .step.done{background:var(--white);}
+
+  /* prompt row */
+  .prompt-row{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;
+  }
+  .prompt-text{
+    font-family:'Inter',sans-serif;font-weight:600;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:rgba(255,255,255,.6);
+  }
+  .nav-btns{display:flex;gap:6px;}
+  .nav-btn{
+    appearance:none;border:1px solid rgba(255,255,255,.2);background:transparent;color:var(--white);
+    width:32px;height:32px;border-radius:8px;cursor:pointer;display:grid;place-items:center;
+    transition:background .2s ease, color .2s ease;
+  }
+  .nav-btn:hover{background:var(--cyan);color:var(--black);border-color:var(--cyan);}
+
+  /* bottom row */
+  .bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;}
+  .wordmark{
+    font-family:'Montserrat',sans-serif;font-weight:900;font-size:clamp(28px, 5vh, 56px);
+    line-height:.85;letter-spacing:-.04em;text-transform:uppercase;color:var(--black);
+  }
+  .wordmark .c{opacity:.55}
+  .wordmark .underbar{display:block;width:36px;height:3px;background:var(--black);opacity:.4;margin-top:6px;}
+  .scroll-cue{
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    font-family:'Inter',sans-serif;font-size:8px;letter-spacing:.3em;text-transform:uppercase;color:rgba(10,10,10,.45);
+    animation:bob 2.2s ease infinite;
+  }
+  .scroll-cue svg{width:16px;height:16px;color:rgba(10,10,10,.45);}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+
+  /* tap fx — brand bars, no emojis */
+  .fx{position:absolute;inset:0;z-index:7;pointer-events:none;}
+  .fx-bar{
+    position:absolute;height:4px;border-radius:3px;will-change:transform,opacity;
+    box-shadow:0 6px 14px rgba(0,0,0,.18);
+  }
+
+  /* sweep line on tap */
+  .sweep{
+    position:absolute;left:0;right:0;height:1px;background:rgba(10,10,10,.6);
+    pointer-events:none;will-change:transform,opacity;mix-blend-mode:multiply;
+  }
+
+  @media (max-height:640px){
+    .headline{margin-top:3%}
+    h1{font-size:clamp(30px, 6.4vh, 64px)}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition:none !important}
+  }
+</style>
+</head>
+<body>
+  <main class="stage" aria-label="BERMO.COLLECTIVE reel">
+    <section class="reel" id="reel" aria-live="polite">
+
+      <div class="backdrop" aria-hidden="true">
+        <span class="word" id="bdword">BERMO<span class="c">.</span></span>
+        <div class="ring"></div>
+        <div class="bar b1"></div>
+        <div class="bar b2"></div>
+        <div class="bar b3"></div>
+        <div class="bar b4"></div>
+      </div>
+
+      <div class="noise"></div>
+
+      <div class="frame">
+        <div class="top">
+          <span class="brand-mini">BERMO<span class="c">.</span>COLLECTIVE</span>
+          <div class="top-right">
+            <span class="ticker"><span class="dot"></span> SAFE SPACE — NO. 001</span>
+            <span class="label">FOUNDERS / FOR FOUNDERS</span>
+          </div>
+        </div>
+
+        <div class="headline">
+          <div class="eyebrow-row">
+            <span class="label">A QUESTION</span>
+            <span class="index">/ 001 — TRUTH</span>
+          </div>
+
+          <h1 id="h1" aria-label="Tell me the worst thing you've ever spent money on for your business.">
+            <span class="word" style="animation-delay:.05s">Tell</span>
+            <span class="word" style="animation-delay:.13s">me</span>
+            <span class="word" style="animation-delay:.21s">the</span>
+            <span class="word" style="animation-delay:.30s"><em>worst</em></span>
+            <span class="word" style="animation-delay:.40s">thing</span>
+            <span class="word" style="animation-delay:.50s">you've</span>
+            <span class="word" style="animation-delay:.60s">ever</span>
+            <span class="word" style="animation-delay:.72s">spent</span>
+            <span class="word" style="animation-delay:.84s">money</span>
+            <span class="word" style="animation-delay:.96s">on</span>
+            <span class="word" style="animation-delay:1.08s">for</span>
+            <span class="word" style="animation-delay:1.20s">your</span>
+            <span class="word" style="animation-delay:1.32s">business<span class="period">.</span></span>
+          </h1>
+
+          <div class="answer">
+            THIS IS A SAFE SPACE
+            <span class="smile" aria-hidden="true">:)</span>
+          </div>
+        </div>
+
+        <div class="reveal" id="reveal" role="region" aria-label="Founder confessions">
+          <div class="reveal-top">
+            <span class="reveal-kick">CONFESSION</span>
+            <span class="reveal-num" id="revealNum">001 / 06</span>
+          </div>
+          <div class="reveal-text" id="revealText"><em>Tap anywhere</em> to reveal a real founder regret →</div>
+          <div class="steps" id="steps" role="tablist" aria-label="Confessions">
+            <button class="step active" type="button" aria-label="Confession 1"></button>
+            <button class="step" type="button" aria-label="Confession 2"></button>
+            <button class="step" type="button" aria-label="Confession 3"></button>
+            <button class="step" type="button" aria-label="Confession 4"></button>
+            <button class="step" type="button" aria-label="Confession 5"></button>
+            <button class="step" type="button" aria-label="Confession 6"></button>
+          </div>
+          <div class="prompt-row">
+            <span class="prompt-text">— DROP YOURS IN THE COMMENTS</span>
+            <div class="nav-btns">
+              <button class="nav-btn" id="prev" aria-label="Previous">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <button class="nav-btn" id="next" aria-label="Next">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom">
+          <div class="wordmark" aria-hidden="true">BERMO<span class="c">.</span><span class="underbar"></span></div>
+          <div class="scroll-cue" aria-hidden="true">
+            <span>TAP</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="fx" id="fx" aria-hidden="true"></div>
+    </section>
+  </main>
+
+<script>
+  const reel = document.getElementById('reel');
+  const fx = document.getElementById('fx');
+  const bdword = document.getElementById('bdword');
+  const bars = document.querySelectorAll('.backdrop .bar');
+
+  // Confessions — brand-voice, editorial
+  const confessions = [
+    "An <em>agency retainer</em> that delivered decks, not demand.",
+    "A <em>logo redesign</em> before we knew who we were for.",
+    "A <em>'growth hacker'</em> who shipped vibes, not pipeline.",
+    "A <em>premium CRM</em> the team never opened.",
+    "A <em>booth</em> at the wrong expo with the wrong room.",
+    "An <em>influencer</em> partner who ghosted post-payment."
+  ];
+  const total = confessions.length;
+  let idx = 0;
+  let revealed = false;
+
+  const revealText = document.getElementById('revealText');
+  const revealNum = document.getElementById('revealNum');
+  const stepsEl = document.getElementById('steps');
+  const stepBtns = stepsEl.querySelectorAll('.step');
+
+  function setStep(i, fromUser=false){
+    idx = (i + total) % total;
+    revealed = true;
+    revealText.style.opacity = '0';
+    revealText.style.transform = 'translateY(8px)';
+    setTimeout(()=>{
+      revealText.innerHTML = confessions[idx];
+      revealText.style.transition = 'opacity .35s ease, transform .35s ease';
+      revealText.style.opacity = '1';
+      revealText.style.transform = 'translateY(0)';
+    }, 140);
+    revealNum.textContent = String(idx+1).padStart(3,'0') + ' / ' + String(total).padStart(2,'0');
+    stepBtns.forEach((b,k)=>{
+      b.classList.toggle('active', k===idx);
+      b.classList.toggle('done', k<idx);
+    });
+  }
+
+  stepBtns.forEach((b,k)=>b.addEventListener('click', e=>{ e.stopPropagation(); setStep(k, true); spawnBarsAt(e.clientX, e.clientY); }));
+  document.getElementById('prev').addEventListener('click', e=>{ e.stopPropagation(); setStep(idx-1, true); });
+  document.getElementById('next').addEventListener('click', e=>{ e.stopPropagation(); setStep(idx+1, true); });
+
+  // Tap on reel: advance + brand sweep
+  reel.addEventListener('pointerdown', (ev)=>{
+    if(ev.target.closest('.nav-btn') || ev.target.closest('.step')) return;
+    if(!revealed){ setStep(0); }
+    else { setStep(idx+1); }
+    sweepAt(ev.clientY);
+    spawnBarsAt(ev.clientX, ev.clientY);
+  });
+
+  function sweepAt(clientY){
+    const rect = reel.getBoundingClientRect();
+    const ly = clientY - rect.top;
+    const s = document.createElement('div');
+    s.className = 'sweep';
+    s.style.top = ly + 'px';
+    fx.appendChild(s);
+    s.animate(
+      [{transform:'scaleX(0)', opacity:.0, transformOrigin:'left center'},
+       {transform:'scaleX(1)', opacity:.7, transformOrigin:'left center', offset:.4},
+       {transform:'scaleX(1)', opacity:0, transformOrigin:'right center'}],
+      {duration:700, easing:'cubic-bezier(.2,.8,.2,1)', fill:'forwards'}
+    );
+    setTimeout(()=>s.remove(), 760);
+  }
+
+  function spawnBarsAt(x, y){
+    const rect = reel.getBoundingClientRect();
+    const lx = x - rect.left, ly = y - rect.top;
+    const colors = ['#0a0a0a', '#ff2d7a', '#c8f500', '#ffffff'];
+    for(let i=0;i<5;i++){
+      const b = document.createElement('span');
+      b.className = 'fx-bar';
+      const w = 24 + Math.random()*60;
+      const dx = (Math.random()*220-110);
+      const dy = (Math.random()*180-90);
+      const rot = (Math.random()*60-30);
+      b.style.width = w+'px';
+      b.style.left = (lx - w/2)+'px';
+      b.style.top = ly+'px';
+      b.style.background = colors[i % colors.length];
+      fx.appendChild(b);
+      b.animate(
+        [{transform:`translate(0,0) rotate(0)`, opacity:1},
+         {transform:`translate(${dx}px, ${dy}px) rotate(${rot}deg)`, opacity:0}],
+        {duration:900 + Math.random()*300, easing:'cubic-bezier(.2,.8,.2,1)', fill:'forwards'}
+      );
+      setTimeout(()=>b.remove(), 1300);
+    }
+  }
+
+  // parallax for backdrop wordmark + bars
+  reel.addEventListener('pointermove', (ev)=>{
+    const r = reel.getBoundingClientRect();
+    const px = (ev.clientX - r.left)/r.width - .5;
+    const py = (ev.clientY - r.top)/r.height - .5;
+    bdword.style.transform = `translate3d(${(-px*30).toFixed(1)}px, ${(-py*16).toFixed(1)}px, 0)`;
+    bars.forEach((b,i)=>{
+      const f = (i%2===0?1:-1) * (8 + i*3);
+      b.style.transform = `translate3d(${(-px*f).toFixed(1)}px, ${(-py*f*.6).toFixed(1)}px, 0)`;
+    });
+  });
+  reel.addEventListener('pointerleave', ()=>{
+    bdword.style.transform = '';
+    bars.forEach(b=>b.style.transform='');
+  });
+
+  // initial cue: subtle sweep on load to invite a tap
+  window.addEventListener('load', ()=>{
+    const r = reel.getBoundingClientRect();
+    setTimeout(()=>sweepAt(r.top + r.height*0.62), 2000);
+  });
+</script>
+</body>
+</html>

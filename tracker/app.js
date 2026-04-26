@@ -2963,4 +2963,156 @@ function openConfirmModal(parsed){
   });
 }
 
+
+// =================================================================
+// USABILITY — Floating Action Button + tappable cards + help banner
+// =================================================================
+function openFAB(){
+  const sheet = document.getElementById("fabSheet");
+  if(sheet) sheet.classList.add("open");
+}
+function closeFAB(){
+  const sheet = document.getElementById("fabSheet");
+  if(sheet) sheet.classList.remove("open");
+}
+function jumpToTab(tab){
+  const t = document.querySelector(`.tab[data-tab="${tab}"], .mtab[data-tab="${tab}"]`);
+  if(t) t.click();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const fab = document.getElementById("fab");
+  if(fab) fab.addEventListener("click", openFAB);
+  document.querySelectorAll("[data-fab-close]").forEach(b => b.addEventListener("click", closeFAB));
+
+  document.querySelectorAll("[data-fab]").forEach(b => b.addEventListener("click", () => {
+    const action = b.dataset.fab;
+    closeFAB();
+    setTimeout(() => {
+      switch(action){
+        case "food":
+          jumpToTab("nutrition");
+          // Open food modal for default meal (lunch by time of day)
+          setTimeout(() => {
+            const h = new Date().getHours();
+            const meal = h < 10 ? "breakfast" : h < 14 ? "lunch" : h < 18 ? "snacks" : "dinner";
+            const btn = document.querySelector(`.btn-add[data-add-meal="${meal}"]`);
+            if(btn) btn.click();
+          }, 200);
+          break;
+        case "photo":
+          if(typeof openAIPhotoModal === "function") openAIPhotoModal();
+          break;
+        case "text":
+          if(typeof openAITextModal === "function") openAITextModal();
+          break;
+        case "water":
+          if(typeof addWater === "function"){ addWater(8); toast("+ 8 oz water","cyan"); }
+          break;
+        case "workout":
+          if(typeof openLiftModal === "function") openLiftModal();
+          else jumpToTab("fitness");
+          break;
+        case "weigh":
+          if(typeof openWeighInModal === "function") openWeighInModal();
+          else jumpToTab("body");
+          break;
+        case "checkin":
+          if(typeof openCheckinModal === "function") openCheckinModal();
+          break;
+        case "symptom":
+          if(typeof openSymptomModal === "function") openSymptomModal();
+          break;
+      }
+    }, 150);
+  }));
+
+  // Tappable Activity Rings card on dashboard
+  const ringsCanvas = document.getElementById("rings3");
+  if(ringsCanvas){
+    const card = ringsCanvas.closest(".card");
+    if(card){
+      card.style.cursor = "pointer";
+      card.title = "Tap to log calories burned, exercise minutes, stand hours";
+      card.addEventListener("click", (e) => {
+        if(e.target.closest("button,a,input,select,textarea")) return;
+        if(typeof openActivityLogModal === "function") openActivityLogModal();
+      });
+    }
+  }
+  // Tappable Calorie Ring card -> jump to Nutrition
+  const calRing = document.getElementById("calRing");
+  if(calRing){
+    const card = calRing.closest(".card");
+    if(card){
+      card.style.cursor = "pointer";
+      card.title = "Tap to open the food log";
+      card.addEventListener("click", (e) => {
+        if(e.target.closest("button,a,input,select,textarea")) return;
+        jumpToTab("nutrition");
+      });
+    }
+  }
+  // Tappable WOD card -> jump to Fitness
+  const wodCard = document.getElementById("wodScript") && document.getElementById("wodScript").closest(".card");
+  if(wodCard){
+    wodCard.style.cursor = "pointer";
+    wodCard.addEventListener("click", (e) => {
+      if(e.target.closest("button,a,input,select,textarea")) return;
+      jumpToTab("fitness");
+    });
+  }
+  // Tappable weight stat card -> jump to Body
+  document.querySelectorAll('[data-go]').forEach(card => {
+    // already wired
+  });
+
+  // First-time help banner
+  const seen = localStorage.getItem("bermo.tracker.helpSeen");
+  if(!seen){
+    const banner = document.getElementById("helpBanner");
+    if(banner){
+      // Show after gate dismissed
+      const tryShow = () => {
+        if(!document.getElementById("app").classList.contains("hidden")){
+          banner.classList.remove("hidden");
+        } else {
+          setTimeout(tryShow, 500);
+        }
+      };
+      tryShow();
+    }
+  }
+  const helpClose = document.getElementById("helpClose");
+  if(helpClose) helpClose.addEventListener("click", () => {
+    document.getElementById("helpBanner").classList.add("hidden");
+    localStorage.setItem("bermo.tracker.helpSeen", "1");
+  });
+
+  // Escape closes FAB
+  document.addEventListener("keydown", (e) => { if(e.key === "Escape") closeFAB(); });
+});
+
+// Hint markers on initial views (subtle)
+function addHints(){
+  // Add a subtle "← log here" hint to the breakfast meal block first-time
+  const seen = localStorage.getItem("bermo.tracker.mealHintSeen");
+  if(seen) return;
+  const firstAdd = document.querySelector('.btn-add[data-add-meal="breakfast"]');
+  if(firstAdd && !firstAdd.dataset.hinted){
+    firstAdd.dataset.hinted = "1";
+    firstAdd.style.boxShadow = "0 0 0 4px rgba(0,245,212,.4)";
+    firstAdd.style.animation = "pulseAdd 1.5s ease-in-out 3";
+  }
+}
+
+// Hook into dashboard render to mark hints
+const _origRDForHints = (typeof renderDashboard === "function") ? renderDashboard : null;
+if(_origRDForHints){
+  renderDashboard = function(){
+    _origRDForHints();
+    setTimeout(addHints, 50);
+  };
+}
+
 })();

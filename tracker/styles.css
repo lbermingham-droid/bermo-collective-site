@@ -730,3 +730,94 @@ a{color:inherit}
 .cf-item-grid input{background:#fff;border:1px solid var(--lgray);border-radius:6px;padding:5px 8px;font-size:12px;font-family:'JetBrains Mono',monospace;font-weight:700;outline:none;width:100%}
 .cf-item-grid input:focus{border-color:var(--cyan)}
 .cf-confidence{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gray);margin-top:6px;text-align:right}
+
+/* ---------- FAB (Floating Action Button) — always visible quick log ---------- */
+.fab{
+  position:fixed; bottom:22px; right:22px; z-index:100;
+  width:58px; height:58px; border-radius:50%;
+  background:var(--cyan); color:var(--black);
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 8px 28px rgba(0,245,212,.4), 0 4px 12px rgba(0,0,0,.2);
+  transition:all .15s; cursor:pointer; border:none;
+}
+.fab:hover{background:var(--lime);transform:scale(1.05) rotate(90deg)}
+.fab:active{transform:scale(0.95)}
+@media(max-width:720px){
+  .fab{bottom:74px;right:16px;width:54px;height:54px} /* clear mobile bottom nav */
+}
+@keyframes pulseAdd{
+  0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(0,245,212,.6)}
+  50%{transform:scale(1.05);box-shadow:0 0 0 10px rgba(0,245,212,0)}
+}
+
+.fab-sheet{position:fixed;inset:0;display:none;align-items:flex-end;justify-content:center;z-index:200;padding:0}
+.fab-sheet.open{display:flex;animation:fadeIn .2s ease}
+.fab-sheet-back{position:absolute;inset:0;background:rgba(10,10,10,.6);backdrop-filter:blur(4px)}
+.fab-sheet-card{
+  position:relative; width:100%; max-width:520px;
+  background:#fff; border-radius:24px 24px 0 0;
+  padding:14px 20px 24px;
+  box-shadow:0 -16px 48px rgba(0,0,0,.25);
+  animation:slideUp .25s ease;
+  margin-bottom:0;
+}
+@media(min-width:720px){
+  .fab-sheet-card{margin-bottom:24px;border-radius:24px}
+  .fab-sheet{align-items:center}
+}
+.fab-sheet-handle{width:40px;height:4px;background:var(--lgray);border-radius:100px;margin:0 auto 14px}
+.fab-sheet-title{
+  font-family:'Inter Tight',sans-serif;font-weight:900;font-size:18px;
+  letter-spacing:-.01em;text-transform:uppercase;text-align:center;margin-bottom:14px;
+}
+.fab-sheet-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:55vh;overflow:auto}
+.fab-action{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  padding:14px 8px;background:var(--cream);border-radius:14px;
+  text-align:center;border:1px solid var(--lgray);
+  transition:all .15s; cursor:pointer;
+}
+.fab-action:hover{border-color:var(--cyan);background:#fff;transform:translateY(-1px)}
+.fa-icon{
+  width:46px;height:46px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;line-height:1;color:var(--black);
+  box-shadow:var(--shadow);
+}
+.fa-label{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:13px;letter-spacing:-.01em;line-height:1.2;margin-top:4px}
+.fa-sub{font-size:10px;color:var(--gray);font-weight:500;line-height:1.3}
+
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+
+/* ---------- HELP BANNER ---------- */
+.help-banner{
+  position:fixed; top:78px; left:50%; transform:translateX(-50%);
+  z-index:90; display:flex; align-items:flex-start; gap:12px;
+  background:var(--black); color:#fff; border-radius:14px;
+  padding:14px 16px; max-width:540px; width:calc(100% - 32px);
+  box-shadow:0 16px 40px rgba(0,0,0,.3);
+  border:1px solid rgba(0,245,212,.3);
+  animation:slideDown .35s ease;
+}
+.hb-icon{font-size:24px;flex-shrink:0;line-height:1}
+.hb-body{flex:1}
+.hb-title{font-size:13px;font-weight:700;line-height:1.4;margin-bottom:4px}
+.hb-title b{color:var(--cyan);background:rgba(0,245,212,.15);padding:1px 6px;border-radius:4px}
+.hb-sub{font-size:11px;color:rgba(255,255,255,.6);line-height:1.5}
+.hb-close{
+  width:26px;height:26px;border-radius:50%;color:rgba(255,255,255,.5);
+  font-size:16px;flex-shrink:0;line-height:1;transition:all .15s;
+}
+.hb-close:hover{background:rgba(255,255,255,.1);color:#fff}
+@keyframes slideDown{from{transform:translate(-50%,-20px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+@media(max-width:720px){
+  .help-banner{top:70px;width:calc(100% - 16px)}
+}
+
+/* Tappable card hint */
+.card[style*="cursor:pointer"]:hover,
+.card[style*="cursor: pointer"]:hover{
+  border-color:var(--cyan);
+  box-shadow:0 8px 28px rgba(0,245,212,.12);
+}

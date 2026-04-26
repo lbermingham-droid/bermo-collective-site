@@ -671,6 +671,72 @@
   </main>
 </div>
 
+<!-- ============ FLOATING ACTION BUTTON (always visible) ============ -->
+<button class="fab" id="fab" title="Quick log" aria-label="Quick log">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+</button>
+
+<div class="fab-sheet" id="fabSheet" aria-hidden="true">
+  <div class="fab-sheet-back" data-fab-close></div>
+  <div class="fab-sheet-card">
+    <div class="fab-sheet-handle"></div>
+    <div class="fab-sheet-title">Quick log</div>
+    <div class="fab-sheet-grid">
+      <button class="fab-action" data-fab="food">
+        <span class="fa-icon" style="background:var(--cyan)">🍴</span>
+        <span class="fa-label">Add food</span>
+        <span class="fa-sub">Search database or quick add</span>
+      </button>
+      <button class="fab-action" data-fab="photo">
+        <span class="fa-icon" style="background:var(--lime)">📸</span>
+        <span class="fa-label">Snap food photo</span>
+        <span class="fa-sub">AI fills in calories + macros</span>
+      </button>
+      <button class="fab-action" data-fab="text">
+        <span class="fa-icon" style="background:#ffb347">💬</span>
+        <span class="fa-label">Type what you ate</span>
+        <span class="fa-sub">"2 eggs and oatmeal"</span>
+      </button>
+      <button class="fab-action" data-fab="water">
+        <span class="fa-icon" style="background:#7cd9f1">💧</span>
+        <span class="fa-label">+ 8 oz water</span>
+        <span class="fa-sub">Quick add</span>
+      </button>
+      <button class="fab-action" data-fab="workout">
+        <span class="fa-icon" style="background:var(--pink)">💪</span>
+        <span class="fa-label">Log a lift</span>
+        <span class="fa-sub">Sets + reps + weight</span>
+      </button>
+      <button class="fab-action" data-fab="weigh">
+        <span class="fa-icon" style="background:#0a8538;color:#fff">⚖</span>
+        <span class="fa-label">Weigh in</span>
+        <span class="fa-sub">Today's weight</span>
+      </button>
+      <button class="fab-action" data-fab="checkin">
+        <span class="fa-icon" style="background:#a78bfa">✦</span>
+        <span class="fa-label">Daily check-in</span>
+        <span class="fa-sub">Sleep + mood + energy</span>
+      </button>
+      <button class="fab-action" data-fab="symptom">
+        <span class="fa-icon" style="background:var(--pink)">🩹</span>
+        <span class="fa-label">Log symptom</span>
+        <span class="fa-sub">Pain, sickness, mood</span>
+      </button>
+    </div>
+    <button class="btn btn-ghost" data-fab-close style="width:100%;justify-content:center;margin-top:12px">Cancel</button>
+  </div>
+</div>
+
+<!-- ============ HELP BANNER (first-time hint) ============ -->
+<div class="help-banner hidden" id="helpBanner">
+  <div class="hb-icon">👋</div>
+  <div class="hb-body">
+    <div class="hb-title">Tap the big <b>+</b> button (bottom right) to log anything.</div>
+    <div class="hb-sub">Tabs at the top switch screens. Tap your name (top right) for Settings. The 5 tabs: Today's snapshot · food log · workouts · body metrics · trends.</div>
+  </div>
+  <button class="hb-close" id="helpClose" title="Got it">×</button>
+</div>
+
 <!-- ============ MODAL ============ -->
 <div class="modal" id="modal" aria-hidden="true">
   <div class="modal-back" data-close></div>

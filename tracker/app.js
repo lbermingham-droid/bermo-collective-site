@@ -1526,15 +1526,55 @@ function getTemplates(){
   return state.mealTemplates;
 }
 
-// Words that flag a food as a "cheat" / indulgence automatically
-const CHEAT_KEYWORDS = ["beer","wine","cocktail","margarita","whiskey","vodka","tequila",
-  "cheeseburger","fries","fried","pizza","candy","chocolate","dessert","ice cream",
-  "donut","cake","brownie","cookie","soda","latte","frappuccino","milkshake","bacon"];
+// Macro-based food classifier — three tiers based on actual nutrition content
+// Returns { tier: "clean" | "watch" | "indulgent", reason: "..." }
+function classifyFood(item){
+  if(item.clean) return { tier:"clean", reason:"manual override" };
+  if(item.cheat) return { tier:"indulgent", reason:"manual override" };
 
+  const cal = +item.cal || 0;
+  const p   = +item.p   || 0;
+  const c   = +item.c   || 0;
+  const f   = +item.f   || 0;
+  if(cal < 50) return { tier:"clean", reason:"low calorie" };
+
+  const proteinCal = p * 4;
+  const carbCal    = c * 4;
+  const fatCal     = f * 9;
+  const macroCal   = proteinCal + carbCal + fatCal;
+  if(macroCal === 0) return { tier:"clean", reason:"unknown macros" };
+
+  const carbPct    = carbCal / macroCal;
+  const fatPct     = fatCal  / macroCal;
+  const protein100 = (p / cal) * 100;       // grams of protein per 100 kcal
+  const carbDens   = (c / cal) * 100;       // grams of carbs per 100 kcal
+
+  // INDULGENT — clear flags
+  if(cal >= 100 && p < 2 && f < 2 && c > 10)
+    return { tier:"indulgent", reason:`liquid sugar / alcohol — ${c}g carbs, no protein/fat` };
+  if(cal >= 200 && carbPct > 0.65 && protein100 < 4)
+    return { tier:"indulgent", reason:`refined carbs — ${Math.round(carbPct*100)}% cal from carbs, only ${p.toFixed(1)}g protein` };
+  if(cal >= 200 && fatPct > 0.55 && protein100 < 5)
+    return { tier:"indulgent", reason:`high-fat — ${Math.round(fatPct*100)}% cal from fat, only ${p.toFixed(1)}g protein` };
+  if(cal >= 350 && protein100 < 4)
+    return { tier:"indulgent", reason:`empty calories — ${cal} kcal, only ${p.toFixed(1)}g protein` };
+  if(c >= 35 && carbDens > 18 && protein100 < 5)
+    return { tier:"indulgent", reason:`high carb density — ${c}g carbs in ${cal} kcal` };
+
+  // WATCH — borderline
+  if(cal >= 150 && carbPct > 0.55 && protein100 < 6)
+    return { tier:"watch", reason:`carb-heavy — ${Math.round(carbPct*100)}% cal from carbs` };
+  if(cal >= 150 && fatPct > 0.45 && protein100 < 6)
+    return { tier:"watch", reason:`fat-heavy — ${Math.round(fatPct*100)}% cal from fat` };
+  if(cal >= 250 && protein100 < 5)
+    return { tier:"watch", reason:`low protein density — ${p.toFixed(1)}g protein in ${cal} kcal` };
+
+  return { tier:"clean", reason:"balanced" };
+}
+
+// Backward-compat shim (some code still references it)
 function isCheatFood(item){
-  if(item.cheat) return true;
-  const n = (item.name||"").toLowerCase();
-  return CHEAT_KEYWORDS.some(k => n.includes(k));
+  return classifyFood(item).tier === "indulgent";
 }
 
 function renderUsuals(){
@@ -1627,12 +1667,18 @@ function applyRedFlags(){
     }
   }
 
-  // Mark cheat items in meal lists with red dot
-  document.querySelectorAll(".meal-list .meal-item").forEach(li => {
-    const name = (li.querySelector(".mi-name") || {}).textContent || "";
-    if(CHEAT_KEYWORDS.some(k => name.toLowerCase().includes(k)) || li.dataset.cheat === "1"){
-      li.classList.add("cheat");
-    }
+  // Mark items in meal lists by macro-based tier (indulgent / watch / clean)
+  const day = dayObj(currentDate);
+  ["breakfast","lunch","dinner","snacks"].forEach(meal => {
+    const lis = document.querySelectorAll(`.meal-list[data-list="${meal}"] .meal-item`);
+    (day.meals[meal] || []).forEach((item, i) => {
+      const li = lis[i];
+      if(!li) return;
+      li.classList.remove("cheat","watch","clean");
+      const { tier, reason } = classifyFood(item);
+      li.classList.add(tier);
+      li.title = reason;
+    });
   });
 }
 

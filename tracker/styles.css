@@ -530,3 +530,20 @@ a{color:inherit}
 /* Cheat food marker */
 .meal-list .meal-item.cheat{border-left:3px solid var(--pink);padding-left:9px;background:linear-gradient(90deg,#ffe6ee 0%,var(--cream) 60%)}
 .meal-list .meal-item.cheat .mi-name::after{content:" 🔴";font-size:9px;vertical-align:middle}
+
+/* ---------- MACRO-BASED FOOD TIERS (overrides keyword version) ---------- */
+.meal-list .meal-item.cheat,
+.meal-list .meal-item.indulgent{
+  border-left:3px solid var(--pink);
+  padding-left:9px;
+  background:linear-gradient(90deg,#ffe6ee 0%,var(--cream) 60%);
+}
+.meal-list .meal-item.cheat .mi-name::after,
+.meal-list .meal-item.indulgent .mi-name::after{content:" 🔴";font-size:10px;vertical-align:middle}
+.meal-list .meal-item.watch{
+  border-left:3px solid #ffb347;
+  padding-left:9px;
+  background:linear-gradient(90deg,#fff2dc 0%,var(--cream) 60%);
+}
+.meal-list .meal-item.watch .mi-name::after{content:" 🟡";font-size:10px;vertical-align:middle}
+.meal-list .meal-item.clean{}  /* no marker, default */

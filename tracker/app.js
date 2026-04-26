@@ -2282,13 +2282,36 @@ if(_origImportForSleep){
 // SYMPTOM TRACKER + smart banners + symptom-aware insights
 // =================================================================
 const COMMON_SYMPTOMS = [
-  "Stomach ache", "Bloating", "Heartburn", "Nausea",
-  "Headache", "Migraine", "Brain fog", "Anxiety",
-  "Low energy", "Fatigue", "Insomnia", "Restless sleep",
-  "Hunger spike", "Cravings", "Sugar crash",
-  "Sore throat", "Cough", "Runny nose", "Sick (cold/flu)",
-  "Allergies", "Skin breakout", "Joint pain", "Sore muscles",
-  "Cramps", "Dizziness", "Bloated face", "Water retention"
+  // Gastro / gut
+  "Stomach ache", "Bloating", "Heartburn", "Nausea", "Diarrhea", "Constipation",
+  "Gas", "IBS flare", "Acid reflux", "Cramps (gut)",
+  // Head / neuro
+  "Headache", "Migraine", "Brain fog", "Dizziness", "Tension headache", "Sinus pressure",
+  // Mood / mental
+  "Anxiety", "Depression", "Emotional / weepy", "Mood swings", "Irritability",
+  "Overwhelm", "Panic", "Apathy",
+  // Energy / sleep
+  "Low energy", "Fatigue", "Burnout", "Insomnia", "Restless sleep",
+  "Nightmares", "Wake-ups", "Hunger spike", "Cravings", "Sugar crash",
+  // Respiratory / ENT
+  "Sore throat", "Laryngitis", "Cough", "Runny nose", "Stuffy nose",
+  "Sinus infection", "Ear ache", "Strep", "Cold", "Pneumonia",
+  "Bronchitis", "Sick (cold/flu)", "Shortness of breath", "Wheeze",
+  // Skin / derm
+  "Acne", "Skin breakout", "Rash", "Hives", "Eczema flare",
+  "Cold sore", "Mouth ulcer / canker sore", "Dry skin", "Itchy skin",
+  // Vascular / circulation
+  "Raynaud's flare", "Cold hands/feet", "Bruising", "Tingling extremities",
+  // Joint / muscle
+  "Joint pain", "Sore muscles", "Back pain", "Neck pain", "Stiffness",
+  "Knee pain", "Shoulder pain", "Lower back pain",
+  // Hormonal / cycle
+  "Period cramps", "Hot flashes", "Night sweats", "PMS", "Breast tenderness",
+  "Acne (hormonal)", "Bloated face", "Water retention",
+  // General / immune
+  "Fever", "Chills", "Allergies", "Lymph node tender", "Cold sweats",
+  // Misc
+  "Eye strain", "Jaw / TMJ pain", "Tinnitus", "Acid mouth", "Dehydration headache"
 ];
 
 function getDaySymptoms(key){

@@ -3879,4 +3879,242 @@ function openActivityDetail(){
   });
 }
 
+
+// =================================================================
+// DETAIL OVERLAY — date navigation (overrides earlier basic version)
+// =================================================================
+let detailRefDate = new Date();
+
+function _addDays(d, n){ const x = new Date(d); x.setDate(x.getDate()+n); return x; }
+function _weekStart(d){ const x = new Date(d); x.setHours(0,0,0,0); const dow = x.getDay(); const diff = dow === 0 ? -6 : 1-dow; x.setDate(x.getDate()+diff); return x; }
+function _monthStart(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
+function _monthEnd(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0); }
+
+function getDetailRange(scale, ref){
+  if(scale === "1d")   return [new Date(ref), new Date(ref)];
+  if(scale === "7d")   return [_weekStart(ref), _addDays(_weekStart(ref), 6)];
+  if(scale === "30d")  return [_monthStart(ref), _monthEnd(ref)];
+  if(scale === "90d")  return [_addDays(ref, -89), new Date(ref)];
+  if(scale === "365d") return [new Date(ref.getFullYear(), 0, 1), new Date(ref.getFullYear(), 11, 31)];
+  return [new Date(ref), new Date(ref)];
+}
+
+function shiftRefDate(scale, dir){
+  const d = new Date(detailRefDate);
+  if(scale === "1d")   d.setDate(d.getDate() + dir);
+  if(scale === "7d")   d.setDate(d.getDate() + 7*dir);
+  if(scale === "30d")  d.setMonth(d.getMonth() + dir);
+  if(scale === "90d")  d.setDate(d.getDate() + 90*dir);
+  if(scale === "365d") d.setFullYear(d.getFullYear() + dir);
+  detailRefDate = d;
+}
+
+function rangeLabel(scale, ref){
+  const [s, e] = getDetailRange(scale, ref);
+  if(scale === "1d")   return ref.toLocaleDateString(undefined, {weekday:"long", month:"short", day:"numeric", year:"numeric"});
+  if(scale === "7d")   return `${s.toLocaleDateString(undefined,{month:"short",day:"numeric"})} – ${e.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"})}`;
+  if(scale === "30d")  return ref.toLocaleDateString(undefined,{month:"long",year:"numeric"});
+  if(scale === "90d")  return `${s.toLocaleDateString(undefined,{month:"short",day:"numeric"})} – ${e.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"})}`;
+  if(scale === "365d") return ref.getFullYear().toString();
+  return "";
+}
+
+function collectSeriesForRange(metric, scale, ref){
+  const m = METRICS[metric];
+  const [start, end] = getDetailRange(scale, ref);
+
+  // YEAR view: aggregate by month (12 bars instead of 365)
+  if(scale === "365d"){
+    const months = [];
+    for(let i = 0; i < 12; i++){
+      const ms = new Date(ref.getFullYear(), i, 1);
+      const me = new Date(ref.getFullYear(), i+1, 0);
+      let sum = 0, count = 0;
+      let cur = new Date(ms);
+      while(cur <= me){
+        const v = m.valueFor(todayKey(cur));
+        if(v != null && v > 0){ sum += v; count++; }
+        cur.setDate(cur.getDate()+1);
+      }
+      // For weight metric, store last known value per month rather than average
+      let val = count ? sum/count : null;
+      if(metric === "weight"){
+        // last weight in or before this month
+        const ws = (state.weights||[]).filter(w => w.date <= todayKey(me));
+        val = ws.length ? ws[ws.length-1].val : null;
+      }
+      months.push({ date: todayKey(ms), label: ms.toLocaleDateString(undefined,{month:"short"}), val });
+    }
+    return { mode:"month", series: months };
+  }
+
+  // Otherwise, day-level bars
+  const out = [];
+  let cur = new Date(start);
+  while(cur <= end){
+    const k = todayKey(cur);
+    out.push({ date:k, label:null, val: m.valueFor(k) });
+    cur.setDate(cur.getDate()+1);
+  }
+  return { mode:"day", series: out };
+}
+
+// Override the earlier render function with date-aware version
+renderDetailView = function(){
+  const m = METRICS[detailMetric];
+  if(!m) return;
+  document.getElementById("detailEyebrow").textContent = m.eyebrow;
+  document.getElementById("detailTitle").textContent = m.title;
+
+  // Range label + nav
+  document.getElementById("detailNavLabel").textContent = rangeLabel(detailScale, detailRefDate);
+  document.getElementById("detailDatePicker").value = todayKey(detailRefDate);
+
+  // Today's value (always today, regardless of refDate, for the big number)
+  const todayVal = m.valueFor(todayKey());
+  const unitStr = typeof m.unitLbl === "function" ? m.unitLbl() : m.unitLbl;
+  document.getElementById("dcNum").innerHTML = `${todayVal != null && todayVal !== 0 ? Math.round(todayVal*10)/10 : (todayVal === 0 ? "0" : "—")}<i>${unitStr}</i>`;
+  document.getElementById("dcSub").textContent = m.todaySub();
+
+  // Series for selected range
+  const { mode, series } = collectSeriesForRange(detailMetric, detailScale, detailRefDate);
+  const goal = m.goalFor();
+  const known = series.filter(s => s.val != null && s.val > 0);
+  const total = known.reduce((a,b)=>a+b.val,0);
+  const avg = known.length ? total/known.length : 0;
+  const best = known.length ? Math.max(...known.map(s => s.val)) : 0;
+  const daysHit = goal ? known.filter(s => s.val >= goal*0.9).length : 0;
+  const hitPct = known.length ? Math.round(daysHit/known.length*100) : 0;
+
+  const fmt = (v) => v == null ? "—" : (Math.round(v*10)/10).toString();
+
+  // Stats vary by scale
+  let statsCells = "";
+  if(detailScale === "1d"){
+    const v = series[0] ? series[0].val : null;
+    statsCells = `
+      <div class="dst-cell"><div class="dst-lbl">This day</div><div class="dst-val">${fmt(v)}<i>${unitStr}</i></div></div>
+      <div class="dst-cell"><div class="dst-lbl">Goal</div><div class="dst-val">${goal||"—"}<i>${goal?unitStr:""}</i></div></div>
+      <div class="dst-cell"><div class="dst-lbl">% of goal</div><div class="dst-val">${(v && goal) ? Math.round(v/goal*100) : "—"}<i>%</i></div></div>
+      <div class="dst-cell"><div class="dst-lbl">Status</div><div class="dst-val" style="font-size:14px">${v == null ? "Not logged" : (v >= goal*0.9 ? "On track" : (v > goal ? "Over goal" : "Below goal"))}</div></div>
+    `;
+  } else {
+    statsCells = `
+      <div class="dst-cell"><div class="dst-lbl">${mode==="month" ? "Avg / day" : "Average"}</div><div class="dst-val">${fmt(avg)}<i>${unitStr}</i></div></div>
+      <div class="dst-cell"><div class="dst-lbl">${mode==="month" ? "Total" : "Total"}</div><div class="dst-val">${fmt(total)}<i>${unitStr}</i></div></div>
+      <div class="dst-cell"><div class="dst-lbl">Best</div><div class="dst-val">${fmt(best)}<i>${unitStr}</i></div></div>
+      <div class="dst-cell"><div class="dst-lbl">Logged</div><div class="dst-val">${known.length}<i>/ ${series.length} ${mode==="month"?"months":"days"}</i></div></div>
+    `;
+    if(goal && known.length){
+      statsCells += `<div class="dst-cell dst-wide"><div class="dst-lbl">Goal hit rate (>= 90%)</div><div class="dst-val">${hitPct}%<i>${daysHit}/${known.length}</i></div><div class="dst-bar"><span style="width:${hitPct}%;background:${m.color}"></span></div></div>`;
+    }
+  }
+  document.getElementById("detailStats").innerHTML = statsCells;
+
+  // Recent list
+  const recent = series.slice().reverse().slice(0, mode==="month" ? 12 : 31);
+  document.getElementById("detailList").innerHTML = recent.map(s => {
+    const lbl = s.label || fmtDate(s.date);
+    return `<li class="dlist-row">
+      <span class="dl-d">${lbl}</span>
+      <span class="dl-v">${s.val == null ? "—" : (Math.round(s.val*10)/10) + " " + unitStr}</span>
+      ${goal && s.val != null ? (s.val >= goal*0.9 ? `<span class="dl-tag good">on track</span>` : (s.val > goal ? `<span class="dl-tag over">over</span>` : `<span class="dl-tag under">under</span>`)) : ""}
+    </li>`;
+  }).join("") || `<li class="dlist-empty">No data for this range yet.</li>`;
+
+  drawDetailChart(series, goal, m.color, unitStr, mode);
+};
+
+drawDetailChart = function(series, goal, color, unitStr, mode){
+  const ctx = document.getElementById("detailChart").getContext("2d");
+  if(_detailChart) _detailChart.destroy();
+  const labels = series.map(s => {
+    if(s.label) return s.label;
+    const d = new Date(s.date+"T00:00:00");
+    if(series.length <= 7)  return d.toLocaleDateString(undefined,{weekday:"short"});
+    if(series.length <= 31) return d.toLocaleDateString(undefined,{day:"numeric"});
+    return d.toLocaleDateString(undefined,{month:"short",day:"numeric"});
+  });
+  const data = series.map(s => s.val == null ? null : s.val);
+  const datasets = [{
+    data,
+    backgroundColor: color,
+    borderColor: color,
+    borderRadius: 4,
+    maxBarThickness: 26,
+    spanGaps: false,
+  }];
+  if(goal){
+    datasets.push({
+      type: "line",
+      data: labels.map(() => goal),
+      borderColor: "#666",
+      borderWidth: 1.5,
+      borderDash: [4,4],
+      pointRadius: 0,
+    });
+  }
+  _detailChart = new Chart(ctx, {
+    type: "bar",
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend:{display:false},
+        tooltip:{callbacks:{label:(c)=>`${c.parsed.y} ${unitStr}`}}
+      },
+      scales: {
+        y: { beginAtZero: true, grid:{color:"rgba(0,0,0,0.06)"}, ticks:{color:"#888",font:{size:10}}},
+        x: { grid:{display:false}, ticks:{color:"#888",font:{size:10},maxRotation:0,autoSkip:true,autoSkipPadding:8}}
+      }
+    }
+  });
+};
+
+// Override openDetail to reset refDate to today
+const _origOpenDetail = openDetail;
+openDetail = function(metric){
+  detailRefDate = new Date();
+  _origOpenDetail(metric);
+};
+
+// Update scale-button click handler so it preserves refDate
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".ds-btn").forEach(b => {
+    // remove old listener by cloning
+    const nb = b.cloneNode(true);
+    b.parentNode.replaceChild(nb, b);
+    nb.addEventListener("click", () => {
+      document.querySelectorAll(".ds-btn").forEach(x => x.classList.toggle("on", x === nb));
+      detailScale = nb.dataset.scale;
+      renderDetailView();
+    });
+  });
+
+  // Prev / Next arrows
+  const prev = document.getElementById("detailPrev");
+  const next = document.getElementById("detailNext");
+  if(prev) prev.addEventListener("click", () => { shiftRefDate(detailScale, -1); renderDetailView(); });
+  if(next) next.addEventListener("click", () => { shiftRefDate(detailScale,  1); renderDetailView(); });
+
+  // Date label opens picker
+  const lbl = document.getElementById("detailNavLabel");
+  const picker = document.getElementById("detailDatePicker");
+  if(lbl && picker){
+    lbl.addEventListener("click", () => {
+      picker.style.display = "block";
+      picker.focus();
+      try { picker.showPicker(); } catch(e){}
+    });
+    picker.addEventListener("change", () => {
+      const v = picker.value;
+      if(!v) return;
+      detailRefDate = new Date(v + "T00:00:00");
+      renderDetailView();
+      picker.style.display = "none";
+    });
+    picker.addEventListener("blur", () => { picker.style.display = "none"; });
+  }
+});
+
 })();

@@ -122,6 +122,22 @@
       </header>
 
       <div class="grid-12">
+        <!-- Activity rings (Apple-style) -->
+        <div class="card span-4 card-black">
+          <div class="card-head">
+            <span class="card-eyebrow eb-cyan">Activity Rings</span>
+            <button class="link-btn-sm" id="logActivityBtn">+ Log</button>
+          </div>
+          <div class="rings3-wrap">
+            <canvas id="rings3" width="220" height="220"></canvas>
+            <div class="rings3-stats">
+              <div class="r3-row r3-move"><span>Move</span><b id="r3Move">0/800</b><i>cal</i></div>
+              <div class="r3-row r3-ex"><span>Exercise</span><b id="r3Ex">0/60</b><i>min</i></div>
+              <div class="r3-row r3-st"><span>Stand</span><b id="r3St">0/16</b><i>hrs</i></div>
+            </div>
+          </div>
+          <div class="rings3-week" id="rings3Week"></div>
+        </div>
         <!-- Calorie ring -->
         <div class="card span-4">
           <div class="card-head">
@@ -469,7 +485,10 @@
           </form>
         </div>
         <div class="card span-6">
-          <div class="card-head"><span class="card-eyebrow">Daily goals</span></div>
+          <div class="card-head">
+            <span class="card-eyebrow">Daily goals</span>
+            <button type="button" class="link-btn-sm" id="macroCalcBtn">⚡ Calculate for me</button>
+          </div>
           <form id="goalsForm" class="form form-grid">
             <label><span>Calories</span><input type="number" id="setCal" min="800" max="6000" step="50"></label>
             <label><span>Protein (g)</span><input type="number" id="setP" min="0" max="500"></label>

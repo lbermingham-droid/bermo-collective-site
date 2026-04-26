@@ -1223,4 +1223,298 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+
+// =================================================================
+// APPLE-STYLE ACTIVITY RINGS (Move / Exercise / Stand)
+// =================================================================
+function getActivityForDay(key){
+  const day = dayObj(key);
+  if(!day.activity) day.activity = { move:0, exercise:0, stand:0 };
+  return day.activity;
+}
+function getActivityGoals(){
+  if(!state.activityGoals) state.activityGoals = { move:800, exercise:60, stand:16 };
+  return state.activityGoals;
+}
+
+function drawActivityRings(){
+  const canvas = document.getElementById("rings3");
+  if(!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0,0,w,h);
+  const cx = w/2, cy = h/2;
+  const a = getActivityForDay(currentDate);
+  const g = getActivityGoals();
+  const rings = [
+    { color:"#ff2d56", track:"#3a0a14", val:a.move,     goal:g.move,     r:88, lw:18 }, // Move (red)
+    { color:"#a8f000", track:"#1a2400", val:a.exercise, goal:g.exercise, r:65, lw:18 }, // Exercise (lime)
+    { color:"#00f5d4", track:"#003a32", val:a.stand,    goal:g.stand,    r:42, lw:18 }, // Stand (cyan)
+  ];
+  rings.forEach(ring => {
+    ctx.beginPath();
+    ctx.lineWidth = ring.lw;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = ring.track;
+    ctx.arc(cx, cy, ring.r, 0, Math.PI*2);
+    ctx.stroke();
+
+    const pct = Math.min(1, ring.val / Math.max(1, ring.goal));
+    if(pct > 0){
+      ctx.beginPath();
+      ctx.strokeStyle = ring.color;
+      ctx.arc(cx, cy, ring.r, -Math.PI/2, -Math.PI/2 + pct * Math.PI*2);
+      ctx.stroke();
+    }
+  });
+
+  document.getElementById("r3Move").textContent = `${Math.round(a.move)}/${g.move}`;
+  document.getElementById("r3Ex").textContent   = `${Math.round(a.exercise)}/${g.exercise}`;
+  document.getElementById("r3St").textContent   = `${Math.round(a.stand)}/${g.stand}`;
+
+  // Weekly strip
+  const wk = document.getElementById("rings3Week");
+  if(wk){
+    let html = "";
+    for(let i=6; i>=0; i--){
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const k = todayKey(d);
+      const da = (state.days[k] && state.days[k].activity) || { move:0, exercise:0, stand:0 };
+      const m = Math.min(1, da.move/g.move) * 100;
+      const e = Math.min(1, da.exercise/g.exercise) * 100;
+      const s = Math.min(1, da.stand/g.stand) * 100;
+      const dayLetter = d.toLocaleDateString(undefined,{weekday:"narrow"});
+      html += `<div class="rwk" title="${k}">
+        <div class="rwk-stack">
+          <div class="rwk-bar rwk-move"><span style="height:${m}%"></span></div>
+          <div class="rwk-bar rwk-ex"><span style="height:${e}%"></span></div>
+          <div class="rwk-bar rwk-st"><span style="height:${s}%"></span></div>
+        </div>
+        <div class="rwk-day">${dayLetter}</div>
+      </div>`;
+    }
+    wk.innerHTML = html;
+  }
+}
+
+function openActivityLogModal(){
+  const a = getActivityForDay(currentDate);
+  const g = getActivityGoals();
+  openModal("Log activity for " + fmtDate(currentDate), `
+    <p style="font-size:11px;color:#888;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin:0">From your Apple Watch summary, etc.</p>
+    <div class="form-grid">
+      <label><span>Move (cal burned)</span><input id="actMove" type="number" min="0" max="5000" value="${a.move||""}" placeholder="0"></label>
+      <label><span>Exercise (min)</span><input id="actEx" type="number" min="0" max="600" value="${a.exercise||""}" placeholder="0"></label>
+      <label><span>Stand (hrs)</span><input id="actSt" type="number" min="0" max="24" value="${a.stand||""}" placeholder="0"></label>
+    </div>
+    <details style="margin-top:8px">
+      <summary style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#888;font-weight:700;cursor:pointer">Adjust goals</summary>
+      <div class="form-grid" style="margin-top:10px">
+        <label><span>Move goal</span><input id="goalMove" type="number" min="100" max="3000" value="${g.move}"></label>
+        <label><span>Exercise goal</span><input id="goalEx" type="number" min="10" max="240" value="${g.exercise}"></label>
+        <label><span>Stand goal</span><input id="goalSt" type="number" min="6" max="24" value="${g.stand}"></label>
+      </div>
+    </details>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-cyan" id="actSave">Save</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    document.getElementById("actSave").addEventListener("click", () => {
+      const day = dayObj(currentDate);
+      day.activity = {
+        move: parseFloat(document.getElementById("actMove").value) || 0,
+        exercise: parseFloat(document.getElementById("actEx").value) || 0,
+        stand: parseFloat(document.getElementById("actSt").value) || 0,
+      };
+      state.activityGoals = {
+        move: parseInt(document.getElementById("goalMove").value,10) || 800,
+        exercise: parseInt(document.getElementById("goalEx").value,10) || 60,
+        stand: parseInt(document.getElementById("goalSt").value,10) || 16,
+      };
+      save(); closeModal(); renderAll();
+      toast("Activity logged", "cyan");
+    });
+  });
+}
+
+// =================================================================
+// MFP-STYLE MACRO CALCULATOR (Mifflin-St Jeor + Katch-McArdle)
+// =================================================================
+function openMacroCalcModal(){
+  const lastWeight = (state.weights[state.weights.length-1] || {}).val || "";
+  const lastBF = (state.measurements.slice().reverse().find(m => m.type==="bodyfat") || {}).val || "";
+  const profYear = state.profile.birthYear || "";
+  const sex = state.profile.sex || "f";
+  openModal("Calculate macros for me", `
+    <p style="font-size:12px;color:#666;line-height:1.5;margin:0 0 12px">Same math MyFitnessPal and most coaches use — Mifflin-St Jeor (or Katch-McArdle if you've logged body fat). Pulls latest weight + body fat from your log if available.</p>
+    <div class="form-grid">
+      <label><span>Sex</span>
+        <select id="mcSex"><option value="f" ${sex==="f"?"selected":""}>Female</option><option value="m" ${sex==="m"?"selected":""}>Male</option></select>
+      </label>
+      <label><span>Age</span><input id="mcAge" type="number" min="14" max="90" value="${profYear ? new Date().getFullYear()-profYear : ""}" placeholder="35"></label>
+      <label><span>Height (in or cm)</span><input id="mcHt" type="number" min="50" max="220" step="0.5" value="${state.profile.height||""}" placeholder="${state.profile.units==='metric'?'168':'66'}"></label>
+      <label><span>Weight (${unit()})</span><input id="mcWt" type="number" min="60" max="600" step="0.1" value="${lastWeight}" placeholder=""></label>
+      <label><span>Body fat % (optional)</span><input id="mcBF" type="number" min="3" max="60" step="0.1" value="${lastBF}" placeholder="auto from log"></label>
+      <label><span>Activity</span>
+        <select id="mcAct">
+          <option value="1.2">Sedentary (desk)</option>
+          <option value="1.375">Light (1-3 d/wk)</option>
+          <option value="1.55" selected>Moderate (3-5 d/wk)</option>
+          <option value="1.725">Heavy (6-7 d/wk)</option>
+          <option value="1.9">Athlete (2x/day)</option>
+        </select>
+      </label>
+      <label><span>Goal</span>
+        <select id="mcGoal">
+          <option value="cut">Lose fat (-500 cal)</option>
+          <option value="cutmild">Lose slow (-250 cal)</option>
+          <option value="maintain" selected>Maintain</option>
+          <option value="leanbulk">Build muscle (+250 cal)</option>
+          <option value="bulk">Bulk (+500 cal)</option>
+        </select>
+      </label>
+      <label><span>Macro split</span>
+        <select id="mcSplit">
+          <option value="balanced" selected>Balanced 30/40/30</option>
+          <option value="highprotein">High protein 40/35/25</option>
+          <option value="lowcarb">Low carb 30/20/50</option>
+          <option value="endurance">Endurance 20/55/25</option>
+        </select>
+      </label>
+    </div>
+    <div id="mcResult" class="mc-result hidden"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-cyan" id="mcCalc">Calculate</button>
+      <button class="btn btn-lime hidden" id="mcApply">Apply to goals</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    let computed = null;
+    document.getElementById("mcCalc").addEventListener("click", () => {
+      const sex = document.getElementById("mcSex").value;
+      const age = parseFloat(document.getElementById("mcAge").value);
+      let ht = parseFloat(document.getElementById("mcHt").value);
+      let wt = parseFloat(document.getElementById("mcWt").value);
+      const bf = parseFloat(document.getElementById("mcBF").value);
+      const act = parseFloat(document.getElementById("mcAct").value);
+      const goal = document.getElementById("mcGoal").value;
+      const split = document.getElementById("mcSplit").value;
+      if(isNaN(age) || isNaN(ht) || isNaN(wt)) { toast("Fill in age, height, weight", "pink"); return; }
+
+      // Convert to metric for the formulas
+      let kg = wt, cm = ht;
+      if(state.profile.units !== "metric"){ kg = wt * 0.4536; cm = ht * 2.54; }
+
+      let bmr;
+      let formula;
+      if(!isNaN(bf) && bf > 3 && bf < 60){
+        // Katch-McArdle: BMR = 370 + 21.6 * lean kg
+        const lean = kg * (1 - bf/100);
+        bmr = 370 + 21.6 * lean;
+        formula = "Katch-McArdle";
+      } else {
+        // Mifflin-St Jeor
+        bmr = 10*kg + 6.25*cm - 5*age + (sex === "m" ? 5 : -161);
+        formula = "Mifflin-St Jeor";
+      }
+      const tdee = bmr * act;
+      const adj = { cut:-500, cutmild:-250, maintain:0, leanbulk:250, bulk:500 }[goal];
+      const cal = Math.round(tdee + adj);
+
+      const splits = {
+        balanced:    [.30,.40,.30],
+        highprotein: [.40,.35,.25],
+        lowcarb:     [.30,.20,.50],
+        endurance:   [.20,.55,.25],
+      };
+      const [pP, cP, fP] = splits[split];
+      const protein = Math.round(cal * pP / 4);
+      const carbs   = Math.round(cal * cP / 4);
+      const fat     = Math.round(cal * fP / 9);
+      // Protein floor for muscle building / cut: at least 0.8g/lb body weight
+      const proteinFloor = Math.round(wt * 0.8);
+      const finalProtein = Math.max(protein, proteinFloor);
+
+      computed = { cal, protein: finalProtein, carbs, fat };
+
+      const lbsPerWeek = Math.abs(adj) * 7 / 3500;
+      const dir = adj < 0 ? "lose" : adj > 0 ? "gain" : "maintain";
+      const result = document.getElementById("mcResult");
+      result.classList.remove("hidden");
+      result.innerHTML = `
+        <div class="mc-grid">
+          <div><div class="mc-lbl">BMR</div><div class="mc-val">${Math.round(bmr)}</div><div class="mc-sub">${formula}</div></div>
+          <div><div class="mc-lbl">TDEE</div><div class="mc-val">${Math.round(tdee)}</div><div class="mc-sub">maintenance</div></div>
+          <div class="mc-hi"><div class="mc-lbl">Daily target</div><div class="mc-val">${cal}</div><div class="mc-sub">~${lbsPerWeek.toFixed(1)} ${unit()}/wk to ${dir}</div></div>
+        </div>
+        <div class="mc-macros">
+          <div><div class="mc-lbl mc-p">Protein</div><div class="mc-mval">${finalProtein}<i>g</i></div></div>
+          <div><div class="mc-lbl mc-c">Carbs</div><div class="mc-mval">${carbs}<i>g</i></div></div>
+          <div><div class="mc-lbl mc-f">Fat</div><div class="mc-mval">${fat}<i>g</i></div></div>
+        </div>
+      `;
+      document.getElementById("mcApply").classList.remove("hidden");
+    });
+    document.getElementById("mcApply").addEventListener("click", () => {
+      if(!computed) return;
+      state.goals.cal = computed.cal;
+      state.goals.protein = computed.protein;
+      state.goals.carbs = computed.carbs;
+      state.goals.fat = computed.fat;
+      save(); closeModal(); renderAll();
+      toast("Goals updated", "cyan");
+    });
+  });
+}
+
+// Hook into existing render and global init
+const _origRenderDashboard = typeof renderDashboard === "function" ? renderDashboard : null;
+if(_origRenderDashboard){
+  renderDashboard = function(){
+    _origRenderDashboard();
+    drawActivityRings();
+  };
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const a = document.getElementById("logActivityBtn");
+  if(a) a.addEventListener("click", openActivityLogModal);
+  const m = document.getElementById("macroCalcBtn");
+  if(m) m.addEventListener("click", openMacroCalcModal);
+});
+
+// Also import Active Energy + Apple Exercise Time from Health CSV if present
+const _origImportHealthCSV = typeof importHealthCSV === "function" ? importHealthCSV : null;
+if(_origImportHealthCSV){
+  importHealthCSV = function(text){
+    const result = _origImportHealthCSV(text);
+    // Re-parse to pick up activity columns
+    const lines = text.split(/\r?\n/).filter(l=>l.trim());
+    if(lines.length < 2) return result;
+    const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g,"").toLowerCase());
+    const findCol = (...n) => { for(let i=0;i<headers.length;i++) if(n.some(x => headers[i].includes(x))) return i; return -1; };
+    const dateIdx = findCol("date","start","time");
+    const moveIdx = findCol("active energy","activeenergy","active_energy");
+    const exIdx   = findCol("apple exercise time","exercise time","exercisetime");
+    const standIdx= findCol("apple stand hours","stand hours","standhours");
+    if(dateIdx === -1) return result;
+    let added = 0;
+    for(let i=1; i<lines.length; i++){
+      const cells = parseCsvLine(lines[i]);
+      const date = parseDate((cells[dateIdx]||"").trim());
+      if(!date) continue;
+      const day = dayObj(date);
+      if(!day.activity) day.activity = { move:0, exercise:0, stand:0 };
+      if(moveIdx>-1){ const v = parseFloat(cells[moveIdx]); if(!isNaN(v) && v>0){ day.activity.move = v; added++; } }
+      if(exIdx>-1){   const v = parseFloat(cells[exIdx]);   if(!isNaN(v) && v>0){ day.activity.exercise = v; added++; } }
+      if(standIdx>-1){const v = parseFloat(cells[standIdx]);if(!isNaN(v) && v>0){ day.activity.stand = v; added++; } }
+    }
+    if(added) result.activity = added;
+    return result;
+  };
+}
+
 })();

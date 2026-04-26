@@ -1517,4 +1517,162 @@ if(_origImportHealthCSV){
   };
 }
 
+
+// =================================================================
+// MEAL TEMPLATES ("My Usuals") + RED FLAG UI
+// =================================================================
+function getTemplates(){
+  if(!state.mealTemplates) state.mealTemplates = [];
+  return state.mealTemplates;
+}
+
+// Words that flag a food as a "cheat" / indulgence automatically
+const CHEAT_KEYWORDS = ["beer","wine","cocktail","margarita","whiskey","vodka","tequila",
+  "cheeseburger","fries","fried","pizza","candy","chocolate","dessert","ice cream",
+  "donut","cake","brownie","cookie","soda","latte","frappuccino","milkshake","bacon"];
+
+function isCheatFood(item){
+  if(item.cheat) return true;
+  const n = (item.name||"").toLowerCase();
+  return CHEAT_KEYWORDS.some(k => n.includes(k));
+}
+
+function renderUsuals(){
+  const grid = document.getElementById("usualsGrid");
+  if(!grid) return;
+  const tpls = getTemplates();
+  if(!tpls.length){
+    grid.innerHTML = `<div class="usuals-empty">No usuals saved yet. Use the <b>★ Save as usual</b> button on any meal block to save it.</div>`;
+    return;
+  }
+  grid.innerHTML = tpls.map(t => {
+    const totals = (t.items||[]).reduce((a,it)=>({cal:a.cal+it.cal,p:a.p+it.p,c:a.c+it.c,f:a.f+it.f}), {cal:0,p:0,c:0,f:0});
+    return `<div class="usual-card" data-id="${t.id}">
+      <div class="usual-head">
+        <div class="usual-name">${escape(t.name)}</div>
+        <button class="usual-del" data-del="${t.id}" title="Delete">×</button>
+      </div>
+      <div class="usual-meta">${t.items.length} item${t.items.length===1?"":"s"} · ${Math.round(totals.cal)} kcal · P${Math.round(totals.p)} C${Math.round(totals.c)} F${Math.round(totals.f)}</div>
+      <div class="usual-items">${t.items.slice(0,4).map(i => escape(i.name)).join(" · ")}${t.items.length>4?" · ...":""}</div>
+      <div class="usual-actions">
+        ${["breakfast","lunch","dinner","snacks"].map(m =>
+          `<button class="usual-add" data-add="${t.id}" data-meal="${m}">+ ${m}</button>`
+        ).join("")}
+      </div>
+    </div>`;
+  }).join("");
+
+  grid.querySelectorAll("[data-add]").forEach(b => b.addEventListener("click", () => {
+    const tpl = getTemplates().find(x => x.id === b.dataset.add);
+    if(!tpl) return;
+    const day = dayObj(currentDate);
+    tpl.items.forEach(it => {
+      day.meals[b.dataset.meal].push({ id:uid(), ...it });
+    });
+    save(); renderAll();
+    toast(`Logged ${tpl.name} → ${b.dataset.meal}`, "cyan");
+  }));
+  grid.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => {
+    if(!confirm("Delete this usual?")) return;
+    state.mealTemplates = getTemplates().filter(x => x.id !== b.dataset.del);
+    save(); renderUsuals();
+  }));
+}
+
+function saveMealAsTemplate(meal){
+  const day = dayObj(currentDate);
+  const items = (day.meals[meal] || []).map(it => ({
+    name:it.name, serving:it.serving, cal:it.cal, p:it.p, c:it.c, f:it.f, cheat:it.cheat
+  }));
+  if(!items.length){ toast("Nothing in that meal yet", "pink"); return; }
+  const default_name = `My ${capitalize(meal)}`;
+  const name = prompt("Name this usual:", default_name);
+  if(!name) return;
+  getTemplates().push({ id:"tpl-"+uid(), name:name.trim().slice(0,40), items, createdAt:todayKey() });
+  save(); renderAll();
+  toast(`Saved "${name}"`, "cyan");
+}
+
+// =================================================================
+// RED FLAG UI: paint over-goal bars red, mark cheat foods, banner
+// =================================================================
+function applyRedFlags(){
+  // Macro bars: add .over class when val > goal
+  const t = totalsFor(currentDate);
+  const g = state.goals;
+  const flagBar = (barId, val, goal) => {
+    const el = document.getElementById(barId);
+    if(!el) return;
+    el.classList.toggle("over", val > goal);
+    el.classList.toggle("warn", val > goal*0.9 && val <= goal);
+  };
+  flagBar("pBar", t.p, g.protein);
+  flagBar("cBar", t.c, g.carbs);
+  flagBar("fBar", t.f, g.fat);
+
+  // Calorie ring caption (already handled by chart color), plus banner
+  const banner = document.getElementById("overBanner");
+  const overCal = t.cal - g.cal;
+  if(banner){
+    if(overCal > 0){
+      banner.classList.remove("hidden");
+      banner.textContent = `🔴 Over by ${overCal} kcal — ${Math.round((overCal/g.cal)*100)}% above goal`;
+    } else if(t.cal > g.cal * 0.9){
+      banner.classList.remove("hidden");
+      banner.classList.add("warn");
+      banner.textContent = `⚠️ Within ${g.cal - t.cal} kcal of goal — careful`;
+    } else {
+      banner.classList.add("hidden");
+      banner.classList.remove("warn");
+    }
+  }
+
+  // Mark cheat items in meal lists with red dot
+  document.querySelectorAll(".meal-list .meal-item").forEach(li => {
+    const name = (li.querySelector(".mi-name") || {}).textContent || "";
+    if(CHEAT_KEYWORDS.some(k => name.toLowerCase().includes(k)) || li.dataset.cheat === "1"){
+      li.classList.add("cheat");
+    }
+  });
+}
+
+// =================================================================
+// HOOKS — extend existing renders without rewriting them
+// =================================================================
+const _origRenderNutritionForFlags = (typeof renderNutrition === "function") ? renderNutrition : null;
+if(_origRenderNutritionForFlags){
+  renderNutrition = function(){
+    _origRenderNutritionForFlags();
+    renderUsuals();
+    addSaveAsUsualButtons();
+    applyRedFlags();
+  };
+}
+const _origRenderDashboardForFlags = (typeof renderDashboard === "function") ? renderDashboard : null;
+if(_origRenderDashboardForFlags){
+  renderDashboard = function(){
+    _origRenderDashboardForFlags();
+    applyRedFlags();
+  };
+}
+
+function addSaveAsUsualButtons(){
+  // Each meal-head gets a "★ Save as usual" button (idempotent)
+  document.querySelectorAll(".meal-head").forEach(head => {
+    if(head.querySelector(".save-usual")) return;
+    const meal = head.parentElement.dataset.meal;
+    if(!meal) return;
+    const btn = document.createElement("button");
+    btn.className = "save-usual";
+    btn.type = "button";
+    btn.textContent = "★ Save as usual";
+    btn.title = "Save this meal as a one-tap template";
+    btn.addEventListener("click", () => saveMealAsTemplate(meal));
+    head.appendChild(btn);
+  });
+}
+
+// Mark cheat foods in their data attribute when rendering meal items
+const _origRender = renderNutrition;
+
 })();

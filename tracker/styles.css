@@ -494,3 +494,39 @@ a{color:inherit}
 .mc-p{color:var(--cyan)}
 .mc-c{color:#0a8538;background:none}
 .mc-f{color:var(--pink)}
+
+/* ---------- "MY USUALS" ---------- */
+.usuals-row{margin-top:32px}
+.usuals-head{margin-bottom:14px}
+.usuals-head h4{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gray);font-weight:700;margin:0 0 4px}
+.usuals-hint{font-size:11px;color:#888;font-style:italic}
+.usuals-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:900px){.usuals-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.usuals-grid{grid-template-columns:1fr}}
+.usuals-empty{grid-column:1/-1;background:#fff;border:1px dashed var(--lgray);border-radius:14px;padding:18px;text-align:center;color:#888;font-size:13px}
+.usuals-empty b{background:var(--lime);padding:2px 8px;border-radius:8px;font-weight:700;color:var(--black);font-size:12px}
+.usual-card{background:#fff;border:1px solid var(--lgray);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--shadow);transition:transform .15s,border-color .15s}
+.usual-card:hover{border-color:var(--cyan);transform:translateY(-2px)}
+.usual-head{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+.usual-name{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:15px;letter-spacing:-.01em;text-transform:uppercase;line-height:1.1}
+.usual-del{width:22px;height:22px;border-radius:50%;color:#bbb;font-size:14px;line-height:1;flex-shrink:0;transition:all .15s}
+.usual-del:hover{background:var(--pink);color:#fff}
+.usual-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gray);font-weight:600;letter-spacing:.5px}
+.usual-items{font-size:11px;color:#666;line-height:1.4;min-height:30px}
+.usual-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;margin-top:6px}
+.usual-add{font-size:9px;letter-spacing:1px;text-transform:uppercase;font-weight:700;background:var(--cream);color:var(--black);padding:6px;border-radius:6px;transition:all .15s}
+.usual-add:hover{background:var(--cyan)}
+
+/* "Save as usual" button on meal headers */
+.save-usual{font-size:9px;letter-spacing:1px;text-transform:uppercase;font-weight:700;background:transparent;color:var(--gray);padding:6px 10px;border-radius:100px;border:1px solid var(--lgray);transition:all .15s;margin-left:6px}
+.save-usual:hover{background:var(--lime);border-color:var(--lime);color:var(--black)}
+
+/* ---------- RED FLAGS / OVER-GOAL ---------- */
+.bar-fill.over{background:var(--pink) !important;box-shadow:0 0 0 2px rgba(255,45,122,0.2);width:100% !important}
+.bar-fill.warn{background:#ffb347 !important}
+.over-banner{background:linear-gradient(90deg,var(--pink) 0%,#ff5491 100%);color:#fff;padding:12px 18px;border-radius:12px;font-weight:700;font-size:13px;letter-spacing:.5px;margin-bottom:14px;box-shadow:0 4px 14px rgba(255,45,122,.2);display:flex;align-items:center;gap:8px}
+.over-banner.warn{background:linear-gradient(90deg,#ffb347 0%,#ffc875 100%)}
+
+/* Cheat food marker */
+.meal-list .meal-item.cheat{border-left:3px solid var(--pink);padding-left:9px;background:linear-gradient(90deg,#ffe6ee 0%,var(--cream) 60%)}
+.meal-list .meal-item.cheat .mi-name::after{content:" 🔴";font-size:9px;vertical-align:middle}

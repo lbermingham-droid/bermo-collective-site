@@ -5161,4 +5161,145 @@ if(_origRNW){
   };
 }
 
+
+// =================================================================
+// PLANNER ENHANCEMENTS — exercises field + Today's Plan mini box
+// =================================================================
+
+// Override openPlanDayModal to include exercises field
+openPlanDayModal = function(wkKey, dayName){
+  const plan = getPlan();
+  if(!plan[wkKey]) plan[wkKey] = {};
+  const cur = plan[wkKey][dayName] || {};
+  const opts = WORKOUT_TYPES.map(t => `<option value="${escape(t)}" ${t===cur.type?"selected":""}>${escape(t)}</option>`).join("");
+  const exercises = (cur.exercises || []);
+  const exHtml = exercises.length
+    ? exercises.map((ex,i) => `
+        <div class="ex-row" data-idx="${i}">
+          <input class="ex-name" type="text" placeholder="Exercise (e.g. Back Squat)" value="${escape(ex.name||"")}">
+          <input class="ex-sets" type="text" placeholder="5x5 @ 135" value="${escape(ex.scheme||"")}">
+          <button class="ex-del" type="button">×</button>
+        </div>
+      `).join("")
+    : "";
+  openModal(`Plan ${dayName.charAt(0).toUpperCase()+dayName.slice(1)}`, `
+    <label><span>Workout type</span>
+      <select id="planType">${opts}</select>
+    </label>
+    <label><span>Or custom name</span><input id="planCustom" type="text" placeholder="(leave blank to use selected above)" maxlength="40"></label>
+    <label><span>Notes</span><input id="planNotes" type="text" maxlength="160" value="${escape(cur.notes||"")}" placeholder="Specific focus, gear, etc."></label>
+
+    <div class="ex-section">
+      <div class="ex-h"><span>Exercises planned <i>(optional, copies week-to-week)</i></span><button type="button" class="ex-add" id="exAdd">+ Add exercise</button></div>
+      <div class="ex-list" id="exList">${exHtml}</div>
+    </div>
+
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      ${cur.type ? `<button class="btn btn-pink" id="planClear">Clear</button>` : ""}
+      <button class="btn btn-cyan" id="planSave">Save</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+
+    const exList = document.getElementById("exList");
+    const addExRow = (name="", scheme="") => {
+      const idx = exList.children.length;
+      const div = document.createElement("div");
+      div.className = "ex-row"; div.dataset.idx = idx;
+      div.innerHTML = `
+        <input class="ex-name" type="text" placeholder="Exercise (e.g. Back Squat)" value="${escape(name)}">
+        <input class="ex-sets" type="text" placeholder="5x5 @ 135" value="${escape(scheme)}">
+        <button class="ex-del" type="button">×</button>
+      `;
+      exList.appendChild(div);
+      div.querySelector(".ex-del").addEventListener("click", () => div.remove());
+    };
+    document.getElementById("exAdd").addEventListener("click", () => addExRow());
+    exList.querySelectorAll(".ex-del").forEach(b => b.addEventListener("click", () => b.closest(".ex-row").remove()));
+
+    document.getElementById("planSave").addEventListener("click", () => {
+      const custom = document.getElementById("planCustom").value.trim();
+      const type = custom || document.getElementById("planType").value;
+      const notes = document.getElementById("planNotes").value.trim();
+      const exercises = Array.from(exList.querySelectorAll(".ex-row")).map(row => ({
+        name: row.querySelector(".ex-name").value.trim(),
+        scheme: row.querySelector(".ex-sets").value.trim()
+      })).filter(x => x.name);
+      plan[wkKey][dayName] = { type, notes: notes||undefined, exercises: exercises.length ? exercises : undefined };
+      save(); closeModal(); renderPlan();
+      toast(`Planned: ${type}${exercises.length ? ` (${exercises.length} exercises)` : ""}`,"cyan");
+    });
+    const clear = document.getElementById("planClear");
+    if(clear) clear.addEventListener("click", () => {
+      delete plan[wkKey][dayName];
+      save(); closeModal(); renderPlan();
+    });
+  });
+};
+
+// Update plan day rendering to show planned exercises preview
+const _origRenderPlan = renderPlan;
+renderPlan = function(){
+  if(_origRenderPlan) _origRenderPlan();
+  // Add exercise preview to each plan-day card
+  document.querySelectorAll(".plan-day").forEach(d => {
+    const dayKey = d.dataset.date;
+    const dayName = d.dataset.day;
+    const wkKey_ = weekKey(weekStart(new Date(dayKey + "T00:00:00")));
+    const data = (state.plan && state.plan[wkKey_] && state.plan[wkKey_][dayName]) || {};
+    if(data.exercises && data.exercises.length && !d.querySelector(".pd-exercises")){
+      const ex = document.createElement("div");
+      ex.className = "pd-exercises";
+      ex.innerHTML = data.exercises.slice(0,3).map(e =>
+        `<div class="pd-ex">• ${escape(e.name)}${e.scheme?` <i>${escape(e.scheme)}</i>`:""}</div>`
+      ).join("") + (data.exercises.length > 3 ? `<div class="pd-ex pd-ex-more">+${data.exercises.length-3} more</div>` : "");
+      // Insert before pd-logged
+      const after = d.querySelector(".pd-logged, .pd-empty");
+      if(after) d.insertBefore(ex, after);
+      else d.appendChild(ex);
+    }
+  });
+};
+
+// ---- Today's Plan mini box on Fitness tab ----
+function renderPlanMini(){
+  const box = document.getElementById("planMini");
+  if(!box) return;
+  const dayNames = ["sun","mon","tue","wed","thu","fri","sat"];
+  const today = new Date();
+  const dayName = dayNames[today.getDay()];
+  const wkKey_ = weekKey(weekStart(today));
+  const planData = (state.plan && state.plan[wkKey_] && state.plan[wkKey_][dayName]) || null;
+  const typeEl = document.getElementById("planMiniType");
+  if(planData && planData.type){
+    typeEl.innerHTML = `${escape(planData.type)}${planData.exercises && planData.exercises.length ? ` <span class="pm-ex-count">· ${planData.exercises.length} exercise${planData.exercises.length===1?"":"s"}</span>` : ""}`;
+    box.classList.add("has-plan");
+  } else {
+    typeEl.textContent = "No plan set for today";
+    box.classList.remove("has-plan");
+  }
+}
+const _origRenderFitnessForMini = (typeof renderFitness === "function") ? renderFitness : null;
+if(_origRenderFitnessForMini){
+  renderFitness = function(){
+    _origRenderFitnessForMini();
+    renderPlanMini();
+  };
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const go = document.getElementById("planMiniGo");
+  if(go) go.addEventListener("click", () => {
+    const t = document.querySelector('.tab[data-tab="plan"], .mtab[data-tab="plan"]');
+    if(t) t.click();
+  });
+  const box = document.getElementById("planMini");
+  if(box) box.addEventListener("click", (e) => {
+    if(e.target.closest("button")) return;
+    const t = document.querySelector('.tab[data-tab="plan"], .mtab[data-tab="plan"]');
+    if(t) t.click();
+  });
+});
+
 })();

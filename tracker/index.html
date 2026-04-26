@@ -368,11 +368,6 @@
 
       </div>
 
-      <div class="dash-bottom-actions">
-        <button class="btn btn-ghost" id="hubCustomizeBtn">⚙ Customize hubs</button>
-        <button class="btn btn-ghost" id="dashCopyYesterday">Copy yesterday's meals</button>
-      </div>
-
       <!-- WOD CARD AT BOTTOM (de-emphasized, not a hub) -->
       <div class="wod-suggestion" id="wodSuggestion">
         <div class="ws-eyebrow">Today's workout suggestion</div>
@@ -388,7 +383,13 @@
         </div>
         <span id="wodType" class="hidden">—</span>
         <span id="wodTitle" class="hidden">—</span>
-      </div>    </section>
+      </div>
+
+      <div class="dash-bottom-actions">
+        <button class="btn btn-ghost" id="hubCustomizeBtn">⚙ Customize hubs</button>
+        <button class="btn btn-ghost" id="dashCopyYesterday">Copy yesterday's meals</button>
+      </div>
+    </section>
 
     <!-- ============ NUTRITION ============ -->
     <section class="view" id="view-nutrition">
@@ -500,23 +501,19 @@
       </header>
 
       <div class="grid-12">
-        <!-- Today's WOD -->
-        <div class="card span-7 card-black">
-          <div class="card-head">
-            <span class="card-eyebrow eb-lime">Today's WOD</span>
-            <span class="card-meta" id="fitWodType">—</span>
-          </div>
-          <h2 class="wod-title-lg" id="fitWodTitle">—</h2>
-          <pre class="wod-script" id="fitWodScript">—</pre>
-          <div class="wod-actions">
-            <button class="btn btn-lime" id="fitLogResult">+ Log result</button>
-            <button class="btn btn-ghost-light" id="fitShuffle">Shuffle</button>
-            <select id="fitWodPicker" class="wod-picker"></select>
+        <!-- Today's plan mini box (top of fitness) -->
+        <div class="card span-12 plan-mini" id="planMini">
+          <div class="pm-row">
+            <div>
+              <div class="pm-eyebrow">Today's Plan</div>
+              <div class="pm-type" id="planMiniType">No plan set</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="planMiniGo">Open Planner →</button>
           </div>
         </div>
 
         <!-- Lifts (SugarWOD-style categorized + drill-down) -->
-        <div class="card span-5" id="liftsCard">
+        <div class="card span-12" id="liftsCard">
           <div class="card-head">
             <span class="card-eyebrow" id="liftsCardEyebrow">Lifts · personal records</span>
             <button class="link-btn-sm" id="addPrBtn">+ Quick PR</button>
@@ -550,10 +547,23 @@
             <span>more</span>
           </div>
         </div>
+
+        <!-- WOD CARD AT BOTTOM (footer) -->
+        <div class="card span-12 card-black wod-bottom">
+          <div class="card-head">
+            <span class="card-eyebrow eb-lime">Today's WOD Suggestion</span>
+            <span class="card-meta" id="fitWodType">—</span>
+          </div>
+          <h2 class="wod-title-lg" id="fitWodTitle">—</h2>
+          <pre class="wod-script" id="fitWodScript">—</pre>
+          <div class="wod-actions">
+            <button class="btn btn-lime" id="fitLogResult">+ Log result</button>
+            <button class="btn btn-ghost-light" id="fitShuffle">Shuffle</button>
+            <select id="fitWodPicker" class="wod-picker"></select>
+          </div>
+        </div>
       </div>
     </section>
-
-    <!-- ============ PLAN ============ -->
     <section class="view" id="view-plan">
       <header class="view-head">
         <div>

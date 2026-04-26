@@ -3538,4 +3538,69 @@ document.addEventListener("click", (e) => {
   }
 });
 
+
+// =================================================================
+// PWA — Service worker registration + install-to-home-screen helper
+// =================================================================
+if("serviceWorker" in navigator){
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/tracker/sw.js").catch(() => {});
+  });
+}
+
+// Capture install prompt (Android Chrome) for in-app install button
+let _deferredInstallPrompt = null;
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  _deferredInstallPrompt = e;
+  const btn = document.getElementById("pwaInstallBtn");
+  if(btn) btn.style.display = "inline-flex";
+});
+
+// iOS detection (no beforeinstallprompt support)
+function isIOS(){
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+function isStandalone(){
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("pwaInstallBtn");
+  if(!btn) return;
+  if(isStandalone()){ btn.style.display = "none"; return; }
+  // Always show the button (will give iOS instructions on tap)
+  btn.style.display = "inline-flex";
+  btn.addEventListener("click", async () => {
+    if(_deferredInstallPrompt){
+      _deferredInstallPrompt.prompt();
+      const { outcome } = await _deferredInstallPrompt.userChoice;
+      if(outcome === "accepted") toast("Installed! Find icon on home screen","cyan");
+      _deferredInstallPrompt = null;
+      return;
+    }
+    if(isIOS()){
+      openModal("Install BERMO Tracker", `
+        <p style="font-size:13px;line-height:1.7;color:#444">On iPhone Safari:</p>
+        <ol style="font-size:13px;line-height:1.8;color:#444;padding-left:18px;margin:8px 0">
+          <li>Tap the <b>Share</b> button (square with arrow up) at the bottom of Safari</li>
+          <li>Scroll and tap <b>Add to Home Screen</b></li>
+          <li>Tap <b>Add</b> in the top right</li>
+        </ol>
+        <p style="font-size:12px;color:#888;margin:6px 0 0">The tracker will install with its own icon and launch full-screen, no browser bar.</p>
+        <div class="modal-foot"><button class="btn btn-cyan" data-close>Got it</button></div>
+      `, (root) => {
+        root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+      });
+      return;
+    }
+    openModal("Install BERMO Tracker", `
+      <p style="font-size:13px;line-height:1.7;color:#444">Look for an <b>Install</b> icon in your browser address bar (Chrome / Edge / Brave / Samsung) or use the browser menu → "Install app" / "Add to home screen".</p>
+      <div class="modal-foot"><button class="btn btn-cyan" data-close>OK</button></div>
+    `, (root) => {
+      root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    });
+  });
+});
+
 })();

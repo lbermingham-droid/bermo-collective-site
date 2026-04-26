@@ -2,11 +2,22 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover,user-scalable=no">
 <title>BERMO.TRACKER | Nutrition + Fitness Portal</title>
 <meta name="description" content="A nutrition and fitness tracking portal. Log food, macros, water, workouts, PRs, and body metrics. Personal data stored locally in your browser.">
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" href="/favicon.svg">
+
+<!-- PWA: install to home screen -->
+<link rel="manifest" href="/tracker/manifest.json">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BERMO Tracker">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<link rel="apple-touch-icon" href="/favicon.svg">
+<link rel="apple-touch-startup-image" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Inter+Tight:wght@600;700;800;900&family=Montserrat:wght@600;800;900&display=swap" rel="stylesheet">
@@ -98,6 +109,7 @@
         <div class="tb-menu" id="tbMenu">
           <button class="tbm-item" data-tab="settings">⚙ Profile + Goals</button>
           <button class="tbm-item" data-tab="history">📊 History + Export</button>
+          <button class="tbm-item" id="pwaInstallBtn" style="display:none">📱 Install on phone</button>
           <div class="tbm-sep"></div>
           <button class="tbm-item tbm-pink" id="tbmSignOut">↩ Sign out</button>
         </div>

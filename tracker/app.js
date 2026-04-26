@@ -4615,4 +4615,230 @@ document.addEventListener("DOMContentLoaded", () => {
   setupPTR();
 });
 
+
+// =================================================================
+// ACCOUNTABILITY PACK — Goal Contract, restart card, streak chain,
+//                       quick 3-tap check-in
+// =================================================================
+
+// ---- Goal Contract ----
+function getContract(){
+  if(!state.contract) state.contract = {
+    identity: "I am someone who shows up — even when it's hard.",
+    goal: "",
+    deadline: "",
+    consequence: "",
+    reward: ""
+  };
+  return state.contract;
+}
+function renderContract(){
+  const c = getContract();
+  const setText = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = txt; };
+  setText("ccIdentity", c.identity || "I am someone who shows up.");
+  setText("ccGoal", c.goal || "Set your goal in one sentence — what, by when.");
+  setText("ccDeadline", c.deadline ? fmtDate(c.deadline) : "Not set");
+  if(c.deadline){
+    const days = Math.ceil((new Date(c.deadline) - new Date()) / 86400000);
+    setText("ccDaysLeft", days < 0 ? "Past due" : days + " days");
+  } else {
+    setText("ccDaysLeft", "—");
+  }
+  // Streak number
+  let streak = 0;
+  try { streak = (typeof streakDays === "function") ? streakDays() : 0; } catch(e){}
+  setText("ccStreak", streak + " d");
+
+  // Chain visual: 30 links, filled per logged day in last 30
+  const chain = document.getElementById("ccChain");
+  if(chain){
+    const links = [];
+    for(let i = 29; i >= 0; i--){
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const k = todayKey(d);
+      const has = (function(){
+        const dd = state.days[k]; if(!dd) return false;
+        const meals = ["breakfast","lunch","dinner","snacks"].some(m => (dd.meals||{})[m] && dd.meals[m].length);
+        return meals || (dd.sessions||[]).length > 0 || dd.water > 0;
+      })();
+      links.push(has ? "filled" : "empty");
+    }
+    chain.innerHTML = links.map(s => `<span class="chain-link ${s}"></span>`).join("");
+    const filled = links.filter(s => s === "filled").length;
+    setText("ccChainText", `${filled} of 30 days strong · don't break it`);
+  }
+}
+function openContractModal(){
+  const c = getContract();
+  openModal("My Contract", `
+    <p style="font-size:12px;color:#666;margin:0 0 10px;line-height:1.5">Identity beats discipline. Write what you're committing to and why. The dashboard will hold you to it.</p>
+    <label><span>Identity statement (start with "I am someone who...")</span>
+      <textarea id="conIdentity" class="search-input" rows="2" maxlength="160" style="resize:vertical;min-height:60px">${escape(c.identity||"")}</textarea>
+    </label>
+    <label><span>The Goal — one sentence (what + by when)</span>
+      <textarea id="conGoal" class="search-input" rows="2" maxlength="200" placeholder='e.g. "Reach 145 lb by July 4" or "Hit protein 6/7 days for 60 days"' style="resize:vertical;min-height:60px">${escape(c.goal||"")}</textarea>
+    </label>
+    <label><span>Deadline</span><input id="conDeadline" type="date" value="${c.deadline||""}"></label>
+    <label><span>If I miss this, I will...</span>
+      <input id="conCons" type="text" maxlength="120" value="${escape(c.consequence||"")}" placeholder="donate $X to a charity I hate / no wine for a month / etc.">
+    </label>
+    <label><span>If I hit this, I will...</span>
+      <input id="conReward" type="text" maxlength="120" value="${escape(c.reward||"")}" placeholder="weekend trip / new gear / something meaningful">
+    </label>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-cyan" id="conSave">Sign + Save</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    document.getElementById("conSave").addEventListener("click", () => {
+      state.contract = {
+        identity: document.getElementById("conIdentity").value.trim(),
+        goal: document.getElementById("conGoal").value.trim(),
+        deadline: document.getElementById("conDeadline").value,
+        consequence: document.getElementById("conCons").value.trim(),
+        reward: document.getElementById("conReward").value.trim()
+      };
+      save(); closeModal(); renderContract();
+      toast("Contract signed","cyan");
+    });
+  });
+}
+
+// ---- Restart Card (compassionate prompt when struggling) ----
+function renderRestartCard(){
+  const card = document.getElementById("restartCard");
+  if(!card) return;
+  // Count consecutive missed days (back from today)
+  let missed = 0;
+  let d = new Date();
+  while(true){
+    const k = todayKey(d);
+    const has = (function(){
+      const dd = state.days[k]; if(!dd) return false;
+      const meals = ["breakfast","lunch","dinner","snacks"].some(m => (dd.meals||{})[m] && dd.meals[m].length);
+      return meals || (dd.sessions||[]).length > 0;
+    })();
+    if(has) break;
+    missed++; d.setDate(d.getDate()-1);
+    if(missed > 30) break;
+  }
+  // Don't show if dismissed today
+  const dismissedKey = "bermo.tracker.restartDismissed." + todayKey();
+  if(localStorage.getItem(dismissedKey) === "1"){ card.classList.add("hidden"); return; }
+  if(missed >= 3){
+    card.classList.remove("hidden");
+    const title = document.getElementById("rsTitle");
+    const sub = document.getElementById("rsSub");
+    title.textContent = `${missed} days happened. No guilt.`;
+    sub.textContent = `Real life. Real reasons. The fastest restart isn't perfection — it's any small action right now. You can be back on track in 30 seconds.`;
+  } else {
+    card.classList.add("hidden");
+  }
+}
+function setupRestartActions(){
+  const card = document.getElementById("restartCard");
+  if(!card) return;
+  document.getElementById("rsLogBreakfast").addEventListener("click", () => {
+    // Log first usual; if no usuals, open the food modal
+    const tpls = (state.mealTemplates||[]);
+    if(tpls.length){
+      const day = dayObj(currentDate);
+      tpls[0].items.forEach(it => day.meals.breakfast.push({ id:uid(), ...it }));
+      save(); renderAll();
+      toast(`Logged ${tpls[0].name}`, "cyan");
+    } else {
+      if(typeof openFoodModal === "function") openFoodModal("breakfast");
+    }
+  });
+  document.getElementById("rsLogWorkout").addEventListener("click", () => {
+    if(typeof openLiftModal === "function") openLiftModal();
+  });
+  document.getElementById("rsDismiss").addEventListener("click", () => {
+    localStorage.setItem("bermo.tracker.restartDismissed." + todayKey(), "1");
+    document.getElementById("restartCard").classList.add("hidden");
+  });
+}
+
+// ---- Quick 3-tap check-in (faster than full modal) ----
+function openQuickCheckin(){
+  const day = dayObj(currentDate);
+  if(!day.checkin) day.checkin = {};
+  const c = day.checkin;
+  openModal("Quick check-in (3 taps)", `
+    <p style="font-size:11px;color:#888;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin:0">Three Y/N questions. Done in 5 seconds.</p>
+    <div class="quick-q">
+      <div class="qq-text">Did you move today?<br><span>Walk, lift, anything ≥10 min</span></div>
+      <div class="qq-buttons">
+        <button class="qq-yes ${c.qMove===1?"on":""}" data-q="qMove" data-v="1">YES</button>
+        <button class="qq-no ${c.qMove===0?"on":""}" data-q="qMove" data-v="0">NO</button>
+      </div>
+    </div>
+    <div class="quick-q">
+      <div class="qq-text">Protein at every meal?<br><span>Goal: ${state.goals.protein}g total</span></div>
+      <div class="qq-buttons">
+        <button class="qq-yes ${c.qProtein===1?"on":""}" data-q="qProtein" data-v="1">YES</button>
+        <button class="qq-no ${c.qProtein===0?"on":""}" data-q="qProtein" data-v="0">NO</button>
+      </div>
+    </div>
+    <div class="quick-q">
+      <div class="qq-text">Sleep 7+ hours last night?<br><span>If no, we'll know</span></div>
+      <div class="qq-buttons">
+        <button class="qq-yes ${c.qSleep===1?"on":""}" data-q="qSleep" data-v="1">YES</button>
+        <button class="qq-no ${c.qSleep===0?"on":""}" data-q="qSleep" data-v="0">NO</button>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Done</button>
+      <button class="btn btn-cyan" id="qcMore">+ Add details</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => { save(); closeModal(); renderAll(); toast("Check-in saved","cyan"); }));
+    root.querySelectorAll("[data-q]").forEach(b => b.addEventListener("click", () => {
+      const q = b.dataset.q, v = parseInt(b.dataset.v, 10);
+      day.checkin[q] = v;
+      // Toggle visuals
+      root.querySelectorAll(`[data-q="${q}"]`).forEach(x => x.classList.toggle("on", x === b));
+    }));
+    document.getElementById("qcMore").addEventListener("click", () => {
+      save();
+      closeModal();
+      if(typeof openCheckinModal === "function") setTimeout(openCheckinModal, 100);
+    });
+  });
+}
+
+// ---- Hooks ----
+const _origRDForAcc = renderDashboard;
+renderDashboard = function(){
+  if(_origRDForAcc) _origRDForAcc();
+  renderContract();
+  renderRestartCard();
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  const e = document.getElementById("ccEditBtn");
+  if(e) e.addEventListener("click", openContractModal);
+  setupRestartActions();
+});
+
+// Replace the FAB "checkin" handler to use the 3-tap version
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll('[data-fab="checkin"]').forEach(b => {
+    const nb = b.cloneNode(true);
+    b.parentNode.replaceChild(nb, b);
+    nb.addEventListener("click", () => {
+      closeFAB();
+      setTimeout(openQuickCheckin, 150);
+    });
+  });
+  // Also wire the Trends "+ Daily check-in" header button to quick version
+  const tr = document.getElementById("trCheckinBtn");
+  if(tr){
+    const nb = tr.cloneNode(true);
+    tr.parentNode.replaceChild(nb, tr);
+    nb.addEventListener("click", openQuickCheckin);
+  }
+});
+
 })();

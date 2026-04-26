@@ -138,6 +138,42 @@
     <!-- ============ DASHBOARD ============ -->
     <section class="view active" id="view-dashboard">
       <div class="smart-banners" id="smartBanners"></div>
+
+      <!-- Restart card (only shows when struggling) -->
+      <div class="restart-card hidden" id="restartCard">
+        <div class="rs-icon">🤍</div>
+        <div class="rs-body">
+          <div class="rs-title" id="rsTitle">Last few days happened. No guilt.</div>
+          <div class="rs-sub" id="rsSub">One small action restarts it. You don't have to be perfect.</div>
+        </div>
+        <div class="rs-actions">
+          <button class="btn btn-cyan" id="rsLogBreakfast">Log usual breakfast</button>
+          <button class="btn btn-lime" id="rsLogWorkout">Log a quick workout</button>
+          <button class="btn btn-ghost" id="rsDismiss">Maybe later</button>
+        </div>
+      </div>
+
+      <!-- Goal Contract card (always visible, big, motivating) -->
+      <div class="contract-card" id="contractCard">
+        <div class="cc-grid">
+          <div class="cc-main">
+            <div class="cc-eyebrow">My Contract</div>
+            <div class="cc-identity" id="ccIdentity">I am someone who shows up — even when it's hard.</div>
+            <div class="cc-goal" id="ccGoal">Set your goal in one sentence — what, by when.</div>
+            <div class="cc-row">
+              <div class="cc-pair"><span class="cc-lbl">Deadline</span><span class="cc-val" id="ccDeadline">—</span></div>
+              <div class="cc-pair"><span class="cc-lbl">Days left</span><span class="cc-val" id="ccDaysLeft">—</span></div>
+              <div class="cc-pair"><span class="cc-lbl">Streak</span><span class="cc-val" id="ccStreak">0 d</span></div>
+            </div>
+          </div>
+          <div class="cc-side">
+            <div class="cc-chain" id="ccChain"></div>
+            <div class="cc-chain-text" id="ccChainText">No chain yet</div>
+            <button class="cc-edit" id="ccEditBtn">✎ Edit contract</button>
+          </div>
+        </div>
+      </div>
+
       <header class="view-head">
         <div>
           <p class="eyebrow">Today · <span id="dashDate"></span></p>

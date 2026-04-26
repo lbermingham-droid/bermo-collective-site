@@ -117,6 +117,7 @@
 
     <!-- ============ DASHBOARD ============ -->
     <section class="view active" id="view-dashboard">
+      <div class="smart-banners" id="smartBanners"></div>
       <header class="view-head">
         <div>
           <p class="eyebrow">Today · <span id="dashDate"></span></p>
@@ -523,6 +524,14 @@
             <span class="card-meta">strength + WOD days</span>
           </div>
           <div class="ctx-grid" id="ctxGrid"></div>
+        </div>
+
+        <div class="card span-12">
+          <div class="card-head">
+            <span class="card-eyebrow eb-pink">Symptoms + Health</span>
+            <button class="link-btn-sm" id="trSymptomBtn" style="background:var(--pink);color:#fff">+ Log symptom</button>
+          </div>
+          <div id="symptomPanel" class="symptom-panel">No symptoms logged yet. Use the button to add one — patterns surface in your insights.</div>
         </div>
       </div>
     </section>

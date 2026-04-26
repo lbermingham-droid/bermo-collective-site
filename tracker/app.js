@@ -2277,4 +2277,344 @@ if(_origImportForSleep){
   };
 }
 
+
+// =================================================================
+// SYMPTOM TRACKER + smart banners + symptom-aware insights
+// =================================================================
+const COMMON_SYMPTOMS = [
+  "Stomach ache", "Bloating", "Heartburn", "Nausea",
+  "Headache", "Migraine", "Brain fog", "Anxiety",
+  "Low energy", "Fatigue", "Insomnia", "Restless sleep",
+  "Hunger spike", "Cravings", "Sugar crash",
+  "Sore throat", "Cough", "Runny nose", "Sick (cold/flu)",
+  "Allergies", "Skin breakout", "Joint pain", "Sore muscles",
+  "Cramps", "Dizziness", "Bloated face", "Water retention"
+];
+
+function getDaySymptoms(key){
+  const d = dayObj(key);
+  if(!d.symptoms) d.symptoms = [];
+  return d.symptoms;
+}
+
+function openSymptomModal(){
+  openModal("Log symptom · " + fmtDate(currentDate), `
+    <p style="font-size:11px;color:#888;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin:0">Tracking symptoms helps the insight engine spot triggers.</p>
+    <label><span>Symptom</span>
+      <input id="symName" list="symList" type="text" class="search-input" placeholder="Stomach ache, headache, low energy..." required>
+      <datalist id="symList">${COMMON_SYMPTOMS.map(s => `<option value="${escape(s)}">`).join("")}</datalist>
+    </label>
+    <label><span>How bad? (1=mild, 5=severe)</span></label>
+    <div class="rating-row" id="symSevRow">
+      ${[1,2,3,4,5].map(v => `<button type="button" class="rate-btn" data-sev="${v}">${v}</button>`).join("")}
+    </div>
+    <div class="form-grid">
+      <label><span>When?</span>
+        <select id="symTime">
+          <option value="morning">Morning</option>
+          <option value="afternoon">Afternoon</option>
+          <option value="evening" selected>Evening</option>
+          <option value="night">Night</option>
+          <option value="all-day">All day</option>
+        </select>
+      </label>
+      <label><span>Suspected trigger?</span>
+        <select id="symTrigger">
+          <option value="">No idea</option>
+          <option value="food">Something I ate</option>
+          <option value="dairy">Dairy</option>
+          <option value="gluten">Gluten / bread</option>
+          <option value="sugar">Sugar / sweets</option>
+          <option value="alcohol">Alcohol</option>
+          <option value="caffeine">Caffeine</option>
+          <option value="dehydration">Dehydration</option>
+          <option value="poor sleep">Poor sleep</option>
+          <option value="stress">Stress</option>
+          <option value="cycle">Cycle / hormones</option>
+          <option value="workout">Workout</option>
+          <option value="weather">Weather change</option>
+        </select>
+      </label>
+    </div>
+    <label><span>Note (optional)</span><input id="symNote" type="text" maxlength="120" placeholder="Worse after dinner, started at 3pm..."></label>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-pink" id="symSave">Log symptom</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    let sev = 3;
+    root.querySelectorAll("[data-sev]").forEach((b, i) => {
+      if(i === 2) b.classList.add("on");
+      b.addEventListener("click", () => {
+        sev = parseInt(b.dataset.sev,10);
+        root.querySelectorAll("[data-sev]").forEach(x => x.classList.toggle("on", x === b));
+      });
+    });
+    document.getElementById("symSave").addEventListener("click", () => {
+      const name = document.getElementById("symName").value.trim();
+      if(!name){ toast("What was the symptom?","pink"); return; }
+      const time = document.getElementById("symTime").value;
+      const trigger = document.getElementById("symTrigger").value;
+      const note = document.getElementById("symNote").value.trim();
+      getDaySymptoms(currentDate).push({
+        id:uid(), name, severity:sev, time, trigger:trigger||null,
+        note:note||null, loggedAt:Date.now()
+      });
+      save(); closeModal(); renderAll();
+      toast("Symptom logged","pink");
+    });
+  });
+}
+
+function renderSymptomPanel(){
+  const panel = document.getElementById("symptomPanel");
+  if(!panel) return;
+  // Aggregate symptoms last 30 days
+  const dayKeys = Object.keys(state.days).sort().slice(-60);
+  const all = [];
+  dayKeys.forEach(k => (state.days[k].symptoms || []).forEach(s => all.push({...s, date:k})));
+  if(!all.length){
+    panel.innerHTML = `No symptoms logged yet. Use the button above to add one — patterns surface in your insights as you log.`;
+    return;
+  }
+  const counts = {};
+  all.forEach(s => { counts[s.name] = (counts[s.name]||0) + 1; });
+  const ranked = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const recent = all.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8);
+  panel.innerHTML = `
+    <div class="sym-grid">
+      <div>
+        <div class="sym-h">Top symptoms · last 60 days</div>
+        <div class="sym-bars">
+          ${ranked.map(([name, n]) => `
+            <div class="sym-bar">
+              <div class="sym-bar-name">${escape(name)}</div>
+              <div class="sym-bar-track"><span style="width:${Math.min(100, n/all.length*100)}%"></span></div>
+              <div class="sym-bar-count">${n}×</div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+      <div>
+        <div class="sym-h">Recent</div>
+        <ul class="sym-recent">
+          ${recent.map(s => `
+            <li>
+              <span class="sym-r-name">${escape(s.name)} <span class="sev sev-${s.severity}">${s.severity}/5</span></span>
+              <span class="sym-r-meta">${fmtDate(s.date)}${s.trigger?" · "+escape(s.trigger):""}${s.note?" · "+escape(s.note):""}</span>
+              <button class="sym-r-del" data-del="${s.date}|${s.id}" title="Delete">×</button>
+            </li>
+          `).join("")}
+        </ul>
+      </div>
+    </div>
+  `;
+  panel.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => {
+    const [dk, id] = b.dataset.del.split("|");
+    const arr = (state.days[dk] && state.days[dk].symptoms) || [];
+    const idx = arr.findIndex(x => x.id === id);
+    if(idx >= 0){ arr.splice(idx,1); save(); renderTrends(); }
+  }));
+}
+
+// ---------- Symptom-aware insights ----------
+function computeSymptomInsights(){
+  const out = [];
+  const dayKeys = Object.keys(state.days).sort();
+  if(dayKeys.length < 14) return out;
+
+  // Aggregate
+  const allSymptoms = [];
+  dayKeys.forEach(k => (state.days[k].symptoms || []).forEach(s => allSymptoms.push({...s, date:k})));
+  if(allSymptoms.length < 3) return out;
+
+  // Group by symptom name
+  const byName = {};
+  allSymptoms.forEach(s => { (byName[s.name] = byName[s.name] || []).push(s); });
+
+  Object.entries(byName).forEach(([name, occurrences]) => {
+    if(occurrences.length < 3) return;
+
+    // Look at the day-of and prior day for triggers
+    const symDays = new Set(occurrences.map(s => s.date));
+    const otherDays = dayKeys.filter(k => !symDays.has(k));
+    if(!otherDays.length) return;
+
+    // Sleep correlation
+    const sleepOnSym = occurrences.map(s => state.days[s.date].checkin && state.days[s.date].checkin.sleep).filter(v => v != null);
+    const sleepOther = otherDays.map(k => state.days[k].checkin && state.days[k].checkin.sleep).filter(v => v != null);
+    if(sleepOnSym.length >= 2 && sleepOther.length >= 3){
+      const a = avg(sleepOnSym), b = avg(sleepOther);
+      if(a < b - 0.7){
+        out.push({
+          icon:"💤", tier:"watch",
+          headline:`${name} appears after ${(b-a).toFixed(1)}h less sleep`,
+          body:`Avg sleep before "${name}" days: ${a.toFixed(1)}h. Other days: ${b.toFixed(1)}h. Sleep looks like a real trigger here.`
+        });
+      }
+    }
+
+    // Water correlation
+    const waterOnSym = occurrences.map(s => state.days[s.date].water || 0);
+    const waterOther = otherDays.map(k => state.days[k].water || 0);
+    const aw = avg(waterOnSym), bw = avg(waterOther);
+    if(aw < bw - 12 && bw > 0){
+      out.push({
+        icon:"💧", tier:"watch",
+        headline:`${name} happens on low-water days`,
+        body:`On "${name}" days you average ${Math.round(aw)} oz water vs ${Math.round(bw)} oz other days. Hydration is a likely factor.`
+      });
+    }
+
+    // Self-reported triggers
+    const triggers = occurrences.map(s => s.trigger).filter(Boolean);
+    if(triggers.length >= 2){
+      const counts = {};
+      triggers.forEach(t => counts[t] = (counts[t]||0)+1);
+      const [topTrigger, n] = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+      if(n >= 2){
+        out.push({
+          icon:"🎯", tier:"info",
+          headline:`You've flagged "${topTrigger}" as the trigger for ${name} ${n}× now`,
+          body:`That's the most common suspected trigger when this symptom shows up. Worth a small experiment: cut it for two weeks and see if frequency drops.`
+        });
+      }
+    }
+
+    // Cycle phase clustering
+    const cycle = getCycleData();
+    if(cycle.periods.length >= 2){
+      const phaseCount = { menstrual:0, follicular:0, ovulation:0, luteal:0 };
+      occurrences.forEach(s => {
+        const ph = cyclePhaseFor(s.date);
+        if(ph) phaseCount[ph]++;
+      });
+      const total = Object.values(phaseCount).reduce((a,b)=>a+b,0);
+      if(total >= 3){
+        const top = Object.entries(phaseCount).sort((a,b)=>b[1]-a[1])[0];
+        if(top[1] / total > 0.55){
+          out.push({
+            icon:"🌗", tier:"info",
+            headline:`${name} shows up most in your ${top[0]} phase`,
+            body:`${Math.round(top[1]/total*100)}% of "${name}" entries fell in ${top[0]} phase. Hormones likely a factor.`
+          });
+        }
+      }
+    }
+
+    // Seasonal pattern (sicknesses)
+    if(name.toLowerCase().includes("sick") || name.toLowerCase().includes("cold") || name.toLowerCase().includes("flu")){
+      const months = occurrences.map(s => parseInt(s.date.slice(5,7),10));
+      const counts = {};
+      months.forEach(m => counts[m] = (counts[m]||0)+1);
+      const ranked = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+      if(ranked.length && ranked[0][1] >= 2){
+        const monthName = new Date(2000, ranked[0][0]-1, 1).toLocaleDateString(undefined, {month:"long"});
+        out.push({
+          icon:"🤧", tier:"info",
+          headline:`${ranked[0][1]} sicknesses logged in ${monthName}`,
+          body:`Your sick days cluster in this month. Plan extra immune support / sleep / vitamin D heading into it.`
+        });
+      }
+    }
+  });
+
+  return out.slice(0, 6); // cap to keep insight list focused
+}
+
+// ---------- Smart banners (missed log, over-cal alert) ----------
+function renderSmartBanners(){
+  const wrap = document.getElementById("smartBanners");
+  if(!wrap) return;
+  const banners = [];
+  const today = todayKey();
+  const todayLogged = totalsFor(today).cal > 0 || (state.days[today] && state.days[today].sessions || []).length > 0;
+
+  // Missed log streak
+  let missed = 0;
+  const d = new Date();
+  while(true){
+    const k = todayKey(d);
+    const has = totalsFor(k).cal > 0 || (state.days[k] && (state.days[k].sessions||[]).length > 0);
+    if(has) break;
+    missed++;
+    d.setDate(d.getDate()-1);
+    if(missed > 14) break;
+  }
+  if(missed === 1){
+    banners.push({ tier:"watch", icon:"📅", text:"You haven't logged today yet. Small log keeps the streak alive." });
+  } else if(missed >= 2 && missed < 14){
+    banners.push({ tier:"alert", icon:"⚠️", text:`${missed} days without a log. Tap a "My Usual" or quick add to restart.` });
+  }
+
+  // Over-calorie alert (today specifically)
+  const t = totalsFor(today);
+  if(t.cal > state.goals.cal){
+    banners.push({ tier:"alert", icon:"🔴", text:`Over by ${t.cal - state.goals.cal} kcal today. Tomorrow is the reset.` });
+  } else if(t.cal > state.goals.cal * 0.9){
+    banners.push({ tier:"warn", icon:"⚠️", text:`Within ${state.goals.cal - t.cal} kcal of today's goal — careful with the rest of the day.` });
+  }
+
+  // Streak win
+  const streak = (function(){
+    let n = 0; const c = new Date();
+    while(true){
+      const k = todayKey(c);
+      const has = totalsFor(k).cal > 0 || (state.days[k] && (state.days[k].sessions||[]).length > 0);
+      if(!has) break;
+      n++; c.setDate(c.getDate()-1);
+      if(n > 365) break;
+    }
+    return n;
+  })();
+  if(streak >= 7 && todayLogged){
+    banners.push({ tier:"good", icon:"🔥", text:`${streak}-day logging streak. Consistency is the variable that actually matters.` });
+  }
+
+  wrap.innerHTML = banners.map(b => `<div class="sbanner sbanner-${b.tier}"><span class="sb-icon">${b.icon}</span>${escape(b.text)}</div>`).join("");
+}
+
+// ---------- Hooks ----------
+const _origRenderTrendsForSym = (typeof renderTrends === "function") ? renderTrends : null;
+if(_origRenderTrendsForSym){
+  renderTrends = function(){
+    _origRenderTrendsForSym();
+    renderSymptomPanel();
+    // Append symptom-driven insights to the existing list
+    const list = document.getElementById("insightsList");
+    if(list){
+      const extra = computeSymptomInsights();
+      if(extra.length){
+        const html = extra.map(i => `
+          <div class="ins-card ins-${i.tier}">
+            <div class="ins-icon">${i.icon}</div>
+            <div class="ins-body">
+              <div class="ins-headline">${escape(i.headline)}</div>
+              <div class="ins-text">${escape(i.body)}</div>
+            </div>
+          </div>`).join("");
+        list.insertAdjacentHTML("beforeend", html);
+        const totalEl = document.getElementById("trCount");
+        if(totalEl){
+          const cur = parseInt(totalEl.textContent, 10) || 0;
+          totalEl.textContent = (cur + extra.length) + " insight" + (cur + extra.length === 1 ? "" : "s");
+        }
+      }
+    }
+  };
+}
+const _origRenderDashForSb = (typeof renderDashboard === "function") ? renderDashboard : null;
+if(_origRenderDashForSb){
+  renderDashboard = function(){
+    _origRenderDashForSb();
+    renderSmartBanners();
+  };
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const s = document.getElementById("trSymptomBtn");
+  if(s) s.addEventListener("click", openSymptomModal);
+});
+
 })();

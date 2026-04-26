@@ -1353,3 +1353,78 @@ a{color:inherit}
   padding:18px 0;margin-top:8px;border-top:1px solid var(--lgray);
 }
 .dash-bottom-actions .btn{font-size:10px;letter-spacing:1.5px}
+
+/* ---------- BACK BUTTON on every page ---------- */
+.view-head{align-items:center}
+.view-back{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--cream);color:var(--black);
+  font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  padding:9px 14px 9px 10px;border-radius:100px;border:1px solid var(--lgray);
+  margin-right:14px;flex-shrink:0;transition:all .15s;cursor:pointer;
+}
+.view-back:hover{background:var(--cyan);border-color:var(--cyan)}
+.view-back svg{width:18px;height:18px;flex-shrink:0}
+.view-back span{line-height:1}
+@media(max-width:600px){
+  .view-back span{display:none}
+  .view-back{padding:9px 10px}
+}
+
+/* ---------- ACTIVITY WEEK STRIP — match nutrition style with circles ---------- */
+.activity-week{
+  display:grid !important;grid-template-columns:repeat(7,1fr) !important;
+  gap:6px !important;border-bottom:1px solid var(--lgray) !important;
+  padding-bottom:14px !important;margin-bottom:14px !important;border-top:none !important;padding-top:0 !important;
+}
+.aw-day{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:transform .15s}
+.aw-day:hover{transform:translateY(-2px)}
+.aw-letter{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray);font-weight:700}
+.aw-circle{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--cream);border:1.5px solid var(--lgray);
+  font-size:14px;font-weight:700;color:var(--gray);transition:all .15s;
+}
+.aw-day.empty .aw-circle{color:#bbb}
+.aw-day.good .aw-circle{background:#0a8538;border-color:#0a8538;color:#fff}
+.aw-day.good-some .aw-circle{background:var(--cyan);border-color:var(--cyan);color:var(--black);font-size:12px}
+.aw-day.low .aw-circle{background:#ffb347;border-color:#ffb347;color:#fff}
+.aw-day.today .aw-circle{box-shadow:0 0 0 2px var(--cyan)}
+.aw-day.today .aw-letter{color:var(--cyan)}
+
+/* Make nutrition week strip cells clickable too */
+.nw-day{cursor:pointer;transition:transform .15s}
+.nw-day:hover{transform:translateY(-2px)}
+
+/* ---------- COMPACT NUTRITION MACRO PILLS (one row, smaller) ---------- */
+.nut-summary{
+  display:grid !important;grid-template-columns:repeat(5,1fr) !important;
+  gap:6px !important;margin-bottom:18px !important;
+}
+.nut-pill{
+  padding:10px 12px !important;gap:1px !important;
+}
+.nut-pill span{font-size:8px !important;letter-spacing:1.2px !important}
+.nut-pill strong{font-size:18px !important;letter-spacing:-.02em !important;line-height:1}
+.nut-pill em{font-size:9px !important}
+@media(max-width:720px){
+  .nut-summary{gap:4px !important}
+  .nut-pill{padding:8px 6px !important}
+  .nut-pill strong{font-size:15px !important}
+  .nut-pill span{font-size:7px !important;letter-spacing:1px !important}
+  .nut-pill em{font-size:8px !important}
+}
+@media(max-width:380px){
+  .nut-pill strong{font-size:13px !important}
+}
+
+/* ---------- DAY QUICK-VIEW MODAL ---------- */
+.qv-rings{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0 4px}
+.qv-ring{
+  background:var(--cream);border-radius:12px;padding:12px 14px;
+  display:flex;flex-direction:column;gap:2px;
+}
+.qv-lbl{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);font-weight:700}
+.qv-val{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:22px;letter-spacing:-.02em;line-height:1;color:var(--black)}
+.qv-val i{font-family:'JetBrains Mono',monospace;font-style:normal;font-size:11px;color:var(--gray);font-weight:600;margin-left:3px}

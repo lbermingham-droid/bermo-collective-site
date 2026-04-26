@@ -5022,4 +5022,143 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+
+// =================================================================
+// FIXES — back buttons on all pages, activity week strip with status,
+//          day-click quick view, compact macros (CSS-driven)
+// =================================================================
+
+// ---- BACK BUTTON on every view header ----
+function addBackButtons(){
+  document.querySelectorAll(".view").forEach(view => {
+    if(view.id === "view-dashboard") return;          // dashboard is "home"
+    const head = view.querySelector(".view-head");
+    if(!head || head.querySelector(".view-back")) return;
+    const btn = document.createElement("button");
+    btn.className = "view-back";
+    btn.setAttribute("aria-label", "Back to dashboard");
+    btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg> <span>Home</span>`;
+    btn.addEventListener("click", () => {
+      const t = document.querySelector('.tab[data-tab="dashboard"], .mtab[data-tab="dashboard"]');
+      if(t) t.click();
+    });
+    head.insertBefore(btn, head.firstChild);
+  });
+}
+document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(addBackButtons, 100);
+});
+
+// ---- ACTIVITY WEEK STRIP — replace bars with status circles + day-click ----
+const _origDrawRingsForStrip = drawActivityRings;
+drawActivityRings = function(){
+  if(_origDrawRingsForStrip) _origDrawRingsForStrip();
+  // Override the bar-stack week strip with circle-status one
+  const wk = document.getElementById("rings3Week");
+  if(!wk) return;
+  const g = (state.activityGoals || { move:800, exercise:60, stand:16 });
+  const calGoal = state.goals.cal || 2200;
+  let html = "";
+  for(let i = 6; i >= 0; i--){
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const k = todayKey(d);
+    const da = (state.days[k] && state.days[k].activity) || { move:0, exercise:0, stand:0 };
+    const t = totalsFor(k);
+    // Score: how many of the 4 rings closed (>=100%)?
+    let closed = 0, partial = 0;
+    [
+      [da.move, g.move], [da.exercise, g.exercise],
+      [da.stand, g.stand], [t.cal, calGoal]
+    ].forEach(([v, goal]) => {
+      if(v >= goal) closed++;
+      else if(v > 0) partial++;
+    });
+    let status = "empty", icon = "·";
+    if(closed === 4){ status = "good"; icon = "✓"; }
+    else if(closed >= 1){ status = "good-some"; icon = closed.toString(); }
+    else if(partial > 0){ status = "low"; icon = "◐"; }
+    const dayLetter = d.toLocaleDateString(undefined,{weekday:"narrow"});
+    const isToday = i === 0;
+    html += `<div class="aw-day ${status} ${isToday?"today":""}" data-date="${k}" data-kind="activity" title="${k}">
+      <div class="aw-letter">${dayLetter}</div>
+      <div class="aw-circle"><span>${icon}</span></div>
+    </div>`;
+  }
+  wk.className = "hub-week activity-week";
+  wk.innerHTML = html;
+};
+
+// ---- DAY QUICK-VIEW POPOVER on day-strip clicks ----
+function openDayQuickView(dateKey, kind){
+  const d = new Date(dateKey + "T00:00:00");
+  const dStr = d.toLocaleDateString(undefined,{weekday:"long", month:"short", day:"numeric", year:"numeric"});
+  const t = totalsFor(dateKey);
+  const day = state.days[dateKey] || {};
+  const a = day.activity || { move:0, exercise:0, stand:0 };
+  const g = (state.activityGoals || { move:800, exercise:60, stand:16 });
+
+  // Different content for activity vs nutrition tap
+  let body;
+  if(kind === "activity"){
+    body = `
+      <div class="qv-rings">
+        <div class="qv-ring"><div class="qv-lbl">Move</div><div class="qv-val" style="color:#ff2d7a">${Math.round(a.move)}<i>/${g.move}</i></div></div>
+        <div class="qv-ring"><div class="qv-lbl">Exercise</div><div class="qv-val" style="color:#a8c500">${Math.round(a.exercise)}<i>/${g.exercise}</i></div></div>
+        <div class="qv-ring"><div class="qv-lbl">Stand</div><div class="qv-val" style="color:#00b89e">${Math.round(a.stand)}<i>/${g.stand}</i></div></div>
+        <div class="qv-ring"><div class="qv-lbl">Nutrition</div><div class="qv-val" style="color:#d68a26">${t.cal}<i>/${state.goals.cal}</i></div></div>
+      </div>
+    `;
+  } else {
+    body = `
+      <div class="qv-rings">
+        <div class="qv-ring"><div class="qv-lbl">Calories</div><div class="qv-val">${t.cal}<i>/${state.goals.cal}</i></div></div>
+        <div class="qv-ring"><div class="qv-lbl">Protein</div><div class="qv-val">${t.p}g<i>/${state.goals.protein}g</i></div></div>
+        <div class="qv-ring"><div class="qv-lbl">Carbs</div><div class="qv-val">${t.c}g<i>/${state.goals.carbs}g</i></div></div>
+        <div class="qv-ring"><div class="qv-lbl">Fat</div><div class="qv-val">${t.f}g<i>/${state.goals.fat}g</i></div></div>
+      </div>
+    `;
+  }
+
+  openModal(dStr, `
+    ${body}
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Close</button>
+      <button class="btn btn-cyan" id="qvOpenFull">View full day →</button>
+    </div>
+  `, () => {
+    document.getElementById("qvOpenFull").addEventListener("click", () => {
+      currentDate = dateKey;
+      closeModal();
+      const tab = kind === "activity" ? "dashboard" : "nutrition";
+      const t = document.querySelector(`.tab[data-tab="${tab}"], .mtab[data-tab="${tab}"]`);
+      if(t) t.click();
+      if(typeof renderAll === "function") renderAll();
+    });
+  });
+}
+
+// Delegate click on day-strip cells
+document.addEventListener("click", (e) => {
+  const aw = e.target.closest(".aw-day, .nw-day");
+  if(!aw) return;
+  e.stopPropagation();
+  const date = aw.dataset.date;
+  if(!date) return;
+  const kind = aw.dataset.kind || (aw.classList.contains("aw-day") ? "activity" : "nutrition");
+  openDayQuickView(date, kind);
+}, true);
+
+// ---- NUTRITION WEEK STRIP — add data-date / data-kind so clicks work ----
+const _origRNW = (typeof renderNutritionWeek === "function") ? renderNutritionWeek : null;
+if(_origRNW){
+  renderNutritionWeek = function(){
+    _origRNW();
+    document.querySelectorAll("#nutWeek .nw-day").forEach((el, idx) => {
+      const d = new Date(); d.setDate(d.getDate() - (6 - idx));
+      el.dataset.date = todayKey(d);
+      el.dataset.kind = "nutrition";
+    });
+  };
+}
+
 })();

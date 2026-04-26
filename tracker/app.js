@@ -3115,4 +3115,427 @@ if(_origRDForHints){
   };
 }
 
+
+// =================================================================
+// CATEGORIZED LIFTS (SugarWOD-style) + per-rep PRs + percentages
+// =================================================================
+const LIFT_CATEGORIES = [
+  { name:"Squats", lifts:[
+    "Back Squat","Box Squat","Front Box Squat","Front Pause Squat",
+    "Front Squat","High Bar Back Squat","Low Bar Back Squat",
+    "Overhead Squat","Pause Squat","Split Squat","Zercher Squat"
+  ]},
+  { name:"Deadlifts", lifts:[
+    "Deadlift","Sumo Deadlift","Romanian Deadlift","Stiff-leg Deadlift",
+    "Trap-bar Deadlift","Deficit Deadlift"
+  ]},
+  { name:"Cleans", lifts:[
+    "Clean","Power Clean","Hang Clean","Hang Power Clean","Squat Clean",
+    "Clean Pull","Clean Extension","Block Clean"
+  ]},
+  { name:"Snatches", lifts:[
+    "Snatch","Power Snatch","Hang Snatch","Hang Power Snatch","Squat Snatch",
+    "Snatch Pull","Snatch Balance","Block Snatch"
+  ]},
+  { name:"Press", lifts:[
+    "Strict Press","Push Press","Push Jerk","Split Jerk","Bench Press",
+    "Incline Bench Press","Close-grip Bench","DB Bench","DB Press"
+  ]},
+  { name:"Pull", lifts:[
+    "Pull-up","Strict Pull-up","Weighted Pull-up","Chin-up","Chest-to-Bar",
+    "Muscle-up","Bent Row","Pendlay Row"
+  ]},
+  { name:"Other", lifts:[
+    "Thruster","Hip Thrust","Good Morning","Clean & Jerk","Floor Press"
+  ]}
+];
+
+const REP_RANGES = [1, 2, 3, 5];
+
+function getRepPRs(){ if(!state.prsRep) state.prsRep = {}; return state.prsRep; }
+function get1RM(lift){
+  const r = getRepPRs()[lift];
+  if(r && r["1"]) return r["1"];
+  // fallback: estimate from any logged sets
+  let best = null;
+  Object.entries(state.days).forEach(([k, d]) => {
+    (d.sessions||[]).forEach(s => {
+      if(s.name === lift){
+        const est = Math.round(s.weight * (1 + s.reps/30));
+        if(!best || est > best.val) best = { val: est, date: k, est: true };
+      }
+    });
+  });
+  return best;
+}
+
+function renderLiftsList(){
+  const root = document.getElementById("liftsContent");
+  if(!root) return;
+  const eyebrow = document.getElementById("liftsCardEyebrow");
+  if(eyebrow) eyebrow.textContent = "Lifts · personal records";
+
+  const html = LIFT_CATEGORIES.map(cat => {
+    const items = cat.lifts.map(lift => {
+      const pr = get1RM(lift);
+      const valDisplay = pr ? `${pr.val}${unit()}${pr.est?" (est.)":""}` : "";
+      return `<li class="lift-row" data-lift="${escape(lift)}">
+        <span class="lift-name">${escape(lift)}</span>
+        <span class="lift-val">${valDisplay}</span>
+        <span class="lift-arrow">›</span>
+      </li>`;
+    }).join("");
+    return `<div class="lift-cat">
+      <div class="lift-cat-h">${cat.name}</div>
+      <ul class="lift-list">${items}</ul>
+    </div>`;
+  }).join("");
+  root.innerHTML = `<div class="lifts-scroll">${html}</div>`;
+  root.querySelectorAll(".lift-row").forEach(li => li.addEventListener("click", () => {
+    openLiftDetail(li.dataset.lift);
+  }));
+}
+
+function openLiftDetail(lift){
+  const root = document.getElementById("liftsContent");
+  const eyebrow = document.getElementById("liftsCardEyebrow");
+  if(!root) return;
+  if(eyebrow) eyebrow.innerHTML = `<button class="lift-back" id="liftBack">‹ Back</button> ${escape(lift)}`;
+
+  const prs = getRepPRs()[lift] || {};
+  const cards = REP_RANGES.map(r => {
+    const v = prs[String(r)];
+    return `<div class="rep-card ${v?"":"rep-empty"}">
+      <div class="rep-val">${v ? v.val : "--"}</div>
+      <div class="rep-lbl">${r} REP MAX</div>
+      ${v ? `<div class="rep-date">${fmtDate(v.date)}</div>` : ""}
+    </div>`;
+  }).join("");
+
+  // Build percentages — based on 1RM if available
+  const oneRM = (prs["1"] && prs["1"].val) || (get1RM(lift) || {}).val || null;
+  const pcts = [105, 100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30];
+
+  const pctTabsHtml = REP_RANGES.map((r,i) => `<button class="pct-tab ${i===0?"on":""}" data-pct="${r}">${r} REP</button>`).join("");
+  const pctGrid = pcts.map(p => {
+    const w = oneRM ? Math.round(oneRM * p / 100) : "--";
+    return `<div class="pct-cell"><div class="pct-w">${w}</div><div class="pct-p">${p}%</div></div>`;
+  }).join("");
+
+  // History — all sets logged for this lift
+  const history = [];
+  Object.entries(state.days).forEach(([k, d]) => {
+    (d.sessions||[]).forEach(s => {
+      if(s.name === lift) history.push({...s, date:k});
+    });
+  });
+  history.sort((a,b)=>b.date.localeCompare(a.date));
+  const histHtml = history.length
+    ? history.slice(0,20).map(h => `
+        <li class="lift-hist-row">
+          <span class="lh-w">${h.weight}${unit()} × ${h.reps}${h.sets>1?" × "+h.sets:""}</span>
+          <span class="lh-d">${fmtDate(h.date)}</span>
+          ${h.notes ? `<span class="lh-n">${escape(h.notes)}</span>` : ""}
+        </li>`).join("")
+    : `<li class="lift-hist-empty">No history available.</li>`;
+
+  root.innerHTML = `
+    <div class="lift-detail">
+      <div class="lift-d-actions">
+        <button class="btn btn-cyan btn-sm" id="liftEditPRs">✎ Edit PRs</button>
+        <button class="btn btn-lime btn-sm" id="liftLogSet">+ Log Lift</button>
+      </div>
+      <div class="rep-grid">${cards}</div>
+
+      <div class="pct-section">
+        <div class="lift-section-h">Percentages</div>
+        <div class="pct-tabs">${pctTabsHtml}</div>
+        <div class="pct-grid">${pctGrid}</div>
+      </div>
+
+      <div class="lift-hist">
+        <div class="lift-section-h">History</div>
+        <ul class="lift-hist-list">${histHtml}</ul>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("liftBack").addEventListener("click", renderLiftsList);
+  document.getElementById("liftEditPRs").addEventListener("click", () => openEditPRsModal(lift));
+  document.getElementById("liftLogSet").addEventListener("click", () => {
+    if(typeof openLiftModal === "function"){
+      openLiftModal();
+      // Pre-fill the lift name
+      setTimeout(() => {
+        const ln = document.getElementById("liftName");
+        if(ln) ln.value = lift;
+      }, 100);
+    }
+  });
+  // Tab switching for percentages
+  document.querySelectorAll(".pct-tab").forEach(t => t.addEventListener("click", () => {
+    document.querySelectorAll(".pct-tab").forEach(x => x.classList.toggle("on", x===t));
+    const r = t.dataset.pct;
+    const base = (prs[r] && prs[r].val) || oneRM;
+    const cells = document.querySelectorAll(".pct-cell .pct-w");
+    pcts.forEach((p,i) => {
+      cells[i].textContent = base ? Math.round(base * p / 100) : "--";
+    });
+  }));
+}
+
+function openEditPRsModal(lift){
+  const prs = getRepPRs()[lift] || {};
+  openModal(lift + " · Edit PRs", `
+    <p style="font-size:12px;color:#666;margin:0 0 8px">Enter your current best for each rep range. Auto-updates when you log sets.</p>
+    <div class="edit-pr-grid">
+      ${REP_RANGES.map(r => `
+        <div class="edit-pr-row">
+          <label><input id="pr_${r}" type="number" step="0.5" min="0" value="${prs[String(r)] ? prs[String(r)].val : ""}" placeholder="--"> <span>${r} REP MAX (${unit()})</span></label>
+        </div>
+      `).join("")}
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-cyan" id="prSaveAll">Save</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    document.getElementById("prSaveAll").addEventListener("click", () => {
+      const all = getRepPRs();
+      if(!all[lift]) all[lift] = {};
+      REP_RANGES.forEach(r => {
+        const v = parseFloat(document.getElementById("pr_"+r).value);
+        if(!isNaN(v) && v > 0){
+          all[lift][String(r)] = { val: v, date: todayKey() };
+        } else {
+          delete all[lift][String(r)];
+        }
+      });
+      // Mirror 1RM into legacy state.prs for backward-compat
+      if(all[lift]["1"]) state.prs[lift] = { val: all[lift]["1"].val, date: all[lift]["1"].date, unit: unit() };
+      save(); closeModal();
+      openLiftDetail(lift);
+      toast("PRs saved","cyan");
+    });
+  });
+}
+
+// Auto-update per-rep PRs when a set is logged
+function updateRepPRsFromSet(set){
+  const all = getRepPRs();
+  if(!all[set.name]) all[set.name] = {};
+  REP_RANGES.forEach(r => {
+    if(set.reps >= r){
+      const cur = all[set.name][String(r)];
+      if(!cur || set.weight > cur.val){
+        all[set.name][String(r)] = { val: set.weight, date: todayKey() };
+        toast(`PR! ${set.name} ${r}RM = ${set.weight}${unit()}`, "cyan");
+      }
+    }
+  });
+  save();
+}
+
+// Hook into existing fitness render to use new lift list
+const _origRenderFitness = (typeof renderFitness === "function") ? renderFitness : null;
+if(_origRenderFitness){
+  renderFitness = function(){
+    _origRenderFitness();
+    renderLiftsList();
+  };
+}
+
+// =================================================================
+// PLAN — Weekly workout planner
+// =================================================================
+const WORKOUT_TYPES = [
+  // Body parts
+  "Legs", "Upper Body", "Lower Body", "Push", "Pull", "Full Body",
+  "Arms", "Shoulders", "Back", "Chest", "Glutes", "Core",
+  // Activities
+  "CrossFit / WOD", "Olympic Lifting", "Powerlifting",
+  "Running", "Cycling", "Swimming", "Rowing",
+  "Pilates", "Yoga", "Barre", "HIIT",
+  // Recovery
+  "Mobility", "Stretching", "Active Recovery", "Rest day"
+];
+
+function getPlan(){ if(!state.plan) state.plan = {}; return state.plan; }
+function weekKey(date){
+  // ISO week key: YYYY-W##
+  const d = new Date(date);
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate() + 4 - (d.getDay()||7)); // Thursday of week
+  const y0 = new Date(d.getFullYear(),0,1);
+  const w = Math.ceil(((d - y0) / 86400000 + 1)/7);
+  return `${d.getFullYear()}-W${String(w).padStart(2,"0")}`;
+}
+function weekStart(date){
+  // Monday-start
+  const d = new Date(date);
+  d.setHours(0,0,0,0);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  return d;
+}
+
+let planViewDate = new Date();
+
+function renderPlan(){
+  const grid = document.getElementById("planGrid");
+  if(!grid) return;
+  const wkStart = weekStart(planViewDate);
+  const wkKey = weekKey(wkStart);
+  const plan = getPlan();
+  const weekData = plan[wkKey] || {};
+  const isPast = wkKey < weekKey(weekStart(new Date()));
+  const isFuture = wkKey > weekKey(weekStart(new Date()));
+
+  document.getElementById("planWeekLabel").innerHTML = `
+    <b>${wkStart.toLocaleDateString(undefined,{month:"short",day:"numeric"})} – ${new Date(wkStart.getTime()+6*86400000).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"})}</b>
+    <span class="plan-week-tag">${wkKey}${isPast?" · locked":isFuture?" · future":" · this week"}</span>
+  `;
+
+  const dayNames = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  let html = "";
+  for(let i=0;i<7;i++){
+    const date = new Date(wkStart.getTime() + i*86400000);
+    const dayKey = todayKey(date);
+    const planType = (weekData[dayNames[i].toLowerCase()] || {}).type || null;
+    const sessions = (state.days[dayKey] && state.days[dayKey].sessions) || [];
+    const wodResult = state.days[dayKey] && state.days[dayKey].wodResult;
+    const isToday = dayKey === todayKey();
+    const logged = sessions.length > 0 || !!wodResult;
+
+    html += `<div class="plan-day ${isToday?"today":""} ${isPast?"past":""}" data-day="${dayNames[i].toLowerCase()}" data-date="${dayKey}">
+      <div class="pd-head">
+        <span class="pd-name">${dayNames[i]}</span>
+        <span class="pd-date">${date.toLocaleDateString(undefined,{month:"short",day:"numeric"})}</span>
+      </div>
+      ${planType
+        ? `<div class="pd-type ${typeColor(planType)}">${escape(planType)}</div>`
+        : `<button class="pd-add ${isPast?"hidden":""}">+ Plan</button>`}
+      ${logged
+        ? `<div class="pd-logged">✓ ${sessions.length}${sessions.length?" set"+(sessions.length===1?"":"s"):""}${wodResult?" · WOD":""}</div>`
+        : `<div class="pd-empty">${isPast?"":(isToday?"Log when done":"")}</div>`}
+    </div>`;
+  }
+  grid.innerHTML = html;
+
+  grid.querySelectorAll(".plan-day").forEach(d => {
+    d.addEventListener("click", (e) => {
+      if(e.target.closest(".pd-add")) return;
+      // Click → log workout for that date
+      const dk = d.dataset.date;
+      currentDate = dk;
+      const t = document.querySelector('.tab[data-tab="fitness"]');
+      if(t) t.click();
+    });
+  });
+  grid.querySelectorAll(".pd-add").forEach(b => b.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const dayName = b.closest(".plan-day").dataset.day;
+    openPlanDayModal(wkKey, dayName);
+  }));
+}
+
+function typeColor(t){
+  const lower = t.toLowerCase();
+  if(/leg|squat|lower|glute/.test(lower)) return "pt-cyan";
+  if(/push|chest|shoulder|press/.test(lower)) return "pt-pink";
+  if(/pull|back|row/.test(lower)) return "pt-lime";
+  if(/cross|wod|hiit|olym|power/.test(lower)) return "pt-orange";
+  if(/run|cycl|swim|row|cardio/.test(lower)) return "pt-blue";
+  if(/yoga|pilat|barre|mobil|stretch|recov|rest/.test(lower)) return "pt-purple";
+  return "pt-gray";
+}
+
+function openPlanDayModal(wkKey, dayName){
+  const plan = getPlan();
+  if(!plan[wkKey]) plan[wkKey] = {};
+  const cur = plan[wkKey][dayName] || {};
+  const opts = WORKOUT_TYPES.map(t => `<option value="${escape(t)}" ${t===cur.type?"selected":""}>${escape(t)}</option>`).join("");
+  openModal(`Plan ${dayName.charAt(0).toUpperCase()+dayName.slice(1)}`, `
+    <label><span>Workout type</span>
+      <select id="planType">${opts}</select>
+    </label>
+    <label><span>Or custom</span><input id="planCustom" type="text" placeholder="(leave blank to use selected above)" maxlength="40"></label>
+    <label><span>Notes</span><input id="planNotes" type="text" maxlength="120" value="${escape(cur.notes||"")}" placeholder="Specific exercises, sets, etc."></label>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      ${cur.type ? `<button class="btn btn-pink" id="planClear">Clear</button>` : ""}
+      <button class="btn btn-cyan" id="planSave">Save</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    document.getElementById("planSave").addEventListener("click", () => {
+      const custom = document.getElementById("planCustom").value.trim();
+      const type = custom || document.getElementById("planType").value;
+      const notes = document.getElementById("planNotes").value.trim();
+      plan[wkKey][dayName] = { type, notes: notes||undefined };
+      save(); closeModal(); renderPlan();
+      toast(`Planned: ${type}`,"cyan");
+    });
+    const clear = document.getElementById("planClear");
+    if(clear) clear.addEventListener("click", () => {
+      delete plan[wkKey][dayName];
+      save(); closeModal(); renderPlan();
+    });
+  });
+}
+
+function autofillFromLastWeek(){
+  const plan = getPlan();
+  const wkStart_ = weekStart(planViewDate);
+  const wkKey_ = weekKey(wkStart_);
+  const prevDate = new Date(wkStart_.getTime() - 7*86400000);
+  const prevKey = weekKey(prevDate);
+  const prev = plan[prevKey];
+  if(!prev || !Object.keys(prev).length){ toast("No previous week to copy","pink"); return; }
+  if(!plan[wkKey_]) plan[wkKey_] = {};
+  let copied = 0;
+  ["mon","tue","wed","thu","fri","sat","sun"].forEach(d => {
+    if(prev[d] && !plan[wkKey_][d]){
+      plan[wkKey_][d] = { ...prev[d] };
+      copied++;
+    }
+  });
+  save(); renderPlan();
+  toast(copied ? `Copied ${copied} day${copied===1?"":"s"} from last week` : "No empty days to fill","cyan");
+}
+
+// Hook tab routing
+const _origGoForPlan = (typeof go === "function") ? go : null;
+if(_origGoForPlan){
+  go = function(tab){
+    _origGoForPlan(tab);
+    if(tab === "plan") renderPlan();
+  };
+}
+
+// Wire planner buttons
+document.addEventListener("DOMContentLoaded", () => {
+  const p = document.getElementById("planPrevWeek");
+  if(p) p.addEventListener("click", () => { planViewDate = new Date(weekStart(planViewDate).getTime() - 7*86400000); renderPlan(); });
+  const n = document.getElementById("planNextWeek");
+  if(n) n.addEventListener("click", () => { planViewDate = new Date(weekStart(planViewDate).getTime() + 7*86400000); renderPlan(); });
+  const a = document.getElementById("planAutofill");
+  if(a) a.addEventListener("click", autofillFromLastWeek);
+});
+
+// Hook openLiftModal to also update rep PRs (intercept its save)
+// We attach a delegated listener so once a session is added, we update PRs.
+// (The original openLiftModal already pushes the session to day.sessions.)
+document.addEventListener("click", (e) => {
+  if(e.target && e.target.id === "liftSave"){
+    setTimeout(() => {
+      const day = dayObj(currentDate);
+      const last = (day.sessions||[])[(day.sessions||[]).length-1];
+      if(last && last.weight && last.reps) updateRepPRsFromSet(last);
+    }, 80);
+  }
+});
+
 })();

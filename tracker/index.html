@@ -81,6 +81,7 @@
       <button class="tab active" data-tab="dashboard">Dashboard</button>
       <button class="tab" data-tab="nutrition">Nutrition</button>
       <button class="tab" data-tab="fitness">Fitness</button>
+      <button class="tab" data-tab="plan">Plan</button>
       <button class="tab" data-tab="body">Body</button>
       <button class="tab" data-tab="trends">Trends</button>
       <button class="tab" data-tab="history">History</button>
@@ -109,6 +110,7 @@
     <button class="mtab active" data-tab="dashboard"><span>◎</span>Home</button>
     <button class="mtab" data-tab="nutrition"><span>◍</span>Food</button>
     <button class="mtab" data-tab="fitness"><span>◈</span>Lift</button>
+    <button class="mtab" data-tab="plan"><span>▤</span>Plan</button>
     <button class="mtab" data-tab="body"><span>◐</span>Body</button>
     <button class="mtab" data-tab="trends"><span>✦</span>Trends</button>
   </nav>
@@ -387,13 +389,13 @@
           </div>
         </div>
 
-        <!-- PRs -->
-        <div class="card span-5">
+        <!-- Lifts (SugarWOD-style categorized + drill-down) -->
+        <div class="card span-5" id="liftsCard">
           <div class="card-head">
-            <span class="card-eyebrow">Personal records</span>
-            <button class="link-btn-sm" id="addPrBtn">+ Add</button>
+            <span class="card-eyebrow" id="liftsCardEyebrow">Lifts · personal records</span>
+            <button class="link-btn-sm" id="addPrBtn">+ Quick PR</button>
           </div>
-          <ul class="pr-list" id="prList"></ul>
+          <div id="liftsContent"><ul class="pr-list" id="prList"></ul></div>
         </div>
 
         <!-- Today's sessions -->
@@ -423,6 +425,24 @@
           </div>
         </div>
       </div>
+    </section>
+
+    <!-- ============ PLAN ============ -->
+    <section class="view" id="view-plan">
+      <header class="view-head">
+        <div>
+          <p class="eyebrow">Plan · weekly schedule</p>
+          <h1 class="view-h1">Workout Planner</h1>
+        </div>
+        <div class="view-head-actions">
+          <button class="btn btn-ghost" id="planPrevWeek">← Prev week</button>
+          <button class="btn btn-ghost" id="planNextWeek">Next week →</button>
+          <button class="btn btn-cyan" id="planAutofill">⟳ Auto-fill from last week</button>
+        </div>
+      </header>
+      <div class="plan-week-label" id="planWeekLabel">—</div>
+      <div class="plan-grid" id="planGrid"></div>
+      <p class="plan-note">Plan a workout for each day. Past weeks stay locked so you can see what you actually did. Click a day to log results — when you log, your lift PRs auto-update.</p>
     </section>
 
     <!-- ============ BODY ============ -->

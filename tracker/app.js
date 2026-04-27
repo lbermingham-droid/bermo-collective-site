@@ -1600,6 +1600,7 @@ function openActivityLogModal(){
   const a = getActivityForDay(currentDate);
   const g = getActivityGoals();
   const sourceLabel = a.source === "applehealth" ? "Apple Health import" : a.source === "auto" ? "Auto-derived from your logs" : a.manual ? "Manual entry (override)" : "Manual entry";
+  const sessionsToday = ((state.days[currentDate] || {}).sessions || []).length;
   openModal("Log activity for " + fmtDate(currentDate), `
     <p style="font-size:11px;color:#888;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin:0 0 4px">Source: ${sourceLabel}</p>
     <p style="font-size:12px;color:#888;line-height:1.5;margin:0 0 10px">Leave blank to auto-derive from your food + lift logs. Or paste your Apple Watch summary numbers to override.</p>
@@ -1607,6 +1608,15 @@ function openActivityLogModal(){
       <label><span>Move (cal burned)</span><input id="actMove" type="number" min="0" max="5000" value="${a.move||""}" placeholder="0"></label>
       <label><span>Exercise (min)</span><input id="actEx" type="number" min="0" max="600" value="${a.exercise||""}" placeholder="0"></label>
       <label><span>Stand (hrs)</span><input id="actSt" type="number" min="0" max="24" value="${a.stand||""}" placeholder="0"></label>
+    </div>
+    <div class="act-workout-block" style="margin-top:12px;padding:10px;border:1px dashed var(--navy-line-2);border-radius:8px">
+      <p style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--cyan);font-weight:700;margin:0 0 6px">${sessionsToday ? "Workout already logged" : "What did you do?"}</p>
+      ${sessionsToday
+        ? `<p style="font-size:11px;color:#888;margin:0">${sessionsToday} session(s) on the lift page. Skip the box below — Move/Exercise will auto-fill from those.</p>`
+        : `<input id="actWorkoutText" type="text" placeholder="e.g. 30 min run · CrossFit WOD · Legs day" style="width:100%;padding:8px 10px;border-radius:6px;font-size:13px">
+           <label style="display:flex;gap:6px;align-items:center;margin-top:8px;font-size:11px;color:#bbb">
+             <input id="actAlsoLog" type="checkbox" checked> Also log it on the Fitness page
+           </label>`}
     </div>
     <details style="margin-top:8px">
       <summary style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#888;font-weight:700;cursor:pointer">Adjust goals</summary>
@@ -1638,6 +1648,21 @@ function openActivityLogModal(){
         stand: parseFloat(document.getElementById("actSt").value) || 0,
         manual: true,
       };
+      // Optional: log workout description to fitness page
+      const workoutEl = document.getElementById("actWorkoutText");
+      const alsoLogEl = document.getElementById("actAlsoLog");
+      if(workoutEl && workoutEl.value.trim() && alsoLogEl && alsoLogEl.checked){
+        if(!day.sessions) day.sessions = [];
+        day.sessions.push({
+          id: uid(),
+          name: workoutEl.value.trim(),
+          lift: workoutEl.value.trim(),
+          weight: 0, reps: 0, sets: 1,
+          type: "cardio",
+          notes: `Logged from rings · ${day.activity.exercise} min`,
+          loggedFromRings: true,
+        });
+      }
       state.activityGoals = {
         move: parseInt(document.getElementById("goalMove").value,10) || 800,
         exercise: parseInt(document.getElementById("goalEx").value,10) || 60,
@@ -4440,26 +4465,55 @@ drawActivityRings = function(){
   const calVal = t.cal;
   const calGoal = state.goals.cal || 2200;
 
-  // Brand-flavored colors (NOT Apple's exact)
+  // BERMO ring: gradient stroke + thick + segmented dots at the head
   const rings = [
-    { color:"#ff2d7a", track:"#3a0a18", val:a.move,     goal:g.move,     r:78, lw:14 }, // Move (pink)
-    { color:"#c8f500", track:"#2a3300", val:a.exercise, goal:g.exercise, r:60, lw:14 }, // Exercise (lime)
-    { color:"#00f5d4", track:"#003028", val:a.stand,    goal:g.stand,    r:42, lw:14 }, // Stand (cyan)
-    { color:"#ffb347", track:"#3a2b10", val:calVal,     goal:calGoal,    r:24, lw:14 }, // Nutrition (orange)
+    { c1:"#ff2d7a", c2:"#ff6b35", track:"rgba(255,45,122,.10)", val:a.move,     goal:g.move,     r:80, lw:16 },
+    { c1:"#c8f500", c2:"#7be600", track:"rgba(200,245,0,.10)",  val:a.exercise, goal:g.exercise, r:60, lw:16 },
+    { c1:"#00f5d4", c2:"#00b8a3", track:"rgba(0,245,212,.10)",  val:a.stand,    goal:g.stand,    r:40, lw:16 },
+    { c1:"#ffb347", c2:"#ff8c1a", track:"rgba(255,179,71,.10)", val:calVal,     goal:calGoal,    r:20, lw:16 },
   ];
   rings.forEach(ring => {
+    // Track
     ctx.beginPath();
     ctx.lineWidth = ring.lw;
-    ctx.lineCap = "round";
+    ctx.lineCap = "butt";
     ctx.strokeStyle = ring.track;
     ctx.arc(cx, cy, ring.r, 0, Math.PI*2);
     ctx.stroke();
     const pct = Math.min(1, ring.val / Math.max(1, ring.goal));
     if(pct > 0){
+      // Gradient sweep
+      const grad = ctx.createLinearGradient(cx-ring.r, cy-ring.r, cx+ring.r, cy+ring.r);
+      grad.addColorStop(0, ring.c1);
+      grad.addColorStop(1, ring.c2);
       ctx.beginPath();
-      ctx.strokeStyle = ring.color;
+      ctx.strokeStyle = grad;
+      ctx.lineCap = "butt";
       ctx.arc(cx, cy, ring.r, -Math.PI/2, -Math.PI/2 + pct * Math.PI*2);
       ctx.stroke();
+      // Head dot — distinctive "bead" at progress tip
+      const tipAngle = -Math.PI/2 + pct * Math.PI*2;
+      const tipX = cx + Math.cos(tipAngle) * ring.r;
+      const tipY = cy + Math.sin(tipAngle) * ring.r;
+      ctx.beginPath();
+      ctx.fillStyle = ring.c1;
+      ctx.arc(tipX, tipY, ring.lw*0.55, 0, Math.PI*2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.fillStyle = "#fff";
+      ctx.arc(tipX, tipY, ring.lw*0.18, 0, Math.PI*2);
+      ctx.fill();
+    }
+    // Tick marks at quarters for the unique BERMO look
+    for(let q = 0; q < 4; q++){
+      const ang = -Math.PI/2 + q * Math.PI/2;
+      const x1 = cx + Math.cos(ang) * (ring.r - ring.lw/2 - 1);
+      const y1 = cy + Math.sin(ang) * (ring.r - ring.lw/2 - 1);
+      const x2 = cx + Math.cos(ang) * (ring.r + ring.lw/2 + 1);
+      const y2 = cy + Math.sin(ang) * (ring.r + ring.lw/2 + 1);
+      ctx.strokeStyle = "rgba(255,255,255,.35)";
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
     }
   });
 
@@ -5359,13 +5413,22 @@ drawActivityRings = function(){
   if(!wk) return;
   const g = (state.activityGoals || { move:800, exercise:60, stand:16 });
   const calGoal = state.goals.cal || 2200;
+  // Get this week's plan to inline lift type per day
+  const plan = state.plan || {};
+  const today = new Date(); today.setHours(0,0,0,0);
+  const weekOffset = (today.getDay() + 6) % 7;
+  const monday = new Date(today); monday.setDate(today.getDate() - weekOffset);
+  const wkKey = (typeof weekKey === "function") ? weekKey(monday) : null;
+  const wkPlan = (wkKey && plan[wkKey]) || {};
+  const planNames = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
   let html = "";
   for(let i = 6; i >= 0; i--){
     const d = new Date(); d.setDate(d.getDate() - i);
     const k = todayKey(d);
-    const da = (state.days[k] && state.days[k].activity) || { move:0, exercise:0, stand:0 };
+    const dayObjEntry = state.days[k] || {};
+    const da = (typeof getActivityForDay === "function") ? getActivityForDay(k) : (dayObjEntry.activity || { move:0, exercise:0, stand:0 });
     const t = totalsFor(k);
-    // Score: how many of the 4 rings closed (>=100%)?
     let closed = 0, partial = 0;
     [
       [da.move, g.move], [da.exercise, g.exercise],
@@ -5380,15 +5443,34 @@ drawActivityRings = function(){
     else if(partial > 0){ status = "low"; icon = "◐"; }
     const dayLetter = d.toLocaleDateString(undefined,{weekday:"narrow"});
     const isToday = i === 0;
-    html += `<div class="aw-day ${status} ${isToday?"today":""}" data-date="${k}" data-kind="activity">
+    // Workout-type label for this day (logged > planned > —)
+    const dIso = new Date(d); dIso.setHours(0,0,0,0);
+    const planDayName = planNames[(dIso.getDay() + 6) % 7];
+    const planEntry = wkPlan[planDayName];
+    const sessions = dayObjEntry.sessions || [];
+    let liftLabel = "—", liftCls = "";
+    if(dIso > today){
+      liftLabel = planEntry ? planEntry.type : "—";
+      if(!planEntry) liftCls = "lift-future";
+    } else if(dayObjEntry.skipped){
+      liftLabel = "SKIP"; liftCls = "lift-skipped";
+    } else if(sessions.length){
+      const first = sessions[0];
+      liftLabel = (first.lift || first.exercise || first.name || planEntry?.type || "Done").slice(0, 8);
+    } else if(planEntry){
+      liftLabel = planEntry.type.slice(0, 8);
+    } else {
+      liftCls = "lift-future";
+    }
+    html += `<div class="aw-day ${status} ${isToday?"today":""} ${liftCls}" data-date="${k}" data-kind="activity">
       <div class="aw-letter">${dayLetter}</div>
       <div class="aw-circle"><span>${icon}</span></div>
+      <div class="aw-lift">${escape(liftLabel)}</div>
     </div>`;
   }
   wk.className = "hub-week activity-week";
   wk.innerHTML = html;
-  // Lifts mini-strip: planned workout type per day this week
-  renderLiftMiniStrip(wk);
+  // (Old separate lift-mini-strip removed — consolidated above)
 };
 
 // Lifts mini-strip — week of planned workout types

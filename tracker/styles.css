@@ -1778,3 +1778,184 @@ a{color:inherit}
 
 /* ---------- APPLE HEALTH ---------- */
 .ah-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ============================================================
+   NAVY / CYAN / HOT-PINK / WHITE THEME + COMPRESSION
+   (appended override layer — kept at bottom to win specificity)
+   ============================================================ */
+:root{
+  --navy-bg: #0b1424;
+  --navy-card: #122036;
+  --navy-card-2: #18293f;
+  --navy-line: rgba(255,255,255,.08);
+  --navy-line-2: rgba(255,255,255,.14);
+  --navy-text: #ffffff;
+  --navy-mute: rgba(255,255,255,.62);
+  --navy-faint: rgba(255,255,255,.4);
+}
+body, .app, .main{ background: var(--navy-bg) !important; color: var(--navy-text) !important; }
+.topbar, .mobnav{ background: var(--navy-bg) !important; border-color: var(--navy-line) !important; color: var(--navy-text) !important; }
+.tb-name, .tb-avatar, .tab, .mtab, .tbm-item{ color: var(--navy-text) !important; }
+.tab.active, .mtab.active{ color: var(--cyan) !important; }
+.tb-menu{ background: var(--navy-card) !important; border:1px solid var(--navy-line-2) !important; }
+.tbm-sep{ background: var(--navy-line) !important; }
+
+/* Cards: replace cream/white with navy panels */
+.card, .ga-card, .meal-item, .cf-list li, .symptom-card, .insight-card,
+.detail-overlay-card, .modal-body, .qv-card, .lift-card, .session-card,
+.plan-day, .pr-card, .body-card, .heat-card, .accountability-card,
+.chain-cell, .restart-card, .checkin-card, .symptom-row, .trend-row, .prog-card{
+  background: var(--navy-card) !important;
+  color: var(--navy-text) !important;
+  border-color: var(--navy-line) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25) !important;
+}
+.card-head, .view-head{ border-bottom-color: var(--navy-line) !important; }
+.card-eyebrow, .eyebrow{ color: var(--cyan) !important; opacity: .9 }
+.card-meta, .stat-sub, .mi-meta, .sr-meta, .prog-meta, .prog-sample,
+.bp-suggest i, .danger-text{ color: var(--navy-mute) !important; }
+.stat-big, .view-h1, .mi-name, .mi-cal, .sr-name, .sr-cal, .prog-name, .prog-focus{ color: var(--navy-text) !important; }
+
+/* Forms / inputs */
+input, select, textarea{
+  background: var(--navy-card-2) !important;
+  color: var(--navy-text) !important;
+  border:1px solid var(--navy-line-2) !important;
+}
+input:focus, select:focus, textarea:focus{ border-color: var(--cyan) !important; outline: none; }
+.form label > span, label > span{ color: var(--navy-mute) !important; }
+
+/* Buttons */
+.btn{ border:1px solid var(--navy-line-2); }
+.btn-cyan{ background: var(--cyan) !important; color: #082018 !important; border:none !important; }
+.btn-cyan:hover{ background: #00d6b8 !important; }
+.btn-pink{ background: var(--pink) !important; color: #fff !important; border:none !important; }
+.btn-lime{ background: var(--lime) !important; color: #102000 !important; border:none !important; }
+.btn-ghost{ background: transparent !important; color: var(--navy-text) !important; border:1px solid var(--navy-line-2) !important; }
+.btn-ghost:hover{ background: rgba(255,255,255,.05) !important; }
+
+/* Modal */
+#modal .modal-card, .modal-card{ background: var(--navy-card) !important; color: var(--navy-text) !important; border:1px solid var(--navy-line-2) !important; }
+#modal .modal-head, .modal-head{ border-bottom-color: var(--navy-line) !important; }
+#modal #modalTitle, .modal-title{ color: var(--navy-text) !important; }
+
+/* Search results, lists */
+.search-results, .search-result{ background: transparent !important; border-color: var(--navy-line) !important; color: var(--navy-text) !important; }
+.search-result:hover{ background: rgba(255,255,255,.04) !important; }
+
+/* Day strip cells */
+.aw-day, .nw-day{ background: var(--navy-card-2) !important; border:1px solid var(--navy-line) !important; color: var(--navy-text) !important; }
+.aw-day .aw-letter, .nw-day .nw-letter{ color: var(--navy-mute) !important; }
+.aw-day.today, .nw-day.today{ border-color: var(--cyan) !important; box-shadow: 0 0 0 2px rgba(0,245,212,.18) !important; }
+.aw-day.selected, .nw-day.selected{ border-color: var(--cyan) !important; background: rgba(0,245,212,.08) !important; }
+.aw-circle{ border-color: var(--navy-line-2) !important; }
+.aw-day.good .aw-circle{ background: var(--lime) !important; color:#102000 !important; }
+.aw-day.good-some .aw-circle{ background: rgba(200,245,0,.55) !important; color:#102000 !important; }
+.aw-day.low .aw-circle{ background: var(--pink) !important; color:#fff !important; }
+.aw-day.empty .aw-circle{ background: var(--navy-card) !important; color: var(--navy-faint) !important; }
+
+/* Heat / chain */
+.heat-cell{ background: var(--navy-card-2) !important; }
+.heat-cell.h1{ background: rgba(255,45,122,.25) !important; }
+.heat-cell.h2{ background: rgba(255,45,122,.5) !important; }
+.heat-cell.h3{ background: rgba(0,245,212,.45) !important; }
+.heat-cell.h4{ background: var(--cyan) !important; }
+.chain-cell{ background: var(--navy-card-2) !important; }
+
+/* Bars / progress */
+.bar-track{ background: var(--navy-line) !important; }
+.bar-fill.cyan{ background: var(--cyan) !important; }
+.bar-fill.lime{ background: var(--lime) !important; }
+.bar-fill.pink{ background: var(--pink) !important; }
+
+/* Adaptive card */
+.adaptive-card{ background: linear-gradient(135deg,rgba(0,245,212,.10),rgba(255,45,122,.05)) !important; border-left-color: var(--cyan) !important; }
+.adaptive-msg{ color: var(--navy-text) !important; }
+
+/* Anatomy legend */
+.al-pin{ color: var(--navy-mute) !important; }
+
+/* COMPRESSION pass — tighten the global density */
+:root{ --pad: 12px; }
+.main{ padding: 12px !important; }
+.view-head{ padding: 8px 0 10px !important; margin-bottom: 10px !important; }
+.view-h1{ font-size: 22px !important; line-height: 1.1 !important; margin: 0 !important; }
+.eyebrow{ font-size: 9px !important; letter-spacing: 2px !important; margin: 0 0 2px !important; }
+.card{ padding: 12px !important; border-radius: 10px !important; margin-bottom: 10px !important; }
+.card-head{ padding: 0 0 8px !important; margin-bottom: 8px !important; }
+.card-eyebrow{ font-size: 9px !important; letter-spacing: 1.5px !important; }
+.stat{ padding: 4px 0 !important; }
+.stat-big{ font-size: 22px !important; line-height: 1.1 !important; }
+.stat-sub{ font-size: 10px !important; }
+.btn{ padding: 8px 12px !important; font-size: 12px !important; }
+.btn-sm{ padding: 6px 10px !important; font-size: 11px !important; }
+.grid-12{ gap: 8px !important; }
+.aw-day, .nw-day{ padding: 6px 4px !important; min-height: 0 !important; }
+.aw-circle{ width: 26px !important; height: 26px !important; }
+.aw-letter, .nw-letter{ font-size: 10px !important; margin-bottom: 3px !important; }
+.heat-cell{ width: 12px !important; height: 12px !important; }
+.chain-cell{ width: 16px !important; height: 16px !important; border-radius: 4px !important; }
+.adaptive-card{ padding: 10px 12px !important; }
+.adaptive-msg{ font-size: 12px !important; line-height: 1.4 !important; margin: 4px 0 8px !important; }
+.adaptive-actions{ gap: 6px !important; }
+.bp-list{ gap: 6px !important; }
+.bp-bar{ height: 6px !important; }
+.bp-suggest{ padding: 8px 10px !important; font-size: 11px !important; line-height: 1.4 !important; }
+.search-input{ padding: 8px 10px !important; font-size: 13px !important; }
+.search-result{ padding: 8px 10px !important; }
+.sr-name{ font-size: 13px !important; }
+.sr-meta{ font-size: 10px !important; }
+.meal-item{ padding: 6px 10px !important; }
+.mi-name{ font-size: 13px !important; }
+.mi-meta{ font-size: 10px !important; }
+
+/* Mobnav stays compact */
+.mobnav .mtab{ padding: 6px 4px !important; font-size: 9px !important; }
+.mobnav .mtab > span{ font-size: 16px !important; }
+
+/* Compress the wizard on dark gate too */
+.wiz-step input, .wiz-step select{ padding: 10px 12px !important; font-size: 13px !important; }
+.wiz-actions .gate-btn{ padding: 10px 16px !important; font-size: 12px !important; }
+.gate-card{ padding: 32px !important; }
+.gate-headline{ font-size: clamp(28px,4vw,46px) !important; }
+.gate-sub{ font-size: 12px !important; margin-bottom: 20px !important; }
+
+/* Distinctive ring style — squared + offset (not Apple-pure) */
+.ring-svg circle{ stroke-linecap: butt !important; }
+.ring-svg .ring-bg{ stroke: rgba(255,255,255,.08) !important; }
+.ring-svg .ring-move{ stroke: var(--pink) !important; }
+.ring-svg .ring-exercise{ stroke: var(--lime) !important; }
+.ring-svg .ring-stand{ stroke: var(--cyan) !important; }
+
+/* Rings card visual: hex/badge frame */
+.activity-rings-card{ position: relative; overflow: hidden; }
+.activity-rings-card::before{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background: repeating-linear-gradient(45deg, transparent 0 12px, rgba(255,255,255,.015) 12px 13px);
+}
+
+/* "← Today" button visibility */
+.dash-today-btn{ background: var(--pink) !important; color:#fff !important; border:none !important; }
+.dash-today-btn.hidden{ display: none !important; }
+
+/* Day strip wrap: lifts mini line */
+.lift-mini-strip{
+  display:flex; gap:4px; margin-top:6px; overflow-x:auto; padding:4px 0;
+}
+.lift-mini-cell{
+  flex: 1 0 auto; min-width: 60px; max-width: 90px;
+  background: var(--navy-card-2); border:1px solid var(--navy-line);
+  padding:6px 6px; border-radius:6px; text-align:center;
+  font-size:9px; line-height:1.2; color: var(--navy-mute);
+}
+.lift-mini-cell.today{ border-color: var(--cyan); }
+.lift-mini-cell .lm-day{ font-weight:700; color: var(--navy-text); font-size:9px; letter-spacing:1px; text-transform:uppercase; }
+.lift-mini-cell .lm-type{ font-size:10px; color: var(--navy-text); margin-top:2px; }
+.lift-mini-cell.skipped .lm-type{ color: var(--pink); text-transform:uppercase; font-weight:700 }
+.lift-mini-cell.empty .lm-type{ color: var(--navy-faint); font-style:italic }
+
+/* Programs grid in modal: tighter */
+.prog-card{ padding: 10px !important; }
+.prog-name{ font-size: 14px !important; }
+.prog-focus{ font-size: 12px !important; line-height: 1.4 !important; }
+.prog-sample{ font-size: 10px !important; }

@@ -63,7 +63,14 @@ function initWizard(){
   if(p.sex) $("#wizSex").value = p.sex;
   if(p.ageYears) $("#wizAge").value = p.ageYears;
   if(p.units) $("#wizUnits").value = p.units;
-  if(p.heightIn) $("#wizHeight").value = p.units === "metric" ? Math.round(p.heightIn * 2.54) : p.heightIn;
+  if(p.heightIn){
+    if(p.units === "metric"){
+      $("#wizHeightCm").value = Math.round(p.heightIn * 2.54);
+    } else {
+      $("#wizHeightFt").value = Math.floor(p.heightIn / 12);
+      $("#wizHeightIn").value = Math.round(p.heightIn % 12);
+    }
+  }
   if(p.weightLb) $("#wizWeight").value = p.units === "metric" ? Math.round(p.weightLb * 0.4536 * 10)/10 : p.weightLb;
   if(p.goal) $("#wizGoal").value = p.goal;
   if(p.goalRateLbWk) $("#wizRate").value = p.goalRateLbWk;
@@ -84,8 +91,10 @@ function initWizard(){
 
 function onWizUnitsChange(){
   const metric = $("#wizUnits").value === "metric";
-  $("#wizHtUnit").textContent = metric ? "(cm)" : "(in)";
   $("#wizWtUnit").textContent = metric ? "(kg)" : "(lb)";
+  const imp = $("#wizHtRowImperial"), met = $("#wizHtRowMetric");
+  if(imp) imp.style.display = metric ? "none" : "grid";
+  if(met) met.style.display = metric ? "block" : "none";
 }
 function onWizGoalChange(){
   const v = $("#wizGoal").value;
@@ -118,14 +127,22 @@ function wizValidateCurrent(){
 
 function wizCollect(){
   const metric = $("#wizUnits").value === "metric";
-  const heightInput = parseFloat($("#wizHeight").value);
   const weightInput = parseFloat($("#wizWeight").value);
+  let heightIn;
+  if(metric){
+    const cm = parseFloat($("#wizHeightCm").value);
+    heightIn = cm / 2.54;
+  } else {
+    const ft = parseInt($("#wizHeightFt").value, 10) || 0;
+    const inches = parseInt($("#wizHeightIn").value, 10) || 0;
+    heightIn = ft * 12 + inches;
+  }
   return {
     name: $("#wizName").value.trim() || "Athlete",
     sex: $("#wizSex").value,
     ageYears: parseInt($("#wizAge").value, 10),
     units: metric ? "metric" : "imperial",
-    heightIn: metric ? heightInput / 2.54 : heightInput,
+    heightIn,
     weightLb: metric ? weightInput / 0.4536 : weightInput,
     goal: $("#wizGoal").value,
     goalRateLbWk: parseFloat($("#wizRate").value),
@@ -414,7 +431,7 @@ function unit(){ return state.profile.units === "metric" ? "kg" : "lb"; }
 function unitVol(){ return state.profile.units === "metric" ? "ml" : "oz"; }
 
 // expose for inline onclicks if any
-window.BERMO_TRACKER = { go, removeMealItem };
+window.BERMO_TRACKER = { go, removeMealItem, getCurrentDate: () => currentDate, setCurrentDate: (d) => { currentDate = d; } };
 
 // ---------- RENDER ROOT ----------
 function renderAll(){
@@ -1900,15 +1917,7 @@ const _origRender = renderNutrition;
 document.addEventListener("DOMContentLoaded", () => {
   const sg = document.getElementById("tbSettingsBtn");
   if(sg) sg.addEventListener("click", () => {
-    document.querySelectorAll(".tab,.mtab").forEach(t => t.classList.toggle("active", t.dataset.tab === "settings"));
-    document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === "view-settings"));
-    if(typeof renderAll === "function"){
-      // currentTab is inside the IIFE; trigger via simulated tab click instead
-      const ev = new Event("click");
-      // Find any settings-tab element and click it to keep state in sync
-      const t = document.querySelector('.tab[data-tab="settings"], .mtab[data-tab="settings"]');
-      if(t) t.click();
-    }
+    if(window.BERMO_TRACKER && window.BERMO_TRACKER.go) window.BERMO_TRACKER.go("settings");
   });
 
   const user = document.getElementById("tbUser");
@@ -1923,8 +1932,7 @@ document.addEventListener("DOMContentLoaded", () => {
         e.stopPropagation();
         user.classList.remove("open");
         const tab = b.dataset.tab;
-        const t = document.querySelector(`.tab[data-tab="${tab}"], .mtab[data-tab="${tab}"]`);
-        if(t) t.click();
+        if(window.BERMO_TRACKER && window.BERMO_TRACKER.go) window.BERMO_TRACKER.go(tab);
       });
     });
     const out = document.getElementById("tbmSignOut");
@@ -5149,7 +5157,7 @@ function renderNutritionWeek(){
     }
     const dayLetter = d.toLocaleDateString(undefined,{weekday:"narrow"});
     const isToday = i === 0;
-    html += `<div class="nw-day ${status} ${isToday?"today":""}" title="${k} · ${t.cal} kcal">
+    html += `<div class="nw-day ${status} ${isToday?"today":""}">
       <div class="nw-letter">${dayLetter}</div>
       <div class="nw-circle"><span>${icon}</span></div>
     </div>`;
@@ -5251,14 +5259,63 @@ drawActivityRings = function(){
     else if(partial > 0){ status = "low"; icon = "◐"; }
     const dayLetter = d.toLocaleDateString(undefined,{weekday:"narrow"});
     const isToday = i === 0;
-    html += `<div class="aw-day ${status} ${isToday?"today":""}" data-date="${k}" data-kind="activity" title="${k}">
+    html += `<div class="aw-day ${status} ${isToday?"today":""}" data-date="${k}" data-kind="activity">
       <div class="aw-letter">${dayLetter}</div>
       <div class="aw-circle"><span>${icon}</span></div>
     </div>`;
   }
   wk.className = "hub-week activity-week";
   wk.innerHTML = html;
+  // Lifts mini-strip: planned workout type per day this week
+  renderLiftMiniStrip(wk);
 };
+
+// Lifts mini-strip — week of planned workout types
+function renderLiftMiniStrip(rootEl){
+  if(!rootEl) return;
+  const plan = state.plan || {};
+  const today = new Date();
+  // Monday-anchored week containing today
+  const offset = (today.getDay() + 6) % 7;
+  const monday = new Date(today); monday.setDate(today.getDate() - offset); monday.setHours(0,0,0,0);
+  const wkKey = (typeof weekKey === "function") ? weekKey(monday) : null;
+  const wkPlan = (wkKey && plan[wkKey]) || {};
+  const dayNames = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  let strip = rootEl.parentElement.querySelector(".lift-mini-strip");
+  if(!strip){
+    strip = document.createElement("div");
+    strip.className = "lift-mini-strip";
+    rootEl.parentElement.insertBefore(strip, rootEl.nextSibling);
+  }
+  const todayName = dayNames[(today.getDay() + 6) % 7];
+  let html = "";
+  dayNames.forEach((dn, idx) => {
+    const d = new Date(monday); d.setDate(monday.getDate() + idx);
+    const k = todayKey(d);
+    const day = state.days[k];
+    const planned = wkPlan[dn];
+    const sessions = (day && day.sessions) || [];
+    const skipped = day && day.skipped;
+    let cls = "lift-mini-cell", label = "—";
+    if(d > today){ // future
+      label = planned ? planned.type : "—";
+      if(!planned) cls += " empty";
+    } else if(skipped){
+      cls += " skipped"; label = "SKIPPED";
+    } else if(sessions.length){
+      // first session.lift name as a short tag
+      const first = sessions[0];
+      label = (first.lift || first.exercise || planned?.type || "Logged").slice(0,12);
+    } else if(planned){
+      label = planned.type;
+    } else {
+      cls += " empty"; label = "—";
+    }
+    if(dn === todayName) cls += " today";
+    html += `<div class="${cls}"><div class="lm-day">${dn[0]}</div><div class="lm-type">${escape(label)}</div></div>`;
+  });
+  strip.innerHTML = html;
+}
 
 // ---- DAY QUICK-VIEW POPOVER on day-strip clicks ----
 function openDayQuickView(dateKey, kind){
@@ -5309,16 +5366,7 @@ function openDayQuickView(dateKey, kind){
   });
 }
 
-// Delegate click on day-strip cells
-document.addEventListener("click", (e) => {
-  const aw = e.target.closest(".aw-day, .nw-day");
-  if(!aw) return;
-  e.stopPropagation();
-  const date = aw.dataset.date;
-  if(!date) return;
-  const kind = aw.dataset.kind || (aw.classList.contains("aw-day") ? "activity" : "nutrition");
-  openDayQuickView(date, kind);
-}, true);
+// Legacy popup handler removed — see setHubViewDate for swap-in-place behavior below.
 
 // ---- NUTRITION WEEK STRIP — add data-date / data-kind so clicks work ----
 const _origRNW = (typeof renderNutritionWeek === "function") ? renderNutritionWeek : null;

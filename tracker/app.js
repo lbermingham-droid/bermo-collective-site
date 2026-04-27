@@ -5654,4 +5654,198 @@ openLiftDetail = function(lift){
   repGrid.parentNode.insertBefore(summary, repGrid.nextSibling);
 };
 
+
+// =================================================================
+// FIXES — day-strip swaps hub date (not popup), body part coverage
+// =================================================================
+
+// ---- Day strip click NOW changes the hub date instead of popup ----
+let _hubViewDate = todayKey();
+function setHubViewDate(dateKey){
+  _hubViewDate = dateKey;
+  currentDate = dateKey;
+  if(typeof renderAll === "function") renderAll();
+  // Visual: highlight selected day in strips
+  document.querySelectorAll(".aw-day,.nw-day").forEach(d => {
+    d.classList.toggle("selected", d.dataset.date === dateKey);
+  });
+}
+
+// Override the prior delegated day-click (kept popup) — replace with hub-swap behavior
+document.addEventListener("click", (e) => {
+  const aw = e.target.closest(".aw-day, .nw-day");
+  if(!aw) return;
+  if(!aw.dataset.date) return;
+  e.stopPropagation();
+  e.preventDefault();
+  setHubViewDate(aw.dataset.date);
+}, true);
+
+// "Today" indicator click in dashboard header returns to today
+document.addEventListener("DOMContentLoaded", () => {
+  const dash = document.getElementById("dashDate");
+  if(dash){
+    dash.style.cursor = "pointer";
+    dash.title = "Click to return to today";
+    dash.addEventListener("click", () => {
+      setHubViewDate(todayKey());
+      toast("Back to today", "cyan");
+    });
+  }
+  // Add explicit "Today" button when viewing a different date
+  const head = document.querySelector("#view-dashboard .view-head");
+  if(head && !document.getElementById("dashTodayBtn")){
+    const btn = document.createElement("button");
+    btn.id = "dashTodayBtn";
+    btn.className = "btn btn-ghost dash-today-btn hidden";
+    btn.textContent = "← Today";
+    btn.addEventListener("click", () => { setHubViewDate(todayKey()); btn.classList.add("hidden"); });
+    head.querySelector(".view-head-actions").prepend(btn);
+  }
+});
+
+// Hook render to show "← Today" when on a non-today date
+const _origRDForToday = renderDashboard;
+renderDashboard = function(){
+  if(_origRDForToday) _origRDForToday();
+  const btn = document.getElementById("dashTodayBtn");
+  if(btn){
+    if(_hubViewDate !== todayKey()){
+      btn.classList.remove("hidden");
+      btn.textContent = `← Today (viewing ${fmtDate(_hubViewDate)})`;
+    } else {
+      btn.classList.add("hidden");
+    }
+  }
+};
+
+// =================================================================
+// BODY PART COVERAGE — accountability for hitting all muscle groups
+// =================================================================
+const BODY_PART_MAP = {
+  // Squats / lower
+  "back squat":["legs","glutes"], "front squat":["legs","glutes","core"],
+  "box squat":["legs","glutes"], "front box squat":["legs","glutes"],
+  "front pause squat":["legs","glutes"], "high bar back squat":["legs","glutes"],
+  "low bar back squat":["legs","glutes"], "overhead squat":["legs","glutes","shoulders","core"],
+  "pause squat":["legs","glutes"], "split squat":["legs","glutes"],
+  "zercher squat":["legs","glutes","core"],
+  // Deadlifts / posterior
+  "deadlift":["back","legs","glutes"], "sumo deadlift":["legs","glutes","back"],
+  "romanian deadlift":["back","glutes","legs"], "stiff-leg deadlift":["back","glutes","legs"],
+  "trap-bar deadlift":["back","legs","glutes"], "deficit deadlift":["back","legs","glutes"],
+  // Cleans / oly
+  "clean":["legs","glutes","back","shoulders"], "power clean":["legs","glutes","back","shoulders"],
+  "hang clean":["back","shoulders","legs"], "hang power clean":["back","shoulders","legs"],
+  "squat clean":["legs","glutes","back","shoulders"], "clean pull":["back","legs"],
+  "clean extension":["back","legs"], "block clean":["back","shoulders","legs"],
+  // Snatches
+  "snatch":["legs","glutes","back","shoulders"], "power snatch":["legs","back","shoulders"],
+  "hang snatch":["back","shoulders"], "hang power snatch":["back","shoulders"],
+  "squat snatch":["legs","glutes","back","shoulders"], "snatch pull":["back","legs"],
+  "snatch balance":["shoulders","legs"], "block snatch":["back","shoulders"],
+  // Press / chest+shoulders
+  "strict press":["shoulders","arms"], "push press":["shoulders","legs","arms"],
+  "push jerk":["shoulders","legs"], "split jerk":["shoulders","legs"],
+  "bench press":["chest","arms","shoulders"], "incline bench press":["chest","shoulders","arms"],
+  "close-grip bench":["chest","arms"], "db bench":["chest","arms","shoulders"],
+  "db press":["shoulders","arms"],
+  // Pull / back
+  "pull-up":["back","arms"], "strict pull-up":["back","arms"], "weighted pull-up":["back","arms"],
+  "chin-up":["back","arms"], "chest-to-bar":["back","arms"],
+  "muscle-up":["back","arms","chest"], "bent row":["back","arms"], "pendlay row":["back","arms"],
+  // Other
+  "thruster":["legs","glutes","shoulders","arms"], "hip thrust":["glutes","legs"],
+  "good morning":["back","glutes","legs"], "clean & jerk":["legs","glutes","back","shoulders"],
+  "floor press":["chest","arms"]
+};
+const ALL_BODY_PARTS = ["chest","back","shoulders","arms","legs","glutes","core"];
+
+function getBodyCoverage(daysBack){
+  daysBack = daysBack || 14;
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - daysBack);
+  const tally = {}; ALL_BODY_PARTS.forEach(p => tally[p] = 0);
+  Object.entries(state.days).forEach(([date, day]) => {
+    if(new Date(date) < cutoff) return;
+    (day.sessions || []).forEach(s => {
+      const parts = BODY_PART_MAP[(s.name||"").toLowerCase()] || [];
+      parts.forEach(p => { tally[p] = (tally[p] || 0) + 1; });
+    });
+  });
+  return tally;
+}
+
+const PART_SUGGESTIONS = {
+  chest: "Bench Press, Incline DB Press, Push-ups, Cable Fly",
+  back: "Pull-ups, Bent Row, Lat Pulldown, Deadlift",
+  shoulders: "Strict Press, Lateral Raise, Push Press, Face Pull",
+  arms: "Curls, Triceps Pushdown, Close-grip Bench, Chin-ups",
+  legs: "Back Squat, Front Squat, Leg Press, Lunges",
+  glutes: "Hip Thrust, Romanian Deadlift, Glute Bridge, Bulgarian Split Squat",
+  core: "Plank, Toes-to-Bar, Hollow Hold, Hanging Leg Raise"
+};
+
+function renderBodyCoverage(){
+  const fitView = document.getElementById("view-fitness");
+  if(!fitView) return;
+  let card = document.getElementById("bodyCoverageCard");
+  if(!card){
+    const grid = fitView.querySelector(".grid-12");
+    if(!grid) return;
+    card = document.createElement("div");
+    card.id = "bodyCoverageCard";
+    card.className = "card span-12";
+    // Insert after the plan-mini box (top of fitness)
+    const planMini = document.getElementById("planMini");
+    if(planMini && planMini.nextSibling) grid.insertBefore(card, planMini.nextSibling);
+    else grid.appendChild(card);
+  }
+
+  const cov14 = getBodyCoverage(14);
+  const totalSessions = Object.values(cov14).reduce((a,b)=>a+b, 0);
+  const sortedParts = ALL_BODY_PARTS.slice().sort((a,b) => cov14[b] - cov14[a]);
+  const max = Math.max(1, ...Object.values(cov14));
+
+  const barsHtml = sortedParts.map(p => {
+    const n = cov14[p];
+    const pct = (n / max) * 100;
+    const status = n === 0 ? "missing" : n < 2 ? "low" : "good";
+    return `<div class="bp-row bp-${status}">
+      <div class="bp-name">${p.charAt(0).toUpperCase()+p.slice(1)}</div>
+      <div class="bp-bar"><span style="width:${pct}%"></span></div>
+      <div class="bp-count">${n} ${n===1?"set":"sets"}</div>
+    </div>`;
+  }).join("");
+
+  const missing = ALL_BODY_PARTS.filter(p => cov14[p] === 0);
+  const low = ALL_BODY_PARTS.filter(p => cov14[p] > 0 && cov14[p] < 2);
+
+  let suggestion = "";
+  if(missing.length){
+    suggestion = `<div class="bp-suggest"><b>⚠️ Missing in last 14 days:</b> ${missing.map(m=>m.charAt(0).toUpperCase()+m.slice(1)).join(", ")}.<br><i>Try: ${PART_SUGGESTIONS[missing[0]]}</i></div>`;
+  } else if(low.length){
+    suggestion = `<div class="bp-suggest bp-suggest-low"><b>👀 Under-trained:</b> ${low.map(m=>m.charAt(0).toUpperCase()+m.slice(1)).join(", ")} (only 1 set each).<br><i>Try: ${PART_SUGGESTIONS[low[0]]}</i></div>`;
+  } else if(totalSessions > 0){
+    suggestion = `<div class="bp-suggest bp-suggest-good"><b>✓ Balanced training</b> — every body part hit in the last 14 days.</div>`;
+  }
+
+  card.innerHTML = `
+    <div class="card-head">
+      <span class="card-eyebrow">Body Part Coverage · last 14 days</span>
+      <span class="card-meta">${totalSessions} sets logged</span>
+    </div>
+    ${totalSessions === 0
+      ? `<div class="bp-empty">No lifts logged in the last 14 days. Log a session to see coverage.</div>`
+      : `<div class="bp-list">${barsHtml}</div>${suggestion}`}
+  `;
+}
+
+const _origRenderFitnessForBP = (typeof renderFitness === "function") ? renderFitness : null;
+if(_origRenderFitnessForBP){
+  renderFitness = function(){
+    _origRenderFitnessForBP();
+    renderBodyCoverage();
+  };
+}
+
 })();

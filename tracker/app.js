@@ -5302,4 +5302,356 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+
+// =================================================================
+// WORKOUT SESSION — Fitbod/Hevy-style inline logger + rest timer
+// =================================================================
+
+const SET_KINDS = [
+  {k:"normal",  lbl:"Normal",  c:"#00f5d4"},
+  {k:"warmup",  lbl:"Warm-up", c:"#7cd9f1"},
+  {k:"drop",    lbl:"Drop Set",c:"#ffb347"},
+  {k:"fail",    lbl:"Failure", c:"#ff2d7a"},
+];
+
+let _restTimer = null;
+let _restEndAt = 0;
+
+function startRestTimer(seconds){
+  clearInterval(_restTimer);
+  _restEndAt = Date.now() + seconds*1000;
+  let bar = document.getElementById("restTimerBar");
+  if(!bar){
+    bar = document.createElement("div");
+    bar.id = "restTimerBar";
+    bar.className = "rest-bar";
+    bar.innerHTML = `<div class="rt-icon">⏱</div><div class="rt-time" id="rtTime">${formatRest(seconds)}</div><button class="rt-skip" id="rtSkip">Skip</button><button class="rt-add" id="rtAdd">+ 30s</button>`;
+    document.body.appendChild(bar);
+  }
+  bar.classList.add("show");
+  document.getElementById("rtSkip").onclick = () => stopRestTimer();
+  document.getElementById("rtAdd").onclick = () => { _restEndAt += 30000; tickRest(); };
+
+  _restTimer = setInterval(tickRest, 250);
+  tickRest();
+}
+function tickRest(){
+  const ms = _restEndAt - Date.now();
+  if(ms <= 0){
+    document.getElementById("rtTime").textContent = "Done";
+    if(navigator.vibrate) try { navigator.vibrate([100,50,100]); } catch(e){}
+    setTimeout(stopRestTimer, 1500);
+    clearInterval(_restTimer);
+    return;
+  }
+  const s = Math.ceil(ms/1000);
+  document.getElementById("rtTime").textContent = formatRest(s);
+}
+function formatRest(s){ const m = Math.floor(s/60); const r = s%60; return `${m}:${String(r).padStart(2,"0")}`; }
+function stopRestTimer(){
+  clearInterval(_restTimer);
+  const bar = document.getElementById("restTimerBar");
+  if(bar) bar.classList.remove("show");
+}
+
+// ---- Get previous performance for an exercise ----
+function getPreviousSet(exerciseName){
+  const keys = Object.keys(state.days).sort().reverse();
+  for(const k of keys){
+    const sessions = (state.days[k] && state.days[k].sessions) || [];
+    const found = sessions.slice().reverse().find(s => s.name && s.name.toLowerCase() === exerciseName.toLowerCase());
+    if(found) return { ...found, date:k };
+  }
+  return null;
+}
+
+// ---- Workout Session overlay ----
+function openWorkoutSession(dateKey){
+  const day = dayObj(dateKey);
+  const dayName = ["sun","mon","tue","wed","thu","fri","sat"][new Date(dateKey+"T12:00:00").getDay()];
+  const wkKey_ = weekKey(weekStart(new Date(dateKey+"T12:00:00")));
+  const planned = (state.plan && state.plan[wkKey_] && state.plan[wkKey_][dayName] && state.plan[wkKey_][dayName].exercises) || [];
+
+  // Initialize session state for the day if not present
+  if(!day.workoutSession) day.workoutSession = { exercises: {} };
+
+  // If no planned exercises, prompt user
+  if(!planned.length){
+    if(!confirm(`No exercises planned for ${fmtDate(dateKey)}. Open the planner to add some?`)) return;
+    const t = document.querySelector('.tab[data-tab="plan"], .mtab[data-tab="plan"]');
+    if(t) t.click();
+    return;
+  }
+
+  // Build the overlay
+  let overlay = document.getElementById("workoutOverlay");
+  if(!overlay){
+    overlay = document.createElement("div");
+    overlay.id = "workoutOverlay";
+    overlay.className = "workout-overlay";
+    document.body.appendChild(overlay);
+  }
+  renderWorkoutSession(overlay, dateKey, planned);
+  overlay.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function renderWorkoutSession(overlay, dateKey, planned){
+  const day = dayObj(dateKey);
+  const sess = day.workoutSession;
+  const planType = (function(){
+    const dayName = ["sun","mon","tue","wed","thu","fri","sat"][new Date(dateKey+"T12:00:00").getDay()];
+    const wkKey_ = weekKey(weekStart(new Date(dateKey+"T12:00:00")));
+    return (state.plan && state.plan[wkKey_] && state.plan[wkKey_][dayName] && state.plan[wkKey_][dayName].type) || "Workout";
+  })();
+
+  const exHtml = planned.map((ex, exi) => {
+    if(!sess.exercises[ex.name]) sess.exercises[ex.name] = { sets: [] };
+    const exState = sess.exercises[ex.name];
+    const prev = getPreviousSet(ex.name);
+    const prevTxt = prev ? `Last: ${prev.weight}${unit()} × ${prev.reps} · ${fmtDate(prev.date)}` : "First time logging this";
+    const ytUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(ex.name + " form tutorial")}`;
+
+    // Parse scheme like "5x5 @ 135" to get default sets/reps/weight
+    let dSets = 5, dReps = 5, dWeight = (prev ? prev.weight : "");
+    if(ex.scheme){
+      const m = ex.scheme.match(/(\d+)\s*x\s*(\d+)\s*(?:@\s*(\d+))?/i);
+      if(m){ dSets = parseInt(m[1],10); dReps = parseInt(m[2],10); if(m[3]) dWeight = parseInt(m[3],10); }
+    }
+    // Ensure we have N empty set rows ready
+    while(exState.sets.length < dSets){ exState.sets.push({ kind:"normal", reps:dReps, weight:dWeight, logged:false }); }
+
+    const setsHtml = exState.sets.map((s, si) => `
+      <div class="ws-set ${s.logged?"logged":""}" data-ex="${exi}" data-si="${si}">
+        <button class="ws-num" data-kind-cycle title="${SET_KINDS.find(k=>k.k===s.kind).lbl}" style="background:${SET_KINDS.find(k=>k.k===s.kind).c}">${s.kind === "normal" ? si+1 : SET_KINDS.find(k=>k.k===s.kind).lbl[0]}</button>
+        <input class="ws-reps" type="number" min="0" placeholder="${dReps}" value="${s.reps||""}">
+        <input class="ws-weight" type="number" step="2.5" min="0" placeholder="${dWeight||0}" value="${s.weight||""}">
+        <button class="ws-log" data-log title="Log this set">${s.logged ? "✓" : "Log"}</button>
+      </div>
+    `).join("");
+
+    return `
+      <div class="ws-ex" data-ex="${exi}" data-name="${escape(ex.name)}">
+        <div class="ws-ex-head">
+          <div>
+            <div class="ws-ex-name">${escape(ex.name)}</div>
+            <div class="ws-ex-prev">${escape(prevTxt)}</div>
+          </div>
+          <div class="ws-ex-actions">
+            <a class="ws-howto" href="${ytUrl}" target="_blank" rel="noopener" title="How-To video">▶ How-To</a>
+            <button class="ws-add-set" data-add-set>+ Set</button>
+          </div>
+        </div>
+        <div class="ws-set-head">
+          <span>SET</span><span>REPS</span><span>${unit().toUpperCase()}</span><span></span>
+        </div>
+        <div class="ws-sets">${setsHtml}</div>
+      </div>
+    `;
+  }).join("");
+
+  overlay.innerHTML = `
+    <header class="workout-head">
+      <button class="workout-back" id="woBack" aria-label="Close"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <div class="workout-title">
+        <div class="wt-eyebrow">${fmtDate(dateKey)} · ${escape(planType)}</div>
+        <div class="wt-name">Workout Session</div>
+      </div>
+      <button class="workout-done" id="woDone">Done</button>
+    </header>
+    <div class="workout-body">
+      ${exHtml || `<div style="text-align:center;color:#888;padding:60px 20px">No exercises planned. Add some in the Planner.</div>`}
+      <div class="workout-foot">
+        <p style="font-size:12px;color:#888;text-align:center;line-height:1.5;margin:24px 0 0">Tap the set number circle to cycle Normal → Warm-up → Drop → Failure. Tap "Log" to record. Rest timer auto-starts after each logged set.</p>
+      </div>
+    </div>
+  `;
+  bindWorkoutSession(overlay, dateKey, planned);
+}
+
+function bindWorkoutSession(overlay, dateKey, planned){
+  document.getElementById("woBack").onclick = closeWorkoutSession;
+  document.getElementById("woDone").onclick = closeWorkoutSession;
+
+  // Cycle set kind on number-button tap
+  overlay.querySelectorAll("[data-kind-cycle]").forEach(b => b.addEventListener("click", () => {
+    const setEl = b.closest(".ws-set");
+    const exi = +setEl.dataset.ex, si = +setEl.dataset.si;
+    const exName = planned[exi].name;
+    const cur = dayObj(dateKey).workoutSession.exercises[exName].sets[si];
+    const idx = SET_KINDS.findIndex(k => k.k === cur.kind);
+    cur.kind = SET_KINDS[(idx+1) % SET_KINDS.length].k;
+    save(); renderWorkoutSession(overlay, dateKey, planned);
+  }));
+
+  // Reps / weight inputs save on blur
+  overlay.querySelectorAll(".ws-reps, .ws-weight").forEach(inp => inp.addEventListener("change", () => {
+    const setEl = inp.closest(".ws-set");
+    const exi = +setEl.dataset.ex, si = +setEl.dataset.si;
+    const exName = planned[exi].name;
+    const cur = dayObj(dateKey).workoutSession.exercises[exName].sets[si];
+    cur.reps = parseInt(setEl.querySelector(".ws-reps").value, 10) || 0;
+    cur.weight = parseFloat(setEl.querySelector(".ws-weight").value) || 0;
+    save();
+  }));
+
+  // Log button
+  overlay.querySelectorAll("[data-log]").forEach(b => b.addEventListener("click", () => {
+    const setEl = b.closest(".ws-set");
+    const exi = +setEl.dataset.ex, si = +setEl.dataset.si;
+    const exName = planned[exi].name;
+    const day = dayObj(dateKey);
+    const cur = day.workoutSession.exercises[exName].sets[si];
+    cur.reps = parseInt(setEl.querySelector(".ws-reps").value, 10) || cur.reps;
+    cur.weight = parseFloat(setEl.querySelector(".ws-weight").value) || cur.weight;
+    if(!cur.reps || !cur.weight){ toast("Enter reps + weight first","pink"); return; }
+    cur.logged = true;
+    cur.loggedAt = Date.now();
+
+    // Add to day.sessions for the existing systems (PRs, history, etc.)
+    if(!day.sessions) day.sessions = [];
+    const sessionRow = {
+      id: uid(), name: exName, weight: cur.weight, reps: cur.reps, sets: 1,
+      type: cur.kind === "warmup" ? "accessory" : "strength",
+      notes: cur.kind !== "normal" ? SET_KINDS.find(k=>k.k===cur.kind).lbl : ""
+    };
+    day.sessions.push(sessionRow);
+    if(typeof updateRepPRsFromSet === "function") updateRepPRsFromSet(sessionRow);
+    save();
+
+    // Animate logged state
+    setEl.classList.add("logged");
+    b.textContent = "✓";
+
+    // Start rest timer (skip for warm-up sets)
+    if(cur.kind !== "warmup"){
+      const restSec = (state.restDefault || 90);
+      startRestTimer(restSec);
+    }
+    toast(`${exName}: ${cur.weight}${unit()} × ${cur.reps}`, "cyan");
+  }));
+
+  // Add set
+  overlay.querySelectorAll("[data-add-set]").forEach(b => b.addEventListener("click", () => {
+    const exEl = b.closest(".ws-ex");
+    const exi = +exEl.dataset.ex;
+    const exName = planned[exi].name;
+    const day = dayObj(dateKey);
+    const sets = day.workoutSession.exercises[exName].sets;
+    const last = sets[sets.length-1] || { kind:"normal", reps:5, weight:0 };
+    sets.push({ kind:"normal", reps:last.reps, weight:last.weight, logged:false });
+    save(); renderWorkoutSession(overlay, dateKey, planned);
+  }));
+}
+
+function closeWorkoutSession(){
+  const o = document.getElementById("workoutOverlay");
+  if(o) o.classList.remove("open");
+  document.body.style.overflow = "";
+  if(typeof renderAll === "function") renderAll();
+  stopRestTimer();
+}
+
+// ---- Wire "Start workout" button on planner day cards ----
+const _origRenderPlanForWorkoutBtn = renderPlan;
+renderPlan = function(){
+  if(_origRenderPlanForWorkoutBtn) _origRenderPlanForWorkoutBtn();
+  document.querySelectorAll(".plan-day").forEach(d => {
+    const dayKey = d.dataset.date;
+    const dayName = d.dataset.day;
+    const wkKey_ = weekKey(weekStart(new Date(dayKey+"T12:00:00")));
+    const planned = (state.plan && state.plan[wkKey_] && state.plan[wkKey_][dayName] && state.plan[wkKey_][dayName].exercises) || [];
+    if(planned.length && !d.querySelector(".pd-start")){
+      const btn = document.createElement("button");
+      btn.className = "pd-start";
+      btn.textContent = "▶ Start";
+      btn.title = "Start workout session";
+      btn.addEventListener("click", (e) => { e.stopPropagation(); openWorkoutSession(dayKey); });
+      d.appendChild(btn);
+    }
+  });
+};
+
+// Add "Start Today's Workout" button on planner mini box (Fitness tab)
+const _origRenderPlanMini = renderPlanMini;
+renderPlanMini = function(){
+  if(_origRenderPlanMini) _origRenderPlanMini();
+  const box = document.getElementById("planMini");
+  if(!box) return;
+  const dayName = ["sun","mon","tue","wed","thu","fri","sat"][new Date().getDay()];
+  const wkKey_ = weekKey(weekStart(new Date()));
+  const planned = (state.plan && state.plan[wkKey_] && state.plan[wkKey_][dayName] && state.plan[wkKey_][dayName].exercises) || [];
+  if(planned.length){
+    let row = box.querySelector(".pm-start-row");
+    if(!row){
+      row = document.createElement("div");
+      row.className = "pm-start-row";
+      row.innerHTML = `<button class="btn btn-cyan" id="pmStartWO">▶ Start today's workout (${planned.length} exercises)</button>`;
+      box.appendChild(row);
+      row.querySelector("#pmStartWO").addEventListener("click", (e) => { e.stopPropagation(); openWorkoutSession(todayKey()); });
+    } else {
+      row.querySelector("#pmStartWO").textContent = `▶ Start today's workout (${planned.length} exercises)`;
+    }
+  }
+};
+
+// =================================================================
+// HEVY-STYLE PER-EXERCISE STATS (Heaviest, 1RM, Best set vol, etc.)
+// =================================================================
+function getExerciseStats(liftName){
+  const sets = [];
+  Object.entries(state.days).forEach(([date, day]) => {
+    (day.sessions || []).forEach(s => { if(s.name === liftName) sets.push({...s, date}); });
+  });
+  if(!sets.length) return null;
+  const heaviest = sets.reduce((b,s) => !b || s.weight > b.weight ? s : b, null);
+  const mostReps = sets.reduce((b,s) => !b || s.reps > b.reps ? s : b, null);
+  const bestSetVol = sets.reduce((b,s) => {
+    const v = s.weight * s.reps;
+    return !b || v > (b.weight * b.reps) ? s : b;
+  }, null);
+  // Best session volume: sum of all sets per day for this lift, find max
+  const byDay = {};
+  sets.forEach(s => { byDay[s.date] = (byDay[s.date] || 0) + s.weight * s.reps; });
+  const bestSession = Object.entries(byDay).sort((a,b)=>b[1]-a[1])[0];
+  // True 1RM (any set with reps=1) vs projected (Epley)
+  const true1RM = sets.filter(s => s.reps === 1).reduce((m,s) => Math.max(m, s.weight), 0);
+  const proj1RM = sets.reduce((m,s) => {
+    const e = Math.round(s.weight * (1 + s.reps/30));
+    return Math.max(m, e);
+  }, 0);
+  // Delta vs 30 days ago
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 30);
+  const oldProj = sets.filter(s => new Date(s.date) < cutoff).reduce((m,s) => Math.max(m, Math.round(s.weight*(1+s.reps/30))), 0);
+  const delta = oldProj ? proj1RM - oldProj : 0;
+  return { heaviest, mostReps, bestSetVol, bestSessionDate: bestSession?bestSession[0]:null, bestSessionVol: bestSession?bestSession[1]:0, true1RM, proj1RM, delta, total:sets.length };
+}
+
+// Hook into lift detail to add Hevy-style stats panel
+const _origOpenLiftDetail = openLiftDetail;
+openLiftDetail = function(lift){
+  _origOpenLiftDetail(lift);
+  const root = document.getElementById("liftsContent");
+  if(!root) return;
+  const stats = getExerciseStats(lift);
+  if(!stats) return;
+  // Insert after rep-grid
+  const repGrid = root.querySelector(".rep-grid");
+  if(!repGrid || root.querySelector(".lift-summary")) return;
+  const summary = document.createElement("div");
+  summary.className = "lift-summary";
+  summary.innerHTML = `
+    <div class="lift-section-h">Summary</div>
+    <div class="lift-summary-grid">
+      <div class="ls-cell"><div class="ls-lbl">Heaviest weight</div><div class="ls-val">${stats.heaviest.weight}${unit()}</div><div class="ls-sub">× ${stats.heaviest.reps} · ${fmtDate(stats.heaviest.date)}</div></div>
+      <div class="ls-cell"><div class="ls-lbl">True 1RM</div><div class="ls-val">${stats.true1RM || "—"}${stats.true1RM?unit():""}</div><div class="ls-sub">${stats.true1RM ? "actual single" : "log a 1-rep set"}</div></div>
+      <div class="ls-cell"><div class="ls-lbl">Projected 1RM</div><div class="ls-val">${stats.proj1RM}${unit()} ${stats.delta > 0 ? `<i class="ls-up">▲ ${stats.delta}</i>` : stats.delta < 0 ? `<i class="ls-dn">▼ ${Math.abs(stats.delta)}</i>` : ""}</div><div class="ls-sub">vs 30 days ago</div></div>
+      <div class="ls-cell"><div class="ls-lbl">Best set volume</div><div class="ls-val">${Math.round(stats.bestSetVol.weight*stats.bestSetVol.reps)}${unit()}</div><div class="ls-sub">${stats.bestSetVol.weight}${unit()} × ${stats.bestSetVol.reps}</div></div>
+      <div class="ls-cell"><div class="ls-lbl">Best session</div><div class="ls-val">${Math.round(stats.bestSessionVol)}${unit()}</div><div class="ls-sub">${stats.bestSessionDate ? fmtDate(stats.bestSessionDate) : "—"}</div></div>
+      <div class="ls-cell"><div class="ls-lbl">Most reps</div><div class="ls-val">${stats.mostReps.reps}</div><div class="ls-sub">${stats.mostReps.weight}${unit()} · ${fmtDate(stats.mostReps.date)}</div></div>
+    </div>
+  `;
+  repGrid.parentNode.insertBefore(summary, repGrid.nextSibling);
+};
+
 })();

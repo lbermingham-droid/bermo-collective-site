@@ -1514,3 +1514,136 @@ a{color:inherit}
 .pd-ex{color:#444;font-weight:600}
 .pd-ex i{font-style:normal;font-family:'JetBrains Mono',monospace;color:var(--gray);font-weight:500;margin-left:2px}
 .pd-ex-more{color:var(--cyan);font-weight:700;font-size:9px;margin-top:2px}
+
+/* ---------- WORKOUT SESSION OVERLAY (Fitbod/Hevy-style) ---------- */
+.workout-overlay{
+  position:fixed;inset:0;z-index:350;background:#0a0a14;color:#fff;
+  display:none;flex-direction:column;
+}
+.workout-overlay.open{display:flex;animation:slideInRight .25s ease}
+.workout-head{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 18px;background:#0a0a0a;
+  border-bottom:3px solid var(--cyan);
+  position:sticky;top:0;z-index:5;
+}
+.workout-back{
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:rgba(255,255,255,.7);background:rgba(255,255,255,.06);
+  transition:all .15s;flex-shrink:0;
+}
+.workout-back:hover{background:var(--pink);color:#fff}
+.workout-title{flex:1;min-width:0}
+.wt-eyebrow{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);font-weight:700;margin-bottom:2px}
+.wt-name{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:18px;letter-spacing:-.01em}
+.workout-done{
+  background:var(--cyan);color:var(--black);
+  padding:10px 18px;border-radius:100px;
+  font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+}
+
+.workout-body{flex:1;overflow:auto;padding:18px 14px 100px;max-width:680px;margin:0 auto;width:100%}
+
+.ws-ex{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;padding:14px;margin-bottom:14px;
+}
+.ws-ex-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+.ws-ex-name{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:18px;letter-spacing:-.02em;line-height:1.1}
+.ws-ex-prev{font-size:11px;color:rgba(255,255,255,.5);font-family:'JetBrains Mono',monospace;margin-top:4px}
+.ws-ex-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0;align-items:flex-end}
+.ws-howto{
+  font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:700;
+  color:var(--lime);text-decoration:none;background:rgba(200,245,0,.12);
+  padding:5px 10px;border-radius:100px;
+}
+.ws-howto:hover{background:var(--lime);color:var(--black)}
+.ws-add-set{
+  font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:700;
+  background:rgba(255,255,255,.1);color:#fff;padding:5px 12px;border-radius:100px;
+  border:none;cursor:pointer;
+}
+.ws-add-set:hover{background:var(--cyan);color:var(--black)}
+
+.ws-set-head{
+  display:grid;grid-template-columns:42px 1fr 1fr 60px;gap:8px;
+  padding:0 4px 6px;font-size:9px;letter-spacing:1.5px;color:rgba(255,255,255,.4);font-weight:700;
+}
+.ws-set-head span{display:flex;align-items:center}
+.ws-set-head span:first-child{justify-content:center}
+
+.ws-sets{display:flex;flex-direction:column;gap:6px}
+.ws-set{
+  display:grid;grid-template-columns:42px 1fr 1fr 60px;gap:8px;
+  align-items:center;background:rgba(255,255,255,.03);
+  padding:6px 4px;border-radius:8px;transition:all .2s;
+}
+.ws-set.logged{background:rgba(0,245,212,.08);border-left:3px solid var(--cyan);padding-left:1px}
+.ws-num{
+  width:36px;height:36px;border-radius:50%;
+  font-family:'Inter Tight',sans-serif;font-weight:900;font-size:14px;
+  color:var(--black);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .15s;border:none;justify-self:center;
+}
+.ws-num:hover{transform:scale(1.05)}
+.ws-reps,.ws-weight{
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);
+  color:#fff;font-size:16px;font-weight:700;padding:8px 10px;
+  border-radius:8px;text-align:center;outline:none;
+  font-family:'Inter Tight',sans-serif;letter-spacing:-.01em;
+}
+.ws-reps:focus,.ws-weight:focus{border-color:var(--cyan);background:rgba(0,245,212,.08)}
+.ws-log{
+  background:var(--cyan);color:var(--black);font-size:11px;font-weight:800;
+  letter-spacing:1px;text-transform:uppercase;padding:9px;border-radius:8px;
+  cursor:pointer;border:none;
+}
+.ws-set.logged .ws-log{background:#0a8538;color:#fff;font-size:16px}
+
+/* Start workout button on planner day cards */
+.pd-start{
+  position:absolute;bottom:8px;right:8px;
+  background:var(--cyan);color:var(--black);
+  padding:5px 10px;border-radius:100px;font-size:10px;
+  font-weight:800;letter-spacing:1px;text-transform:uppercase;
+  border:none;cursor:pointer;transition:all .15s;
+}
+.pd-start:hover{background:var(--lime);transform:scale(1.05)}
+.plan-day{position:relative}
+
+/* Start workout button on Fitness mini box */
+.pm-start-row{margin-top:10px;padding-top:10px;border-top:1px solid var(--lgray)}
+.pm-start-row .btn{width:100%;justify-content:center}
+
+/* ---------- REST TIMER FLOATING BAR ---------- */
+.rest-bar{
+  position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-100px);
+  z-index:400;background:var(--black);color:#fff;
+  padding:10px 14px;border-radius:14px;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:0 12px 32px rgba(0,0,0,.4);
+  border:1px solid rgba(0,245,212,.3);
+  transition:transform .25s ease;
+}
+.rest-bar.show{transform:translateX(-50%) translateY(0)}
+.rt-icon{font-size:18px}
+.rt-time{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:22px;letter-spacing:-.02em;color:var(--cyan);min-width:60px;text-align:center}
+.rt-skip,.rt-add{
+  background:rgba(255,255,255,.1);color:#fff;font-size:10px;
+  letter-spacing:1px;text-transform:uppercase;font-weight:700;
+  padding:6px 10px;border-radius:100px;border:none;cursor:pointer;
+}
+.rt-skip:hover{background:var(--pink);color:#fff}
+.rt-add:hover{background:var(--cyan);color:var(--black)}
+
+/* ---------- HEVY-STYLE PER-EXERCISE SUMMARY ---------- */
+.lift-summary{margin-top:14px}
+.lift-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(max-width:600px){.lift-summary-grid{grid-template-columns:repeat(2,1fr)}}
+.ls-cell{background:var(--cream);border:1px solid var(--lgray);border-radius:10px;padding:10px}
+.ls-lbl{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);font-weight:700;margin-bottom:4px}
+.ls-val{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:18px;letter-spacing:-.02em;line-height:1;color:var(--black);display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.ls-up{font-style:normal;font-size:10px;color:#0a8538;background:#d8fdde;padding:1px 6px;border-radius:6px;font-weight:700}
+.ls-dn{font-style:normal;font-size:10px;color:var(--pink);background:#ffe6ee;padding:1px 6px;border-radius:6px;font-weight:700}
+.ls-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gray);margin-top:3px}

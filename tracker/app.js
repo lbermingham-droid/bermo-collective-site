@@ -45,6 +45,10 @@ function init(){
   if(state.profile.onboarded){ enterApp(); }
   else { showGate(); }
   bindGlobal();
+  // Apply preferred start tab if set
+  if(state.profile.onboarded && state.profile.startTab && state.profile.startTab !== "dashboard"){
+    setTimeout(() => { try{ go(state.profile.startTab); }catch(e){} }, 0);
+  }
 }
 function showGate(){
   $("#gate").classList.remove("hidden");
@@ -374,18 +378,69 @@ function copyYesterday(){
 // ---------- FOOD MODAL ----------
 function openFoodModal(meal){
   const allFoods = [...DATA.foodDB, ...state.customFoods];
+  const startMode = (state.profile && state.profile.foodMode) || "search";
   openModal(`Add to ${capitalize(meal)}`, `
-    <div class="food-modal-actions">
-      <button type="button" class="btn btn-ghost btn-sm" id="foodBarcodeBtn">📷 Scan barcode</button>
-      <button type="button" class="btn btn-ghost btn-sm" id="foodBarcodeManualBtn">⌨ Enter UPC</button>
+    <div class="food-tabs">
+      <button type="button" class="food-tab" data-fmode="search">🔍 Search</button>
+      <button type="button" class="food-tab" data-fmode="quicklog">⚡ Quick log</button>
+      <button type="button" class="food-tab" data-fmode="templates">📋 Templates</button>
+      <button type="button" class="food-tab" data-fmode="ai">📸 AI</button>
+      <button type="button" class="food-tab" data-fmode="barcode">📷 Barcode</button>
     </div>
-    <input type="search" id="foodSearch" class="search-input" placeholder="Search foods…" autocomplete="off">
-    <ul class="search-results" id="searchResults"></ul>
+    <div class="food-pane" data-pane="search">
+      <input type="search" id="foodSearch" class="search-input" placeholder="Search 200+ foods, restaurants, brands…" autocomplete="off">
+      <ul class="search-results" id="searchResults"></ul>
+    </div>
+    <div class="food-pane" data-pane="quicklog">
+      <input type="search" id="qlFilter" class="search-input" placeholder="Filter list…" autocomplete="off">
+      <div class="ql-section-label">Recents</div>
+      <ul class="ql-list" id="qlRecents"></ul>
+      <div class="ql-section-label">All foods</div>
+      <ul class="ql-list" id="qlAll"></ul>
+    </div>
+    <div class="food-pane" data-pane="templates">
+      <p class="ql-hint">Save this meal as a template, or apply a saved one.</p>
+      <ul class="ql-list" id="tplList"></ul>
+      <button type="button" class="btn btn-ghost btn-sm" id="tplSaveCurrent" style="margin-top:8px">+ Save current ${capitalize(meal)} as template</button>
+    </div>
+    <div class="food-pane" data-pane="ai">
+      <p class="ql-hint">Use your BYOK AI key to parse a photo or text description.</p>
+      <button type="button" class="btn btn-cyan" id="foodAIPhotoBtn" style="width:100%;margin-bottom:8px">📸 Snap a photo of food</button>
+      <button type="button" class="btn btn-ghost" id="foodAITextBtn" style="width:100%">💬 Type what you ate</button>
+    </div>
+    <div class="food-pane" data-pane="barcode">
+      <button type="button" class="btn btn-cyan" id="foodBarcodeBtn" style="width:100%;margin-bottom:8px">📷 Scan with camera</button>
+      <button type="button" class="btn btn-ghost" id="foodBarcodeManualBtn" style="width:100%">⌨ Type UPC manually</button>
+    </div>
   `, () => {
+    // Tab switching
+    const switchPane = (mode) => {
+      document.querySelectorAll(".food-tab").forEach(t => t.classList.toggle("active", t.dataset.fmode === mode));
+      document.querySelectorAll(".food-pane").forEach(p => p.classList.toggle("active", p.dataset.pane === mode));
+    };
+    document.querySelectorAll(".food-tab").forEach(t => t.addEventListener("click", () => switchPane(t.dataset.fmode)));
+    switchPane(startMode);
+
     const input = $("#foodSearch");
     const list = $("#searchResults");
+
+    // BARCODE pane
     const bc = $("#foodBarcodeBtn"); if(bc) bc.addEventListener("click", () => openBarcodeScanner(meal));
     const bcm = $("#foodBarcodeManualBtn"); if(bcm) bcm.addEventListener("click", () => openBarcodeManual(meal));
+
+    // AI pane — reuse existing AI photo + text modals
+    const aip = $("#foodAIPhotoBtn"); if(aip) aip.addEventListener("click", () => { closeModal(); if(typeof openAIPhotoModal === "function") openAIPhotoModal(meal); });
+    const ait = $("#foodAITextBtn"); if(ait) ait.addEventListener("click", () => { closeModal(); if(typeof openAITextModal === "function") openAITextModal(meal); });
+
+    // QUICK LOG pane
+    renderQuickLogPane(meal, allFoods);
+    const qlf = $("#qlFilter");
+    if(qlf) qlf.addEventListener("input", () => renderQuickLogPane(meal, allFoods, qlf.value));
+
+    // TEMPLATES pane
+    renderTemplatesPane(meal);
+    const tplSave = $("#tplSaveCurrent");
+    if(tplSave) tplSave.addEventListener("click", () => saveCurrentMealAsTemplate(meal));
     const render = (q="") => {
       const f = allFoods.filter(x => x.name.toLowerCase().includes(q.toLowerCase())).slice(0, 30);
       list.innerHTML = f.map(x => `
@@ -404,6 +459,7 @@ function openFoodModal(meal){
             id: uid(), name:food.name, serving:food.serving,
             cal:food.cal, p:food.p, c:food.c, f:food.f
           });
+          if(typeof _trackRecent === "function") _trackRecent(food);
           save(); closeModal(); renderAll();
           toast(`Added ${food.name}`, "cyan");
         });
@@ -411,7 +467,7 @@ function openFoodModal(meal){
     };
     render();
     input.addEventListener("input", () => render(input.value));
-    input.focus();
+    if(startMode === "search") input.focus();
   });
 }
 
@@ -1068,6 +1124,19 @@ function renderSettings(){
   $("#setF").value = state.goals.fat;
   $("#setWater").value = state.goals.water;
   $("#setGoalWeight").value = state.goals.weight || "";
+  // Layout card
+  const stStart = $("#setStartTab"); if(stStart) stStart.value = state.profile.startTab || "dashboard";
+  const stFood = $("#setFoodMode"); if(stFood) stFood.value = state.profile.foodMode || "search";
+  const hubsList = $("#setHubsList");
+  if(hubsList && typeof getHubPrefs === "function" && typeof ALL_HUBS !== "undefined"){
+    const prefs = getHubPrefs();
+    hubsList.innerHTML = ALL_HUBS.map(h => `
+      <label class="set-hub-row">
+        <input type="checkbox" data-hub="${h}" ${prefs.hidden.includes(h) ? "" : "checked"}>
+        <span>${HUB_LABELS[h] || h}</span>
+      </label>
+    `).join("");
+  }
 
   $("#cfList").innerHTML = state.customFoods.map(f => `
     <li class="meal-item" style="background:#fff;border:1px solid var(--lgray)">
@@ -1416,10 +1485,51 @@ document.addEventListener("DOMContentLoaded", () => {
 // =================================================================
 // APPLE-STYLE ACTIVITY RINGS (Move / Exercise / Stand)
 // =================================================================
+function autoComputeActivity(key){
+  const day = dayObj(key);
+  let move = 0, exerciseMin = 0;
+  const standHours = new Set();
+  (day.sessions || []).forEach(s => {
+    const reps = s.reps || 1, sets = s.sets || 1, weight = s.weight || 0;
+    move += Math.round(sets * reps * Math.max(weight, 10) * 0.0008);
+    exerciseMin += sets * 2;
+  });
+  if(day.workoutSession && day.workoutSession.exercises){
+    Object.values(day.workoutSession.exercises).forEach(ex => {
+      (ex.sets || []).forEach(set => {
+        if(set.loggedAt) standHours.add(new Date(set.loggedAt).getHours());
+      });
+    });
+  }
+  const slotHr = { breakfast:8, lunch:12, dinner:18, snacks:15 };
+  if(day.meals){
+    Object.keys(slotHr).forEach(slot => {
+      if(day.meals[slot] && day.meals[slot].length) standHours.add(slotHr[slot]);
+    });
+  }
+  if((day.water||0) > 0) standHours.add(10);
+  return { move, exercise: exerciseMin, stand: standHours.size };
+}
 function getActivityForDay(key){
   const day = dayObj(key);
+  // Manual override wins
+  if(day.activity && day.activity.manual){
+    return day.activity;
+  }
+  // Apple Health import for this date wins next
+  const ah = (state.appleHealth || []).find(x => x.date === key);
+  if(ah){
+    return {
+      move: ah.activeEnergyKcal || 0,
+      exercise: ah.exerciseMinutes || 0,
+      stand: ah.standHours || 0,
+      source: "applehealth"
+    };
+  }
+  // Otherwise auto-derive from logs
+  const auto = autoComputeActivity(key);
   if(!day.activity) day.activity = { move:0, exercise:0, stand:0 };
-  return day.activity;
+  return { ...auto, source: "auto" };
 }
 function getActivityGoals(){
   if(!state.activityGoals) state.activityGoals = { move:800, exercise:60, stand:16 };
@@ -1489,8 +1599,10 @@ function drawActivityRings(){
 function openActivityLogModal(){
   const a = getActivityForDay(currentDate);
   const g = getActivityGoals();
+  const sourceLabel = a.source === "applehealth" ? "Apple Health import" : a.source === "auto" ? "Auto-derived from your logs" : a.manual ? "Manual entry (override)" : "Manual entry";
   openModal("Log activity for " + fmtDate(currentDate), `
-    <p style="font-size:11px;color:#888;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin:0">From your Apple Watch summary, etc.</p>
+    <p style="font-size:11px;color:#888;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin:0 0 4px">Source: ${sourceLabel}</p>
+    <p style="font-size:12px;color:#888;line-height:1.5;margin:0 0 10px">Leave blank to auto-derive from your food + lift logs. Or paste your Apple Watch summary numbers to override.</p>
     <div class="form-grid">
       <label><span>Move (cal burned)</span><input id="actMove" type="number" min="0" max="5000" value="${a.move||""}" placeholder="0"></label>
       <label><span>Exercise (min)</span><input id="actEx" type="number" min="0" max="600" value="${a.exercise||""}" placeholder="0"></label>
@@ -1506,16 +1618,25 @@ function openActivityLogModal(){
     </details>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-ghost" id="actAuto">↻ Use auto-derived</button>
       <button class="btn btn-cyan" id="actSave">Save</button>
     </div>
   `, (root) => {
     root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    const auto = document.getElementById("actAuto");
+    if(auto) auto.addEventListener("click", () => {
+      const day = dayObj(currentDate);
+      delete day.activity;
+      save(); closeModal(); renderAll();
+      toast("Switched to auto-derived activity", "cyan");
+    });
     document.getElementById("actSave").addEventListener("click", () => {
       const day = dayObj(currentDate);
       day.activity = {
         move: parseFloat(document.getElementById("actMove").value) || 0,
         exercise: parseFloat(document.getElementById("actEx").value) || 0,
         stand: parseFloat(document.getElementById("actSt").value) || 0,
+        manual: true,
       };
       state.activityGoals = {
         move: parseInt(document.getElementById("goalMove").value,10) || 800,
@@ -6593,6 +6714,115 @@ function importHealthFile(file){
   });
 }
 
+// ---------- QUICK LOG + MEAL TEMPLATES ----------
+function _trackRecent(food){
+  if(!state.recentFoods) state.recentFoods = [];
+  // Keep last 12, dedupe by name
+  state.recentFoods = state.recentFoods.filter(x => x.name !== food.name);
+  state.recentFoods.unshift({ name:food.name, serving:food.serving, cal:food.cal, p:food.p, c:food.c, f:food.f });
+  state.recentFoods = state.recentFoods.slice(0, 12);
+}
+function renderQuickLogPane(meal, allFoods, filter){
+  const recents = (state.recentFoods || []).slice(0, 8);
+  const filterLower = (filter || "").toLowerCase();
+  const matchAll = filter ? allFoods.filter(x => x.name.toLowerCase().includes(filterLower)) : allFoods;
+  const renderRow = (food) => `
+    <li class="ql-row" data-food='${escape(JSON.stringify({name:food.name,serving:food.serving,cal:food.cal,p:food.p,c:food.c,f:food.f}))}'>
+      <div class="ql-info">
+        <div class="ql-name">${escape(food.name)}</div>
+        <div class="ql-meta">${escape(food.serving||"")} · ${food.cal} cal · P${food.p}</div>
+      </div>
+      <button class="ql-add" type="button">+</button>
+    </li>
+  `;
+  const recList = $("#qlRecents");
+  if(recList){
+    if(recents.length){
+      recList.innerHTML = recents.map(renderRow).join("");
+    } else {
+      recList.innerHTML = `<li class="ql-empty">No recents yet — log a few items to populate.</li>`;
+    }
+  }
+  const allList = $("#qlAll");
+  if(allList){
+    allList.innerHTML = matchAll.slice(0, 100).map(renderRow).join("") || `<li class="ql-empty">No matches.</li>`;
+  }
+  document.querySelectorAll(".ql-row").forEach(li => {
+    li.addEventListener("click", () => {
+      const food = JSON.parse(li.dataset.food);
+      dayObj(currentDate).meals[meal].push({
+        id: uid(),
+        name: food.name, serving: food.serving,
+        cal: food.cal, p: food.p, c: food.c, f: food.f
+      });
+      _trackRecent(food);
+      save();
+      // Brief feedback then re-render quick log so user can keep tapping
+      const btn = li.querySelector(".ql-add");
+      if(btn){ btn.textContent = "✓"; btn.classList.add("added"); setTimeout(() => { btn.textContent = "+"; btn.classList.remove("added"); }, 600); }
+      toast(`Added ${food.name}`, "cyan");
+      // Update day totals in background
+      if(typeof renderAll === "function") renderAll();
+    });
+  });
+}
+function renderTemplatesPane(meal){
+  const list = $("#tplList");
+  if(!list) return;
+  const tpls = state.mealTemplates || [];
+  if(!tpls.length){
+    list.innerHTML = `<li class="ql-empty">No templates yet. Build a meal in this slot, then save it as a template.</li>`;
+    return;
+  }
+  list.innerHTML = tpls.map(t => `
+    <li class="ql-row tpl-row" data-id="${t.id}">
+      <div class="ql-info">
+        <div class="ql-name">${escape(t.name)}</div>
+        <div class="ql-meta">${t.items.length} items · ${t.totals.cal} cal · P${t.totals.p}</div>
+      </div>
+      <div class="tpl-actions">
+        <button class="ql-add" type="button" data-act="apply">Apply</button>
+        <button class="ql-del" type="button" data-act="del" title="Delete">×</button>
+      </div>
+    </li>
+  `).join("");
+  list.querySelectorAll(".tpl-row").forEach(row => {
+    row.querySelector("[data-act='apply']").addEventListener("click", () => {
+      const tpl = (state.mealTemplates || []).find(x => x.id === row.dataset.id);
+      if(!tpl) return;
+      tpl.items.forEach(it => {
+        dayObj(currentDate).meals[meal].push({ id: uid(), name:it.name, serving:it.serving, cal:it.cal, p:it.p, c:it.c, f:it.f });
+      });
+      save();
+      toast(`Applied: ${tpl.name}`, "cyan");
+      closeModal();
+      if(typeof renderAll === "function") renderAll();
+    });
+    row.querySelector("[data-act='del']").addEventListener("click", () => {
+      state.mealTemplates = (state.mealTemplates || []).filter(x => x.id !== row.dataset.id);
+      save();
+      renderTemplatesPane(meal);
+    });
+  });
+}
+function saveCurrentMealAsTemplate(meal){
+  const items = (dayObj(currentDate).meals[meal] || []).map(x => ({
+    name:x.name, serving:x.serving, cal:x.cal, p:x.p, c:x.c, f:x.f
+  }));
+  if(!items.length){ toast(`Add some items to ${capitalize(meal)} first`, "pink"); return; }
+  const name = prompt("Name this template:", `My ${capitalize(meal)} ${new Date().toLocaleDateString()}`);
+  if(!name) return;
+  const totals = items.reduce((a,b) => ({
+    cal: a.cal + (b.cal||0), p: a.p + (b.p||0), c: a.c + (b.c||0), f: a.f + (b.f||0)
+  }), { cal:0, p:0, c:0, f:0 });
+  ["cal","p","c","f"].forEach(k => totals[k] = Math.round(totals[k] * 10) / 10);
+  if(!state.mealTemplates) state.mealTemplates = [];
+  state.mealTemplates.unshift({ id: uid(), name, items, totals, createdAt: new Date().toISOString() });
+  save();
+  toast(`Saved template: ${name}`, "ok");
+  renderTemplatesPane(meal);
+}
+
 // ---------- WIRING ----------
 (function wireFeatures(){
   const ib = document.getElementById("inbodyBtn");
@@ -6603,6 +6833,26 @@ function importHealthFile(file){
   if(pb) pb.addEventListener("click", openProgramsModal);
   const ahCopy = document.getElementById("ahCopyTemplate");
   if(ahCopy) ahCopy.addEventListener("click", copyHealthTemplate);
+
+  // Layout settings save
+  const layoutSave = document.getElementById("setLayoutSave");
+  if(layoutSave) layoutSave.addEventListener("click", () => {
+    const stStart = document.getElementById("setStartTab");
+    const stFood = document.getElementById("setFoodMode");
+    state.profile.startTab = stStart ? stStart.value : "dashboard";
+    state.profile.foodMode = stFood ? stFood.value : "search";
+    if(typeof getHubPrefs === "function"){
+      const prefs = getHubPrefs();
+      const checks = document.querySelectorAll("#setHubsList input[type=checkbox][data-hub]");
+      const hidden = [];
+      checks.forEach(cb => { if(!cb.checked) hidden.push(cb.dataset.hub); });
+      prefs.hidden = hidden;
+      state.hubPrefs = prefs;
+    }
+    save();
+    if(typeof applyHubPrefs === "function") applyHubPrefs();
+    toast("Layout saved", "ok");
+  });
   const ahImp = document.getElementById("ahImportBtn");
   const ahFile = document.getElementById("ahFileInput");
   if(ahImp && ahFile){
@@ -6623,13 +6873,13 @@ if(typeof renderDashboard === "function"){
     try{ renderAdaptiveCard(); }catch(e){ console.warn("adaptive card", e); }
   };
 }
-// Patch fitness render to include anatomy heatmap (after BodyCoverage patch)
-if(typeof renderFitness === "function"){
-  const _origRF_AN = renderFitness;
-  renderFitness = function(){
-    _origRF_AN();
-    try{ renderAnatomyHeatmap(); }catch(e){ console.warn("anatomy", e); }
-  };
-}
+// Anatomy heatmap is hidden for now — saved for later. Re-enable by uncommenting:
+// if(typeof renderFitness === "function"){
+//   const _origRF_AN = renderFitness;
+//   renderFitness = function(){
+//     _origRF_AN();
+//     try{ renderAnatomyHeatmap(); }catch(e){ console.warn("anatomy", e); }
+//   };
+// }
 
 })();

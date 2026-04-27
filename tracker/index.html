@@ -917,6 +917,34 @@
         </div>
 
         <div class="card span-12">
+          <div class="card-head"><span class="card-eyebrow eb-cyan">Layout — what you see first</span></div>
+          <div class="form form-grid">
+            <label>
+              <span>Open this screen on launch</span>
+              <select id="setStartTab">
+                <option value="dashboard">Dashboard (rings)</option>
+                <option value="nutrition">Nutrition (food log)</option>
+                <option value="fitness">Fitness (lift today)</option>
+                <option value="plan">Plan (week)</option>
+                <option value="body">Body (weight)</option>
+                <option value="trends">Trends</option>
+              </select>
+            </label>
+            <label>
+              <span>Default food modal mode</span>
+              <select id="setFoodMode">
+                <option value="search">Search bar</option>
+                <option value="quicklog">1-tap quick log</option>
+                <option value="ai">📸 AI photo</option>
+              </select>
+            </label>
+          </div>
+          <p style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--navy-mute);margin:12px 0 6px;font-weight:700">Visible dashboard hubs</p>
+          <div id="setHubsList" class="set-hubs-list"></div>
+          <button type="button" class="btn btn-cyan" id="setLayoutSave" style="margin-top:10px">Save layout</button>
+        </div>
+
+        <div class="card span-12">
           <div class="card-head"><span class="card-eyebrow eb-cyan">Apple Health sync (workaround)</span></div>
           <p style="font-size:13px;color:#555;line-height:1.6;margin:0 0 12px">
             Web apps can't read Apple Health directly. Use the iOS Shortcut below — it exports today's

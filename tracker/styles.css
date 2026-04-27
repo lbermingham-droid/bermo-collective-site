@@ -1959,3 +1959,63 @@ input:focus, select:focus, textarea:focus{ border-color: var(--cyan) !important;
 .prog-name{ font-size: 14px !important; }
 .prog-focus{ font-size: 12px !important; line-height: 1.4 !important; }
 .prog-sample{ font-size: 10px !important; }
+
+/* ============================================================
+   FOOD MODAL TABS + QUICK LOG + TEMPLATES + LAYOUT SETTINGS
+   ============================================================ */
+.food-tabs{
+  display:flex; gap:4px; margin-bottom:12px; overflow-x:auto;
+  border-bottom:1px solid var(--navy-line);
+  padding-bottom:0;
+}
+.food-tab{
+  background:transparent !important; color:var(--navy-mute) !important;
+  border:none !important; border-bottom:2px solid transparent !important;
+  padding:8px 10px !important; font-size:12px !important; cursor:pointer;
+  white-space:nowrap; flex:0 0 auto;
+}
+.food-tab.active{ color:var(--cyan) !important; border-bottom-color:var(--cyan) !important; }
+.food-pane{ display:none; }
+.food-pane.active{ display:block; animation: fadeIn .15s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(2px)} to{opacity:1;transform:none} }
+
+.ql-section-label{
+  font-size:9px; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--navy-mute); font-weight:700; margin:10px 0 4px;
+}
+.ql-list{ list-style:none; padding:0; margin:0 0 8px; max-height:35vh; overflow-y:auto; }
+.ql-row{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:8px 10px; background:var(--navy-card-2);
+  border:1px solid var(--navy-line); border-radius:6px;
+  margin-bottom:4px; cursor:pointer; transition:background .12s;
+}
+.ql-row:hover{ background:rgba(0,245,212,.06); border-color:rgba(0,245,212,.4); }
+.ql-info{ flex:1; min-width:0; }
+.ql-name{ font-size:13px; font-weight:600; color:var(--navy-text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ql-meta{ font-size:10px; color:var(--navy-mute); margin-top:2px; }
+.ql-add{
+  flex:0 0 auto; width:28px; height:28px; border-radius:50%;
+  background:var(--cyan) !important; color:#082018 !important;
+  font-size:18px; font-weight:700; line-height:1; border:none;
+  display:flex; align-items:center; justify-content:center;
+}
+.ql-add.added{ background:var(--lime) !important; }
+.ql-del{
+  flex:0 0 auto; width:24px; height:24px; border-radius:50%;
+  background:transparent; color:var(--pink); font-size:16px; border:1px solid var(--navy-line);
+  margin-left:4px;
+}
+.ql-empty{ padding:14px; color:var(--navy-faint); font-style:italic; font-size:12px; text-align:center; }
+.ql-hint{ font-size:12px; color:var(--navy-mute); margin:0 0 10px; line-height:1.4; }
+.tpl-row .tpl-actions{ display:flex; gap:4px; align-items:center; }
+.tpl-row .ql-add{ width:auto; padding:0 12px; border-radius:14px; font-size:11px; }
+
+/* Settings hubs list */
+.set-hubs-list{ display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:6px; }
+.set-hub-row{
+  display:flex; align-items:center; gap:8px; padding:8px 10px;
+  background:var(--navy-card-2); border:1px solid var(--navy-line); border-radius:6px;
+  font-size:12px; cursor:pointer;
+}
+.set-hub-row input[type=checkbox]{ width:16px; height:16px; }

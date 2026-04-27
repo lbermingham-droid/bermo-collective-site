@@ -142,13 +142,59 @@ const foodDB = FOODS.map(([name,serving,cal,p,c,f]) => ({
   name, serving, cal, p, c, f, custom:false
 }));
 
+// --- PRE-BUILT PROGRAM TEMPLATES ---
+// dayTemplates keys map to weekday index (0=Mon..6=Sun); value = workout type label matching WORKOUT_TYPES
+const PROGRAMS = [
+  {
+    id: "fb3",
+    name: "Full Body 3x",
+    days: 3,
+    focus: "Beginner-friendly. Compound lifts every session, three non-consecutive days.",
+    sample: "Mon Full Body · Wed Full Body · Fri Full Body",
+    dayTemplates: { 0:"Full Body", 2:"Full Body", 4:"Full Body" }
+  },
+  {
+    id: "ul4",
+    name: "Upper / Lower 4x",
+    days: 4,
+    focus: "Two upper, two lower. Solid intermediate split with built-in recovery.",
+    sample: "Mon Upper · Tue Lower · Thu Upper · Fri Lower",
+    dayTemplates: { 0:"Upper Body", 1:"Legs", 3:"Upper Body", 4:"Legs" }
+  },
+  {
+    id: "ppl",
+    name: "Push / Pull / Legs (6x)",
+    days: 6,
+    focus: "Hits each muscle group 2x/week. High-volume hypertrophy.",
+    sample: "Mon Push · Tue Pull · Wed Legs · Thu Push · Fri Pull · Sat Legs",
+    dayTemplates: { 0:"Push", 1:"Pull", 2:"Legs", 3:"Push", 4:"Pull", 5:"Legs" }
+  },
+  {
+    id: "sl5x5",
+    name: "StrongLifts 5x5",
+    days: 3,
+    focus: "Five compound lifts, 5 sets of 5, three days a week. Linear progression.",
+    sample: "Mon A (Squat/Bench/Row) · Wed B (Squat/Press/Deadlift) · Fri A",
+    dayTemplates: { 0:"Strength", 2:"Strength", 4:"Strength" }
+  },
+  {
+    id: "pl3",
+    name: "Powerlifting 3-day",
+    days: 3,
+    focus: "Squat / Bench / Deadlift focus with accessory volume. Powerlifting-style.",
+    sample: "Mon Squat · Wed Bench · Fri Deadlift",
+    dayTemplates: { 0:"Strength", 2:"Strength", 4:"Strength" }
+  },
+];
+
 return {
   foodDB,
   quickFoods: QUICK_FOODS,
   wods: WODS,
   movements: MOVEMENTS,
   prLifts: PR_LIFTS,
-  defaultGoals: DEFAULT_GOALS
+  defaultGoals: DEFAULT_GOALS,
+  programs: PROGRAMS
 };
 
 })();

@@ -49,21 +49,187 @@ function init(){
 function showGate(){
   $("#gate").classList.remove("hidden");
   $("#app").classList.add("hidden");
-  $("#gateForm").addEventListener("submit", onGateSubmit);
+  initWizard();
 }
-function onGateSubmit(e){
-  e.preventDefault();
-  state.profile.name = $("#gateName").value.trim() || "Athlete";
-  state.profile.units = $("#gateUnits").value;
-  state.goals.cal = parseInt($("#gateCal").value, 10) || 2200;
-  // proportional macro defaults: 30/40/30
-  state.goals.protein = Math.round(state.goals.cal * 0.30 / 4);
-  state.goals.carbs   = Math.round(state.goals.cal * 0.40 / 4);
-  state.goals.fat     = Math.round(state.goals.cal * 0.30 / 9);
-  state.profile.onboarded = true;
+
+// ---------- SMART ONBOARDING WIZARD ----------
+let wizStep = 1;
+const WIZ_TOTAL = 3;
+
+function initWizard(){
+  // pre-fill from any prior profile
+  const p = state.profile || {};
+  if(p.name) $("#wizName").value = p.name;
+  if(p.sex) $("#wizSex").value = p.sex;
+  if(p.ageYears) $("#wizAge").value = p.ageYears;
+  if(p.units) $("#wizUnits").value = p.units;
+  if(p.heightIn) $("#wizHeight").value = p.units === "metric" ? Math.round(p.heightIn * 2.54) : p.heightIn;
+  if(p.weightLb) $("#wizWeight").value = p.units === "metric" ? Math.round(p.weightLb * 0.4536 * 10)/10 : p.weightLb;
+  if(p.goal) $("#wizGoal").value = p.goal;
+  if(p.goalRateLbWk) $("#wizRate").value = p.goalRateLbWk;
+  if(p.activityLevel) $("#wizActivity").value = p.activityLevel;
+  if(p.experience) $("#wizExp").value = p.experience;
+  if(p.daysPerWeek) $("#wizDays").value = p.daysPerWeek;
+  if(p.equipment) $("#wizEquipment").value = p.equipment;
+
+  $("#wizUnits").addEventListener("change", onWizUnitsChange);
+  $("#wizGoal").addEventListener("change", onWizGoalChange);
+  $("#wizPrev").addEventListener("click", () => wizGo(wizStep - 1));
+  $("#wizNext").addEventListener("click", () => wizGo(wizStep + 1));
+  $("#wizApply").addEventListener("click", wizApply);
+  onWizUnitsChange();
+  onWizGoalChange();
+  wizGo(1);
+}
+
+function onWizUnitsChange(){
+  const metric = $("#wizUnits").value === "metric";
+  $("#wizHtUnit").textContent = metric ? "(cm)" : "(in)";
+  $("#wizWtUnit").textContent = metric ? "(kg)" : "(lb)";
+}
+function onWizGoalChange(){
+  const v = $("#wizGoal").value;
+  $("#wizRateWrap").style.display = v === "maintain" ? "none" : "block";
+  $("#wizRateLabel").textContent = v === "lose" ? "Loss rate" : "Gain rate";
+}
+
+function wizGo(n){
+  if(n < 1) return;
+  if(n > WIZ_TOTAL) return;
+  if(n > wizStep && !wizValidateCurrent()) return;
+  wizStep = n;
+  $$(".wiz-step").forEach(el => el.classList.toggle("active", parseInt(el.dataset.step,10) === n));
+  $("#wizProgFill").style.width = ((n / WIZ_TOTAL) * 100) + "%";
+  $("#wizStepLabel").textContent = `Step ${n} of ${WIZ_TOTAL} — ${["About you","Your goal","Review"][n-1]}`;
+  $("#wizPrev").style.display = n === 1 ? "none" : "inline-block";
+  $("#wizNext").style.display = n === WIZ_TOTAL ? "none" : "inline-block";
+  $("#wizApply").style.display = n === WIZ_TOTAL ? "inline-block" : "none";
+  if(n === WIZ_TOTAL) renderWizSummary();
+}
+
+function wizValidateCurrent(){
+  if(wizStep === 1){
+    if(!$("#wizName").value.trim()) { toast("Add your name", "err"); return false; }
+    const age = parseInt($("#wizAge").value, 10);
+    if(!(age >= 13 && age <= 99)) { toast("Age 13–99", "err"); return false; }
+  }
+  return true;
+}
+
+function wizCollect(){
+  const metric = $("#wizUnits").value === "metric";
+  const heightInput = parseFloat($("#wizHeight").value);
+  const weightInput = parseFloat($("#wizWeight").value);
+  return {
+    name: $("#wizName").value.trim() || "Athlete",
+    sex: $("#wizSex").value,
+    ageYears: parseInt($("#wizAge").value, 10),
+    units: metric ? "metric" : "imperial",
+    heightIn: metric ? heightInput / 2.54 : heightInput,
+    weightLb: metric ? weightInput / 0.4536 : weightInput,
+    goal: $("#wizGoal").value,
+    goalRateLbWk: parseFloat($("#wizRate").value),
+    activityLevel: parseFloat($("#wizActivity").value),
+    experience: $("#wizExp").value,
+    daysPerWeek: parseInt($("#wizDays").value, 10),
+    equipment: $("#wizEquipment").value,
+  };
+}
+
+function computeTargets(p){
+  // Mifflin-St Jeor (kg, cm)
+  const kg = p.weightLb * 0.4536;
+  const cm = p.heightIn * 2.54;
+  const bmr = Math.round(p.sex === "male"
+    ? 10*kg + 6.25*cm - 5*p.ageYears + 5
+    : 10*kg + 6.25*cm - 5*p.ageYears - 161);
+  const tdee = Math.round(bmr * p.activityLevel);
+  let delta = 0;
+  if(p.goal === "lose") delta = -Math.round(p.goalRateLbWk * 500);
+  if(p.goal === "gain") delta =  Math.round(p.goalRateLbWk * 500);
+  const cal = Math.max(1200, tdee + delta);
+  // macro split shifts slightly by goal
+  let pPct = 0.30, cPct = 0.40, fPct = 0.30;
+  if(p.goal === "lose")  { pPct = 0.35; cPct = 0.35; fPct = 0.30; }
+  if(p.goal === "gain")  { pPct = 0.28; cPct = 0.45; fPct = 0.27; }
+  const protein = Math.round(cal * pPct / 4);
+  const carbs   = Math.round(cal * cPct / 4);
+  const fat     = Math.round(cal * fPct / 9);
+  return { bmr, tdee, cal, protein, carbs, fat };
+}
+
+function suggestSplit(p){
+  if(p.experience === "beginner" || p.daysPerWeek <= 3){
+    return { id:"fb3", name:"Full Body 3x", days:3, focus:"Compound lifts every session — fastest beginner gains.", template:"Full Body 3x" };
+  }
+  if(p.daysPerWeek === 4){
+    return { id:"ul4", name:"Upper / Lower 4x", days:4, focus:"Two upper days, two lower. Great balance for intermediates.", template:"Upper/Lower 4x" };
+  }
+  if(p.daysPerWeek >= 5){
+    return { id:"ppl", name:"Push / Pull / Legs", days:6, focus:"Hits each muscle group 2x/week with high volume.", template:"PPL" };
+  }
+  return { id:"fb3", name:"Full Body 3x", days:3, focus:"Solid default.", template:"Full Body 3x" };
+}
+
+function renderWizSummary(){
+  const p = wizCollect();
+  const t = computeTargets(p);
+  const split = suggestSplit(p);
+  const goalLabel = p.goal === "lose" ? `Lose ${p.goalRateLbWk} lb/wk`
+                  : p.goal === "gain" ? `Gain ${p.goalRateLbWk} lb/wk`
+                  : "Maintain";
+  $("#wizSummary").innerHTML = `
+    <div class="wiz-sum-grid">
+      <div class="wiz-sum-cell"><span>BMR</span><strong>${t.bmr}</strong><em>cal</em></div>
+      <div class="wiz-sum-cell"><span>TDEE</span><strong>${t.tdee}</strong><em>cal</em></div>
+      <div class="wiz-sum-cell hl"><span>Daily target</span><strong>${t.cal}</strong><em>cal</em></div>
+      <div class="wiz-sum-cell"><span>Goal</span><strong>${goalLabel}</strong></div>
+    </div>
+    <div class="wiz-macro-row">
+      <div class="wiz-macro p"><span>Protein</span><strong>${t.protein} g</strong></div>
+      <div class="wiz-macro c"><span>Carbs</span><strong>${t.carbs} g</strong></div>
+      <div class="wiz-macro f"><span>Fat</span><strong>${t.fat} g</strong></div>
+    </div>`;
+  $("#wizSplitCard").innerHTML = `
+    <div class="wiz-split-head">Suggested split</div>
+    <div class="wiz-split-name">${split.name}</div>
+    <div class="wiz-split-focus">${split.focus}</div>
+    <div class="wiz-split-meta">${split.days} days/week · matches your ${p.experience} level + ${p.daysPerWeek} day availability</div>`;
+}
+
+function wizApply(){
+  const p = wizCollect();
+  const t = computeTargets(p);
+  const split = suggestSplit(p);
+  state.profile = {
+    ...state.profile,
+    ...p,
+    onboarded: true,
+    onboardedAt: new Date().toISOString(),
+    suggestedSplit: split.id,
+    suggestedSplitName: split.name,
+  };
+  state.goals.cal = t.cal;
+  state.goals.protein = t.protein;
+  state.goals.carbs = t.carbs;
+  state.goals.fat = t.fat;
+  state.goals.bmr = t.bmr;
+  state.goals.tdee = t.tdee;
+  // Seed weight history if empty
+  if(!state.weights.length){
+    state.weights.push({ date: todayKey(), val: p.weightLb });
+  }
   save();
+  toast("Profile saved — let's go", "ok");
   enterApp();
 }
+
+// Re-run wizard from Settings
+window.bermoRerunSetup = function(){
+  $("#app").classList.add("hidden");
+  $("#gate").classList.remove("hidden");
+  initWizard();
+};
 function enterApp(){
   $("#gate").classList.add("hidden");
   $("#app").classList.remove("hidden");
@@ -192,11 +358,17 @@ function copyYesterday(){
 function openFoodModal(meal){
   const allFoods = [...DATA.foodDB, ...state.customFoods];
   openModal(`Add to ${capitalize(meal)}`, `
+    <div class="food-modal-actions">
+      <button type="button" class="btn btn-ghost btn-sm" id="foodBarcodeBtn">📷 Scan barcode</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="foodBarcodeManualBtn">⌨ Enter UPC</button>
+    </div>
     <input type="search" id="foodSearch" class="search-input" placeholder="Search foods…" autocomplete="off">
     <ul class="search-results" id="searchResults"></ul>
   `, () => {
     const input = $("#foodSearch");
     const list = $("#searchResults");
+    const bc = $("#foodBarcodeBtn"); if(bc) bc.addEventListener("click", () => openBarcodeScanner(meal));
+    const bcm = $("#foodBarcodeManualBtn"); if(bcm) bcm.addEventListener("click", () => openBarcodeManual(meal));
     const render = (q="") => {
       const f = allFoods.filter(x => x.name.toLowerCase().includes(q.toLowerCase())).slice(0, 30);
       list.innerHTML = f.map(x => `
@@ -5845,6 +6017,570 @@ if(_origRenderFitnessForBP){
   renderFitness = function(){
     _origRenderFitnessForBP();
     renderBodyCoverage();
+  };
+}
+
+// ============================================================
+// FEATURES 2-7 — appended block
+// ============================================================
+
+function _ensureSection(stateKey, fallback){
+  if(!state[stateKey]) state[stateKey] = fallback;
+  return state[stateKey];
+}
+function _readImageAsBase64(file, maxSize){
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const m = maxSize || 1280;
+        let w = img.width, h = img.height;
+        if(w > m || h > m){
+          const ratio = Math.min(m/w, m/h);
+          w = Math.round(w*ratio); h = Math.round(h*ratio);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        resolve({ base64: dataUrl.split(",")[1], thumb: dataUrl });
+      };
+      img.onerror = reject;
+      img.src = r.result;
+    };
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+// ---------- FEATURE 2: InBody scan ----------
+function openInBodyModal(){
+  if(!state.ai || !state.ai.key){
+    openModal("InBody scan",
+      `<p style="line-height:1.6;color:#555">You need an AI key to parse scans automatically.</p>
+       <p style="line-height:1.6;color:#888;font-size:13px">Add a Claude or OpenAI key in Settings → AI Setup, then come back.</p>
+       <button type="button" class="btn btn-cyan" data-go="settings" id="ibToSettings" style="margin-top:12px">Go to Settings</button>`,
+      () => { $("#ibToSettings").addEventListener("click", closeModal); }
+    );
+    return;
+  }
+  openModal("Upload InBody scan",
+    `<p style="font-size:13px;color:#555;line-height:1.6;margin:0 0 12px">
+       Snap or upload your latest InBody printout. We'll extract weight, body fat %, lean mass, and visceral fat — then save it to your Body history.
+     </p>
+     <input type="file" id="ibFile" accept="image/*" capture="environment" style="display:block;margin-bottom:14px">
+     <div id="ibPreview" style="margin-bottom:12px"></div>
+     <button type="button" class="btn btn-cyan" id="ibParseBtn" disabled>Parse scan</button>
+     <div id="ibStatus" style="font-size:12px;color:#888;margin-top:10px"></div>`,
+    () => {
+      let pendingThumb = null, pendingBase64 = null;
+      $("#ibFile").addEventListener("change", async (e) => {
+        const f = e.target.files[0]; if(!f) return;
+        $("#ibStatus").textContent = "Processing image...";
+        try{
+          const { base64, thumb } = await _readImageAsBase64(f, 1280);
+          pendingThumb = thumb; pendingBase64 = base64;
+          $("#ibPreview").innerHTML = `<img src="${thumb}" style="max-width:100%;border-radius:8px;max-height:240px;display:block">`;
+          $("#ibParseBtn").disabled = false;
+          $("#ibStatus").textContent = "Ready to parse.";
+        }catch(err){ $("#ibStatus").textContent = "Couldn't read image: "+err.message; }
+      });
+      $("#ibParseBtn").addEventListener("click", async () => {
+        if(!pendingBase64) return;
+        $("#ibParseBtn").disabled = true;
+        $("#ibStatus").textContent = "Sending to AI...";
+        const prompt = `This is an InBody body composition scan. Extract the values you can read and return ONLY a JSON object (no markdown, no commentary) with this shape:
+{"weightLb":number|null,"weightKg":number|null,"bodyFatPct":number|null,"skeletalMuscleMassLb":number|null,"skeletalMuscleMassKg":number|null,"leanBodyMassLb":number|null,"visceralFatLevel":number|null,"bmr":number|null,"bodyFatMassLb":number|null,"scanDate":"YYYY-MM-DD"|null}
+Use null for any field you cannot confidently read. Return ONLY the JSON.`;
+        try{
+          const text = await aiRequest(prompt, pendingBase64);
+          const cleaned = text.replace(/```json\s*|```\s*/g, "").trim();
+          const parsed = JSON.parse(cleaned);
+          let wLb = parsed.weightLb || (parsed.weightKg ? parsed.weightKg * 2.2046 : null);
+          let smLb = parsed.skeletalMuscleMassLb || (parsed.skeletalMuscleMassKg ? parsed.skeletalMuscleMassKg * 2.2046 : null);
+          const date = parsed.scanDate || todayKey();
+          _ensureSection("inbodyScans", []).push({
+            id: uid(), date, source:"inbody", thumb: pendingThumb,
+            weightLb: wLb, bodyFatPct: parsed.bodyFatPct,
+            skeletalMuscleMassLb: smLb, leanBodyMassLb: parsed.leanBodyMassLb,
+            visceralFatLevel: parsed.visceralFatLevel, bmr: parsed.bmr,
+            bodyFatMassLb: parsed.bodyFatMassLb,
+          });
+          if(wLb) state.weights.push({ date, val: Math.round(wLb*10)/10, source:"inbody" });
+          if(parsed.bodyFatPct) state.measurements.push({ date, type:"Body Fat %", val: parsed.bodyFatPct });
+          save();
+          $("#ibStatus").innerHTML = `<span style="color:#0a8">✓ Parsed. Weight: ${wLb ? Math.round(wLb*10)/10+" lb" : "—"} · BF: ${parsed.bodyFatPct ?? "—"}% · LBM: ${parsed.leanBodyMassLb ?? "—"}</span>`;
+          setTimeout(() => { closeModal(); renderAll(); toast("InBody scan saved", "ok"); }, 900);
+        }catch(err){
+          $("#ibStatus").innerHTML = `<span style="color:#c33">Parse failed: ${escape(err.message)}. Try a clearer photo.</span>`;
+          $("#ibParseBtn").disabled = false;
+        }
+      });
+    }
+  );
+}
+
+// ---------- FEATURE 3: Adaptive macros ----------
+function _adaptiveAvgWeight(daysBack){
+  if(!state.weights || !state.weights.length) return null;
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - daysBack);
+  const recent = state.weights.filter(w => new Date(w.date) >= cutoff);
+  if(!recent.length) return null;
+  return recent.reduce((s,w) => s + w.val, 0) / recent.length;
+}
+function checkAdaptiveMacros(){
+  const am = _ensureSection("adaptive", { lastReviewAt: null, history: [], dismissedSuggestion: null });
+  if(am.lastReviewAt){
+    const daysSince = (Date.now() - new Date(am.lastReviewAt).getTime()) / 86400000;
+    if(daysSince < 7) return null;
+  }
+  const p = state.profile || {};
+  if(!p.goal || p.goal === "maintain") return null;
+  const w7  = _adaptiveAvgWeight(7);
+  const w14 = _adaptiveAvgWeight(14);
+  if(!w7 || !w14) return null;
+  const observedRate = (w7 - w14);
+  const targetRate = p.goal === "lose" ? -(p.goalRateLbWk||1) : (p.goalRateLbWk||1);
+  if(targetRate === 0) return null;
+  const ratio = observedRate / targetRate;
+  if(ratio >= 0.8 && ratio <= 1.5) return null;
+  const direction = (p.goal === "lose")
+    ? (observedRate > targetRate ? -100 : +100)
+    : (observedRate < targetRate ? +100 : -100);
+  return {
+    observedRate: Math.round(observedRate*100)/100,
+    targetRate,
+    suggestedDelta: direction,
+    newCal: state.goals.cal + direction,
+    reviewedAt: new Date().toISOString()
+  };
+}
+function renderAdaptiveCard(){
+  const sug = checkAdaptiveMacros();
+  const dash = $("#view-dashboard");
+  const existing = $("#adaptiveCard");
+  if(existing) existing.remove();
+  if(!sug || !dash) return;
+  const am = state.adaptive || {};
+  if(am.dismissedSuggestion === sug.suggestedDelta + "@" + state.goals.cal) return;
+  const card = document.createElement("div");
+  card.id = "adaptiveCard";
+  card.className = "card adaptive-card";
+  const sign = sug.suggestedDelta > 0 ? "+" : "";
+  card.innerHTML = `
+    <div class="card-head"><span class="card-eyebrow">✨ Adaptive macros · weekly review</span></div>
+    <p class="adaptive-msg">Your 7-day weight trend is <strong>${sug.observedRate > 0 ? "+":""}${sug.observedRate} lb/wk</strong>, target <strong>${sug.targetRate > 0 ? "+":""}${sug.targetRate} lb/wk</strong>. Try <strong>${sign}${sug.suggestedDelta} cal/day</strong> for a week and we'll re-check.</p>
+    <div class="adaptive-actions">
+      <button type="button" class="btn btn-cyan btn-sm" id="adaptiveApply">Apply (${sug.newCal} cal)</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="adaptiveDismiss">Not now</button>
+    </div>`;
+  dash.prepend(card);
+  $("#adaptiveApply").addEventListener("click", () => {
+    const oldCal = state.goals.cal;
+    state.goals.cal = sug.newCal;
+    const goal = (state.profile && state.profile.goal) || "maintain";
+    let pPct=0.30, cPct=0.40, fPct=0.30;
+    if(goal === "lose")  { pPct=0.35; cPct=0.35; fPct=0.30; }
+    if(goal === "gain")  { pPct=0.28; cPct=0.45; fPct=0.27; }
+    state.goals.protein = Math.round(sug.newCal * pPct / 4);
+    state.goals.carbs   = Math.round(sug.newCal * cPct / 4);
+    state.goals.fat     = Math.round(sug.newCal * fPct / 9);
+    state.adaptive.history.push({ date:new Date().toISOString(), from:oldCal, to:sug.newCal, observedRate:sug.observedRate, targetRate:sug.targetRate });
+    state.adaptive.lastReviewAt = sug.reviewedAt;
+    state.adaptive.dismissedSuggestion = null;
+    save(); toast("New target applied", "ok"); renderAll();
+  });
+  $("#adaptiveDismiss").addEventListener("click", () => {
+    state.adaptive.lastReviewAt = sug.reviewedAt;
+    state.adaptive.dismissedSuggestion = sug.suggestedDelta + "@" + state.goals.cal;
+    save(); card.remove();
+  });
+}
+
+// ---------- FEATURE 4: Barcode scan ----------
+function _barcodeCacheGet(upc){
+  const cache = _ensureSection("barcodeCache", {});
+  return cache[upc] || null;
+}
+function _barcodeCacheSet(upc, food){
+  const cache = _ensureSection("barcodeCache", {});
+  cache[upc] = food; save();
+}
+async function _fetchOpenFoodFacts(upc){
+  const cached = _barcodeCacheGet(upc);
+  if(cached) return cached;
+  const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(upc)}.json`;
+  const r = await fetch(url);
+  const j = await r.json();
+  if(j.status !== 1 || !j.product) throw new Error("Product not found in OpenFoodFacts");
+  const p = j.product, n = p.nutriments || {};
+  const food = {
+    upc,
+    name: (p.product_name || p.brands || "Unknown product").slice(0,60),
+    brand: p.brands || "",
+    serving: p.serving_size || "100 g",
+    cal: Math.round(n["energy-kcal_serving"] || n["energy-kcal_100g"] || 0),
+    p: Math.round((n.proteins_serving || n.proteins_100g || 0) * 10) / 10,
+    c: Math.round((n.carbohydrates_serving || n.carbohydrates_100g || 0) * 10) / 10,
+    f: Math.round((n.fat_serving || n.fat_100g || 0) * 10) / 10,
+    fiber: Math.round((n.fiber_serving || n.fiber_100g || 0) * 10) / 10,
+    sugar: Math.round((n.sugars_serving || n.sugars_100g || 0) * 10) / 10,
+  };
+  _barcodeCacheSet(upc, food);
+  return food;
+}
+async function openBarcodeScanner(meal){
+  if(!("BarcodeDetector" in window)){
+    return openBarcodeManual(meal, "Your browser doesn't support live barcode scanning. Type the UPC instead.");
+  }
+  openModal("Scan barcode",
+    `<video id="bcVideo" playsinline style="width:100%;border-radius:8px;background:#000;max-height:50vh"></video>
+     <p id="bcStatus" style="font-size:12px;color:#888;margin-top:10px">Point your camera at the barcode...</p>
+     <button type="button" class="btn btn-ghost btn-sm" id="bcManualSwitch" style="margin-top:8px">Type UPC instead</button>`,
+    async (root) => {
+      const video = root.querySelector("#bcVideo");
+      const status = root.querySelector("#bcStatus");
+      let stream, raf, stopped = false;
+      const stop = () => { stopped = true; if(raf) cancelAnimationFrame(raf); if(stream) stream.getTracks().forEach(t => t.stop()); };
+      root.querySelector("#bcManualSwitch").addEventListener("click", () => { stop(); openBarcodeManual(meal); });
+      $("#modal").addEventListener("transitionend", stop, { once:true });
+      try{
+        stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"environment" }});
+        video.srcObject = stream; await video.play();
+        const detector = new BarcodeDetector({ formats:["ean_13","ean_8","upc_a","upc_e","code_128"] });
+        const tick = async () => {
+          if(stopped) return;
+          try{
+            const codes = await detector.detect(video);
+            if(codes && codes.length){
+              const upc = codes[0].rawValue;
+              status.textContent = `Found ${upc} — looking up...`;
+              stop();
+              try{
+                const food = await _fetchOpenFoodFacts(upc);
+                _barcodeAddFlow(meal, food);
+              }catch(err){ status.textContent = "Lookup failed: " + err.message; }
+              return;
+            }
+          }catch(e){ /* keep scanning */ }
+          raf = requestAnimationFrame(tick);
+        };
+        raf = requestAnimationFrame(tick);
+      }catch(err){
+        status.textContent = "Camera unavailable: " + err.message;
+        openBarcodeManual(meal);
+      }
+    }
+  );
+}
+function openBarcodeManual(meal, prefix){
+  openModal("Enter UPC manually",
+    `${prefix ? `<p style="color:#c80;font-size:13px;margin:0 0 10px">${escape(prefix)}</p>` : ""}
+     <label style="display:block;margin-bottom:10px">
+       <span style="font-size:11px;letter-spacing:1px;color:#888">UPC / EAN code</span>
+       <input type="text" id="bcManualUpc" placeholder="012345678901" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:16px" autocomplete="off" inputmode="numeric">
+     </label>
+     <button type="button" class="btn btn-cyan" id="bcManualGo">Look up</button>
+     <p id="bcManualStatus" style="font-size:12px;color:#888;margin-top:10px"></p>`,
+    () => {
+      $("#bcManualUpc").focus();
+      $("#bcManualGo").addEventListener("click", async () => {
+        const upc = $("#bcManualUpc").value.trim();
+        if(!upc) return;
+        $("#bcManualStatus").textContent = "Looking up...";
+        try{
+          const food = await _fetchOpenFoodFacts(upc);
+          _barcodeAddFlow(meal, food);
+        }catch(err){
+          $("#bcManualStatus").innerHTML = `<span style="color:#c33">${escape(err.message)}</span>`;
+        }
+      });
+    }
+  );
+}
+function _barcodeAddFlow(meal, food){
+  openModal(`Add: ${food.name}`,
+    `<div style="font-size:12px;color:#888;margin-bottom:6px">${escape(food.brand||"")} · UPC ${escape(food.upc)}</div>
+     <p style="font-size:13px;color:#555;margin:0 0 12px">Per <b>${escape(food.serving)}</b>: ${food.cal} cal · P ${food.p} · C ${food.c} · F ${food.f}</p>
+     <label style="display:block;margin-bottom:10px">
+       <span style="font-size:11px;letter-spacing:1px;color:#888">Servings</span>
+       <input type="number" id="bcServings" value="1" min="0.1" max="20" step="0.1" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:16px">
+     </label>
+     <button type="button" class="btn btn-cyan" id="bcAddBtn">Add to ${capitalize(meal)}</button>
+     <button type="button" class="btn btn-ghost btn-sm" id="bcSaveCustom" style="margin-top:8px">Also save as custom food</button>`,
+    () => {
+      $("#bcAddBtn").addEventListener("click", () => {
+        const mult = parseFloat($("#bcServings").value) || 1;
+        dayObj(currentDate).meals[meal].push({
+          id: uid(),
+          name: food.name, serving: `${mult} × ${food.serving}`,
+          cal: Math.round(food.cal*mult), p: Math.round(food.p*mult*10)/10,
+          c: Math.round(food.c*mult*10)/10, f: Math.round(food.f*mult*10)/10
+        });
+        save(); closeModal(); renderAll();
+        toast(`Added ${food.name}`, "cyan");
+      });
+      $("#bcSaveCustom").addEventListener("click", () => {
+        const id = "f-bc-" + food.upc;
+        if(!state.customFoods.find(x => x.id === id)){
+          state.customFoods.push({ id, name: food.name, serving: food.serving,
+            cal: food.cal, p: food.p, c: food.c, f: food.f, custom:true, upc: food.upc });
+          save(); toast("Saved to custom foods", "ok");
+        }else{ toast("Already saved", "ok"); }
+      });
+    }
+  );
+}
+
+// ---------- FEATURE 5: Anatomy heatmap ----------
+const ANATOMY_TARGETS = { chest:10, back:12, shoulders:8, arms:8, legs:12, glutes:8, core:6 };
+function _anatomyVolumeByPart(daysBack){
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - (daysBack||7));
+  const counts = { chest:0, back:0, shoulders:0, arms:0, legs:0, glutes:0, core:0 };
+  if(typeof BODY_PART_MAP === "undefined") return counts;
+  Object.keys(state.days).forEach(k => {
+    if(new Date(k) < cutoff) return;
+    const day = state.days[k];
+    (day.sessions || []).forEach(s => {
+      const ex = (s.lift || s.exercise || s.name || "").toLowerCase();
+      const parts = (BODY_PART_MAP && BODY_PART_MAP[ex]) || [];
+      const sets = (s.sets && s.sets.length) || 1;
+      parts.forEach(p => { if(counts[p] !== undefined) counts[p] += sets; });
+    });
+  });
+  return counts;
+}
+function _anatomyColor(sets, target){
+  if(sets === 0) return "#ff2d7a";
+  if(sets < target * 0.6) return "#ffa500";
+  return "#c8f500";
+}
+function renderAnatomyHeatmap(){
+  const fit = $("#view-fitness");
+  if(!fit) return;
+  const existing = $("#anatomyCard");
+  if(existing) existing.remove();
+  const counts = _anatomyVolumeByPart(7);
+  const card = document.createElement("div");
+  card.id = "anatomyCard";
+  card.className = "card";
+  const fill = (part) => _anatomyColor(counts[part]||0, ANATOMY_TARGETS[part]||10);
+  card.innerHTML = `
+    <div class="card-head">
+      <span class="card-eyebrow">Anatomy heatmap · last 7 days</span>
+      <span class="card-meta">tap a region for detail</span>
+    </div>
+    <div class="anatomy-wrap">
+      <svg class="anatomy-svg" viewBox="0 0 200 270" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="55" cy="22" rx="14" ry="17" fill="#1a1a1a" stroke="#333"/>
+        <path data-part="chest"     d="M30 50 Q55 45 80 50 L82 90 Q55 95 28 90 Z" fill="${fill("chest")}" stroke="#000" stroke-width="0.5"/>
+        <path data-part="core"      d="M32 92 Q55 96 78 92 L76 130 Q55 135 34 130 Z" fill="${fill("core")}" stroke="#000" stroke-width="0.5"/>
+        <path data-part="shoulders" d="M22 50 Q26 42 32 50 L30 65 Q22 60 22 50 Z" fill="${fill("shoulders")}" stroke="#000" stroke-width="0.5"/>
+        <path data-part="shoulders" d="M88 50 Q84 42 78 50 L80 65 Q88 60 88 50 Z" fill="${fill("shoulders")}" stroke="#000" stroke-width="0.5"/>
+        <path data-part="arms"      d="M22 65 L18 110 L26 112 L30 65 Z" fill="${fill("arms")}" stroke="#000" stroke-width="0.5"/>
+        <path data-part="arms"      d="M88 65 L92 110 L84 112 L80 65 Z" fill="${fill("arms")}" stroke="#000" stroke-width="0.5"/>
+        <path data-part="legs"      d="M34 132 L32 230 L48 230 L52 132 Z" fill="${fill("legs")}" stroke="#000" stroke-width="0.5"/>
+        <path data-part="legs"      d="M76 132 L78 230 L62 230 L58 132 Z" fill="${fill("legs")}" stroke="#000" stroke-width="0.5"/>
+        <ellipse cx="155" cy="22" rx="14" ry="17" fill="#1a1a1a" stroke="#333"/>
+        <path data-part="back"      d="M130 50 Q155 45 180 50 L182 95 Q155 100 128 95 Z" fill="${fill("back")}" stroke="#000" stroke-width="0.5"/>
+        <path data-part="glutes"    d="M132 100 Q155 105 178 100 L176 132 Q155 137 134 132 Z" fill="${fill("glutes")}" stroke="#000" stroke-width="0.5"/>
+        <path data-part="shoulders" d="M122 50 Q126 42 132 50 L130 65 Q122 60 122 50 Z" fill="${fill("shoulders")}" stroke="#000" stroke-width="0.5"/>
+        <path data-part="shoulders" d="M188 50 Q184 42 178 50 L180 65 Q188 60 188 50 Z" fill="${fill("shoulders")}" stroke="#000" stroke-width="0.5"/>
+        <path data-part="arms"      d="M122 65 L118 110 L126 112 L130 65 Z" fill="${fill("arms")}" stroke="#000" stroke-width="0.5"/>
+        <path data-part="arms"      d="M188 65 L192 110 L184 112 L180 65 Z" fill="${fill("arms")}" stroke="#000" stroke-width="0.5"/>
+        <path data-part="legs"      d="M134 134 L132 230 L148 230 L152 134 Z" fill="${fill("legs")}" stroke="#000" stroke-width="0.5"/>
+        <path data-part="legs"      d="M176 134 L178 230 L162 230 L158 134 Z" fill="${fill("legs")}" stroke="#000" stroke-width="0.5"/>
+        <text x="55" y="250" font-size="9" fill="#888" text-anchor="middle">Front</text>
+        <text x="155" y="250" font-size="9" fill="#888" text-anchor="middle">Back</text>
+      </svg>
+      <div class="anatomy-legend">
+        <span class="al-pin"><i style="background:#ff2d7a"></i> Missing</span>
+        <span class="al-pin"><i style="background:#ffa500"></i> Under</span>
+        <span class="al-pin"><i style="background:#c8f500"></i> Good</span>
+      </div>
+    </div>`;
+  fit.appendChild(card);
+  card.querySelectorAll("[data-part]").forEach(el => {
+    el.style.cursor = "pointer";
+    el.addEventListener("click", () => openAnatomyDetail(el.dataset.part, counts[el.dataset.part]||0));
+  });
+}
+function openAnatomyDetail(part, sets){
+  const target = ANATOMY_TARGETS[part] || 10;
+  const status = sets === 0 ? "Missing" : sets < target * 0.6 ? "Under-trained" : "On track";
+  const candidates = [];
+  if(typeof BODY_PART_MAP !== "undefined"){
+    Object.keys(BODY_PART_MAP).forEach(ex => {
+      if(BODY_PART_MAP[ex].includes(part)) candidates.push(ex);
+    });
+  }
+  const list = candidates.slice(0, 8).map(c => `<li style="padding:6px 0;border-bottom:1px solid #eee;text-transform:capitalize">${escape(c)}</li>`).join("");
+  openModal(`${capitalize(part)} · ${status}`,
+    `<p style="margin:0 0 10px;color:#555">Last 7 days: <strong>${sets} sets</strong> (target: ~${target}).</p>
+     <p style="font-size:13px;color:#888;margin:0 0 14px">Suggested exercises:</p>
+     <ul style="list-style:none;padding:0;margin:0 0 14px">${list || `<li style="color:#bbb">No suggestions available.</li>`}</ul>
+     <button type="button" class="btn btn-cyan" id="anaGoFitness" data-go="fitness">Log a lift</button>`,
+    () => { $("#anaGoFitness").addEventListener("click", closeModal); }
+  );
+}
+
+// ---------- FEATURE 6: Programs ----------
+function openProgramsModal(){
+  const programs = (DATA.programs || []);
+  if(!programs.length) return openModal("Programs", `<p>No programs available.</p>`);
+  const cards = programs.map(p => `
+    <div class="prog-card">
+      <div class="prog-name">${escape(p.name)}</div>
+      <div class="prog-meta">${p.days} days/week</div>
+      <p class="prog-focus">${escape(p.focus)}</p>
+      <div class="prog-sample">${escape(p.sample)}</div>
+      <button type="button" class="btn btn-cyan btn-sm prog-apply" data-id="${p.id}">Apply program</button>
+    </div>
+  `).join("");
+  openModal("Browse programs", `<div class="prog-list">${cards}</div>`, () => {
+    $$(".prog-apply").forEach(b => b.addEventListener("click", () => openApplyProgramModal(b.dataset.id)));
+  });
+}
+function openApplyProgramModal(programId){
+  const prog = (DATA.programs || []).find(p => p.id === programId);
+  if(!prog) return;
+  const start = todayKey();
+  openModal(`Apply: ${prog.name}`,
+    `<p style="font-size:13px;color:#555;margin:0 0 12px">Write this program into your planner. Past weeks stay locked. Existing planned days are preserved.</p>
+     <label style="display:block;margin-bottom:10px">
+       <span style="font-size:11px;letter-spacing:1px;color:#888">Start date</span>
+       <input type="date" id="papStart" value="${start}" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:16px">
+     </label>
+     <label style="display:block;margin-bottom:10px">
+       <span style="font-size:11px;letter-spacing:1px;color:#888">Number of weeks</span>
+       <input type="number" id="papWeeks" value="4" min="1" max="12" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:16px">
+     </label>
+     <button type="button" class="btn btn-cyan" id="papGo">Apply ${escape(prog.name)}</button>`,
+    () => {
+      $("#papGo").addEventListener("click", () => applyProgram(prog, $("#papStart").value, parseInt($("#papWeeks").value, 10)));
+    }
+  );
+}
+function _isoWeekKeyForDate(date){
+  if(typeof weekKey === "function") return weekKey(date);
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  const wk = Math.ceil((((d - yearStart)/86400000)+1)/7);
+  return `${d.getUTCFullYear()}-W${String(wk).padStart(2,"0")}`;
+}
+const _PROG_DAY_NAMES = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+function applyProgram(prog, startDateStr, nWeeks){
+  const plan = _ensureSection("plan", {});
+  const start = new Date(startDateStr + "T00:00:00");
+  let conflicts = 0, scheduled = 0;
+  const cur = new Date(start);
+  const offset = (cur.getDay() + 6) % 7;
+  cur.setDate(cur.getDate() - offset);
+  for(let w = 0; w < nWeeks; w++){
+    const wkDate = new Date(cur); wkDate.setDate(cur.getDate() + w*7);
+    const wk = _isoWeekKeyForDate(wkDate);
+    if(!plan[wk]) plan[wk] = {};
+    Object.keys(prog.dayTemplates).forEach(idx => {
+      const dayName = _PROG_DAY_NAMES[parseInt(idx,10)];
+      const existing = plan[wk][dayName];
+      if(existing && existing.type){ conflicts++; return; }
+      plan[wk][dayName] = { type: prog.dayTemplates[idx], notes: `${prog.name} · auto-scheduled` };
+      scheduled++;
+    });
+  }
+  save();
+  closeModal();
+  if(typeof renderPlan === "function") renderPlan();
+  toast(`Scheduled ${scheduled} workouts${conflicts ? " ("+conflicts+" days kept)" : ""}`, "ok");
+}
+
+// ---------- FEATURE 7: Apple Health workaround ----------
+const AH_TEMPLATE = {
+  exportedAt: "2026-04-26T23:00:00Z",
+  date: "2026-04-26",
+  weightLb: 150.0,
+  steps: 8500,
+  sleepHours: 7.5,
+  activeEnergyKcal: 420
+};
+function copyHealthTemplate(){
+  const txt = JSON.stringify(AH_TEMPLATE, null, 2);
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(txt).then(
+      () => toast("Template copied — paste into your Shortcut", "ok"),
+      () => toast("Copy failed", "err")
+    );
+  }
+}
+function importHealthFile(file){
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => {
+      try{
+        const data = JSON.parse(r.result);
+        const records = Array.isArray(data) ? data : [data];
+        let imported = 0;
+        records.forEach(rec => {
+          if(!rec.date) return;
+          if(rec.weightLb) state.weights.push({ date: rec.date, val: rec.weightLb, source:"applehealth" });
+          _ensureSection("appleHealth", []).push({
+            date: rec.date, steps: rec.steps, sleepHours: rec.sleepHours,
+            activeEnergyKcal: rec.activeEnergyKcal, importedAt: new Date().toISOString()
+          });
+          imported++;
+        });
+        save();
+        const status = $("#ahStatus");
+        if(status) status.textContent = `Imported ${imported} record(s) at ${new Date().toLocaleString()}.`;
+        toast(`Imported ${imported} health record(s)`, "ok");
+        renderAll();
+        resolve(imported);
+      }catch(err){ reject(err); }
+    };
+    r.onerror = reject;
+    r.readAsText(file);
+  });
+}
+
+// ---------- WIRING ----------
+(function wireFeatures(){
+  const ib = document.getElementById("inbodyBtn");
+  if(ib) ib.addEventListener("click", openInBodyModal);
+  const rerun = document.getElementById("rerunSetupBtn");
+  if(rerun) rerun.addEventListener("click", window.bermoRerunSetup);
+  const pb = document.getElementById("planBrowsePrograms");
+  if(pb) pb.addEventListener("click", openProgramsModal);
+  const ahCopy = document.getElementById("ahCopyTemplate");
+  if(ahCopy) ahCopy.addEventListener("click", copyHealthTemplate);
+  const ahImp = document.getElementById("ahImportBtn");
+  const ahFile = document.getElementById("ahFileInput");
+  if(ahImp && ahFile){
+    ahImp.addEventListener("click", () => ahFile.click());
+    ahFile.addEventListener("change", (e) => {
+      const f = e.target.files[0]; if(!f) return;
+      importHealthFile(f).catch(err => toast("Import failed: " + err.message, "err"));
+      ahFile.value = "";
+    });
+  }
+})();
+
+// Patch dashboard render to include adaptive card
+if(typeof renderDashboard === "function"){
+  const _origRD_AM = renderDashboard;
+  renderDashboard = function(){
+    _origRD_AM();
+    try{ renderAdaptiveCard(); }catch(e){ console.warn("adaptive card", e); }
+  };
+}
+// Patch fitness render to include anatomy heatmap (after BodyCoverage patch)
+if(typeof renderFitness === "function"){
+  const _origRF_AN = renderFitness;
+  renderFitness = function(){
+    _origRF_AN();
+    try{ renderAnatomyHeatmap(); }catch(e){ console.warn("anatomy", e); }
   };
 }
 

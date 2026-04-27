@@ -1701,3 +1701,80 @@ a{color:inherit}
 .bp-suggest i{color:#666;font-size:11px}
 .bp-suggest-low{border-left-color:#ffb347}
 .bp-suggest-good{border-left-color:#0a8538;background:#e6f9ec}
+
+/* ============================================================
+   FEATURES 2-7 — appended block
+   ============================================================ */
+
+/* ---------- WIZARD ---------- */
+.wiz{margin-top:24px}
+.wiz-progress{height:4px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;margin-bottom:8px}
+.wiz-prog-fill{display:block;height:100%;background:var(--cyan);width:33%;transition:width .3s}
+.wiz-step-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.5);margin:0 0 18px}
+.wiz-step{display:none}
+.wiz-step.active{display:block}
+.wiz-step .gate-row{margin-bottom:14px;grid-template-columns:1fr 1fr 1fr}
+.wiz-step label{display:block;margin-bottom:14px}
+.wiz-step input,.wiz-step select{
+  width:100%;padding:14px 16px;border-radius:8px;border:1px solid rgba(255,255,255,.15);
+  background:rgba(255,255,255,.05);color:#fff;font-size:14px;
+}
+.wiz-step input:focus,.wiz-step select:focus{border-color:var(--cyan);outline:none}
+.wiz-step label > span{display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:6px;font-weight:600}
+.wiz-step label > span em{font-style:normal;color:rgba(255,255,255,.35);text-transform:none;letter-spacing:0}
+.wiz-actions{display:flex;gap:10px;margin-top:20px}
+.wiz-actions .gate-btn{flex:1;width:auto;margin-top:0}
+.gate-btn.ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.2)}
+.gate-btn.ghost:hover{background:rgba(255,255,255,.05);transform:none}
+.wiz-review-intro{font-size:13px;color:rgba(255,255,255,.7);margin:0 0 14px;line-height:1.6}
+.wiz-summary{background:rgba(255,255,255,.04);border-radius:12px;padding:16px;margin-bottom:14px}
+.wiz-sum-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.wiz-sum-cell{background:rgba(0,0,0,.3);border-radius:8px;padding:10px;text-align:center}
+.wiz-sum-cell.hl{background:linear-gradient(135deg,var(--cyan),var(--lime));color:#000}
+.wiz-sum-cell span{display:block;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:4px}
+.wiz-sum-cell.hl span{color:rgba(0,0,0,.6)}
+.wiz-sum-cell strong{display:block;font-size:18px;font-weight:800;color:#fff;line-height:1.2}
+.wiz-sum-cell.hl strong{color:#000}
+.wiz-sum-cell em{font-style:normal;font-size:10px;color:rgba(255,255,255,.4)}
+.wiz-sum-cell.hl em{color:rgba(0,0,0,.5)}
+.wiz-macro-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.wiz-macro{background:rgba(0,0,0,.3);border-radius:8px;padding:10px;text-align:center;border-top:3px solid #444}
+.wiz-macro.p{border-top-color:var(--pink)}
+.wiz-macro.c{border-top-color:var(--cyan)}
+.wiz-macro.f{border-top-color:var(--lime)}
+.wiz-macro span{display:block;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:4px}
+.wiz-macro strong{display:block;font-size:16px;font-weight:800;color:#fff}
+.wiz-split-card{background:rgba(255,255,255,.04);border-left:3px solid var(--lime);border-radius:8px;padding:14px}
+.wiz-split-head{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--lime);font-weight:700;margin-bottom:6px}
+.wiz-split-name{font-size:18px;font-weight:800;color:#fff;margin-bottom:6px}
+.wiz-split-focus{font-size:13px;color:rgba(255,255,255,.7);line-height:1.5;margin:0 0 8px}
+.wiz-split-meta{font-size:11px;color:rgba(255,255,255,.4)}
+
+/* ---------- ADAPTIVE CARD ---------- */
+.adaptive-card{border-left:4px solid var(--cyan);background:linear-gradient(135deg,rgba(0,245,212,.04),rgba(200,245,0,.03))}
+.adaptive-msg{font-size:13px;color:#333;line-height:1.6;margin:8px 0 12px}
+.adaptive-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ---------- FOOD MODAL: barcode buttons row ---------- */
+.food-modal-actions{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.food-modal-actions .btn-sm{flex:1;min-width:120px}
+
+/* ---------- ANATOMY HEATMAP ---------- */
+.anatomy-wrap{display:flex;flex-direction:column;align-items:center;padding:12px 0}
+.anatomy-svg{max-width:280px;width:100%;height:auto}
+.anatomy-svg [data-part]:hover{opacity:.85;filter:brightness(1.1)}
+.anatomy-legend{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;justify-content:center}
+.al-pin{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#666}
+.al-pin i{width:10px;height:10px;border-radius:50%;display:inline-block}
+
+/* ---------- PROGRAMS ---------- */
+.prog-list{display:grid;gap:12px;max-height:60vh;overflow-y:auto}
+.prog-card{background:var(--cream);border-radius:10px;padding:14px;border:1px solid var(--line)}
+.prog-name{font-size:16px;font-weight:800;color:var(--black);margin-bottom:2px}
+.prog-meta{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--cyan);font-weight:700;margin-bottom:8px}
+.prog-focus{font-size:13px;color:#555;line-height:1.5;margin:0 0 8px}
+.prog-sample{font-size:11px;color:#888;font-family:monospace;margin-bottom:10px}
+.prog-apply{width:100%}
+
+/* ---------- APPLE HEALTH ---------- */
+.ah-actions{display:flex;gap:8px;flex-wrap:wrap}

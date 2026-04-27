@@ -36,27 +36,119 @@
     <p class="gate-eyebrow">Nutrition + Fitness Portal</p>
     <h1 class="gate-headline">Track what you <em>eat</em>. Track what you <em>lift</em>. Own the data.</h1>
     <p class="gate-sub">A private tracker built for founders, athletes, and anyone tired of paying for ads to see their own food log. Your data stays in your browser.</p>
-    <form id="gateForm" class="gate-form" autocomplete="off">
-      <label>
-        <span>Athlete name</span>
-        <input type="text" id="gateName" placeholder="e.g. Lexi B." required maxlength="40">
-      </label>
-      <div class="gate-row">
+
+    <div class="wiz" id="wiz">
+      <div class="wiz-progress"><span class="wiz-prog-fill" id="wizProgFill"></span></div>
+      <p class="wiz-step-label" id="wizStepLabel">Step 1 of 3 — About you</p>
+
+      <!-- STEP 1: basics + body -->
+      <div class="wiz-step active" data-step="1">
         <label>
-          <span>Units</span>
-          <select id="gateUnits">
-            <option value="imperial">Imperial (lb / oz)</option>
-            <option value="metric">Metric (kg / ml)</option>
+          <span>Athlete name</span>
+          <input type="text" id="wizName" placeholder="e.g. Lexi B." required maxlength="40">
+        </label>
+        <div class="gate-row">
+          <label>
+            <span>Sex (for BMR)</span>
+            <select id="wizSex">
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+            </select>
+          </label>
+          <label>
+            <span>Age</span>
+            <input type="number" id="wizAge" value="30" min="13" max="99" required>
+          </label>
+        </div>
+        <div class="gate-row">
+          <label>
+            <span>Units</span>
+            <select id="wizUnits">
+              <option value="imperial">Imperial (lb / in)</option>
+              <option value="metric">Metric (kg / cm)</option>
+            </select>
+          </label>
+          <label>
+            <span>Height <em id="wizHtUnit">(in)</em></span>
+            <input type="number" id="wizHeight" value="65" min="36" max="90" step="0.1" required>
+          </label>
+          <label>
+            <span>Weight <em id="wizWtUnit">(lb)</em></span>
+            <input type="number" id="wizWeight" value="150" min="60" max="500" step="0.1" required>
+          </label>
+        </div>
+      </div>
+
+      <!-- STEP 2: goal + activity + experience + days -->
+      <div class="wiz-step" data-step="2">
+        <label>
+          <span>Primary goal</span>
+          <select id="wizGoal">
+            <option value="lose">Lose fat</option>
+            <option value="maintain" selected>Maintain</option>
+            <option value="gain">Build muscle</option>
+          </select>
+        </label>
+        <label class="wiz-rate-wrap" id="wizRateWrap" style="display:none">
+          <span id="wizRateLabel">Target rate</span>
+          <select id="wizRate">
+            <option value="0.5">0.5 lb / week (gentle)</option>
+            <option value="1" selected>1 lb / week (standard)</option>
+            <option value="1.5">1.5 lb / week (aggressive)</option>
           </select>
         </label>
         <label>
-          <span>Daily calorie goal</span>
-          <input type="number" id="gateCal" value="2200" min="1000" max="6000" step="50" required>
+          <span>Activity level (outside of training)</span>
+          <select id="wizActivity">
+            <option value="1.2">Sedentary (desk job, little walking)</option>
+            <option value="1.375" selected>Light (some walking, light chores)</option>
+            <option value="1.55">Moderate (active job or 8k+ steps)</option>
+            <option value="1.725">Very active (manual labor, 12k+ steps)</option>
+          </select>
+        </label>
+        <div class="gate-row">
+          <label>
+            <span>Training experience</span>
+            <select id="wizExp">
+              <option value="beginner">Beginner (&lt;1 yr)</option>
+              <option value="intermediate" selected>Intermediate (1–3 yrs)</option>
+              <option value="advanced">Advanced (3+ yrs)</option>
+            </select>
+          </label>
+          <label>
+            <span>Days / week training</span>
+            <select id="wizDays">
+              <option value="3">3 days</option>
+              <option value="4" selected>4 days</option>
+              <option value="5">5 days</option>
+              <option value="6">6 days</option>
+            </select>
+          </label>
+        </div>
+        <label>
+          <span>Equipment access</span>
+          <select id="wizEquipment">
+            <option value="full" selected>Full gym (barbell + dumbbells + machines)</option>
+            <option value="db">Dumbbells + bench at home</option>
+            <option value="bw">Bodyweight only</option>
+          </select>
         </label>
       </div>
-      <button type="submit" class="gate-btn">Enter portal &nbsp;→</button>
-      <p class="gate-foot">Already set up? Just hit enter — we'll restore your session.</p>
-    </form>
+
+      <!-- STEP 3: computed review -->
+      <div class="wiz-step" data-step="3">
+        <p class="wiz-review-intro">Here's what we computed. Tap <strong>Apply</strong> to lock these in, or back up to tweak.</p>
+        <div class="wiz-summary" id="wizSummary"></div>
+        <div class="wiz-split-card" id="wizSplitCard"></div>
+      </div>
+
+      <div class="wiz-actions">
+        <button type="button" class="gate-btn ghost" id="wizPrev">← Back</button>
+        <button type="button" class="gate-btn" id="wizNext">Next →</button>
+        <button type="button" class="gate-btn" id="wizApply" style="display:none">Apply &amp; enter portal →</button>
+      </div>
+      <p class="gate-foot">Your data lives in your browser. Nothing is uploaded.</p>
+    </div>
   </div>
   <div class="gate-aside">
     <div class="ga-card ga-cyan">
@@ -573,6 +665,7 @@
         <div class="view-head-actions">
           <button class="btn btn-ghost" id="planPrevWeek">← Prev week</button>
           <button class="btn btn-ghost" id="planNextWeek">Next week →</button>
+          <button class="btn btn-ghost" id="planBrowsePrograms">📚 Browse programs</button>
           <button class="btn btn-cyan" id="planAutofill">⟳ Auto-fill from last week</button>
         </div>
       </header>
@@ -591,6 +684,7 @@
         <div class="view-head-actions">
           <button class="btn btn-cyan" id="weighInBtn">+ Weigh in</button>
           <button class="btn btn-ghost" id="measureBtn">+ Measurements</button>
+          <button class="btn btn-ghost" id="inbodyBtn">📸 InBody scan</button>
         </div>
       </header>
 
@@ -749,6 +843,7 @@
               </select>
             </label>
             <button type="submit" class="btn btn-cyan">Save profile</button>
+            <button type="button" class="btn btn-ghost" id="rerunSetupBtn" style="margin-top:8px">⚙️ Re-run smart setup wizard</button>
           </form>
         </div>
         <div class="card span-6">
@@ -811,6 +906,27 @@
             <button type="button" id="aiTestBtn" class="btn btn-ghost span-2">Test connection</button>
             <button type="button" id="aiClearBtn" class="btn btn-pink span-2">Remove key</button>
           </form>
+        </div>
+
+        <div class="card span-12">
+          <div class="card-head"><span class="card-eyebrow eb-cyan">Apple Health sync (workaround)</span></div>
+          <p style="font-size:13px;color:#555;line-height:1.6;margin:0 0 12px">
+            Web apps can't read Apple Health directly. Use the iOS Shortcut below — it exports today's
+            weight, steps, sleep, and active energy to a JSON file in iCloud Drive. Then tap "Import"
+            to pull it in.
+          </p>
+          <ol style="font-size:13px;color:#555;line-height:1.7;margin:0 0 14px;padding-left:20px">
+            <li>Open Shortcuts on iPhone → tap <b>+</b> → name it "BERMO Health Export".</li>
+            <li>Add actions: <i>Find Health Samples</i> (Weight, Steps, Sleep, Active Energy — today) → <i>Combine Text</i> as JSON → <i>Save File</i> to iCloud Drive folder <code>BERMO</code> as <code>health-today.json</code>.</li>
+            <li>Run it once a day (or set an Automation at 11pm).</li>
+            <li>Come back here and tap <b>Import latest export</b>.</li>
+          </ol>
+          <div class="ah-actions">
+            <button type="button" class="btn btn-ghost" id="ahCopyTemplate">📋 Copy JSON template</button>
+            <button type="button" class="btn btn-cyan" id="ahImportBtn">⬇️ Import latest export</button>
+            <input type="file" id="ahFileInput" accept="application/json,.json" hidden>
+          </div>
+          <p id="ahStatus" style="font-size:12px;color:#888;margin:10px 0 0">No imports yet.</p>
         </div>
 
         <div class="card span-12 card-danger">

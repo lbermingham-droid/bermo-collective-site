@@ -246,6 +246,24 @@ a{color:inherit}
   .tb-name{display:none}
 }
 
+/* Touch devices: force mobile layout regardless of width.
+   Catches iPhone Pro Max landscape (~932px) and iPad Mini (768px)
+   where the 720px breakpoint alone leaves the desktop nav showing. */
+@media (pointer: coarse) and (max-width: 1100px){
+  .grid-12{grid-template-columns:1fr;gap:14px}
+  .span-3,.span-4,.span-5,.span-6,.span-7,.span-8,.span-12{grid-column:span 1}
+  .main{padding:20px 14px 100px;max-width:100%}
+  .topbar{padding:0 14px;height:56px}
+  .tb-nav{display:none}
+  .mobnav{display:flex}
+  .tb-date{display:none}
+  .tb-name{display:none}
+  .form-grid{grid-template-columns:1fr}
+  .form-grid .span-2{grid-column:span 1}
+  .nut-summary{grid-template-columns:repeat(2,1fr)}
+  .meal-grid{grid-template-columns:1fr}
+}
+
 /* ---------- RING + STATS ---------- */
 .ring-wrap{position:relative;display:flex;justify-content:center;align-items:center;padding:6px 0 14px}
 .ring-center{position:absolute;display:flex;flex-direction:column;align-items:center;text-align:center}

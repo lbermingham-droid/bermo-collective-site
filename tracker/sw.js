@@ -1,5 +1,5 @@
-/* BERMO TRACKER service worker — offline support */
-const CACHE = "bermo-tracker-v1";
+/* BERMO TRACKER service worker — offline support + notifications */
+const CACHE = "bermo-tracker-v2";
 const ASSETS = [
   "/tracker/",
   "/tracker/index.html",
@@ -20,6 +20,19 @@ self.addEventListener("activate", (e) => {
     caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
   );
   self.clients.claim();
+});
+
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || "/tracker/";
+  e.waitUntil(
+    self.clients.matchAll({ type:"window", includeUncontrolled:true }).then(list => {
+      for(const c of list){
+        if(c.url.includes("/tracker/") && "focus" in c) return c.focus();
+      }
+      if(self.clients.openWindow) return self.clients.openWindow(url);
+    })
+  );
 });
 
 self.addEventListener("fetch", (e) => {

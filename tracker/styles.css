@@ -682,6 +682,23 @@ a{color:inherit}
 .sbanner-warn{background:#fff5e0;color:#7a4a00;border-left:4px solid #ffb347}
 .sbanner-good{background:#e6f9ec;color:#0a4a1f;border-left:4px solid #0a8538}
 
+/* Reminder smart banners (one-tap re-log) */
+.smart-banner{
+  display:flex;align-items:center;gap:12px;padding:12px 14px;
+  background:linear-gradient(135deg,#fffbe6 0%,#ffe6ee 100%);
+  border:1px solid rgba(255,179,71,.3);border-left:4px solid #ffb347;
+  border-radius:12px;
+}
+.smart-banner .sb-body{flex:1;min-width:0}
+.smart-banner .sb-title{font-size:14px;font-weight:700;color:#5a2a00;line-height:1.2}
+.smart-banner .sb-sub{font-size:12px;color:#7a5a30;margin-top:2px;line-height:1.4}
+.smart-banner .sb-actions{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap}
+.smart-banner .btn-sm{padding:6px 10px;font-size:11px}
+@media(max-width:720px){
+  .smart-banner{flex-direction:column;align-items:stretch}
+  .smart-banner .sb-actions{justify-content:flex-end}
+}
+
 /* ---------- SYMPTOM PANEL ---------- */
 .symptom-panel{font-size:13px;color:#666;line-height:1.6;padding:6px 0}
 .sym-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:24px;align-items:flex-start}

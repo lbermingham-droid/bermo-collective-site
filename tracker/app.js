@@ -474,20 +474,21 @@ function openFoodModal(meal){
     renderTemplatesPane(_activeFoodMeal);
     const tplSave = $("#tplSaveCurrent");
     if(tplSave) tplSave.addEventListener("click", () => saveCurrentMealAsTemplate(_activeFoodMeal));
-    const render = (q="") => {
-      const f = allFoods.filter(x => x.name.toLowerCase().includes(q.toLowerCase())).slice(0, 30);
-      list.innerHTML = f.map(x => `
-        <li class="search-result" data-id="${x.id}">
-          <div>
-            <div class="sr-name">${escape(x.name)}</div>
-            <div class="sr-meta">${escape(x.serving||"")} · P${x.p} C${x.c} F${x.f}</div>
-          </div>
-          <div class="sr-cal">${x.cal} kcal</div>
-        </li>
-      `).join("") || `<li style="padding:14px;color:#bbb;font-style:italic">No matches.</li>`;
+    let _searchAbort = null;
+    let _searchSeq = 0;
+    const renderRow = (x, badge) => `
+      <li class="search-result" data-key="${escape(x.id)}">
+        <div>
+          <div class="sr-name">${escape(x.name)}${badge || ""}</div>
+          <div class="sr-meta">${escape(x.serving||"")} · P${x.p} C${x.c} F${x.f}</div>
+        </div>
+        <div class="sr-cal">${x.cal} kcal</div>
+      </li>`;
+    const wireRows = (items) => {
       list.querySelectorAll(".search-result").forEach(li => {
         li.addEventListener("click", () => {
-          const food = allFoods.find(x => x.id === li.dataset.id);
+          const food = items.find(x => x.id === li.dataset.key);
+          if(!food) return;
           dayObj(currentDate).meals[_activeFoodMeal].push({
             id: uid(), name:food.name, serving:food.serving,
             cal:food.cal, p:food.p, c:food.c, f:food.f
@@ -497,6 +498,47 @@ function openFoodModal(meal){
           toast(`Added ${food.name} to ${_activeFoodMeal}`, "cyan");
         });
       });
+    };
+    const render = (q="") => {
+      const local = allFoods.filter(x => x.name.toLowerCase().includes(q.toLowerCase())).slice(0, 30);
+      let html = local.map(x => renderRow(x)).join("");
+      // If the query is meaningful, search OpenFoodFacts in the background
+      if(q && q.trim().length >= 3){
+        if(_searchAbort) _searchAbort.abort();
+        _searchAbort = new AbortController();
+        const seq = ++_searchSeq;
+        if(local.length === 0){
+          html += `<li class="off-loading" style="padding:10px;font-size:11px;color:#888;font-style:italic">Searching OpenFoodFacts (2M items)…</li>`;
+        } else {
+          html += `<li class="off-loading" style="padding:8px;font-size:10px;color:#888;text-align:center;font-style:italic">+ searching OpenFoodFacts…</li>`;
+        }
+        list.innerHTML = html;
+        wireRows(local);
+        _searchOpenFoodFacts(q, _searchAbort.signal).then(off => {
+          if(seq !== _searchSeq) return;
+          // Dedupe: drop OFF items that match a local name
+          const localNames = new Set(local.map(x => x.name.toLowerCase()));
+          const offUnique = off.filter(o => !localNames.has(o.name.toLowerCase()));
+          const merged = [...local, ...offUnique];
+          let h = local.map(x => renderRow(x)).join("");
+          if(offUnique.length){
+            h += `<li class="off-divider" style="padding:6px 10px;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--cyan);font-weight:700">From OpenFoodFacts</li>`;
+            h += offUnique.map(x => renderRow(x, ` <span style="font-size:9px;color:var(--cyan);font-weight:600">OFF</span>`)).join("");
+          } else if(local.length === 0){
+            h = `<li style="padding:14px;color:#bbb;font-style:italic">No matches in local DB or OpenFoodFacts.</li>`;
+          }
+          list.innerHTML = h;
+          wireRows(merged);
+        }).catch(err => {
+          if(err.name === "AbortError") return;
+          // Silent fail — local results still shown
+          const loading = list.querySelector(".off-loading");
+          if(loading) loading.remove();
+        });
+      } else {
+        list.innerHTML = html || `<li style="padding:14px;color:#bbb;font-style:italic">Type to search 200 local + 2M OpenFoodFacts items.</li>`;
+        wireRows(local);
+      }
     };
     render();
     input.addEventListener("input", () => render(input.value));
@@ -6616,46 +6658,121 @@ async function _fetchOpenFoodFacts(upc){
   _barcodeCacheSet(upc, food);
   return food;
 }
+
+// ---- OpenFoodFacts search (free, no key, ~2M items) ----
+const _offSearchCache = new Map(); // query → { ts, items }
+const _OFF_TTL_MS = 24 * 60 * 60 * 1000;
+async function _searchOpenFoodFacts(query, signal){
+  const q = query.trim().toLowerCase();
+  if(q.length < 3) return [];
+  const cached = _offSearchCache.get(q);
+  if(cached && (Date.now() - cached.ts) < _OFF_TTL_MS) return cached.items;
+  const url = `https://world.openfoodfacts.org/api/v2/search?search_terms=${encodeURIComponent(q)}&fields=code,product_name,brands,serving_size,nutriments&page_size=20&sort_by=popularity_key`;
+  const r = await fetch(url, { signal });
+  if(!r.ok) throw new Error("OFF search failed");
+  const j = await r.json();
+  const items = (j.products || [])
+    .filter(p => p.product_name && p.nutriments && (p.nutriments["energy-kcal_100g"] || p.nutriments["energy-kcal_serving"]))
+    .slice(0, 12)
+    .map(p => {
+      const n = p.nutriments || {};
+      const hasServing = n["energy-kcal_serving"] != null && p.serving_size;
+      const cal = Math.round(hasServing ? n["energy-kcal_serving"] : (n["energy-kcal_100g"] || 0));
+      const pr  = Math.round((hasServing ? n.proteins_serving       : n.proteins_100g       || 0) * 10) / 10;
+      const cb  = Math.round((hasServing ? n.carbohydrates_serving  : n.carbohydrates_100g  || 0) * 10) / 10;
+      const ft  = Math.round((hasServing ? n.fat_serving            : n.fat_100g            || 0) * 10) / 10;
+      return {
+        id: "off-" + p.code,
+        name: ((p.brands ? p.brands.split(",")[0].trim() + " · " : "") + p.product_name).slice(0,70),
+        serving: hasServing ? p.serving_size : "100 g",
+        cal, p: pr, c: cb, f: ft,
+        _source: "off", _upc: p.code,
+      };
+    });
+  _offSearchCache.set(q, { ts: Date.now(), items });
+  return items;
+}
+// Lazy-load ZXing for iOS / browsers that lack BarcodeDetector
+let _zxingPromise = null;
+function _loadZXing(){
+  if(window.ZXingBrowser) return Promise.resolve(window.ZXingBrowser);
+  if(_zxingPromise) return _zxingPromise;
+  _zxingPromise = new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "https://unpkg.com/@zxing/browser@0.1.5/umd/index.min.js";
+    s.onload = () => window.ZXingBrowser ? resolve(window.ZXingBrowser) : reject(new Error("ZXing failed to expose globals"));
+    s.onerror = () => reject(new Error("Failed to load ZXing barcode library"));
+    document.head.appendChild(s);
+  });
+  return _zxingPromise;
+}
+
 async function openBarcodeScanner(meal){
-  if(!("BarcodeDetector" in window)){
-    return openBarcodeManual(meal, "Your browser doesn't support live barcode scanning. Type the UPC instead.");
-  }
+  const hasNativeDetector = "BarcodeDetector" in window;
   openModal("Scan barcode",
-    `<video id="bcVideo" playsinline style="width:100%;border-radius:8px;background:#000;max-height:50vh"></video>
-     <p id="bcStatus" style="font-size:12px;color:#888;margin-top:10px">Point your camera at the barcode...</p>
-     <button type="button" class="btn btn-ghost btn-sm" id="bcManualSwitch" style="margin-top:8px">Type UPC instead</button>`,
+    `<video id="bcVideo" playsinline muted autoplay style="width:100%;border-radius:8px;background:#000;max-height:50vh"></video>
+     <p id="bcStatus" style="font-size:12px;color:#888;margin-top:10px">Point your camera at the barcode…</p>
+     <button type="button" class="btn btn-ghost btn-sm" id="bcManualSwitch" style="margin-top:8px;width:100%">Type UPC instead</button>`,
     async (root) => {
       const video = root.querySelector("#bcVideo");
       const status = root.querySelector("#bcStatus");
-      let stream, raf, stopped = false;
-      const stop = () => { stopped = true; if(raf) cancelAnimationFrame(raf); if(stream) stream.getTracks().forEach(t => t.stop()); };
+      let stream, raf, zxControls, stopped = false;
+      const stop = () => {
+        stopped = true;
+        if(raf) cancelAnimationFrame(raf);
+        if(zxControls){ try{ zxControls.stop(); }catch(e){} zxControls = null; }
+        if(stream) stream.getTracks().forEach(t => t.stop());
+      };
       root.querySelector("#bcManualSwitch").addEventListener("click", () => { stop(); openBarcodeManual(meal); });
       $("#modal").addEventListener("transitionend", stop, { once:true });
+
+      const onUPC = async (upc) => {
+        if(stopped) return;
+        status.textContent = `Found ${upc} — looking up…`;
+        stop();
+        try{
+          const food = await _fetchOpenFoodFacts(upc);
+          _barcodeAddFlow(meal, food);
+        }catch(err){
+          status.innerHTML = `<span style="color:var(--pink)">Lookup failed: ${escape(err.message)}.</span> <a href="#" id="bcRetry" style="color:var(--cyan)">Try another</a>`;
+          const retry = root.querySelector("#bcRetry");
+          if(retry) retry.addEventListener("click", (e) => { e.preventDefault(); closeModal(); openBarcodeScanner(meal); });
+        }
+      };
+
       try{
-        stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"environment" }});
-        video.srcObject = stream; await video.play();
-        const detector = new BarcodeDetector({ formats:["ean_13","ean_8","upc_a","upc_e","code_128"] });
-        const tick = async () => {
-          if(stopped) return;
-          try{
-            const codes = await detector.detect(video);
-            if(codes && codes.length){
-              const upc = codes[0].rawValue;
-              status.textContent = `Found ${upc} — looking up...`;
-              stop();
-              try{
-                const food = await _fetchOpenFoodFacts(upc);
-                _barcodeAddFlow(meal, food);
-              }catch(err){ status.textContent = "Lookup failed: " + err.message; }
-              return;
-            }
-          }catch(e){ /* keep scanning */ }
+        if(hasNativeDetector){
+          // Native path (Chrome/Edge desktop, some Android)
+          stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"environment" }});
+          video.srcObject = stream; await video.play();
+          const detector = new BarcodeDetector({ formats:["ean_13","ean_8","upc_a","upc_e","code_128"] });
+          const tick = async () => {
+            if(stopped) return;
+            try{
+              const codes = await detector.detect(video);
+              if(codes && codes.length){ onUPC(codes[0].rawValue); return; }
+            }catch(e){ /* keep scanning */ }
+            raf = requestAnimationFrame(tick);
+          };
           raf = requestAnimationFrame(tick);
-        };
-        raf = requestAnimationFrame(tick);
+        } else {
+          // ZXing path (iOS Safari, Firefox)
+          status.textContent = "Loading scanner…";
+          const ZX = await _loadZXing();
+          if(stopped) return;
+          status.textContent = "Point your camera at the barcode…";
+          const reader = new ZX.BrowserMultiFormatReader();
+          zxControls = await reader.decodeFromVideoDevice(undefined, video, (result, err, controls) => {
+            if(stopped) { try{ controls.stop(); }catch(e){} return; }
+            if(result){
+              const text = result.getText ? result.getText() : (result.text || "");
+              if(text) onUPC(text);
+            }
+          });
+        }
       }catch(err){
-        status.textContent = "Camera unavailable: " + err.message;
-        openBarcodeManual(meal);
+        status.innerHTML = `<span style="color:var(--pink)">Camera unavailable: ${escape(err.message || "permission denied")}.</span>`;
+        setTimeout(() => { if(!stopped){ stop(); openBarcodeManual(meal); } }, 1200);
       }
     }
   );
@@ -7100,5 +7217,268 @@ if(typeof renderDashboard === "function"){
 //     try{ renderAnatomyHeatmap(); }catch(e){ console.warn("anatomy", e); }
 //   };
 // }
+
+// =================================================================
+// REMINDERS + IN-APP ACCOUNTABILITY BANNERS
+// =================================================================
+function getReminders(){
+  if(!state.reminders) state.reminders = {
+    enabled: true,
+    notify: false,
+    breakfast: "09:30",
+    lunch: "13:00",
+    dinner: "19:00",
+    evening: "21:00",
+  };
+  return state.reminders;
+}
+function _hmToMinutes(hm){
+  if(!hm || typeof hm !== "string") return 0;
+  const [h, m] = hm.split(":").map(n => parseInt(n,10));
+  return (h||0) * 60 + (m||0);
+}
+function _nowMinutes(){
+  const d = new Date();
+  return d.getHours() * 60 + d.getMinutes();
+}
+function _mealHasItems(meal){
+  const day = state.days[currentDate];
+  if(!day || !day.meals) return false;
+  return (day.meals[meal] || []).length > 0;
+}
+function _ringsClosed(){
+  const day = state.days[currentDate];
+  if(!day) return { all:false, anyMissing:true };
+  const a = day.activity || { move:0, exercise:0, stand:0 };
+  const g = state.activityGoals || { move:800, exercise:60, stand:16 };
+  const calG = state.goals.cal || 2200;
+  const t = totalsFor(currentDate);
+  const closed = (a.move >= g.move) && (a.exercise >= g.exercise) && (a.stand >= g.stand) && (t.cal >= calG * 0.8);
+  return { all: closed };
+}
+function _bannerDismissed(key){
+  return localStorage.getItem(`bermo.tracker.banner.${todayKey()}.${key}`) === "1";
+}
+function _dismissBanner(key){
+  localStorage.setItem(`bermo.tracker.banner.${todayKey()}.${key}`, "1");
+}
+
+function renderSmartBanners(){
+  const wrap = document.getElementById("smartBanners");
+  if(!wrap) return;
+  const r = getReminders();
+  if(!r.enabled){ wrap.innerHTML = ""; return; }
+
+  const now = _nowMinutes();
+  const banners = [];
+  const checks = [
+    { key:"breakfast", meal:"breakfast", time:_hmToMinutes(r.breakfast), label:"breakfast", icon:"🍳" },
+    { key:"lunch",     meal:"lunch",     time:_hmToMinutes(r.lunch),     label:"lunch",     icon:"🥗" },
+    { key:"dinner",    meal:"dinner",    time:_hmToMinutes(r.dinner),    label:"dinner",    icon:"🍽" },
+  ];
+  for(const c of checks){
+    if(now < c.time) continue;
+    if(_mealHasItems(c.meal)) continue;
+    if(_bannerDismissed(c.key)) continue;
+    const tpls = (state.mealTemplates || []).filter(t => t.name && t.name.toLowerCase().includes(c.meal));
+    const tpl = tpls[0] || (state.mealTemplates || [])[0];
+    banners.push({
+      key: c.key,
+      icon: c.icon,
+      title: `${c.icon} Forgot ${c.label}?`,
+      sub: tpl ? `One tap logs your usual: ${escape(tpl.name)}` : `Tap to log it now — keeps your chain alive.`,
+      primary: tpl ? { label: `Log: ${tpl.name}`, action: "tpl", tplId: tpl.id, meal: c.meal }
+                   : { label: `Open ${c.label} log`, action: "open", meal: c.meal },
+    });
+  }
+
+  // Evening rings nudge
+  const eveTime = _hmToMinutes(r.evening);
+  if(now >= eveTime && !_bannerDismissed("evening")){
+    const rings = _ringsClosed();
+    if(!rings.all){
+      banners.push({
+        key: "evening",
+        icon: "🎯",
+        title: "🎯 Close your rings",
+        sub: "Walk 10 min, do 20 squats, drink water — anything to fill the gap. The 30-day chain is watching.",
+        primary: { label: "Log activity", action: "activity" },
+      });
+    }
+  }
+
+  wrap.innerHTML = banners.map(b => `
+    <div class="smart-banner" data-banner-key="${escape(b.key)}">
+      <div class="sb-body">
+        <div class="sb-title">${b.title}</div>
+        <div class="sb-sub">${b.sub}</div>
+      </div>
+      <div class="sb-actions">
+        <button class="btn btn-cyan btn-sm" data-banner-primary>${escape(b.primary.label)}</button>
+        <button class="btn btn-ghost btn-sm" data-banner-dismiss aria-label="Dismiss">✕</button>
+      </div>
+    </div>
+  `).join("");
+
+  wrap.querySelectorAll("[data-banner-dismiss]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const card = btn.closest(".smart-banner");
+      _dismissBanner(card.dataset.bannerKey);
+      card.remove();
+    });
+  });
+  wrap.querySelectorAll("[data-banner-primary]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const card = btn.closest(".smart-banner");
+      const b = banners.find(x => x.key === card.dataset.bannerKey);
+      if(!b) return;
+      const a = b.primary;
+      if(a.action === "tpl"){
+        const tpl = (state.mealTemplates || []).find(t => t.id === a.tplId);
+        if(tpl){
+          tpl.items.forEach(it => dayObj(currentDate).meals[a.meal].push({ id: uid(), ...it }));
+          save(); toast(`Logged ${tpl.name}`, "cyan"); renderAll();
+        }
+      } else if(a.action === "open"){
+        if(typeof openFoodModal === "function") openFoodModal(a.meal);
+      } else if(a.action === "activity"){
+        if(typeof openActivityLogModal === "function") openActivityLogModal();
+      }
+    });
+  });
+}
+
+// Hook smart banners into dashboard render
+if(typeof renderDashboard === "function"){
+  const _origRD_SB = renderDashboard;
+  renderDashboard = function(){
+    _origRD_SB();
+    try{ renderSmartBanners(); }catch(e){ console.warn("smart banners", e); }
+  };
+}
+
+// ---- Browser notifications (best-effort, while app/PWA is open) ----
+let _reminderTimers = [];
+function clearReminderTimers(){
+  _reminderTimers.forEach(t => clearTimeout(t));
+  _reminderTimers = [];
+}
+function scheduleReminderNotifications(){
+  clearReminderTimers();
+  if(!("Notification" in window)) return;
+  if(Notification.permission !== "granted") return;
+  const r = getReminders();
+  if(!r.notify) return;
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const items = [
+    { key:"breakfast", time:r.breakfast, body:"Did you log breakfast yet?" },
+    { key:"lunch",     time:r.lunch,     body:"Lunch time — log it now while it's fresh." },
+    { key:"dinner",    time:r.dinner,    body:"Don't forget to log dinner." },
+    { key:"evening",   time:r.evening,   body:"Close your rings before bed — chain is at stake." },
+  ];
+  for(const it of items){
+    const [h, m] = (it.time || "00:00").split(":").map(n => parseInt(n,10));
+    const target = new Date(today.getTime() + h*3600000 + m*60000);
+    const delay = target - now;
+    if(delay <= 0 || delay > 12*3600000) continue; // only schedule for the next 12h
+    const t = setTimeout(() => fireReminder(it.key, it.body), delay);
+    _reminderTimers.push(t);
+  }
+}
+async function fireReminder(key, body){
+  // Skip if dismissed in-app or meal already logged
+  if(_bannerDismissed(key)) return;
+  if(["breakfast","lunch","dinner"].includes(key) && _mealHasItems(key)) return;
+  const opts = {
+    body,
+    icon: "/favicon.svg",
+    badge: "/favicon.svg",
+    tag: "bermo-tracker-" + key,
+    data: { url: "/tracker/" },
+  };
+  try{
+    const reg = navigator.serviceWorker && await navigator.serviceWorker.ready;
+    if(reg && reg.showNotification){ await reg.showNotification("BERMO Tracker", opts); return; }
+  }catch(e){ /* fall through */ }
+  try{ new Notification("BERMO Tracker", opts); }catch(e){}
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const enabledEl = document.getElementById("remEnabled");
+  const fields = ["remBreakfast","remLunch","remDinner","remEvening"];
+  const status = document.getElementById("remStatus");
+  const updateStatus = () => {
+    if(!status) return;
+    if(!("Notification" in window)){ status.textContent = "This browser doesn't support notifications."; return; }
+    const r = getReminders();
+    const perm = Notification.permission;
+    const installedHint = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches)
+      ? "PWA installed ✓"
+      : "Tip: Add to Home Screen on iPhone for the best chance of receiving notifications.";
+    status.textContent = `Permission: ${perm}. Browser notifications: ${r.notify ? "on" : "off"}. ${installedHint}`;
+  };
+
+  // Populate fields from saved state
+  const r = getReminders();
+  if(enabledEl) enabledEl.checked = !!r.enabled;
+  const map = { remBreakfast:"breakfast", remLunch:"lunch", remDinner:"dinner", remEvening:"evening" };
+  fields.forEach(id => { const el = document.getElementById(id); if(el && r[map[id]]) el.value = r[map[id]]; });
+
+  const saveBtn = document.getElementById("remSaveBtn");
+  if(saveBtn) saveBtn.addEventListener("click", () => {
+    const r = getReminders();
+    if(enabledEl) r.enabled = enabledEl.checked;
+    fields.forEach(id => { const el = document.getElementById(id); if(el) r[map[id]] = el.value; });
+    state.reminders = r;
+    save();
+    scheduleReminderNotifications();
+    if(typeof renderSmartBanners === "function") renderSmartBanners();
+    toast("Reminders saved", "cyan");
+    updateStatus();
+  });
+
+  const permBtn = document.getElementById("remPermBtn");
+  if(permBtn) permBtn.addEventListener("click", async () => {
+    if(!("Notification" in window)){ toast("Notifications not supported here", "pink"); return; }
+    let perm = Notification.permission;
+    if(perm === "default"){
+      perm = await Notification.requestPermission();
+    }
+    const r = getReminders();
+    r.notify = perm === "granted";
+    state.reminders = r;
+    save();
+    if(perm === "granted"){
+      scheduleReminderNotifications();
+      toast("Notifications enabled", "cyan");
+    } else if(perm === "denied"){
+      toast("Permission denied — change in browser settings", "pink");
+    }
+    updateStatus();
+  });
+
+  const testBtn = document.getElementById("remTestBtn");
+  if(testBtn) testBtn.addEventListener("click", () => {
+    if(!("Notification" in window)){ toast("Notifications not supported here", "pink"); return; }
+    if(Notification.permission !== "granted"){ toast("Enable notifications first", "pink"); return; }
+    fireReminder("test", "If you see this, notifications work while the app is open. Add to Home Screen for best results.");
+  });
+
+  updateStatus();
+  // Schedule today's notifications on load (if previously enabled)
+  setTimeout(scheduleReminderNotifications, 500);
+});
+
+// Re-evaluate banners on tab focus + every 5 min
+document.addEventListener("visibilitychange", () => {
+  if(document.visibilityState === "visible"){
+    if(typeof renderSmartBanners === "function") try{ renderSmartBanners(); }catch(e){}
+    scheduleReminderNotifications();
+  }
+});
+setInterval(() => { try{ renderSmartBanners(); }catch(e){} }, 5*60*1000);
+
+// Service worker is already registered earlier in the file — reused for showNotification
 
 })();

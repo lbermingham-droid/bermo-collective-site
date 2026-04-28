@@ -98,6 +98,11 @@ a{color:inherit}
   position:sticky;top:0;z-index:50;background:var(--black);color:#fff;
   display:flex;align-items:center;justify-content:space-between;
   padding:0 24px;height:64px;border-bottom:3px solid var(--cyan);
+  /* iOS: keep topbar clear of the status bar / dynamic island */
+  padding-top:env(safe-area-inset-top, 0);
+  height:calc(64px + env(safe-area-inset-top, 0px));
+  padding-left:max(24px, env(safe-area-inset-left, 24px));
+  padding-right:max(24px, env(safe-area-inset-right, 24px));
 }
 .tb-left{display:flex;align-items:center;gap:16px}
 .tb-home{
@@ -953,11 +958,22 @@ a{color:inherit}
 @keyframes slideInRight{from{transform:translateX(100%)}to{transform:translateX(0)}}
 
 .detail-header{
-  display:flex;align-items:center;gap:14px;
+  display:flex;align-items:center;gap:10px;
   padding:14px 18px;background:var(--black);color:#fff;
+  padding-top:max(14px, env(safe-area-inset-top, 14px));
+  padding-left:max(18px, env(safe-area-inset-left, 18px));
+  padding-right:max(18px, env(safe-area-inset-right, 18px));
   border-bottom:3px solid var(--cyan);
   position:sticky;top:0;z-index:5;
 }
+.detail-log{
+  background:var(--cyan) !important; color:#082018 !important;
+  border:none !important; border-radius:999px !important;
+  padding:8px 14px !important; font-size:12px !important; font-weight:700;
+  letter-spacing:.02em; flex-shrink:0; cursor:pointer;
+  box-shadow:0 4px 12px rgba(0,245,212,.25);
+}
+.detail-log:hover{ background:var(--lime) !important; }
 .detail-back{
   width:34px;height:34px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;

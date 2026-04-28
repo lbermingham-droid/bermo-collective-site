@@ -4184,8 +4184,43 @@ function openDetail(metric){
   document.getElementById("detailOverlay").classList.add("open");
   document.body.style.overflow = "hidden";
   document.querySelectorAll(".ds-btn").forEach(b => b.classList.toggle("on", b.dataset.scale === "7d"));
+  // Re-label the inline + Log button per metric so the user knows what it does
+  const logBtn = document.getElementById("detailLogBtn");
+  if(logBtn){
+    const map = {
+      move: "+ Log activity",
+      exercise: "+ Log activity",
+      stand: "+ Log activity",
+      nutrition: "+ Log food",
+      water: "+ Log water",
+      weight: "+ Weigh in",
+      sleep: "+ Check-in",
+      hr: "+ Check-in",
+    };
+    logBtn.textContent = map[metric] || "+ Log";
+  }
   renderDetailView();
 }
+function _detailLogAction(){
+  const m = detailMetric;
+  if(m === "move" || m === "exercise" || m === "stand"){
+    if(typeof openActivityLogModal === "function") openActivityLogModal();
+  } else if(m === "nutrition"){
+    const h = new Date().getHours();
+    const meal = h < 10 ? "breakfast" : h < 14 ? "lunch" : h < 18 ? "snacks" : "dinner";
+    if(typeof openFoodModal === "function") openFoodModal(meal);
+  } else if(m === "water"){
+    if(typeof addWater === "function"){ addWater(8); toast("+8 oz water","cyan"); renderAll(); }
+  } else if(m === "weight"){
+    if(typeof openWeighInModal === "function") openWeighInModal();
+  } else if(typeof openCheckinModal === "function"){
+    openCheckinModal();
+  }
+}
+document.addEventListener("DOMContentLoaded", () => {
+  const logBtn = document.getElementById("detailLogBtn");
+  if(logBtn) logBtn.addEventListener("click", _detailLogAction);
+});
 function closeDetail(){
   document.getElementById("detailOverlay").classList.remove("open");
   document.body.style.overflow = "";

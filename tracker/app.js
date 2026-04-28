@@ -7225,11 +7225,19 @@ function getReminders(){
   if(!state.reminders) state.reminders = {
     enabled: true,
     notify: false,
-    breakfast: "09:30",
-    lunch: "13:00",
-    dinner: "19:00",
-    evening: "21:00",
+    workoutOn: true,  workout: "05:30",
+    waterOn:   true,  water:   "14:00",
+    eodOn:     true,  eod:     "21:00",
   };
+  // Migrate old meal-based reminder shape if present
+  const r = state.reminders;
+  if(r.workoutOn === undefined && r.breakfast !== undefined){
+    r.workoutOn = true;  r.workout = "05:30";
+    r.waterOn   = true;  r.water   = "14:00";
+    r.eodOn     = true;  r.eod     = "21:00";
+    delete r.breakfast; delete r.lunch; delete r.dinner; delete r.evening;
+    save();
+  }
   return state.reminders;
 }
 function _hmToMinutes(hm){
@@ -7241,20 +7249,29 @@ function _nowMinutes(){
   const d = new Date();
   return d.getHours() * 60 + d.getMinutes();
 }
-function _mealHasItems(meal){
+function _todayHasAnyLog(){
   const day = state.days[currentDate];
-  if(!day || !day.meals) return false;
-  return (day.meals[meal] || []).length > 0;
+  if(!day) return false;
+  const meals = day.meals || {};
+  const anyMeal = ["breakfast","lunch","dinner","snacks"].some(m => (meals[m] || []).length > 0);
+  const anySession = (day.sessions || []).length > 0;
+  const anyWater = (day.water || 0) > 0;
+  const anyActivity = day.activity && ((day.activity.move||0) > 0 || (day.activity.exercise||0) > 0);
+  const anyWeigh = (state.weights || []).some(w => w.date === currentDate);
+  return anyMeal || anySession || anyWater || anyActivity || anyWeigh;
 }
-function _ringsClosed(){
+function _todayHasWorkout(){
   const day = state.days[currentDate];
-  if(!day) return { all:false, anyMissing:true };
-  const a = day.activity || { move:0, exercise:0, stand:0 };
-  const g = state.activityGoals || { move:800, exercise:60, stand:16 };
-  const calG = state.goals.cal || 2200;
-  const t = totalsFor(currentDate);
-  const closed = (a.move >= g.move) && (a.exercise >= g.exercise) && (a.stand >= g.stand) && (t.cal >= calG * 0.8);
-  return { all: closed };
+  if(!day) return false;
+  if((day.sessions || []).length > 0) return true;
+  const ex = day.activity && (day.activity.exercise || 0);
+  return ex >= 15; // count ≥15min cardio as a workout
+}
+function _todayWaterPct(){
+  const day = state.days[currentDate];
+  const goal = (state.goals && state.goals.water) || 64;
+  const cur = (day && day.water) || 0;
+  return goal > 0 ? cur / goal : 0;
 }
 function _bannerDismissed(key){
   return localStorage.getItem(`bermo.tracker.banner.${todayKey()}.${key}`) === "1";
@@ -7271,38 +7288,48 @@ function renderSmartBanners(){
 
   const now = _nowMinutes();
   const banners = [];
-  const checks = [
-    { key:"breakfast", meal:"breakfast", time:_hmToMinutes(r.breakfast), label:"breakfast", icon:"🍳" },
-    { key:"lunch",     meal:"lunch",     time:_hmToMinutes(r.lunch),     label:"lunch",     icon:"🥗" },
-    { key:"dinner",    meal:"dinner",    time:_hmToMinutes(r.dinner),    label:"dinner",    icon:"🍽" },
-  ];
-  for(const c of checks){
-    if(now < c.time) continue;
-    if(_mealHasItems(c.meal)) continue;
-    if(_bannerDismissed(c.key)) continue;
-    const tpls = (state.mealTemplates || []).filter(t => t.name && t.name.toLowerCase().includes(c.meal));
-    const tpl = tpls[0] || (state.mealTemplates || [])[0];
-    banners.push({
-      key: c.key,
-      icon: c.icon,
-      title: `${c.icon} Forgot ${c.label}?`,
-      sub: tpl ? `One tap logs your usual: ${escape(tpl.name)}` : `Tap to log it now — keeps your chain alive.`,
-      primary: tpl ? { label: `Log: ${tpl.name}`, action: "tpl", tplId: tpl.id, meal: c.meal }
-                   : { label: `Open ${c.label} log`, action: "open", meal: c.meal },
-    });
+
+  // 🔥 Morning workout call — fires from the set time until +3h, while no workout logged
+  if(r.workoutOn){
+    const t = _hmToMinutes(r.workout);
+    if(now >= t && now < t + 180 && !_todayHasWorkout() && !_bannerDismissed("workout")){
+      banners.push({
+        key: "workout",
+        title: "🔥 Get your ass to the gym.",
+        sub: "Workout window is open. Hit start — even 20 minutes counts. Future you is watching.",
+        primary: { label: "Log a lift now", action: "lift" },
+        secondary: { label: "Quick activity", action: "activity" },
+      });
+    }
   }
 
-  // Evening rings nudge
-  const eveTime = _hmToMinutes(r.evening);
-  if(now >= eveTime && !_bannerDismissed("evening")){
-    const rings = _ringsClosed();
-    if(!rings.all){
+  // 💧 Water-too-low — fires from the check time onward, at <50% of goal
+  if(r.waterOn){
+    const t = _hmToMinutes(r.water);
+    const pct = _todayWaterPct();
+    if(now >= t && pct < 0.5 && !_bannerDismissed("water")){
+      const goal = (state.goals && state.goals.water) || 64;
+      const cur = (state.days[currentDate] && state.days[currentDate].water) || 0;
       banners.push({
-        key: "evening",
-        icon: "🎯",
-        title: "🎯 Close your rings",
-        sub: "Walk 10 min, do 20 squats, drink water — anything to fill the gap. The 30-day chain is watching.",
+        key: "water",
+        title: "💧 Water is low.",
+        sub: `${Math.round(cur)} of ${goal} ${unitVol()} so far · ${Math.round(pct*100)}% of goal. Crush a glass right now.`,
+        primary: { label: "+ 16 oz", action: "water", oz: 16 },
+        secondary: { label: "+ 8 oz", action: "water", oz: 8 },
+      });
+    }
+  }
+
+  // 🌙 End-of-day untracked alert — fires from the EOD time, when nothing logged today
+  if(r.eodOn){
+    const t = _hmToMinutes(r.eod);
+    if(now >= t && !_todayHasAnyLog() && !_bannerDismissed("eod")){
+      banners.push({
+        key: "eod",
+        title: "🌙 Nothing tracked today.",
+        sub: "30-day chain is about to break. Log ANYTHING — water, a walk, what you ate. 10 seconds.",
         primary: { label: "Log activity", action: "activity" },
+        secondary: { label: "Log food", action: "food" },
       });
     }
   }
@@ -7315,10 +7342,25 @@ function renderSmartBanners(){
       </div>
       <div class="sb-actions">
         <button class="btn btn-cyan btn-sm" data-banner-primary>${escape(b.primary.label)}</button>
+        ${b.secondary ? `<button class="btn btn-ghost btn-sm" data-banner-secondary>${escape(b.secondary.label)}</button>` : ""}
         <button class="btn btn-ghost btn-sm" data-banner-dismiss aria-label="Dismiss">✕</button>
       </div>
     </div>
   `).join("");
+
+  const runAction = (a) => {
+    if(!a) return;
+    if(a.action === "lift" && typeof openLiftModal === "function") openLiftModal();
+    else if(a.action === "activity" && typeof openActivityLogModal === "function") openActivityLogModal();
+    else if(a.action === "food" && typeof openFoodModal === "function"){
+      const h = new Date().getHours();
+      const meal = h < 10 ? "breakfast" : h < 14 ? "lunch" : h < 18 ? "snacks" : "dinner";
+      openFoodModal(meal);
+    } else if(a.action === "water" && typeof addWater === "function"){
+      addWater(a.oz || 8);
+      toast(`+${a.oz || 8} ${unitVol()} water`, "cyan");
+    }
+  };
 
   wrap.querySelectorAll("[data-banner-dismiss]").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -7331,19 +7373,14 @@ function renderSmartBanners(){
     btn.addEventListener("click", () => {
       const card = btn.closest(".smart-banner");
       const b = banners.find(x => x.key === card.dataset.bannerKey);
-      if(!b) return;
-      const a = b.primary;
-      if(a.action === "tpl"){
-        const tpl = (state.mealTemplates || []).find(t => t.id === a.tplId);
-        if(tpl){
-          tpl.items.forEach(it => dayObj(currentDate).meals[a.meal].push({ id: uid(), ...it }));
-          save(); toast(`Logged ${tpl.name}`, "cyan"); renderAll();
-        }
-      } else if(a.action === "open"){
-        if(typeof openFoodModal === "function") openFoodModal(a.meal);
-      } else if(a.action === "activity"){
-        if(typeof openActivityLogModal === "function") openActivityLogModal();
-      }
+      runAction(b && b.primary);
+    });
+  });
+  wrap.querySelectorAll("[data-banner-secondary]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const card = btn.closest(".smart-banner");
+      const b = banners.find(x => x.key === card.dataset.bannerKey);
+      runAction(b && b.secondary);
     });
   });
 }
@@ -7371,25 +7408,28 @@ function scheduleReminderNotifications(){
   if(!r.notify) return;
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const items = [
-    { key:"breakfast", time:r.breakfast, body:"Did you log breakfast yet?" },
-    { key:"lunch",     time:r.lunch,     body:"Lunch time — log it now while it's fresh." },
-    { key:"dinner",    time:r.dinner,    body:"Don't forget to log dinner." },
-    { key:"evening",   time:r.evening,   body:"Close your rings before bed — chain is at stake." },
-  ];
+  const items = [];
+  if(r.workoutOn) items.push({ key:"workout", time:r.workout, title:"🔥 Workout time", body:"Get up. Get to the gym. 20 minutes minimum. No excuses." });
+  if(r.waterOn)   items.push({ key:"water",   time:r.water,   title:"💧 Water check",  body:"Half the day gone — how's your water? Tap to add a glass." });
+  if(r.eodOn)     items.push({ key:"eod",     time:r.eod,     title:"🌙 Don't break the chain", body:"You haven't tracked anything today. Log something — anything — before bed." });
   for(const it of items){
     const [h, m] = (it.time || "00:00").split(":").map(n => parseInt(n,10));
     const target = new Date(today.getTime() + h*3600000 + m*60000);
     const delay = target - now;
-    if(delay <= 0 || delay > 12*3600000) continue; // only schedule for the next 12h
-    const t = setTimeout(() => fireReminder(it.key, it.body), delay);
+    if(delay <= 0 || delay > 18*3600000) continue;
+    const t = setTimeout(() => fireReminder(it.key, it.body, it.title), delay);
     _reminderTimers.push(t);
   }
 }
-async function fireReminder(key, body){
-  // Skip if dismissed in-app or meal already logged
+async function fireReminder(key, body, title){
+  // Skip if dismissed in-app today
   if(_bannerDismissed(key)) return;
-  if(["breakfast","lunch","dinner"].includes(key) && _mealHasItems(key)) return;
+  // Skip workout reminder if a workout is already logged
+  if(key === "workout" && _todayHasWorkout()) return;
+  // Skip water reminder if already at goal
+  if(key === "water" && _todayWaterPct() >= 1) return;
+  // Skip end-of-day reminder if anything is logged
+  if(key === "eod" && _todayHasAnyLog()) return;
   const opts = {
     body,
     icon: "/favicon.svg",
@@ -7399,15 +7439,20 @@ async function fireReminder(key, body){
   };
   try{
     const reg = navigator.serviceWorker && await navigator.serviceWorker.ready;
-    if(reg && reg.showNotification){ await reg.showNotification("BERMO Tracker", opts); return; }
+    if(reg && reg.showNotification){ await reg.showNotification(title || "BERMO Tracker", opts); return; }
   }catch(e){ /* fall through */ }
-  try{ new Notification("BERMO Tracker", opts); }catch(e){}
+  try{ new Notification(title || "BERMO Tracker", opts); }catch(e){}
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const enabledEl = document.getElementById("remEnabled");
-  const fields = ["remBreakfast","remLunch","remDinner","remEvening"];
-  const status = document.getElementById("remStatus");
+  const enabledEl    = document.getElementById("remEnabled");
+  const workoutOnEl  = document.getElementById("remWorkoutOn");
+  const workoutEl    = document.getElementById("remWorkout");
+  const waterOnEl    = document.getElementById("remWaterOn");
+  const waterEl      = document.getElementById("remWater");
+  const eodOnEl      = document.getElementById("remEodOn");
+  const eodEl        = document.getElementById("remEod");
+  const status       = document.getElementById("remStatus");
   const updateStatus = () => {
     if(!status) return;
     if(!("Notification" in window)){ status.textContent = "This browser doesn't support notifications."; return; }
@@ -7421,15 +7466,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Populate fields from saved state
   const r = getReminders();
-  if(enabledEl) enabledEl.checked = !!r.enabled;
-  const map = { remBreakfast:"breakfast", remLunch:"lunch", remDinner:"dinner", remEvening:"evening" };
-  fields.forEach(id => { const el = document.getElementById(id); if(el && r[map[id]]) el.value = r[map[id]]; });
+  if(enabledEl)   enabledEl.checked  = !!r.enabled;
+  if(workoutOnEl) workoutOnEl.checked = !!r.workoutOn;
+  if(workoutEl)   workoutEl.value     = r.workout || "05:30";
+  if(waterOnEl)   waterOnEl.checked   = !!r.waterOn;
+  if(waterEl)     waterEl.value       = r.water   || "14:00";
+  if(eodOnEl)     eodOnEl.checked     = !!r.eodOn;
+  if(eodEl)       eodEl.value         = r.eod     || "21:00";
 
   const saveBtn = document.getElementById("remSaveBtn");
   if(saveBtn) saveBtn.addEventListener("click", () => {
     const r = getReminders();
-    if(enabledEl) r.enabled = enabledEl.checked;
-    fields.forEach(id => { const el = document.getElementById(id); if(el) r[map[id]] = el.value; });
+    if(enabledEl)   r.enabled    = enabledEl.checked;
+    if(workoutOnEl) r.workoutOn  = workoutOnEl.checked;
+    if(workoutEl)   r.workout    = workoutEl.value;
+    if(waterOnEl)   r.waterOn    = waterOnEl.checked;
+    if(waterEl)     r.water      = waterEl.value;
+    if(eodOnEl)     r.eodOn      = eodOnEl.checked;
+    if(eodEl)       r.eod        = eodEl.value;
     state.reminders = r;
     save();
     scheduleReminderNotifications();
@@ -7462,7 +7516,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if(testBtn) testBtn.addEventListener("click", () => {
     if(!("Notification" in window)){ toast("Notifications not supported here", "pink"); return; }
     if(Notification.permission !== "granted"){ toast("Enable notifications first", "pink"); return; }
-    fireReminder("test", "If you see this, notifications work while the app is open. Add to Home Screen for best results.");
+    fireReminder("test", "If you see this, notifications work while the app is open. Add to Home Screen for best results.", "BERMO Tracker · test");
   });
 
   updateStatus();

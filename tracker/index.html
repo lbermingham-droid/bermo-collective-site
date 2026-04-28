@@ -919,22 +919,33 @@
         </div>
 
         <div class="card span-12">
-          <div class="card-head"><span class="card-eyebrow eb-cyan">Daily reminders + accountability</span></div>
+          <div class="card-head"><span class="card-eyebrow eb-cyan">Reminders + accountability</span></div>
           <p style="font-size:13px;color:#555;line-height:1.6;margin:0 0 12px">
-            Two layers, both opt-in:
+            Three nudges built for "get your ass to the gym" / "drink water" / "don't end the day with nothing tracked." No meal-time pings.
           </p>
           <ol style="font-size:12px;color:#666;line-height:1.6;margin:0 0 14px;padding-left:18px">
-            <li><b>In-app prompts</b> (always on if enabled) — when you open the app and a meal is missing, the dashboard shows a one-tap "Log usual" banner. No permissions needed.</li>
-            <li><b>Browser notifications</b> (needs permission + Add to Home Screen on iPhone). Fire while the app is open or recently in the background. Without a backend server we can't notify when the app is fully closed for hours.</li>
+            <li><b>In-app banners</b> show on the dashboard the moment you open the app and a trigger fires. Always on if enabled, no permissions needed.</li>
+            <li><b>Browser notifications</b> are best-effort — they fire while the app is open or recently in the background. Without a backend they can't wake your phone after hours of being closed. Add to Home Screen on iPhone for the best chance.</li>
           </ol>
           <div class="form form-grid">
             <label class="span-2" style="display:flex;align-items:center;gap:8px;font-size:13px">
-              <input type="checkbox" id="remEnabled" style="width:auto"> <span>Show in-app reminder banners on dashboard</span>
+              <input type="checkbox" id="remEnabled" style="width:auto"> <span>Show in-app reminder banners</span>
             </label>
-            <label><span>Breakfast nudge</span><input type="time" id="remBreakfast" value="09:30"></label>
-            <label><span>Lunch nudge</span><input type="time" id="remLunch" value="13:00"></label>
-            <label><span>Dinner nudge</span><input type="time" id="remDinner" value="19:00"></label>
-            <label><span>Evening "close rings" nudge</span><input type="time" id="remEvening" value="21:00"></label>
+
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px">
+              <input type="checkbox" id="remWorkoutOn" style="width:auto"> <span>🔥 Morning workout call</span>
+            </label>
+            <label><span>Time</span><input type="time" id="remWorkout" value="05:30"></label>
+
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px">
+              <input type="checkbox" id="remWaterOn" style="width:auto"> <span>💧 Water-too-low check</span>
+            </label>
+            <label><span>Check at</span><input type="time" id="remWater" value="14:00"></label>
+
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px">
+              <input type="checkbox" id="remEodOn" style="width:auto"> <span>🌙 End-of-day untracked alert</span>
+            </label>
+            <label><span>Time</span><input type="time" id="remEod" value="21:00"></label>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
             <button type="button" class="btn btn-cyan" id="remSaveBtn">Save reminders</button>

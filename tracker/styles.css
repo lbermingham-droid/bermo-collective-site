@@ -1260,6 +1260,7 @@ a{color:inherit}
 .cc-val{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:18px;letter-spacing:-.02em;color:#fff}
 .cc-side{display:flex;flex-direction:column;align-items:flex-end;gap:8px;min-width:200px}
 @media(max-width:720px){.cc-side{align-items:flex-start;width:100%}}
+.cc-chain-eyebrow{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.45);font-weight:700;margin-bottom:2px}
 .cc-chain{display:grid;grid-template-columns:repeat(15,1fr);gap:2px;width:100%;max-width:240px}
 .chain-link{aspect-ratio:1;border-radius:2px;background:rgba(255,255,255,.08)}
 .chain-link.filled{background:var(--cyan);box-shadow:0 0 4px rgba(0,245,212,.4)}
@@ -1977,6 +1978,22 @@ input:focus, select:focus, textarea:focus{ border-color: var(--cyan) !important;
 .food-tab.active{ color:var(--cyan) !important; border-bottom-color:var(--cyan) !important; }
 .food-pane{ display:none; }
 .food-pane.active{ display:block; animation: fadeIn .15s ease; }
+
+/* Meal-slot pills inside food modal — switch slot without re-opening */
+.meal-slot-row{
+  display:flex; gap:6px; margin:0 0 10px; flex-wrap:wrap;
+}
+.meal-slot{
+  flex:1 1 0; min-width:0;
+  background:var(--navy-card-2) !important; color:var(--navy-mute) !important;
+  border:1px solid var(--navy-line) !important; border-radius:999px !important;
+  padding:7px 10px !important; font-size:12px !important; font-weight:600;
+  cursor:pointer; white-space:nowrap;
+}
+.meal-slot.on{
+  background:var(--cyan) !important; color:#082018 !important;
+  border-color:var(--cyan) !important;
+}
 @keyframes fadeIn { from{opacity:0;transform:translateY(2px)} to{opacity:1;transform:none} }
 
 .ql-section-label{

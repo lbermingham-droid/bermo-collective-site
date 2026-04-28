@@ -376,13 +376,23 @@ function copyYesterday(){
 }
 
 // ---------- FOOD MODAL ----------
+let _activeFoodMeal = "lunch";
 function openFoodModal(meal){
+  _activeFoodMeal = meal;
   const allFoods = [...DATA.foodDB, ...state.customFoods];
-  const startMode = (state.profile && state.profile.foodMode) || "search";
-  openModal(`Add to ${capitalize(meal)}`, `
+  const hasRecents = (state.recentFoods || []).length > 0;
+  const hasTemplates = (state.mealTemplates || []).length > 0;
+  // Smart default: if user has recents/templates, jump straight to one-tap quick log.
+  const userPref = state.profile && state.profile.foodMode;
+  const startMode = userPref || ((hasRecents || hasTemplates) ? "quicklog" : "search");
+  const slotPills = ["breakfast","lunch","dinner","snacks"].map(m =>
+    `<button type="button" class="meal-slot ${m===meal?"on":""}" data-meal-slot="${m}">${capitalize(m)}</button>`
+  ).join("");
+  openModal(`Log food`, `
+    <div class="meal-slot-row" role="radiogroup" aria-label="Meal slot">${slotPills}</div>
     <div class="food-tabs">
-      <button type="button" class="food-tab" data-fmode="search">🔍 Search</button>
       <button type="button" class="food-tab" data-fmode="quicklog">⚡ Quick log</button>
+      <button type="button" class="food-tab" data-fmode="search">🔍 Search</button>
       <button type="button" class="food-tab" data-fmode="templates">📋 Templates</button>
       <button type="button" class="food-tab" data-fmode="ai">📸 AI</button>
       <button type="button" class="food-tab" data-fmode="barcode">📷 Barcode</button>
@@ -404,15 +414,26 @@ function openFoodModal(meal){
       <button type="button" class="btn btn-ghost btn-sm" id="tplSaveCurrent" style="margin-top:8px">+ Save current ${capitalize(meal)} as template</button>
     </div>
     <div class="food-pane" data-pane="ai">
-      <p class="ql-hint">Use your BYOK AI key to parse a photo or text description.</p>
+      <p class="ql-hint" id="foodAIStatusHint">Use an AI key (Claude or OpenAI) to read a photo of your plate or parse a typed description.</p>
       <button type="button" class="btn btn-cyan" id="foodAIPhotoBtn" style="width:100%;margin-bottom:8px">📸 Snap a photo of food</button>
-      <button type="button" class="btn btn-ghost" id="foodAITextBtn" style="width:100%">💬 Type what you ate</button>
+      <button type="button" class="btn btn-ghost" id="foodAITextBtn" style="width:100%;margin-bottom:8px">💬 Type what you ate</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="foodAISetupBtn" style="width:100%;font-size:11px">⚙ Set up / change API key</button>
     </div>
     <div class="food-pane" data-pane="barcode">
       <button type="button" class="btn btn-cyan" id="foodBarcodeBtn" style="width:100%;margin-bottom:8px">📷 Scan with camera</button>
       <button type="button" class="btn btn-ghost" id="foodBarcodeManualBtn" style="width:100%">⌨ Type UPC manually</button>
     </div>
   `, () => {
+    // Meal-slot pills — let user switch slot inside the modal so they don't get locked in
+    document.querySelectorAll("[data-meal-slot]").forEach(b => {
+      b.addEventListener("click", () => {
+        _activeFoodMeal = b.dataset.mealSlot;
+        document.querySelectorAll("[data-meal-slot]").forEach(x => x.classList.toggle("on", x === b));
+        const tplSaveBtn = document.getElementById("tplSaveCurrent");
+        if(tplSaveBtn) tplSaveBtn.textContent = `+ Save current ${capitalize(_activeFoodMeal)} as template`;
+      });
+    });
+
     // Tab switching
     const switchPane = (mode) => {
       document.querySelectorAll(".food-tab").forEach(t => t.classList.toggle("active", t.dataset.fmode === mode));
@@ -425,22 +446,34 @@ function openFoodModal(meal){
     const list = $("#searchResults");
 
     // BARCODE pane
-    const bc = $("#foodBarcodeBtn"); if(bc) bc.addEventListener("click", () => openBarcodeScanner(meal));
-    const bcm = $("#foodBarcodeManualBtn"); if(bcm) bcm.addEventListener("click", () => openBarcodeManual(meal));
+    const bc = $("#foodBarcodeBtn"); if(bc) bc.addEventListener("click", () => openBarcodeScanner(_activeFoodMeal));
+    const bcm = $("#foodBarcodeManualBtn"); if(bcm) bcm.addEventListener("click", () => openBarcodeManual(_activeFoodMeal));
 
     // AI pane — reuse existing AI photo + text modals
-    const aip = $("#foodAIPhotoBtn"); if(aip) aip.addEventListener("click", () => { closeModal(); if(typeof openAIPhotoModal === "function") openAIPhotoModal(meal); });
-    const ait = $("#foodAITextBtn"); if(ait) ait.addEventListener("click", () => { closeModal(); if(typeof openAITextModal === "function") openAITextModal(meal); });
+    const aip = $("#foodAIPhotoBtn"); if(aip) aip.addEventListener("click", () => { closeModal(); if(typeof openAIPhotoModal === "function") openAIPhotoModal(_activeFoodMeal); });
+    const ait = $("#foodAITextBtn"); if(ait) ait.addEventListener("click", () => { closeModal(); if(typeof openAITextModal === "function") openAITextModal(_activeFoodMeal); });
+    const aiSetup = $("#foodAISetupBtn");
+    if(aiSetup) aiSetup.addEventListener("click", () => { closeModal(); if(typeof openAIKeyPrompt === "function") openAIKeyPrompt("Set or change your AI key for photo + text food logging."); });
+    // Show whether a key is already saved so the user knows what to expect
+    const statusHint = $("#foodAIStatusHint");
+    if(statusHint && typeof getAI === "function"){
+      const ai = getAI();
+      if(ai.key){
+        statusHint.innerHTML = `<span style="color:var(--cyan)">✓ ${escape(ai.provider || "AI")} key saved.</span> Tap to log a photo or type a description — AI fills in calories + macros.`;
+      } else {
+        statusHint.innerHTML = `<span style="color:var(--pink)">No AI key yet.</span> The buttons below will walk you through setup (~2 min, free to sign up, ~$0.005 per photo).`;
+      }
+    }
 
     // QUICK LOG pane
-    renderQuickLogPane(meal, allFoods);
+    renderQuickLogPane(_activeFoodMeal, allFoods);
     const qlf = $("#qlFilter");
-    if(qlf) qlf.addEventListener("input", () => renderQuickLogPane(meal, allFoods, qlf.value));
+    if(qlf) qlf.addEventListener("input", () => renderQuickLogPane(_activeFoodMeal, allFoods, qlf.value));
 
     // TEMPLATES pane
-    renderTemplatesPane(meal);
+    renderTemplatesPane(_activeFoodMeal);
     const tplSave = $("#tplSaveCurrent");
-    if(tplSave) tplSave.addEventListener("click", () => saveCurrentMealAsTemplate(meal));
+    if(tplSave) tplSave.addEventListener("click", () => saveCurrentMealAsTemplate(_activeFoodMeal));
     const render = (q="") => {
       const f = allFoods.filter(x => x.name.toLowerCase().includes(q.toLowerCase())).slice(0, 30);
       list.innerHTML = f.map(x => `
@@ -455,13 +488,13 @@ function openFoodModal(meal){
       list.querySelectorAll(".search-result").forEach(li => {
         li.addEventListener("click", () => {
           const food = allFoods.find(x => x.id === li.dataset.id);
-          dayObj(currentDate).meals[meal].push({
+          dayObj(currentDate).meals[_activeFoodMeal].push({
             id: uid(), name:food.name, serving:food.serving,
             cal:food.cal, p:food.p, c:food.c, f:food.f
           });
           if(typeof _trackRecent === "function") _trackRecent(food);
           save(); closeModal(); renderAll();
-          toast(`Added ${food.name}`, "cyan");
+          toast(`Added ${food.name} to ${_activeFoodMeal}`, "cyan");
         });
       });
     };
@@ -1603,8 +1636,13 @@ function openActivityLogModal(){
   const sessionsToday = ((state.days[currentDate] || {}).sessions || []).length;
   openModal("Log activity for " + fmtDate(currentDate), `
     <p style="font-size:11px;color:#888;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin:0 0 4px">Source: ${sourceLabel}</p>
-    <p style="font-size:12px;color:#888;line-height:1.5;margin:0 0 10px">Leave blank to auto-derive from your food + lift logs. Or paste your Apple Watch summary numbers to override.</p>
-    <div class="form-grid">
+    <p style="font-size:12px;color:#888;line-height:1.5;margin:0 0 10px">Type the numbers from your watch, or snap a photo of the Activity / Health screen and AI will read it.</p>
+    <div class="aw-snap-row">
+      <button type="button" class="btn btn-cyan" id="awSnapBtn" style="width:100%">📸 Snap Apple Watch / Health screen</button>
+      <input type="file" id="awSnapFile" accept="image/*" capture="environment" style="display:none">
+      <div id="awSnapStatus" style="font-size:12px;color:#666;text-align:center;margin-top:6px"></div>
+    </div>
+    <div class="form-grid" style="margin-top:10px">
       <label><span>Move (cal burned)</span><input id="actMove" type="number" min="0" max="5000" value="${a.move||""}" placeholder="0"></label>
       <label><span>Exercise (min)</span><input id="actEx" type="number" min="0" max="600" value="${a.exercise||""}" placeholder="0"></label>
       <label><span>Stand (hrs)</span><input id="actSt" type="number" min="0" max="24" value="${a.stand||""}" placeholder="0"></label>
@@ -1640,6 +1678,63 @@ function openActivityLogModal(){
       save(); closeModal(); renderAll();
       toast("Switched to auto-derived activity", "cyan");
     });
+
+    // Apple Watch / Health screenshot OCR via AI (BYOK)
+    const snapBtn = document.getElementById("awSnapBtn");
+    const snapFile = document.getElementById("awSnapFile");
+    const snapStatus = document.getElementById("awSnapStatus");
+    if(snapBtn && snapFile){
+      snapBtn.addEventListener("click", () => {
+        if(!getAI || !getAI().key){
+          if(typeof openAIKeyPrompt === "function"){
+            closeModal();
+            openAIKeyPrompt("Snap a photo of the Apple Watch / Health screen → AI reads Move, Exercise, and Stand for you.");
+          } else {
+            toast("Add an AI key in Settings to use screenshot import","pink");
+          }
+          return;
+        }
+        snapFile.click();
+      });
+      snapFile.addEventListener("change", async () => {
+        if(!snapFile.files[0]) return;
+        snapStatus.textContent = "Compressing screenshot…";
+        try {
+          const b64 = await compressImage(snapFile.files[0], 1280);
+          snapStatus.textContent = "Reading numbers with AI…";
+          const prompt = `You are reading an Apple Watch Activity ring summary or Apple Health screen.
+Extract today's three values. Respond with ONLY valid JSON, no prose, no markdown:
+{"move": <calories burned, integer>, "exercise": <minutes, integer>, "stand": <hours, integer>, "confidence": <0..1>}
+Rules:
+- "move" = Active Energy / Move ring (kcal). If shown as "kJ", convert to kcal (kJ * 0.239).
+- "exercise" = Exercise minutes. If shown as "Apple Exercise Time" use that.
+- "stand" = Stand hours (count of stand hours, max 24).
+- If a value is not visible, use 0.
+- No keys other than the four above.`;
+          const text = await aiRequest(prompt, b64);
+          let parsed;
+          try { parsed = JSON.parse(text.trim().replace(/^```(?:json)?\s*/i,"").replace(/```\s*$/,"")); }
+          catch(e){
+            const m = text.match(/\{[\s\S]*\}/);
+            if(m) parsed = JSON.parse(m[0]);
+            else throw new Error("AI response was not valid JSON");
+          }
+          const m = document.getElementById("actMove");
+          const ex = document.getElementById("actEx");
+          const st = document.getElementById("actSt");
+          if(m && parsed.move != null) m.value = Math.round(parsed.move);
+          if(ex && parsed.exercise != null) ex.value = Math.round(parsed.exercise);
+          if(st && parsed.stand != null) st.value = Math.round(parsed.stand);
+          const conf = parsed.confidence != null ? ` · ${Math.round(parsed.confidence*100)}% confident` : "";
+          snapStatus.innerHTML = `<span style="color:var(--cyan)">✓ Filled in${conf} — review and Save</span>`;
+        } catch(err){
+          snapStatus.innerHTML = `<span style="color:var(--pink)">Failed: ${escape(err.message)}. Type the numbers below.</span>`;
+        } finally {
+          snapFile.value = "";
+        }
+      });
+    }
+
     document.getElementById("actSave").addEventListener("click", () => {
       const day = dayObj(currentDate);
       day.activity = {
@@ -3124,14 +3219,46 @@ function compressImage(file, maxDim){
   });
 }
 
+// ---- AI key prompt (instead of auto-redirect, which feels like getting kicked out) ----
+function openAIKeyPrompt(reason){
+  openModal("AI not set up yet", `
+    <p style="font-size:13px;color:#444;line-height:1.6;margin:0 0 10px">
+      ${escape(reason || "Photo + text food logging needs an AI key.")}
+      It's free to sign up, ~$0.005 per photo, and the key stays in this browser only.
+    </p>
+    <ol style="font-size:13px;color:#555;line-height:1.7;margin:0 0 10px;padding-left:18px">
+      <li>Go to <a href="https://console.anthropic.com" target="_blank" rel="noopener" style="color:var(--cyan);font-weight:600">console.anthropic.com</a> (or <a href="https://platform.openai.com" target="_blank" rel="noopener" style="color:var(--cyan);font-weight:600">platform.openai.com</a>)</li>
+      <li>Make an account, add a small budget cap ($5), create an API key</li>
+      <li>Copy the key — paste it into Settings → AI Setup</li>
+    </ol>
+    <p style="font-size:12px;color:#888;line-height:1.5;margin:0 0 12px">
+      Skip this and you can still log food with the Search / Quick log / Templates tabs — no key needed.
+    </p>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Maybe later</button>
+      <button class="btn btn-cyan" id="aiKeyGoSettings">Take me to AI Setup →</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    const go = document.getElementById("aiKeyGoSettings");
+    if(go) go.addEventListener("click", () => {
+      closeModal();
+      const t = document.querySelector('.tab[data-tab="settings"], .mtab[data-tab="settings"]');
+      if(t) t.click();
+      setTimeout(() => {
+        const card = document.querySelector("#aiSetupForm");
+        if(card) card.scrollIntoView({ behavior:"smooth", block:"center" });
+        const k = document.getElementById("aiKey");
+        if(k) k.focus();
+      }, 200);
+    });
+  });
+}
+
 // ---- Photo modal ----
 function openAIPhotoModal(){
   if(!getAI().key){
-    toast("Set up your AI key in Settings first","pink");
-    setTimeout(() => {
-      const t = document.querySelector('.tab[data-tab="settings"], .mtab[data-tab="settings"]');
-      if(t) t.click();
-    }, 600);
+    openAIKeyPrompt("Snap a photo of food → AI estimates calories + macros.");
     return;
   }
   openModal("📸 Snap or upload food photo", `
@@ -3172,11 +3299,7 @@ function openAIPhotoModal(){
 // ---- Text modal ----
 function openAITextModal(){
   if(!getAI().key){
-    toast("Set up your AI key in Settings first","pink");
-    setTimeout(() => {
-      const t = document.querySelector('.tab[data-tab="settings"], .mtab[data-tab="settings"]');
-      if(t) t.click();
-    }, 600);
+    openAIKeyPrompt("Type what you ate in plain English → AI parses it into items.");
     return;
   }
   openModal("💬 Type what you ate", `
@@ -5020,7 +5143,10 @@ function renderContract(){
     }
     chain.innerHTML = links.map(s => `<span class="chain-link ${s}"></span>`).join("");
     const filled = links.filter(s => s === "filled").length;
-    setText("ccChainText", `${filled} of 30 days strong · don't break it`);
+    const note = filled === 0 ? "Log anything today to start your chain"
+               : filled === 30 ? "Perfect 30 — you don't break"
+               : `${filled} of 30 days logged · auto-updates as you log`;
+    setText("ccChainText", note);
   }
 }
 function openContractModal(){
@@ -5367,10 +5493,19 @@ document.addEventListener("DOMContentLoaded", () => {
       if(typeof openCustomizeModal === "function") openCustomizeModal();
     });
   }
-  // Top "+ Log anything" opens FAB sheet
+  // Top "+ Quick log food" — opens the food modal directly to quicklog tab
+  // (no extra sheet step). The "More…" button keeps access to lifts/water/check-ins.
   const top = document.getElementById("dashOpenLog");
   if(top){
     top.addEventListener("click", () => {
+      const h = new Date().getHours();
+      const meal = h < 10 ? "breakfast" : h < 14 ? "lunch" : h < 18 ? "snacks" : "dinner";
+      if(typeof openFoodModal === "function") openFoodModal(meal);
+    });
+  }
+  const more = document.getElementById("dashOpenMore");
+  if(more){
+    more.addEventListener("click", () => {
       const sheet = document.getElementById("fabSheet");
       if(sheet) sheet.classList.add("open");
     });
@@ -6832,7 +6967,8 @@ function renderQuickLogPane(meal, allFoods, filter){
   document.querySelectorAll(".ql-row").forEach(li => {
     li.addEventListener("click", () => {
       const food = JSON.parse(li.dataset.food);
-      dayObj(currentDate).meals[meal].push({
+      const targetMeal = (typeof _activeFoodMeal === "string") ? _activeFoodMeal : meal;
+      dayObj(currentDate).meals[targetMeal].push({
         id: uid(),
         name: food.name, serving: food.serving,
         cal: food.cal, p: food.p, c: food.c, f: food.f
@@ -6842,7 +6978,7 @@ function renderQuickLogPane(meal, allFoods, filter){
       // Brief feedback then re-render quick log so user can keep tapping
       const btn = li.querySelector(".ql-add");
       if(btn){ btn.textContent = "✓"; btn.classList.add("added"); setTimeout(() => { btn.textContent = "+"; btn.classList.remove("added"); }, 600); }
-      toast(`Added ${food.name}`, "cyan");
+      toast(`Added ${food.name} to ${targetMeal}`, "cyan");
       // Update day totals in background
       if(typeof renderAll === "function") renderAll();
     });
@@ -6872,11 +7008,12 @@ function renderTemplatesPane(meal){
     row.querySelector("[data-act='apply']").addEventListener("click", () => {
       const tpl = (state.mealTemplates || []).find(x => x.id === row.dataset.id);
       if(!tpl) return;
+      const targetMeal = (typeof _activeFoodMeal === "string") ? _activeFoodMeal : meal;
       tpl.items.forEach(it => {
-        dayObj(currentDate).meals[meal].push({ id: uid(), name:it.name, serving:it.serving, cal:it.cal, p:it.p, c:it.c, f:it.f });
+        dayObj(currentDate).meals[targetMeal].push({ id: uid(), name:it.name, serving:it.serving, cal:it.cal, p:it.p, c:it.c, f:it.f });
       });
       save();
-      toast(`Applied: ${tpl.name}`, "cyan");
+      toast(`Applied ${tpl.name} to ${targetMeal}`, "cyan");
       closeModal();
       if(typeof renderAll === "function") renderAll();
     });

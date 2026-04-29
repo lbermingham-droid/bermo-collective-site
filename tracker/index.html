@@ -12,7 +12,7 @@
 <link rel="manifest" href="/tracker/manifest.json">
 <meta name="theme-color" content="#0a0a0a">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="BERMO Tracker">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="format-detection" content="telephone=no">
@@ -248,10 +248,31 @@
           <div class="rs-sub" id="rsSub">One small action restarts it. You don't have to be perfect.</div>
         </div>
         <div class="rs-actions">
-          <button class="btn btn-cyan" id="rsLogBreakfast">Log usual breakfast</button>
           <button class="btn btn-lime" id="rsLogWorkout">Log a quick workout</button>
           <button class="btn btn-ghost" id="rsDismiss">Maybe later</button>
         </div>
+      </div>
+
+      <!-- Mini quick-log row: one tap each, the brain dump handles the rest -->
+      <div class="mini-log-row">
+        <button class="mini-log mini-log-primary" id="brainDumpBtn" title="Type your day + photos, AI fills it all in">
+          <span class="ml-icon">🧠</span><span class="ml-label">Brain dump</span>
+        </button>
+        <button class="mini-log" data-mini="food" title="Open food log">
+          <span class="ml-icon">🍴</span><span class="ml-label">Food</span>
+        </button>
+        <button class="mini-log" data-mini="lift" title="Log a lift">
+          <span class="ml-icon">🏋️</span><span class="ml-label">Lift</span>
+        </button>
+        <button class="mini-log" data-mini="activity" title="Log activity / Apple Watch">
+          <span class="ml-icon">🔥</span><span class="ml-label">Activity</span>
+        </button>
+        <button class="mini-log" data-mini="water" title="+ 8 oz water">
+          <span class="ml-icon">💧</span><span class="ml-label">+8 oz</span>
+        </button>
+        <button class="mini-log" data-mini="weigh" title="Weigh in">
+          <span class="ml-icon">⚖️</span><span class="ml-label">Weigh</span>
+        </button>
       </div>
 
       <!-- Goal Contract card (always visible, big, motivating) -->

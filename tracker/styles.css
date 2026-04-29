@@ -97,10 +97,11 @@ a{color:inherit}
 .topbar{
   position:sticky;top:0;z-index:50;background:var(--black);color:#fff;
   display:flex;align-items:center;justify-content:space-between;
-  padding:0 24px;height:64px;border-bottom:3px solid var(--cyan);
+  border-bottom:3px solid var(--cyan);
   /* iOS: keep topbar clear of the status bar / dynamic island */
-  padding-top:env(safe-area-inset-top, 0);
-  height:calc(64px + env(safe-area-inset-top, 0px));
+  padding:env(safe-area-inset-top, 0) 24px 0;
+  min-height:calc(64px + env(safe-area-inset-top, 0px));
+  height:auto;
   padding-left:max(24px, env(safe-area-inset-left, 24px));
   padding-right:max(24px, env(safe-area-inset-right, 24px));
 }
@@ -710,6 +711,52 @@ a{color:inherit}
 .sbanner-alert{background:#ffe6ee;color:#7a0024;border-left:4px solid var(--pink)}
 .sbanner-warn{background:#fff5e0;color:#7a4a00;border-left:4px solid #ffb347}
 .sbanner-good{background:#e6f9ec;color:#0a4a1f;border-left:4px solid #0a8538}
+
+/* Mini quick-log row at top of dashboard — one tap each */
+.mini-log-row{
+  display:grid; grid-template-columns:repeat(6, 1fr); gap:6px;
+  margin:0 0 16px;
+}
+.mini-log{
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  padding:10px 4px; min-height:60px;
+  background:var(--navy-card-2); color:var(--navy-text);
+  border:1px solid var(--navy-line); border-radius:10px;
+  font-size:10px; font-weight:700; letter-spacing:.5px; text-transform:uppercase;
+  cursor:pointer; transition:all .12s;
+}
+.mini-log:hover{ border-color:var(--cyan); background:rgba(0,245,212,.08); }
+.mini-log .ml-icon{ font-size:18px; line-height:1; }
+.mini-log .ml-label{ font-size:9px; line-height:1; }
+.mini-log-primary{
+  grid-column:span 2;
+  background:linear-gradient(135deg, var(--cyan), var(--lime)) !important;
+  color:#082018 !important; border:none !important;
+  box-shadow:0 4px 14px rgba(0,245,212,.25);
+}
+.mini-log-primary:hover{ filter:brightness(1.05); }
+.mini-log-primary .ml-label{ font-size:11px; font-weight:900; }
+@media(max-width:520px){
+  .mini-log-row{ grid-template-columns:repeat(3,1fr); }
+  .mini-log-primary{ grid-column:span 3; }
+}
+
+/* Brain dump review modal */
+.bd-section{ margin:10px 0; padding:8px 0; border-top:1px solid var(--navy-line); }
+.bd-section:first-of-type{ border-top:none; padding-top:0; }
+.bd-section-h{
+  font-size:9px; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--cyan); font-weight:700; margin-bottom:6px;
+}
+.bd-item{
+  display:flex; align-items:flex-start; gap:8px;
+  padding:8px 10px; background:var(--navy-card-2);
+  border:1px solid var(--navy-line); border-radius:6px;
+  margin-bottom:4px; cursor:pointer;
+}
+.bd-item input[type=checkbox]{ margin-top:3px; flex-shrink:0; }
+.bd-item-name{ font-size:13px; font-weight:600; color:var(--navy-text); }
+.bd-item-meta{ font-size:11px; color:var(--navy-mute); margin-top:2px; line-height:1.4; }
 
 /* Reminder smart banners (one-tap re-log) */
 .smart-banner{

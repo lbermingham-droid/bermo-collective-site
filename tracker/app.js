@@ -3287,6 +3287,40 @@ async function aiRequest(prompt, imageBase64){
   return claudeCall(prompt, imageBase64, ai.key);
 }
 
+// ---- Server-backed AI brain dump (no per-user key required) ----
+// Calls /.netlify/functions/ai-parse, which uses the project owner's
+// ANTHROPIC_API_KEY from Netlify env. If the function is missing or
+// not configured, falls back to the user's BYOK key when available.
+async function aiBrainDump(text, base64Images){
+  // Try server-backed function first
+  try {
+    const res = await fetch("/.netlify/functions/ai-parse", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text, images: base64Images || [] }),
+    });
+    if(res.ok){
+      const j = await res.json();
+      if(j && j.parsed) return j.parsed;
+      if(j && j.error) throw new Error(j.error);
+    } else if(res.status === 503){
+      const j = await res.json().catch(() => ({}));
+      throw new Error(j.error || "Server AI not configured");
+    } else {
+      const j = await res.json().catch(() => ({}));
+      throw new Error(j.error || `AI server returned ${res.status}`);
+    }
+  } catch(serverErr){
+    // Fall through to BYOK only if user has a key set
+    if(!getAI().key) throw serverErr;
+    // BYOK fallback — single image only
+    const prompt = "Parse this brain dump (food, lifts, sessions, activity, water, weight) into the schema described. Return JSON only.";
+    const result = await aiRequest(prompt + "\n\n" + text, (base64Images && base64Images[0]) || null);
+    const cleaned = result.trim().replace(/^```(?:json)?\s*/i,"").replace(/```\s*$/,"");
+    return JSON.parse(cleaned);
+  }
+}
+
 async function claudeCall(prompt, imageBase64, key){
   const content = imageBase64
     ? [
@@ -3569,6 +3603,263 @@ function openConfirmModal(parsed){
     });
   });
 }
+
+
+// =================================================================
+// BRAIN DUMP — natural language + photos → fills everything
+// =================================================================
+let _brainImages = []; // base64 strings
+function openBrainDumpModal(){
+  _brainImages = [];
+  openModal("🧠 Brain dump", `
+    <p style="font-size:13px;color:#444;line-height:1.5;margin:0 0 8px">
+      Type your day. Add a food photo or Apple Watch screenshot. AI parses it all
+      and fills food + lifts + activity + water — you review before saving.
+    </p>
+    <p style="font-size:11px;color:#888;line-height:1.5;margin:0 0 10px">
+      Example: <i>"2 eggs for breakfast, banana for snack, 50 min leg day —
+      back squat 45×10, 89×6, 120×3, 135×1, then leg press same as squat but
+      last set 175."</i>
+    </p>
+    <textarea id="bdText" rows="6" class="search-input" style="resize:vertical;min-height:120px;font-size:14px;width:100%" placeholder="What did you eat / lift / do today?" autofocus></textarea>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+      <button type="button" class="btn btn-ghost btn-sm" id="bdAddPhoto">📸 Add photo (food / watch)</button>
+      <input type="file" id="bdFile" accept="image/*" multiple style="display:none">
+    </div>
+    <div id="bdThumbs" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
+    <div id="bdStatus" style="font-size:12px;color:#666;text-align:center;padding:10px"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-cyan" id="bdGo">Parse with AI</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    const fileEl = document.getElementById("bdFile");
+    const thumbs = document.getElementById("bdThumbs");
+    const renderThumbs = () => {
+      thumbs.innerHTML = _brainImages.map((b64, i) => `
+        <div style="position:relative;width:60px;height:60px">
+          <img src="data:image/jpeg;base64,${b64}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;border:1px solid var(--navy-line)">
+          <button type="button" data-rm="${i}" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--pink);color:#fff;border:none;font-size:12px;line-height:1;cursor:pointer">×</button>
+        </div>
+      `).join("");
+      thumbs.querySelectorAll("[data-rm]").forEach(b => b.addEventListener("click", () => {
+        _brainImages.splice(parseInt(b.dataset.rm,10), 1);
+        renderThumbs();
+      }));
+    };
+    document.getElementById("bdAddPhoto").addEventListener("click", () => fileEl.click());
+    fileEl.addEventListener("change", async () => {
+      const files = Array.from(fileEl.files || []);
+      for(const f of files){
+        if(_brainImages.length >= 4){ toast("Max 4 photos","pink"); break; }
+        try {
+          const b64 = await compressImage(f, 1024);
+          _brainImages.push(b64);
+        } catch(e){}
+      }
+      fileEl.value = "";
+      renderThumbs();
+    });
+    document.getElementById("bdGo").addEventListener("click", async () => {
+      const text = document.getElementById("bdText").value.trim();
+      if(!text && _brainImages.length === 0){ toast("Type something or add a photo","pink"); return; }
+      const status = document.getElementById("bdStatus");
+      status.innerHTML = `<span style="color:var(--cyan)">Parsing… (10–20 sec)</span>`;
+      document.getElementById("bdGo").disabled = true;
+      try {
+        const parsed = await aiBrainDump(text, _brainImages);
+        closeModal();
+        openBrainDumpReview(parsed);
+      } catch(err){
+        status.innerHTML = `<span style="color:var(--pink)">${escape(err.message || "Parse failed")}</span>`;
+        document.getElementById("bdGo").disabled = false;
+      }
+    });
+  });
+}
+
+function _bdCountSummary(parsed){
+  const meals = parsed.meals || {};
+  const mealCount = ["breakfast","lunch","dinner","snacks"].reduce((n, m) => n + ((meals[m]||[]).length), 0);
+  const sessions = (parsed.sessions || []).length;
+  const liftSets = (parsed.sessions || []).reduce((n, s) => n + (s.lifts || []).reduce((m, l) => m + (l.sets || []).length, 0), 0);
+  const a = parsed.activity || {};
+  const hasActivity = (a.move || a.exercise || a.stand) ? `Move ${a.move||0} · Ex ${a.exercise||0}m · Stand ${a.stand||0}h` : "—";
+  const water = parsed.water_oz || 0;
+  const wt = parsed.weight_lb || null;
+  return { mealCount, sessions, liftSets, hasActivity, water, wt };
+}
+
+function openBrainDumpReview(parsed){
+  const meals = parsed.meals || {};
+  const sum = _bdCountSummary(parsed);
+  const renderMeal = (slot) => {
+    const items = meals[slot] || [];
+    if(!items.length) return "";
+    return `<div class="bd-section">
+      <div class="bd-section-h">${capitalize(slot)} · ${items.length} item${items.length===1?"":"s"}</div>
+      ${items.map((it,i) => `
+        <label class="bd-item">
+          <input type="checkbox" data-meal="${slot}" data-i="${i}" checked>
+          <div>
+            <div class="bd-item-name">${escape(it.name||"unknown")}</div>
+            <div class="bd-item-meta">${escape(it.serving||"")} · ${Math.round(it.cal||0)} cal · P${(it.p||0).toFixed(1)} C${(it.c||0).toFixed(1)} F${(it.f||0).toFixed(1)}</div>
+          </div>
+        </label>
+      `).join("")}
+    </div>`;
+  };
+  const renderSessions = () => {
+    const sess = parsed.sessions || [];
+    if(!sess.length) return "";
+    return `<div class="bd-section">
+      <div class="bd-section-h">Sessions · ${sess.length}</div>
+      ${sess.map((s,i) => `
+        <label class="bd-item">
+          <input type="checkbox" data-session="${i}" checked>
+          <div>
+            <div class="bd-item-name">${escape(s.name||"Session")} · ${escape(s.type||"")} · ${s.duration_min||0} min</div>
+            ${(s.lifts||[]).map(l => `
+              <div class="bd-item-meta">→ ${escape(l.exercise||"lift")}: ${(l.sets||[]).map(st => `${st.weight}×${st.reps}`).join(", ")}</div>
+            `).join("")}
+          </div>
+        </label>
+      `).join("")}
+    </div>`;
+  };
+  const renderActivity = () => {
+    const a = parsed.activity || {};
+    if(!(a.move || a.exercise || a.stand)) return "";
+    return `<div class="bd-section">
+      <div class="bd-section-h">Apple Watch / activity</div>
+      <label class="bd-item">
+        <input type="checkbox" data-activity="1" checked>
+        <div><div class="bd-item-name">${sum.hasActivity}</div></div>
+      </label>
+    </div>`;
+  };
+  const renderWater = () => {
+    if(!sum.water) return "";
+    return `<div class="bd-section">
+      <div class="bd-section-h">Water</div>
+      <label class="bd-item">
+        <input type="checkbox" data-water="1" checked>
+        <div><div class="bd-item-name">+ ${sum.water} oz</div></div>
+      </label>
+    </div>`;
+  };
+  const renderWeight = () => {
+    if(!sum.wt) return "";
+    return `<div class="bd-section">
+      <div class="bd-section-h">Weigh-in</div>
+      <label class="bd-item">
+        <input type="checkbox" data-weight="1" checked>
+        <div><div class="bd-item-name">${sum.wt} lb</div></div>
+      </label>
+    </div>`;
+  };
+
+  openModal("Review + apply", `
+    <p style="font-size:12px;color:#666;line-height:1.5;margin:0 0 10px">
+      Uncheck anything you don't want logged. AI is sometimes wrong on numbers — eyeball before saving.
+    </p>
+    ${renderMeal("breakfast")}
+    ${renderMeal("lunch")}
+    ${renderMeal("dinner")}
+    ${renderMeal("snacks")}
+    ${renderSessions()}
+    ${renderActivity()}
+    ${renderWater()}
+    ${renderWeight()}
+    ${parsed.notes ? `<p style="font-size:11px;color:#888;font-style:italic;margin:8px 0 0">AI note: ${escape(parsed.notes)}</p>` : ""}
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-cyan" id="bdApply">Apply checked items</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    document.getElementById("bdApply").addEventListener("click", () => {
+      const day = dayObj(currentDate);
+      let added = 0;
+      // Meals
+      ["breakfast","lunch","dinner","snacks"].forEach(slot => {
+        (meals[slot] || []).forEach((it, i) => {
+          const cb = root.querySelector(`[data-meal="${slot}"][data-i="${i}"]`);
+          if(cb && cb.checked && it.name){
+            day.meals[slot].push({
+              id: uid(), name: it.name, serving: it.serving || "",
+              cal: Math.round(it.cal||0), p: (+it.p||0), c: (+it.c||0), f: (+it.f||0),
+            });
+            if(typeof _trackRecent === "function") _trackRecent({name:it.name, serving:it.serving, cal:it.cal, p:it.p, c:it.c, f:it.f});
+            added++;
+          }
+        });
+      });
+      // Sessions
+      (parsed.sessions || []).forEach((s, i) => {
+        const cb = root.querySelector(`[data-session="${i}"]`);
+        if(cb && cb.checked){
+          if(!day.sessions) day.sessions = [];
+          if((s.lifts || []).length === 0){
+            day.sessions.push({
+              id: uid(), name: s.name || "Session", lift: s.name || "Session",
+              weight: 0, reps: 0, sets: 1,
+              type: s.type || "wod",
+              durationMin: s.duration_min || null,
+              notes: `Brain dump · ${s.duration_min || 0} min`,
+            });
+            added++;
+          } else {
+            (s.lifts || []).forEach(l => {
+              (l.sets || []).forEach(st => {
+                day.sessions.push({
+                  id: uid(), name: l.exercise || s.name || "Lift", lift: l.exercise || "Lift",
+                  weight: +st.weight || 0, reps: +st.reps || 0, sets: 1,
+                  type: "lift",
+                  notes: s.name ? `Brain dump · ${s.name}` : "Brain dump",
+                });
+                added++;
+              });
+            });
+          }
+        }
+      });
+      // Activity
+      const aCb = root.querySelector(`[data-activity="1"]`);
+      if(aCb && aCb.checked){
+        const a = parsed.activity || {};
+        day.activity = {
+          move: +a.move || 0,
+          exercise: +a.exercise || 0,
+          stand: +a.stand || 0,
+          manual: true,
+        };
+        added++;
+      }
+      // Water
+      const wCb = root.querySelector(`[data-water="1"]`);
+      if(wCb && wCb.checked && sum.water > 0){
+        day.water = (day.water || 0) + sum.water;
+        added++;
+      }
+      // Weight
+      const wgCb = root.querySelector(`[data-weight="1"]`);
+      if(wgCb && wgCb.checked && sum.wt){
+        if(!state.weights) state.weights = [];
+        state.weights.push({ date: currentDate, val: +sum.wt });
+        added++;
+      }
+      save(); closeModal(); renderAll();
+      toast(`Logged ${added} item${added===1?"":"s"} from brain dump`, "cyan");
+    });
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("brainDumpBtn");
+  if(btn) btn.addEventListener("click", openBrainDumpModal);
+});
 
 
 // =================================================================
@@ -5414,22 +5705,12 @@ function renderRestartCard(){
 function setupRestartActions(){
   const card = document.getElementById("restartCard");
   if(!card) return;
-  document.getElementById("rsLogBreakfast").addEventListener("click", () => {
-    // Log first usual; if no usuals, open the food modal
-    const tpls = (state.mealTemplates||[]);
-    if(tpls.length){
-      const day = dayObj(currentDate);
-      tpls[0].items.forEach(it => day.meals.breakfast.push({ id:uid(), ...it }));
-      save(); renderAll();
-      toast(`Logged ${tpls[0].name}`, "cyan");
-    } else {
-      if(typeof openFoodModal === "function") openFoodModal("breakfast");
-    }
-  });
-  document.getElementById("rsLogWorkout").addEventListener("click", () => {
+  const wo = document.getElementById("rsLogWorkout");
+  if(wo) wo.addEventListener("click", () => {
     if(typeof openLiftModal === "function") openLiftModal();
   });
-  document.getElementById("rsDismiss").addEventListener("click", () => {
+  const dis = document.getElementById("rsDismiss");
+  if(dis) dis.addEventListener("click", () => {
     localStorage.setItem("bermo.tracker.restartDismissed." + todayKey(), "1");
     document.getElementById("restartCard").classList.add("hidden");
   });
@@ -5704,6 +5985,25 @@ document.addEventListener("DOMContentLoaded", () => {
       if(sheet) sheet.classList.add("open");
     });
   }
+  // Mini quick-log row (always visible at top of dashboard)
+  document.querySelectorAll("[data-mini]").forEach(b => {
+    b.addEventListener("click", () => {
+      const a = b.dataset.mini;
+      if(a === "food"){
+        const h = new Date().getHours();
+        const meal = h < 10 ? "breakfast" : h < 14 ? "lunch" : h < 18 ? "snacks" : "dinner";
+        if(typeof openFoodModal === "function") openFoodModal(meal);
+      } else if(a === "lift"){
+        if(typeof openLiftModal === "function") openLiftModal();
+      } else if(a === "activity"){
+        if(typeof openActivityLogModal === "function") openActivityLogModal();
+      } else if(a === "water"){
+        if(typeof addWater === "function"){ addWater(8); toast("+8 oz water","cyan"); renderAll(); }
+      } else if(a === "weigh"){
+        if(typeof openWeighInModal === "function") openWeighInModal();
+      }
+    });
+  });
 });
 
 

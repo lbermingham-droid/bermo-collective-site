@@ -239,7 +239,10 @@ a{color:inherit}
   .grid-12{grid-template-columns:1fr;gap:14px}
   .span-3,.span-4,.span-5,.span-6,.span-7,.span-8,.span-12{grid-column:span 1}
   .main{padding:20px 14px 100px}
-  .topbar{padding:0 14px;height:56px}
+  .topbar{
+    padding:env(safe-area-inset-top, 0) 14px 0;
+    height:calc(56px + env(safe-area-inset-top, 0px));
+  }
   .tb-nav{display:none}
   .mobnav{display:flex}
   .tb-date{display:none}
@@ -253,7 +256,10 @@ a{color:inherit}
   .grid-12{grid-template-columns:1fr;gap:14px}
   .span-3,.span-4,.span-5,.span-6,.span-7,.span-8,.span-12{grid-column:span 1}
   .main{padding:20px 14px 100px;max-width:100%}
-  .topbar{padding:0 14px;height:56px}
+  .topbar{
+    padding:env(safe-area-inset-top, 0) 14px 0;
+    height:calc(56px + env(safe-area-inset-top, 0px));
+  }
   .tb-nav{display:none}
   .mobnav{display:flex}
   .tb-date{display:none}
@@ -783,7 +789,12 @@ a{color:inherit}
 .fab:hover{background:var(--lime);transform:scale(1.05) rotate(90deg)}
 .fab:active{transform:scale(0.95)}
 @media(max-width:720px){
-  .fab{bottom:74px;right:16px;width:54px;height:54px} /* clear mobile bottom nav */
+  /* Hide the floating + on mobile — the inline "+ Quick log food" button
+     covers it and the FAB was overlapping the bottom nav's last tab. */
+  .fab{display:none}
+}
+@media (pointer: coarse) and (max-width: 1100px){
+  .fab{display:none}
 }
 @keyframes pulseAdd{
   0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(0,245,212,.6)}

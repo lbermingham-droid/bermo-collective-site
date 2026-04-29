@@ -1248,6 +1248,122 @@ function saveGoals(e){
   save(); renderAll();
   toast("Goals saved","cyan");
 }
+
+// ---------- Macro / calorie reconcile ----------
+// When the user edits one macro field (P/C/F) and the macros no longer
+// sum to the calorie target (within 5 kcal), ask whether to:
+//   A) update calories to match the new macro total, or
+//   B) rebalance the other two macros proportionally to keep the cal target
+function _macrosToCal(p, c, f){ return p*4 + c*4 + f*9; }
+function _reconcileMacros(changedField){
+  const calEl = $("#setCal"); const pEl = $("#setP"); const cEl = $("#setC"); const fEl = $("#setF");
+  if(!calEl || !pEl || !cEl || !fEl) return;
+  const cal = parseInt(calEl.value, 10) || 0;
+  const p = parseInt(pEl.value, 10) || 0;
+  const c = parseInt(cEl.value, 10) || 0;
+  const f = parseInt(fEl.value, 10) || 0;
+  const sum = _macrosToCal(p, c, f);
+  if(cal === 0 || sum === 0) return;
+  if(Math.abs(sum - cal) <= 5) return;
+
+  const fieldName = { p:"protein", c:"carbs", f:"fat" }[changedField] || "macro";
+  const changedVal = { p, c, f }[changedField];
+
+  openModal("Reconcile macros", `
+    <p style="font-size:13px;color:#444;line-height:1.6;margin:0 0 10px">
+      You changed <b>${fieldName}</b> to <b>${changedVal}g</b>. Your macros now total
+      <b>${sum} kcal</b> but the calorie goal says <b>${cal} kcal</b>.
+    </p>
+    <p style="font-size:12px;color:#666;line-height:1.5;margin:0 0 14px">
+      Pick one — both options keep your new ${fieldName} value:
+    </p>
+    <div class="modal-foot" style="flex-direction:column;gap:8px;align-items:stretch">
+      <button class="btn btn-cyan" id="recCal">Set calories to ${sum} kcal (match new macros)</button>
+      <button class="btn btn-ghost" id="recMac">Keep ${cal} kcal — rebalance other macros</button>
+      <button class="btn btn-ghost btn-sm" data-close>Leave as-is for now</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    document.getElementById("recCal").addEventListener("click", () => {
+      $("#setCal").value = sum;
+      closeModal();
+      toast(`Calories updated to ${sum}`, "cyan");
+    });
+    document.getElementById("recMac").addEventListener("click", () => {
+      // Rebalance the OTHER two macros proportionally to fill (cal − changedMacroCal)
+      const changedCal = changedField === "f" ? changedVal*9 : changedVal*4;
+      const remainingCal = Math.max(0, cal - changedCal);
+      // Default split for the other two — preserve their existing ratio
+      const others = changedField === "p" ? [["c", c, 4], ["f", f, 9]]
+                   : changedField === "c" ? [["p", p, 4], ["f", f, 9]]
+                                          : [["p", p, 4], ["c", c, 4]];
+      const cur = [others[0][1] * others[0][2], others[1][1] * others[1][2]];
+      const total = cur[0] + cur[1] || 1;
+      const newCal0 = remainingCal * (cur[0] / total);
+      const newCal1 = remainingCal * (cur[1] / total);
+      const new0 = Math.max(0, Math.round(newCal0 / others[0][2]));
+      const new1 = Math.max(0, Math.round(newCal1 / others[1][2]));
+      $("#set" + others[0][0].toUpperCase()).value = new0;
+      $("#set" + others[1][0].toUpperCase()).value = new1;
+      closeModal();
+      toast(`Rebalanced ${others[0][0].toUpperCase()}/${others[1][0].toUpperCase()} to keep ${cal} kcal`, "cyan");
+    });
+  });
+}
+// Same idea but in reverse: when user changes calories, ask if they want to
+// scale the macros proportionally to the new calorie target.
+function _reconcileCalories(){
+  const calEl = $("#setCal"); const pEl = $("#setP"); const cEl = $("#setC"); const fEl = $("#setF");
+  if(!calEl || !pEl || !cEl || !fEl) return;
+  const cal = parseInt(calEl.value, 10) || 0;
+  const p = parseInt(pEl.value, 10) || 0;
+  const c = parseInt(cEl.value, 10) || 0;
+  const f = parseInt(fEl.value, 10) || 0;
+  const sum = _macrosToCal(p, c, f);
+  if(cal === 0 || sum === 0) return;
+  if(Math.abs(sum - cal) <= 5) return;
+  const ratio = cal / sum;
+  const newP = Math.round(p * ratio);
+  const newC = Math.round(c * ratio);
+  const newF = Math.round(f * ratio);
+  openModal("Scale macros to match?", `
+    <p style="font-size:13px;color:#444;line-height:1.6;margin:0 0 10px">
+      You set calories to <b>${cal} kcal</b>. Current macros total <b>${sum} kcal</b>.
+    </p>
+    <p style="font-size:12px;color:#666;line-height:1.5;margin:0 0 14px">
+      Scale macros proportionally to the new calorie target?
+    </p>
+    <table style="width:100%;font-size:13px;color:#444;margin:0 0 14px;border-collapse:collapse">
+      <tr><th style="text-align:left;padding:4px 0">Macro</th><th style="text-align:right;padding:4px 0">Now</th><th style="text-align:right;padding:4px 0">After scaling</th></tr>
+      <tr><td>Protein</td><td style="text-align:right">${p}g</td><td style="text-align:right;color:var(--cyan);font-weight:700">${newP}g</td></tr>
+      <tr><td>Carbs</td><td style="text-align:right">${c}g</td><td style="text-align:right;color:var(--cyan);font-weight:700">${newC}g</td></tr>
+      <tr><td>Fat</td><td style="text-align:right">${f}g</td><td style="text-align:right;color:var(--cyan);font-weight:700">${newF}g</td></tr>
+    </table>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Keep current macros</button>
+      <button class="btn btn-cyan" id="scaleApply">Scale macros</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    document.getElementById("scaleApply").addEventListener("click", () => {
+      $("#setP").value = newP; $("#setC").value = newC; $("#setF").value = newF;
+      closeModal();
+      toast("Macros scaled to new cal target", "cyan");
+    });
+  });
+}
+document.addEventListener("DOMContentLoaded", () => {
+  // Wire reconcile prompts. Use 'change' (fires on blur or Enter) so we
+  // don't badger the user mid-typing.
+  const wire = (id, field) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener("change", () => _reconcileMacros(field));
+  };
+  wire("setP", "p"); wire("setC", "c"); wire("setF", "f");
+  const calEl = document.getElementById("setCal");
+  if(calEl) calEl.addEventListener("change", _reconcileCalories);
+});
 function addCustomFood(e){
   e.preventDefault();
   const f = {
@@ -5279,7 +5395,7 @@ function renderRestartCard(){
     })();
     if(has) break;
     missed++; d.setDate(d.getDate()-1);
-    if(missed > 30) break;
+    if(missed >= 30) break;
   }
   // Don't show if dismissed today
   const dismissedKey = "bermo.tracker.restartDismissed." + todayKey();
@@ -5288,7 +5404,8 @@ function renderRestartCard(){
     card.classList.remove("hidden");
     const title = document.getElementById("rsTitle");
     const sub = document.getElementById("rsSub");
-    title.textContent = `${missed} days happened. No guilt.`;
+    const phrase = missed >= 30 ? "30+ days happened" : `${missed} days happened`;
+    title.textContent = `${phrase}. No guilt.`;
     sub.textContent = `Real life. Real reasons. The fastest restart isn't perfection — it's any small action right now. You can be back on track in 30 seconds.`;
   } else {
     card.classList.add("hidden");

@@ -1,5 +1,5 @@
 /* BERMO TRACKER service worker — offline support + notifications */
-const CACHE = "bermo-tracker-v4";
+const CACHE = "bermo-tracker-v5";
 const ASSETS = [
   "/tracker/",
   "/tracker/index.html",
@@ -37,28 +37,34 @@ self.addEventListener("notificationclick", (e) => {
 
 self.addEventListener("fetch", (e) => {
   const req = e.request;
-  // Don't intercept AI API calls or other cross-origin POSTs
   if(req.method !== "GET") return;
   const url = new URL(req.url);
-  // Same-origin assets: cache-first
+
+  // Same-origin: NETWORK-FIRST for HTML / CSS / JS so updates ship instantly.
+  // Cache-first for images and the manifest (rarely change).
   if(url.origin === self.location.origin){
-    e.respondWith(
-      caches.match(req).then(cached => {
-        if(cached) {
-          // Background revalidate
-          fetch(req).then(res => {
-            if(res && res.ok) caches.open(CACHE).then(c => c.put(req, res.clone()));
-          }).catch(() => {});
-          return cached;
-        }
-        return fetch(req).then(res => {
+    const isAsset = /\.(png|jpg|jpeg|svg|webp|gif|ico|woff2?|ttf)$/i.test(url.pathname);
+    if(isAsset){
+      e.respondWith(
+        caches.match(req).then(cached => cached || fetch(req).then(res => {
           if(res && res.ok && res.type === "basic"){
             const clone = res.clone();
             caches.open(CACHE).then(c => c.put(req, clone));
           }
           return res;
-        }).catch(() => caches.match("/tracker/"));
-      })
+        }).catch(() => caches.match("/tracker/")))
+      );
+      return;
+    }
+    // HTML / CSS / JS: try network, fall back to cache only if offline.
+    e.respondWith(
+      fetch(req).then(res => {
+        if(res && res.ok && res.type === "basic"){
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(req, clone));
+        }
+        return res;
+      }).catch(() => caches.match(req).then(cached => cached || caches.match("/tracker/")))
     );
     return;
   }

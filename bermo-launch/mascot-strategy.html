@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BERMO. Mascot Strategy — Brand Playbook</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="assets/css/global.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <style>
+    .strategy-header {
+      background: var(--black);
+      padding: 120px 0 80px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .do-dont {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .do-dont__col {
+      background: var(--black2);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .do-dont__col--do { border-top: 2px solid var(--cyan); }
+    .do-dont__col--dont { border-top: 2px solid rgba(255,90,90,0.5); }
+
+    .do-dont__title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .do-dont__col--do .do-dont__title { color: var(--cyan); }
+    .do-dont__col--dont .do-dont__title { color: rgba(255,90,90,0.8); }
+
+    .do-dont__list li {
+      font-size: 13px;
+      color: var(--gray);
+      line-height: 1.6;
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      display: flex;
+      gap: 8px;
+    }
+    .do-dont__list li::before { flex-shrink: 0; }
+    .do-dont__col--do .do-dont__list li::before { content: '✓'; color: var(--cyan); }
+    .do-dont__col--dont .do-dont__list li::before { content: '✗'; color: rgba(255,90,90,0.7); }
+
+    .usage-rule {
+      background: var(--black2);
+      border-left: 3px solid var(--cyan);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+    }
+
+    .usage-rule__label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 6px;
+    }
+
+    .usage-rule__text {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--gray);
+    }
+
+    .approved-pair {
+      background: var(--black2);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 12px;
+    }
+
+    .approved-pair__mascot {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 8px;
+    }
+
+    .approved-pair__headline {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      color: var(--white);
+      margin-bottom: 6px;
+    }
+
+    .approved-pair__caption {
+      font-size: 13px;
+      color: var(--gray);
+      font-style: italic;
+    }
+
+    @media (max-width: 640px) {
+      .do-dont { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav class="nav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo">BERMO<span>.</span></a>
+      <div class="nav__links">
+        <span style="font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--gray); font-weight:600;">Mascot Strategy — Internal</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Header -->
+  <div class="strategy-header">
+    <div class="container">
+      <p class="t-eyebrow" style="margin-bottom:16px;">Internal Brand Playbook</p>
+      <h1 class="t-h1" style="color:var(--white); max-width:800px; margin-bottom:24px;">Mascot Strategy<span style="color:var(--cyan);">.</span></h1>
+      <p class="t-body-lg" style="color:var(--mgray); max-width:580px;">
+        How Kiera and BB show up. When to use each. What they sound like. How they carry the brand. Modeled on Salesforce's mascot approach. Built for BERMO's world.
+      </p>
+    </div>
+  </div>
+
+  <!-- The Philosophy -->
+  <section class="section bg-black2">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-header__eyebrow">The Mascot Philosophy</div>
+        <h2 class="section-header__headline">The Salesforce Rule. Applied to BERMO.</h2>
+        <p class="section-header__body">
+          Salesforce uses Astro, Codey, Cloudy, and Einstein to make complex enterprise software feel human. BERMO uses Kiera and BB to make a complex execution system feel personal and trustworthy. The mascots do not explain the tech. They carry the emotion.
+        </p>
+      </div>
+      <div class="grid-3 gap-24">
+        <div class="fade-up" style="background:var(--black); border:1px solid rgba(255,255,255,0.07); border-radius:var(--radius-lg); padding:28px;">
+          <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--cyan); margin-bottom:12px;">Rule 01</div>
+          <h3 class="t-h4" style="color:var(--white); margin-bottom:10px;">Never a cartoon character</h3>
+          <p class="t-body-sm">Write Kiera and BB as brand personas. Not mascots. Not cartoon characters. Kiera is a quality guardian. BB is an alignment operator. They represent infrastructure.</p>
+        </div>
+        <div class="fade-up fade-up-delay-1" style="background:var(--black); border:1px solid rgba(255,255,255,0.07); border-radius:var(--radius-lg); padding:28px;">
+          <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--cyan); margin-bottom:12px;">Rule 02</div>
+          <h3 class="t-h4" style="color:var(--white); margin-bottom:10px;">Placement is meaning</h3>
+          <p class="t-body-sm">Kiera always appears near trust and protection elements: vetting, quality, The Shop, the gap. BB always appears near logic and continuity: loading, diagnostics, workflows, the network.</p>
+        </div>
+        <div class="fade-up fade-up-delay-2" style="background:var(--black); border:1px solid rgba(255,255,255,0.07); border-radius:var(--radius-lg); padding:28px;">
+          <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--cyan); margin-bottom:12px;">Rule 03</div>
+          <h3 class="t-h4" style="color:var(--white); margin-bottom:10px;">Together only with intent</h3>
+          <p class="t-body-sm">Kiera and BB share the frame only when the story requires both: the discovery AND the fix. Kiera finds the crack. BB scans and loads. Do not mix them casually.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Kiera Character Profile -->
+  <section class="section bg-black" id="kiera">
+    <div class="container">
+      <div class="grid-2 gap-48" style="align-items:start;">
+        <div>
+          <p class="t-eyebrow" style="margin-bottom:20px;">Character Profile</p>
+          <h2 class="t-h1" style="color:var(--white); margin-bottom:4px;">Kiera<span style="color:var(--cyan);">.</span></h2>
+          <p style="font-size:13px; font-weight:600; letter-spacing:0.2em; text-transform:uppercase; color:var(--gray); margin-bottom:32px;">The Wolf</p>
+
+          <!--
+            DROP KIERA STANDING IMAGE HERE:
+            <img src="assets/images/kiera-standing.png" alt="Kiera the Wolf standing upright in black hoodie and BERMO cap" style="max-width:320px; border-radius:12px;" />
+            File: assets/images/kiera-standing.png
+            (The clean white background character sheet image)
+          -->
+          <div style="background:var(--black2); border:1px dashed rgba(0,245,212,0.2); border-radius:12px; aspect-ratio:3/4; max-width:280px; display:flex; align-items:center; justify-content:center; text-align:center; padding:24px; color:var(--gray); font-size:12px; letter-spacing:0.08em; text-transform:uppercase; font-weight:600;">
+            Kiera standing image<br/><span style="font-size:10px; opacity:0.5; text-transform:none; letter-spacing:0; margin-top:4px; display:block;">kiera-standing.png</span>
+          </div>
+        </div>
+
+        <div>
+          <div style="margin-bottom:32px;">
+            <h3 class="t-h4" style="color:var(--white); margin-bottom:16px;">Identity</h3>
+            <table style="width:100%; font-size:14px;">
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+                <td style="padding:10px 0; color:var(--gray); width:140px; font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;">Role</td>
+                <td style="padding:10px 0; color:var(--white);">Hunter and Protector</td>
+              </tr>
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+                <td style="padding:10px 0; color:var(--gray); font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;">Personality</td>
+                <td style="padding:10px 0; color:var(--white);">Decisive. Sharp. Quiet confidence. Results do the announcing.</td>
+              </tr>
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+                <td style="padding:10px 0; color:var(--gray); font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;">Visual Style</td>
+                <td style="padding:10px 0; color:var(--white);">Black hoodie. Cyan BERMO cap. Black sunglasses. Crouching or upright.</td>
+              </tr>
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+                <td style="padding:10px 0; color:var(--gray); font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;">Tied To</td>
+                <td style="padding:10px 0; color:var(--white);">The Alignment Review. The Shop. The gap discovery. Quality vetting.</td>
+              </tr>
+              <tr>
+                <td style="padding:10px 0; color:var(--gray); font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;">Voice</td>
+                <td style="padding:10px 0; color:var(--cyan); font-style:italic;">"Sharp. No-nonsense. Fiercely loyal. Never brags."</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="do-dont">
+            <div class="do-dont__col do-dont__col--do">
+              <div class="do-dont__title">Use Kiera for</div>
+              <ul class="do-dont__list">
+                <li>Audit and discovery announcements</li>
+                <li>Quality and vetting messages</li>
+                <li>"We see what others miss" content</li>
+                <li>Conference and HiTec materials</li>
+                <li>Trust and protection moments</li>
+              </ul>
+            </div>
+            <div class="do-dont__col do-dont__col--dont">
+              <div class="do-dont__title">Never use Kiera for</div>
+              <ul class="do-dont__list">
+                <li>Warm community touchpoints</li>
+                <li>Celebration or lighthearted posts</li>
+                <li>Anything requiring softness</li>
+                <li>Customer onboarding welcome</li>
+                <li>Fun / playful engagement bait</li>
+              </ul>
+            </div>
+          </div>
+
+          <div style="margin-top:28px;">
+            <h3 class="t-h4" style="color:var(--white); margin-bottom:16px;">Kiera's Voice — Sample Copy</h3>
+            <div class="approved-pair">
+              <div class="approved-pair__mascot">Kiera — Hunt Post</div>
+              <div class="approved-pair__headline">Five minutes. That is all she needs.</div>
+              <p class="approved-pair__caption">"She walks into a brand. She finds the crack before you finish explaining. That is Kiera. That is BERMO."</p>
+            </div>
+            <div class="approved-pair">
+              <div class="approved-pair__mascot">Kiera — Quality Post</div>
+              <div class="approved-pair__headline">Not every door gets opened.</div>
+              <p class="approved-pair__caption">"Only the top tier earns the Bermo Stamp. Kiera guards that standard. No exceptions."</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BB Character Profile -->
+  <section class="section bg-black2" id="bb">
+    <div class="container">
+      <div class="grid-2 gap-48" style="align-items:start;">
+        <div>
+          <p class="t-eyebrow" style="margin-bottom:20px;">Character Profile</p>
+          <h2 class="t-h1" style="color:var(--white); margin-bottom:4px;">BB<span style="color:var(--cyan);">.</span></h2>
+          <p style="font-size:13px; font-weight:600; letter-spacing:0.2em; text-transform:uppercase; color:var(--gray); margin-bottom:32px;">The Bot</p>
+
+          <!--
+            DROP BB IMAGE HERE:
+            <img src="assets/images/bb-round.png" alt="BB the Bot — teal cyan round robot with glowing eyes" style="max-width:280px; border-radius:12px;" />
+            File: assets/images/bb-round.png
+            (The round BB character, ideally on dark or transparent background)
+          -->
+          <div style="background:var(--black); border:1px dashed rgba(0,245,212,0.2); border-radius:50%; max-width:280px; aspect-ratio:1; display:flex; align-items:center; justify-content:center; text-align:center; padding:24px; color:var(--gray); font-size:12px; letter-spacing:0.08em; text-transform:uppercase; font-weight:600;">
+            BB round image<br/><span style="font-size:10px; opacity:0.5; text-transform:none; letter-spacing:0; margin-top:4px; display:block;">bb-round.png</span>
+          </div>
+        </div>
+
+        <div>
+          <div style="margin-bottom:32px;">
+            <h3 class="t-h4" style="color:var(--white); margin-bottom:16px;">Identity</h3>
+            <table style="width:100%; font-size:14px;">
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+                <td style="padding:10px 0; color:var(--gray); width:140px; font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;">Role</td>
+                <td style="padding:10px 0; color:var(--white);">Alignment Infrastructure Operator</td>
+              </tr>
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+                <td style="padding:10px 0; color:var(--gray); font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;">The Symbol</td>
+                <td style="padding:10px 0; color:var(--white);">The period behind BERMO. Always there. Human led.</td>
+              </tr>
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+                <td style="padding:10px 0; color:var(--gray); font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;">Personality</td>
+                <td style="padding:10px 0; color:var(--white);">Steady. Curious. Accessible. Never cold. The human in the machine.</td>
+              </tr>
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+                <td style="padding:10px 0; color:var(--gray); font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;">Visual Style</td>
+                <td style="padding:10px 0; color:var(--white);">Round teal/cyan sphere. Glowing eyes. Subtle smile. Floats near logic elements.</td>
+              </tr>
+              <tr>
+                <td style="padding:10px 0; color:var(--gray); font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;">Voice</td>
+                <td style="padding:10px 0; color:var(--cyan); font-style:italic;">"Helpful. Efficient. Slightly nerdy-charming."</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="do-dont">
+            <div class="do-dont__col do-dont__col--do">
+              <div class="do-dont__title">Use BB for</div>
+              <ul class="do-dont__list">
+                <li>Onboarding and waitlist confirmations</li>
+                <li>Diagnostic and scan moments</li>
+                <li>Social proof and results posts</li>
+                <li>Always-on execution content</li>
+                <li>Beta and loading imagery</li>
+              </ul>
+            </div>
+            <div class="do-dont__col do-dont__col--dont">
+              <div class="do-dont__title">Never use BB for</div>
+              <ul class="do-dont__list">
+                <li>Heavy authority or sales moments</li>
+                <li>Quality vetting content (that is Kiera)</li>
+                <li>Aggressive or urgent calls to action</li>
+                <li>First impression trust-building</li>
+                <li>Conference and event promos</li>
+              </ul>
+            </div>
+          </div>
+
+          <div style="margin-top:28px;">
+            <h3 class="t-h4" style="color:var(--white); margin-bottom:16px;">BB's Voice — Sample Copy</h3>
+            <div class="approved-pair">
+              <div class="approved-pair__mascot">BB — Waitlist Confirmation</div>
+              <div class="approved-pair__headline">You are on the list.</div>
+              <p class="approved-pair__caption">"BB has your details. We will be in touch before the portal opens. The market does not wait. Neither do we."</p>
+            </div>
+            <div class="approved-pair">
+              <div class="approved-pair__mascot">BB — Question Post</div>
+              <div class="approved-pair__headline">What is your business saying when you are not in the room?</div>
+              <p class="approved-pair__caption">"Tech. Branding. Sales. Not Sure. Drop it below. BB wants to know."</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Usage Guidelines -->
+  <section class="section bg-black">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-header__eyebrow">Usage Guidelines</div>
+        <h2 class="section-header__headline">The Rules of Deployment</h2>
+      </div>
+
+      <div class="grid-2 gap-32">
+        <div>
+          <h3 class="t-h4" style="color:var(--white); margin-bottom:20px;">Scale and Clear Space</h3>
+          <div class="usage-rule">
+            <div class="usage-rule__label">Minimum Size</div>
+            <div class="usage-rule__text">Kiera: minimum 120px wide in any digital context. BB: minimum 60px diameter. Below these sizes details are lost.</div>
+          </div>
+          <div class="usage-rule">
+            <div class="usage-rule__label">Clear Space</div>
+            <div class="usage-rule__text">Always maintain at least 1x the mascot's height as clear space on all sides. Never crowd the mascot with heavy text or other graphic elements.</div>
+          </div>
+          <div class="usage-rule">
+            <div class="usage-rule__label">Color Pairings</div>
+            <div class="usage-rule__text">Kiera on cyan backgrounds: use the crouching hunting pose. Kiera on black backgrounds: use the standing upright pose. BB on black or very dark backgrounds only for full visual impact.</div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="t-h4" style="color:var(--white); margin-bottom:20px;">Animation Guidelines</h3>
+          <div class="usage-rule">
+            <div class="usage-rule__label">Kiera in Motion</div>
+            <div class="usage-rule__text">Sharp. Purposeful. No bouncing. Movement is directional, deliberate. Like a predator tracking something. Ease-in-out curves, no spring physics.</div>
+          </div>
+          <div class="usage-rule">
+            <div class="usage-rule__label">BB in Motion</div>
+            <div class="usage-rule__text">Smooth. Looping. Gentle float or bob. The loading bar fills with a glow trail. Eyes blink occasionally. Spring physics are acceptable for BB.</div>
+          </div>
+          <div class="usage-rule">
+            <div class="usage-rule__label">Together in Motion</div>
+            <div class="usage-rule__text">Only animate both when showing the full story: Kiera finds the crack, BB scans, The Solution loads. Three-beat narrative. Never casual side-by-side animation.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Social Media Post Mockups — Checkerboard -->
+  <section class="section bg-black2" id="mockups">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-header__eyebrow">Instagram Tile Mockups</div>
+        <h2 class="section-header__headline">The Checkerboard Grid</h2>
+        <p class="section-header__body">Six tiles in alternating dark and light. Odd positions are dark/cyan. Even positions are cream/light. Together they form a cohesive premium grid.</p>
+      </div>
+
+      <div class="ig-grid" style="max-width:640px; margin:0 auto 40px;">
+        <!-- Tile 1: Dark — Kiera hunt -->
+        <div class="ig-tile ig-tile--dark">
+          <div class="ig-tile__overlay"></div>
+          <div class="ig-tile__content">
+            <div class="ig-tile__label">Kiera</div>
+            <div class="ig-tile__text">Five minutes. That is all she needs.</div>
+          </div>
+        </div>
+        <!-- Tile 2: Cream — Question -->
+        <div class="ig-tile ig-tile--cream">
+          <div class="ig-tile__content">
+            <div class="ig-tile__label">Engage</div>
+            <div class="ig-tile__text" style="font-size:13px;">What is your business saying when you are not in the room?</div>
+          </div>
+        </div>
+        <!-- Tile 3: Dark — Stats -->
+        <div class="ig-tile ig-tile--dark">
+          <div class="ig-tile__overlay"></div>
+          <div class="ig-tile__content">
+            <div class="ig-tile__label">Track Record</div>
+            <div class="ig-tile__text">15 years. 16 industries. 5 founders this month.</div>
+          </div>
+        </div>
+        <!-- Tile 4: Cream — BB -->
+        <div class="ig-tile ig-tile--cream">
+          <div class="ig-tile__content">
+            <div class="ig-tile__label">BB</div>
+            <div class="ig-tile__text" style="font-size:13px;">Always there. Human led. AI leveraged. Voice protected.</div>
+          </div>
+        </div>
+        <!-- Tile 5: Dark — Personal -->
+        <div class="ig-tile ig-tile--dark">
+          <div class="ig-tile__overlay"></div>
+          <div class="ig-tile__content">
+            <div class="ig-tile__label">Personal</div>
+            <div class="ig-tile__text" style="font-size:12px;">I left the corporate world to build this for founders. The instinct is already here.</div>
+          </div>
+        </div>
+        <!-- Tile 6: Cream — Waitlist -->
+        <div class="ig-tile ig-tile--cream">
+          <div class="ig-tile__content">
+            <div class="ig-tile__label">Beta</div>
+            <div class="ig-tile__text">The platform is in beta. The expertise is not.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Captions for each tile -->
+      <div class="grid-2 gap-20" style="max-width:900px; margin:0 auto;">
+        <div class="fade-up" style="background:var(--black); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:20px;">
+          <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--cyan); margin-bottom:8px;">Tile 1 — Dark — Kiera Launch</div>
+          <p style="font-size:13px; line-height:1.7; color:var(--gray);">Five minutes. That is all I need to find what is not working. Fifteen years of walking into brands, seeing the gap before anyone names it. Now I am building the system. BERMO is in beta. The instinct is not.<br/><br/><em style="color:rgba(255,255,255,0.35);">#BERMO #GrowthEngine #FounderLife</em></p>
+        </div>
+        <div class="fade-up fade-up-delay-1" style="background:var(--black); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:20px;">
+          <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--cyan); margin-bottom:8px;">Tile 2 — Cream — Question Post</div>
+          <p style="font-size:13px; line-height:1.7; color:var(--gray);">What is your business saying when you are not in the room?<br/><br/>Tech. Branding. Sales. Something else entirely.<br/><br/>Drop it below. I am reading every single one.<br/><br/><em style="color:rgba(255,255,255,0.35);">#Founders #StartupLife #GrowthGap</em></p>
+        </div>
+        <div class="fade-up" style="background:var(--black); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:20px;">
+          <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--cyan); margin-bottom:8px;">Tile 3 — Dark — Track Record</div>
+          <p style="font-size:13px; line-height:1.7; color:var(--gray);">15 years. Fortune 500 operations. Broken growth engines fixed. Starting at $250k and scaling to $5M+. Now available to 5 founders this month.<br/><br/>The platform is in beta. The expertise is already here.<br/><br/><em style="color:rgba(255,255,255,0.35);">#BERMO #ExecutionSystem</em></p>
+        </div>
+        <div class="fade-up fade-up-delay-1" style="background:var(--black); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:20px;">
+          <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--cyan); margin-bottom:8px;">Tile 4 — Cream — Meet BB</div>
+          <p style="font-size:13px; line-height:1.7; color:var(--gray);">She is always there. That is the point.<br/><br/>Human led. AI leveraged. Voice protected.<br/><br/>Meet BB. The period behind BERMO. The alignment infrastructure operator who runs the handoffs so humans can focus on the work.<br/><br/><em style="color:rgba(255,255,255,0.35);">#MeetBB #BERMO #AILeveraged</em></p>
+        </div>
+        <div class="fade-up" style="background:var(--black); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:20px;">
+          <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--cyan); margin-bottom:8px;">Tile 5 — Dark — Personal Founder</div>
+          <p style="font-size:13px; line-height:1.7; color:var(--gray);">I walk into a brand and within five minutes I know what is working, what is a miss, and what would fix it. What the founder is too close to see.<br/><br/>I have done it for 15 years in the corporate world. Now I am building BERMO to do it for founders.<br/><br/>We are testing the tech. The instinct is already 15 years deep.<br/><br/><em style="color:rgba(255,255,255,0.35);">#FounderStory #BERMO</em></p>
+        </div>
+        <div class="fade-up fade-up-delay-1" style="background:var(--black); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:20px;">
+          <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--cyan); margin-bottom:8px;">Tile 6 — Cream — Beta Waitlist</div>
+          <p style="font-size:13px; line-height:1.7; color:var(--gray);">The Shop is in closed beta.<br/><br/>Five spots this month for manual Alignment Reviews. You bring the business. We find the missing piece.<br/><br/>Link in bio.<br/><br/><em style="color:rgba(255,255,255,0.35);">#BetaWaitlist #BERMO #TheShop</em></p>
+        </div>
+      </div>
+
+      <!-- Reel concept -->
+      <div style="background:var(--black); border:1px solid rgba(0,245,212,0.15); border-radius:var(--radius-lg); padding:32px; margin-top:40px; max-width:700px;">
+        <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--cyan); margin-bottom:16px;">Tile 9 — Reel Concept — Minimal Edit</div>
+        <h3 class="t-h4" style="color:var(--white); margin-bottom:12px;">The 30-Second Reel Script</h3>
+        <p style="font-size:13px; color:var(--gray); margin-bottom:16px;"><strong style="color:rgba(255,255,255,0.6);">Format:</strong> Talking head. Good window light. Phone or basic camera. One take preferred. No B-roll needed. No makeup prep. No studio.</p>
+        <div style="background:var(--black2); border-radius:8px; padding:20px; font-size:14px; line-height:1.8; color:rgba(255,255,255,0.75);">
+          <p><strong style="color:var(--white);">[On-screen text, 0-2 sec]</strong><br/>"I walk into a brand and within five minutes I know."</p>
+          <br/>
+          <p><strong style="color:var(--white);">[Speaking, 2-20 sec]</strong><br/>"What is working. What is a miss. What would fix it. I have done it for 15 years. For Fortune 500 companies. Now I am building BERMO to do it for founders."</p>
+          <br/>
+          <p><strong style="color:var(--white);">[Speaking, 20-28 sec]</strong><br/>"The platform is in beta. The expertise is not. Five spots this month."</p>
+          <br/>
+          <p><strong style="color:var(--white);">[On-screen text + CTA, 28-30 sec]</strong><br/>"Find the missing piece. Link in bio."</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BERMO Context Block -->
+  <section class="section bg-black2" id="context-block">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-header__eyebrow">AI Brand Voice Tool</div>
+        <h2 class="section-header__headline">The BERMO Context Block</h2>
+        <p class="section-header__body">Copy this entire block and paste it at the start of any Claude, ChatGPT, or AI prompt session. It locks in your brand voice, tone rules, and mascot personas so every output sounds like BERMO.</p>
+      </div>
+
+      <div class="code-block" style="max-width:860px;">
+        <button class="code-block__copy" aria-label="Copy context block">Copy</button>
+        <code>BRAND: BERMO is the operating system and specialist network for founder-led businesses that need to move. Not a marketplace. Not an agency. The execution system brought in when things need to move.
+
+FOUNDER: Lexi Bermingham. 15+ years scaling businesses across 16+ industries. Pattern-recognition specialist: "I walk into a brand and within five minutes I know what is working, what is a miss, and what would fix it."
+
+POSITIONING: "The person brought in when things need to move."
+
+CORE PHILOSOPHY:
+- "The business keeps moving. The market does not wait. The cost of waiting is greater than the cost of moving."
+- "When one of us wins, we all win."
+- "I will find your brand blind spot before you finish explaining it to me."
+
+TONE RULES:
+- First person, direct, unfiltered. Lexi speaks as herself, not a corporate entity.
+- Short punchy sentences alongside longer honest ones. Rhythm matters.
+- Warm but not soft. Confident but not arrogant.
+- Self-aware humor is permitted and encouraged.
+- Human-first: the work is personal because the people are personal.
+
+AVOID THESE WORDS: passionate about, leverage (as a verb), synergy, circle back, deep dive (as a verb), deliverables (in casual writing), per our conversation, touch base, thought leader, game-changer, revolutionary, seamlessly, any dashes in copy.
+
+COLORS: Cyan #00f5d4, Black #0a0a0a, Cream #f0efe9, White #ffffff. No pink. No script fonts.
+
+FONTS: Montserrat 900 for headlines. Inter for body. Uppercase for headers.
+
+MASCOTS:
+- Kiera the Wolf: black hoodie, cyan BERMO cap, sunglasses. Quality guardian. Sharp. No-nonsense. Fiercely loyal. Placed near trust, vetting, and protection elements.
+- BB the Bot: teal/cyan round robot, glowing eyes. Alignment infrastructure operator. Helpful. Efficient. Human-led. Placed near logic, diagnostics, workflows, and loading moments.
+- Write them as brand personas, not cartoon characters. Never describe them as cute or funny.
+
+DO NOT USE THESE WORDS IN PUBLIC-FACING COPY: staffing, recruiting, hiring agency, placement, talent acquisition, headhunting, workforce solutions.
+
+APPROVED FRAMING: execution system, deployment, specialist, alignment review, growth engine, command center, orchestration, partner unit, execution pod, snap-in, diagnostic, gap scan.
+
+CURRENT PRIORITY: Teaser launch for June. Capture attention. Introduce mascots. Engage founders with questions about their broken systems. Drive waitlist signups.</code>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <div>
+          <div class="footer__logo">BERMO<span>.</span></div>
+          <p class="footer__tagline">Internal Brand Document. Not for public distribution.</p>
+        </div>
+      </div>
+      <div class="footer__copy">&copy; 2025 BERMO. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

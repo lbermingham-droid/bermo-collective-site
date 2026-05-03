@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BERMO. Business Card — Print Ready</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="../assets/css/global.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+  <style>
+    body { background: var(--black3); }
+
+    .page-header {
+      background: var(--black);
+      padding: 100px 0 60px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* ─── Card dimensions ─────────────────────────────────────── */
+    /*
+      Print spec:
+      - Final size: 3.5in x 2in
+      - With bleed: 3.75in x 2.25in (0.125in bleed on all sides)
+      - Safe zone: 0.125in inside trim line (content should stay 0.25in from edge)
+      - 300dpi: 1050 x 600px (trim), 1125 x 675px (bleed)
+
+      Screen preview is at 3x scale for visibility:
+      - Preview trim: 1050px x 600px
+      - Preview bleed: 1125px x 675px
+    */
+
+    .card-workspace {
+      padding: 64px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 48px;
+    }
+
+    .card-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gray);
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    /* Bleed wrapper (shows bleed area) */
+    .card-bleed {
+      width: 1125px;
+      height: 675px;
+      position: relative;
+      border: 1px dashed rgba(255,0,0,0.3);
+      flex-shrink: 0;
+    }
+
+    /* Trim lines overlay */
+    .card-bleed::before,
+    .card-bleed::after {
+      content: '';
+      position: absolute;
+      background: rgba(255,0,0,0.3);
+      pointer-events: none;
+    }
+
+    /* Trim box (the actual card) */
+    .card-trim {
+      position: absolute;
+      top: 37.5px;
+      left: 37.5px;
+      width: 1050px;
+      height: 600px;
+      outline: 1px solid rgba(255,0,0,0.5);
+      overflow: hidden;
+    }
+
+    /* Safe zone guide */
+    .card-safe {
+      position: absolute;
+      top: 37.5px;
+      left: 37.5px;
+      width: 1050px;
+      height: 600px;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .card-safe::before {
+      content: '';
+      position: absolute;
+      inset: 37.5px;
+      border: 1px dashed rgba(0,245,212,0.3);
+      border-radius: 2px;
+    }
+
+    /* ─── FRONT CARD ────────────────────────────── */
+    .card-front {
+      width: 100%;
+      height: 100%;
+      background: var(--black);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 52px 60px;
+      font-family: var(--font-display);
+    }
+
+    /* Background texture: very subtle grid */
+    .card-front::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,245,212,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,245,212,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+
+    /* Large ghost "B" background text */
+    .card-front__ghost {
+      position: absolute;
+      bottom: -60px;
+      right: -20px;
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 400px;
+      line-height: 1;
+      color: rgba(255,255,255,0.025);
+      text-transform: uppercase;
+      letter-spacing: -0.05em;
+      user-select: none;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .card-front__top {
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-front__logo {
+      font-family: var(--font-display);
+      font-size: 52px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      text-transform: uppercase;
+      color: var(--white);
+      line-height: 1;
+    }
+    .card-front__logo span { color: var(--cyan); }
+
+    .card-front__tagline {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-top: 10px;
+    }
+
+    .card-front__bottom {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    .card-front__trust {
+      font-family: var(--font-body);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+      line-height: 2;
+    }
+
+    /* Mascot placeholder (bottom right) */
+    .card-front__mascot {
+      width: 80px;
+      height: 80px;
+      opacity: 0.9;
+      flex-shrink: 0;
+    }
+    .card-front__mascot img { width: 100%; height: 100%; object-fit: contain; }
+
+    /* ─── BACK CARD ──────────────────────────────── */
+    .card-back {
+      width: 100%;
+      height: 100%;
+      background: var(--cyan);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 52px 60px;
+    }
+
+    /* Background pattern: offset diamond grid */
+    .card-back::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,0,0,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.06) 1px, transparent 1px);
+      background-size: 30px 30px;
+      pointer-events: none;
+    }
+
+    .card-back__top {
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-back__name {
+      font-family: var(--font-display);
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      color: var(--black);
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .card-back__title {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(0,0,0,0.5);
+      margin-top: 8px;
+    }
+
+    .card-back__divider {
+      width: 40px;
+      height: 2px;
+      background: var(--black);
+      margin-top: 16px;
+      opacity: 0.4;
+    }
+
+    .card-back__bottom {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    .card-back__contact {
+      font-family: var(--font-body);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      color: rgba(0,0,0,0.65);
+      line-height: 2;
+    }
+    .card-back__contact strong {
+      color: var(--black);
+      font-weight: 700;
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .card-back__wordmark {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      text-transform: uppercase;
+      color: var(--black);
+      line-height: 1;
+      opacity: 0.35;
+    }
+
+    /* ─── Legend ────────────────────────────────── */
+    .card-legend {
+      display: flex;
+      gap: 24px;
+      margin-top: 16px;
+      font-size: 11px;
+      color: var(--gray);
+    }
+    .card-legend-item { display: flex; align-items: center; gap: 6px; }
+    .card-legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .card-legend-dot--bleed { border: 1px dashed rgba(255,0,0,0.5); background: transparent; }
+    .card-legend-dot--trim { border: 1px solid rgba(255,0,0,0.7); background: transparent; }
+    .card-legend-dot--safe { border: 1px dashed rgba(0,245,212,0.5); background: transparent; }
+
+    /* ─── Print styles ──────────────────────────── */
+    @media print {
+      @page {
+        size: 3.75in 2.25in;
+        margin: 0;
+      }
+
+      body, html { margin: 0; padding: 0; background: white !important; }
+
+      .no-print, .page-header, .footer, nav, .card-workspace > *:not(.print-cards) { display: none !important; }
+
+      .print-cards {
+        display: block !important;
+      }
+
+      .card-bleed {
+        width: 3.75in;
+        height: 2.25in;
+        border: none;
+        page-break-after: always;
+      }
+
+      .card-trim {
+        top: 0.125in;
+        left: 0.125in;
+        width: 3.5in;
+        height: 2in;
+        outline: none;
+      }
+
+      .card-safe { display: none; }
+
+      .card-front__logo { font-size: 24pt; }
+      .card-back__name { font-size: 18pt; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav no-print">
+    <div class="nav__inner">
+      <a href="../index.html" class="nav__logo">BERMO<span>.</span></a>
+      <div class="nav__links" style="gap:16px;">
+        <span style="font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--gray); font-weight:600;">Business Card — Print Ready</span>
+        <button onclick="window.print()" class="btn btn--primary" style="padding:10px 20px; font-size:12px;">Print to PDF</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-header no-print">
+    <div class="container">
+      <p class="t-eyebrow" style="margin-bottom:16px;">Print Ready</p>
+      <h1 class="t-h1" style="color:var(--white); max-width:700px; margin-bottom:24px;">Business<br/>Card<span style="color:var(--cyan);">.</span></h1>
+      <p class="t-body-lg" style="color:var(--mgray); max-width:540px;">
+        Standard 3.5 x 2in with 0.125in bleed. Front: near-black. Back: electric cyan. Print instructions below.
+      </p>
+      <div style="margin-top:32px; padding:16px 20px; background:rgba(0,245,212,0.06); border:1px solid rgba(0,245,212,0.2); border-radius:8px; max-width:580px;">
+        <div style="font-size:11px; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; color:var(--cyan); margin-bottom:8px;">Print Instructions</div>
+        <ol style="font-size:13px; line-height:1.8; color:var(--gray);">
+          <li>Open this page in Chrome or Edge (not Safari — Safari scales print differently)</li>
+          <li>Click the Print to PDF button above or press Ctrl/Cmd + P</li>
+          <li>Set Paper size to Custom: 3.75in x 2.25in</li>
+          <li>Set Margins to None</li>
+          <li>Set Scale to 100% (Actual size)</li>
+          <li>Save as PDF. Send to printer or Moo / Canva Print</li>
+        </ol>
+        <p style="font-size:12px; color:var(--gray); margin-top:8px; opacity:0.7;">Front and back print on separate pages. The red dashed line is the bleed edge. The solid red line is the trim line. The cyan dashed line is the safe zone. All artwork and text must stay inside the safe zone.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-workspace print-cards">
+
+    <!-- ─── FRONT ─── -->
+    <div>
+      <div class="card-label no-print">FRONT — Black Background</div>
+      <div class="card-bleed">
+        <div class="card-trim">
+          <div class="card-front">
+            <div class="card-front__ghost" aria-hidden="true">B</div>
+
+            <div class="card-front__top">
+              <div class="card-front__logo">BERMO<span>.</span></div>
+              <div class="card-front__tagline">Your Growth Engine. Under One Roof.</div>
+            </div>
+
+            <div class="card-front__bottom">
+              <div class="card-front__trust">
+                Human vetted.<br/>
+                AI leveraged.<br/>
+                Voice protected.
+              </div>
+              <!--
+                DROP MASCOT MARK HERE (bottom right):
+                Replace the SVG placeholder below with:
+                <img src="../assets/images/bb-round.png" alt="" class="card-front__mascot" />
+                OR for Kiera:
+                <img src="../assets/images/kiera-cap-icon.png" alt="" class="card-front__mascot" />
+              -->
+              <div class="card-front__mascot">
+                <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="40" cy="40" r="38" fill="#00f5d4" opacity="0.9"/>
+                  <rect x="20" y="30" width="40" height="22" rx="11" fill="#0a0a0a"/>
+                  <circle cx="30" cy="41" r="6" fill="#00f5d4"/>
+                  <circle cx="50" cy="41" r="6" fill="#00f5d4"/>
+                  <path d="M28 56 Q40 64 52 56" stroke="#00f5d4" stroke-width="3" stroke-linecap="round" fill="none"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Safe zone guide overlay -->
+        <div class="card-safe no-print"></div>
+      </div>
+
+      <!-- Legend -->
+      <div class="card-legend no-print">
+        <div class="card-legend-item"><div class="card-legend-dot card-legend-dot--bleed"></div> Bleed edge (cut here)</div>
+        <div class="card-legend-item"><div class="card-legend-dot card-legend-dot--trim"></div> Trim line (final card size)</div>
+        <div class="card-legend-item"><div class="card-legend-dot card-legend-dot--safe"></div> Safe zone (keep content inside)</div>
+      </div>
+    </div>
+
+    <!-- ─── BACK ─── -->
+    <div>
+      <div class="card-label no-print">BACK — Electric Cyan Background</div>
+      <div class="card-bleed">
+        <div class="card-trim">
+          <div class="card-back">
+
+            <div class="card-back__top">
+              <div class="card-back__name">Lexi<br/>Bermingham</div>
+              <div class="card-back__title">Founder</div>
+              <div class="card-back__divider"></div>
+            </div>
+
+            <div class="card-back__bottom">
+              <div class="card-back__contact">
+                <strong>Contact</strong>
+                <!--
+                  UPDATE THESE FIELDS:
+                  Replace placeholder text with actual contact details.
+                -->
+                lexi@bermoco.com<br/>
+                bermoco.com<br/>
+                linkedin.com/in/lexibermingham
+              </div>
+              <div class="card-back__wordmark">BERMO.</div>
+            </div>
+
+          </div>
+        </div>
+        <div class="card-safe no-print"></div>
+      </div>
+      <div class="card-legend no-print">
+        <div class="card-legend-item"><div class="card-legend-dot card-legend-dot--bleed"></div> Bleed edge (cut here)</div>
+        <div class="card-legend-item"><div class="card-legend-dot card-legend-dot--trim"></div> Trim line (final card size)</div>
+        <div class="card-legend-item"><div class="card-legend-dot card-legend-dot--safe"></div> Safe zone (keep content inside)</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ─── Customization Guide ────────────────────────────────── -->
+  <section class="section bg-black no-print">
+    <div class="container--narrow">
+      <div class="section-header">
+        <div class="section-header__eyebrow">Customization</div>
+        <h2 class="section-header__headline">What to Update</h2>
+      </div>
+      <div class="grid-2 gap-24">
+        <div style="background:var(--black2); border-radius:var(--radius-lg); padding:24px;">
+          <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--cyan); margin-bottom:12px;">Front Card</div>
+          <ul style="font-size:13px; line-height:1.8; color:var(--gray);">
+            <li>Replace the BB SVG placeholder with your actual mascot image</li>
+            <li>Or use the Kiera cap icon if you prefer Kiera on the front</li>
+            <li>The tagline "Your Growth Engine. Under One Roof." stays as is</li>
+            <li>Logo and color do not change</li>
+          </ul>
+        </div>
+        <div style="background:var(--black2); border-radius:var(--radius-lg); padding:24px;">
+          <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--cyan); margin-bottom:12px;">Back Card</div>
+          <ul style="font-size:13px; line-height:1.8; color:var(--gray);">
+            <li>Update email address if different from lexi@bermoco.com</li>
+            <li>Update LinkedIn URL to your exact handle</li>
+            <li>Update website URL if the launch site has a different domain</li>
+            <li>Title stays as "Founder" — safe for noncompete</li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="margin-top:32px; background:rgba(0,245,212,0.04); border:1px solid rgba(0,245,212,0.15); border-radius:var(--radius-lg); padding:24px;">
+        <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--cyan); margin-bottom:12px;">Recommended Print Vendors</div>
+        <div class="grid-3 gap-16">
+          <div>
+            <div style="font-size:13px; font-weight:600; color:var(--white); margin-bottom:4px;">Moo</div>
+            <div style="font-size:12px; color:var(--gray);">moo.com — Premium quality, spot UV available for the cyan elements. Upload PDF directly.</div>
+          </div>
+          <div>
+            <div style="font-size:13px; font-weight:600; color:var(--white); margin-bottom:4px;">Canva Print</div>
+            <div style="font-size:12px; color:var(--gray);">canva.com/print — Recreate the card in Canva using the exact specs above, then use their print service.</div>
+          </div>
+          <div>
+            <div style="font-size:13px; font-weight:600; color:var(--white); margin-bottom:4px;">Uprinting</div>
+            <div style="font-size:12px; color:var(--gray);">uprinting.com — Best for volume orders. Upload the PDF exactly as exported.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer no-print">
+    <div class="container">
+      <div class="footer__inner">
+        <div>
+          <div class="footer__logo">BERMO<span>.</span></div>
+          <p class="footer__tagline">Business Card — Print Ready.</p>
+        </div>
+        <a href="../index.html" class="btn btn--outline" style="align-self:center;">&larr; Back to Landing Page</a>
+      </div>
+      <div class="footer__copy">&copy; 2025 BERMO. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/main.js"></script>
+</body>
+</html>

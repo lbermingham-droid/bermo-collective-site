@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BERMO. — LinkedIn Launch Kit</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="../assets/css/global.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+  <style>
+    body { background: var(--black2); }
+
+    .page-header {
+      background: var(--black);
+      padding: 100px 0 60px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .post-section { padding: 64px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+    .post-card {
+      background: var(--black);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      max-width: 680px;
+    }
+
+    .post-card__profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .profile-photo {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: var(--black2);
+      flex-shrink: 0;
+    }
+    .profile-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .profile-photo--placeholder {
+      background: var(--cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--black);
+    }
+
+    .post-card__name { font-size: 14px; font-weight: 600; color: var(--white); }
+    .post-card__title { font-size: 12px; color: var(--gray); }
+
+    .post-card__badge {
+      margin-left: auto;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(0, 245, 212, 0.1);
+      color: var(--cyan);
+      border: 1px solid rgba(0, 245, 212, 0.2);
+    }
+
+    .post-card__body {
+      padding: 20px 20px 16px;
+      font-size: 14px;
+      line-height: 1.8;
+      color: rgba(255,255,255,0.75);
+      white-space: pre-line;
+    }
+
+    .post-card__body strong { color: var(--white); font-weight: 600; }
+
+    .post-card__image {
+      width: 100%;
+      background: var(--black3);
+      position: relative;
+    }
+
+    .post-card__footer {
+      padding: 12px 20px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .li-action {
+      font-size: 12px;
+      color: var(--gray);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Podcast-style post */
+    .podcast-post {
+      background: var(--black);
+      border: 1px solid rgba(0, 245, 212, 0.2);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      max-width: 680px;
+    }
+
+    .podcast-header {
+      background: var(--black2);
+      padding: 20px;
+      border-bottom: 1px solid rgba(0, 245, 212, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .podcast-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--cyan);
+      color: var(--black);
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .podcast-title {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--cyan);
+    }
+
+    .podcast-subtitle { font-size: 11px; color: var(--gray); margin-top: 2px; }
+
+    .podcast-body {
+      padding: 24px;
+      font-size: 14px;
+      line-height: 1.85;
+      color: rgba(255,255,255,0.75);
+    }
+
+    .podcast-speaker {
+      font-weight: 700;
+      color: var(--white);
+    }
+
+    .podcast-speaker--host1 { color: var(--cyan); }
+    .podcast-speaker--host2 { color: var(--off); }
+
+    /* Carousel slides */
+    .carousel-deck {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 16px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0,245,212,0.3) transparent;
+    }
+
+    .c-slide {
+      flex-shrink: 0;
+      width: 220px;
+      aspect-ratio: 1;
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      position: relative;
+    }
+
+    .c-slide--dark { background: var(--black); border: 1px solid rgba(255,255,255,0.08); }
+    .c-slide--cream { background: var(--cream); }
+    .c-slide--cyan { background: var(--cyan); }
+
+    .c-slide__n {
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.2);
+    }
+    .c-slide--cream .c-slide__n, .c-slide--cyan .c-slide__n { color: rgba(0,0,0,0.2); }
+
+    .c-slide__text {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      line-height: 1.15;
+      color: var(--white);
+    }
+    .c-slide--cream .c-slide__text, .c-slide--cyan .c-slide__text { color: var(--black); }
+
+    .c-slide__sub {
+      font-size: 11px;
+      color: var(--gray);
+      margin-top: 5px;
+    }
+    .c-slide--cream .c-slide__sub, .c-slide--cyan .c-slide__sub { color: rgba(0,0,0,0.5); }
+
+    /* Strategy notes */
+    .strategy-note {
+      background: rgba(0, 245, 212, 0.04);
+      border: 1px solid rgba(0, 245, 212, 0.15);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-top: 20px;
+    }
+
+    .strategy-note__label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 8px;
+    }
+
+    .strategy-note__text { font-size: 13px; line-height: 1.7; color: var(--gray); }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav__inner">
+      <a href="../index.html" class="nav__logo">BERMO<span>.</span></a>
+      <div class="nav__links">
+        <span style="font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--gray); font-weight:600;">LinkedIn Launch Kit</span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <div class="container">
+      <p class="t-eyebrow" style="margin-bottom:16px;">Social Media Kit</p>
+      <h1 class="t-h1" style="color:var(--white); max-width:700px; margin-bottom:24px;">LinkedIn<br/>Launch Kit<span style="color:var(--cyan);">.</span></h1>
+      <p class="t-body-lg" style="color:var(--mgray); max-width:580px;">
+        Five posts. One podcast-style ad. One carousel. No corporate buzzwords. Stripe-clean copy. Dreamforce-level mascot energy. Built to generate views, waitlist signups, and founder conversation.
+      </p>
+    </div>
+  </div>
+
+  <!-- Strategy Overview -->
+  <section class="section bg-black">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-header__eyebrow">LinkedIn Strategy</div>
+        <h2 class="section-header__headline">How to Build a Following Before You Launch</h2>
+      </div>
+      <div class="grid-3 gap-24">
+        <div style="background:var(--black2); border:1px solid rgba(255,255,255,0.07); border-radius:var(--radius-lg); padding:24px;">
+          <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--cyan); margin-bottom:12px;">The Hook</div>
+          <p class="t-body-sm">Every post starts with a question or a short punchy declaration. "When did you stop being a founder?" stops the scroll. That is the entire job of line one.</p>
+        </div>
+        <div style="background:var(--black2); border:1px solid rgba(255,255,255,0.07); border-radius:var(--radius-lg); padding:24px;">
+          <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--cyan); margin-bottom:12px;">The Story</div>
+          <p class="t-body-sm">Short paragraphs. Never more than 3 lines. LinkedIn surfaces the "See more" break around line 3-4. Make those first lines earn the click.</p>
+        </div>
+        <div style="background:var(--black2); border:1px solid rgba(255,255,255,0.07); border-radius:var(--radius-lg); padding:24px;">
+          <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--cyan); margin-bottom:12px;">The Ask</div>
+          <p class="t-body-sm">Every post ends with a question directed at the reader. "What is stalling your growth?" gets replies. Replies tell the algorithm this is worth showing to more people.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- POST 1: The Thought Leader Opener -->
+  <section class="post-section bg-black2">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-header__eyebrow">Post 01 — Thought Leader Opener</div>
+        <h2 class="section-header__headline">When did you stop being a founder?</h2>
+        <p class="section-header__body">This is your launch post. Post it the week you go live. It positions you as the expert before you mention the product once.</p>
+      </div>
+
+      <div class="post-card fade-up">
+        <div class="post-card__profile">
+          <div class="profile-photo">
+            <!--
+              DROP FOUNDER PHOTO HERE:
+              <img src="../assets/images/lexi-photo.jpg" alt="Lexi Bermingham" />
+            -->
+            <div class="profile-photo--placeholder">L</div>
+          </div>
+          <div>
+            <div class="post-card__name">Lexi Bermingham</div>
+            <div class="post-card__title">Founder, BERMO. | Execution System for Founders</div>
+          </div>
+          <div class="post-card__badge">Long-form Post</div>
+        </div>
+        <div class="post-card__body">When did you stop being a founder and start being everything else?
+
+Operations manager. Copywriter. Sales rep. HR. Tech support. Brand strategist.
+
+At some point the company you were building started building you into something else entirely.
+
+Here is what I have learned after 15 years scaling revenue and operations inside some of the largest brands in the world:
+
+The gap is almost never the idea. It is the translation.
+
+Between what you know your business needs and who actually executes it.
+Between the AI tools running your systems and the human who understands your voice.
+Between the hire you made and the role you actually needed.
+
+That gap costs founders more than they realize. In time. In momentum. In the compounding cost of getting the wrong thing fixed by the wrong person at the wrong time.
+
+I built BERMO for that gap.
+
+We are in beta. Taking 5 founders this month for manual Alignment Reviews. No tech required on your end. Just a conversation and 15 years of pattern recognition.
+
+What is stalling your growth right now? I am reading every reply.
+
+<em style="color:rgba(255,255,255,0.4); font-style:normal; font-size:13px;">#BERMO #Founders #GrowthStrategy #ExecutionSystem #StartupGrowth #Leadership</em></div>
+        <div class="post-card__footer">
+          <span class="li-action">👍 Like</span>
+          <span class="li-action">💬 Comment</span>
+          <span class="li-action">↗ Share</span>
+        </div>
+      </div>
+
+      <div class="strategy-note fade-up fade-up-delay-1">
+        <div class="strategy-note__label">Why This Works</div>
+        <p class="strategy-note__text">The hook "When did you stop being a founder" is a question every founder has privately asked themselves. It validates their experience without selling to them. You earn trust first. The product reveal at the end ("I built BERMO for that gap") feels earned, not forced. Asking "what is stalling your growth" at the end converts readers into conversations.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- POST 2: The AI Translation Gap -->
+  <section class="post-section bg-black">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-header__eyebrow">Post 02 — The AI Translation Gap</div>
+        <h2 class="section-header__headline">If your AI system breaks, who handles it?</h2>
+        <p class="section-header__body">High-engagement post targeting the founder-AI anxiety that is everywhere right now. Taps into a fear they have but have not articulated.</p>
+      </div>
+
+      <div class="post-card fade-up">
+        <div class="post-card__profile">
+          <div class="profile-photo"><div class="profile-photo--placeholder">L</div></div>
+          <div>
+            <div class="post-card__name">Lexi Bermingham</div>
+            <div class="post-card__title">Founder, BERMO.</div>
+          </div>
+          <div class="post-card__badge">Thought Leadership</div>
+        </div>
+        <div class="post-card__body">AI is handling more roles every week.
+
+Which ones do you trust it with?
+
+And which ones do you need a human for?
+
+Here is the real question nobody is asking:
+
+If your AI system breaks, who handles it? Does anyone oversee it? Or is it running your operations without a pilot?
+
+Three platforms. Three brand voices. Yours is the fourth. Buried in a chat log you have to scroll to find.
+
+That is not a growth strategy. That is a noise problem.
+
+Most founders I talk to have spent thousands on tools that do not talk to each other. Their AI writes content that sounds like AI. Their tech stack runs things nobody fully understands. And somewhere in the middle, their actual voice got lost.
+
+Human-led. AI-leveraged. That is the difference.
+
+BERMO is building something different. One command center. One voice. Executed by the right people with the right tools.
+
+We are in beta. Five spots this month.
+
+What have you tried to fix this? I am genuinely asking.
+
+<em style="color:rgba(255,255,255,0.4); font-style:normal; font-size:13px;">#AI #Founders #BERMO #GrowthStrategy #HumanLed #StartupOps</em></div>
+        <div class="post-card__footer">
+          <span class="li-action">👍 Like</span>
+          <span class="li-action">💬 Comment</span>
+          <span class="li-action">↗ Share</span>
+        </div>
+      </div>
+
+      <div class="strategy-note fade-up fade-up-delay-1">
+        <div class="strategy-note__label">Why This Works</div>
+        <p class="strategy-note__text">AI anxiety is the #1 conversation topic on LinkedIn right now. This post enters the conversation founders are already having. "Three platforms, three brand voices, yours is the fourth" is a line that will get shared because it is painfully accurate. The question at the end ("what have you tried to fix this") is a genuine research question that generates 20-40 comment responses.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- POST 3: Revenue Plateau Question -->
+  <section class="post-section bg-black2">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-header__eyebrow">Post 03 — Revenue Plateau</div>
+        <h2 class="section-header__headline">What have you tried?</h2>
+        <p class="section-header__body">Short. Conversational. Drives comments. Market research disguised as engagement. Post this first before the others to gauge audience.</p>
+      </div>
+
+      <div class="post-card fade-up">
+        <div class="post-card__profile">
+          <div class="profile-photo"><div class="profile-photo--placeholder">L</div></div>
+          <div>
+            <div class="post-card__name">Lexi Bermingham</div>
+            <div class="post-card__title">Founder, BERMO.</div>
+          </div>
+          <div class="post-card__badge">Engagement Post</div>
+        </div>
+        <div class="post-card__body">What is causing your revenue to stall?
+
+Do you know? Or are you guessing?
+
+I ask because most founders I work with have a theory. But the theory is rarely the actual answer.
+
+They hired a new person. Revenue did not move.
+They launched a new offer. Revenue did not move.
+They bought a new tool. Revenue still did not move.
+
+Meanwhile the actual problem sat in the background. Quietly costing them time, money, and the kind of momentum that is hard to rebuild.
+
+Do not spend another dollar before you know which gap you are actually fixing.
+
+What have you tried? And did it work?
+
+I am reading every reply. Genuinely.
+
+<em style="color:rgba(255,255,255,0.4); font-style:normal; font-size:13px;">#Revenue #Founders #BERMO #StartupGrowth #GrowthStrategy</em></div>
+        <div class="post-card__footer">
+          <span class="li-action">👍 Like</span>
+          <span class="li-action">💬 Comment</span>
+          <span class="li-action">↗ Share</span>
+        </div>
+      </div>
+
+      <div class="strategy-note fade-up fade-up-delay-1">
+        <div class="strategy-note__label">Post This First</div>
+        <p class="strategy-note__text">My recommendation: post this one before any product-focused content. It generates real data about what your audience is struggling with, which helps you write better copy for everything else. Short posts with direct questions outperform long storytelling posts for initial reach.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- POST 4: Building Solo Is Lonely -->
+  <section class="post-section bg-black">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-header__eyebrow">Post 04 — The Lonely Founder</div>
+        <h2 class="section-header__headline">Building alone is not a strategy.</h2>
+        <p class="section-header__body">Personal and direct. Addresses the isolation of founder-only AI strategy. High shareability. Positions BERMO as the antidote without overselling.</p>
+      </div>
+
+      <div class="post-card fade-up">
+        <div class="post-card__profile">
+          <div class="profile-photo"><div class="profile-photo--placeholder">L</div></div>
+          <div>
+            <div class="post-card__name">Lexi Bermingham</div>
+            <div class="post-card__title">Founder, BERMO.</div>
+          </div>
+          <div class="post-card__badge">Personal Post</div>
+        </div>
+        <div class="post-card__body">Trying to start a company with only AI to strategize with is lonely.
+
+It has no pushback. No perspective. No one who has actually done this before.
+
+You end up with three platforms making you lost and confused with three separate brand messages and yours — the fourth — buried in bot notes you have to scroll to find.
+
+AI gives you promoted answers. The same answers everyone else is getting. You cannot build a differentiated brand on homogenized strategy.
+
+At some point you need a real voice in the room. Someone who has seen this pattern before. Someone who can look at your business from the outside and tell you what is actually going on.
+
+That is not a weakness. That is how companies get built.
+
+Stay lean. But do not stay alone.
+
+What has it cost you to build without a second opinion?
+
+<em style="color:rgba(255,255,255,0.4); font-style:normal; font-size:13px;">#FounderLife #BuildingInPublic #BERMO #Startups #AIStrategy</em></div>
+        <div class="post-card__footer">
+          <span class="li-action">👍 Like</span>
+          <span class="li-action">💬 Comment</span>
+          <span class="li-action">↗ Share</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- POST 5: The Podcast Ad -->
+  <section class="post-section bg-black2">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-header__eyebrow">Post 05 — The Podcast Ad (My Recommendation: Post This First)</div>
+        <h2 class="section-header__headline">Early Strategy Memos Leaked.</h2>
+        <p class="section-header__body">This is your strongest piece of LinkedIn content. The two-host podcast format signals that people are already talking about BERMO before it exists publicly. It creates intrigue, FOMO, and viral potential — without spending anything on actual podcast production. Post this as a text post with the branded graphic below.</p>
+      </div>
+
+      <!-- Graphic concept for podcast post -->
+      <div style="background:var(--black); border:1px solid rgba(0,245,212,0.2); border-radius:var(--radius-lg); padding:24px; max-width:680px; margin-bottom:24px; font-family:'Courier New', monospace; font-size:12px; color:rgba(0,245,212,0.6);">
+        <div style="font-family:var(--font-display); font-size:10px; font-weight:700; letter-spacing:0.2em; color:var(--gray); margin-bottom:8px;">GRAPHIC HEADER — 1080x1080 — DARK TILE</div>
+        <div style="background:var(--black2); border-radius:8px; padding:20px; text-align:center;">
+          <div style="font-family:var(--font-display); font-size:11px; font-weight:700; letter-spacing:0.25em; color:rgba(255,255,255,0.3); margin-bottom:8px;">LEAKED</div>
+          <div style="font-family:var(--font-display); font-size:20px; font-weight:900; color:var(--white); text-transform:uppercase; line-height:1.1; margin-bottom:8px;">EARLY<br/>STRATEGY<br/>MEMOS<span style="color:var(--cyan);">.</span></div>
+          <div style="font-family:var(--font-display); font-size:9px; font-weight:600; letter-spacing:0.2em; color:var(--gray);">BERMO — JUNE 2025</div>
+        </div>
+        <div style="margin-top:8px; font-size:10px; color:rgba(255,255,255,0.3);">Create this graphic in Canva: Black background, "LEAKED" label, large white Montserrat 900 "EARLY STRATEGY MEMOS" headline with cyan period. Add Kiera or BB small in corner.</div>
+      </div>
+
+      <div class="podcast-post fade-up">
+        <div class="podcast-header">
+          <div class="podcast-dot">▶</div>
+          <div>
+            <div class="podcast-title">Strategy Memos — Episode Preview</div>
+            <div class="podcast-subtitle">Read as a transcript. Share as a post. Posted as text on LinkedIn.</div>
+          </div>
+        </div>
+        <div class="podcast-body"><span class="podcast-speaker podcast-speaker--host1">Alex:</span> Welcome back. We got our hands on some early strategy memos for a launch happening soon. And honestly, if they pull this off, it might completely change how founders build and scale companies.
+
+<span class="podcast-speaker podcast-speaker--host2">Taylor:</span> The memos completely reject the idea of traditional approaches or piecing together random hourly fixes. They target a structural pain point they call the Translation Gap.
+
+<span class="podcast-speaker podcast-speaker--host1">Alex:</span> Picture a founder spending their entire weekend trying to piece together a broken website or fix a messy brand. Then explaining their vision over and over again to completely disconnected parties.
+
+<span class="podcast-speaker podcast-speaker--host2">Taylor:</span> The data in these notes claims the Translation Gap creates so much friction that it costs startups over $100,000 a year and they do not even realize it. You end up spending all your time translating your vision to seven different people instead of actually running your company.
+
+<span class="podcast-speaker podcast-speaker--host1">Alex:</span> So what is this company actually building? The memos repeat this one phrase: Stop paying for hours. Buy solutions. Your entire growth engine under one roof.
+
+<span class="podcast-speaker podcast-speaker--host2">Taylor:</span> Instead of paying for hours and just hoping for the best, you are buying a pre-vetted, guaranteed outcome. The founder gets to keep the vision. They manage the fix.
+
+<span class="podcast-speaker podcast-speaker--host1">Alex:</span> How do they guarantee it actually works?
+
+<span class="podcast-speaker podcast-speaker--host2">Taylor:</span> They have proprietary guardrails they call the Bermo Stamp. Before a single dollar is spent, BB runs a diagnostic audit to find your true blind spot. Then Kiera deploys the exact fix.
+
+<span class="podcast-speaker podcast-speaker--host1">Alex:</span> And the money?
+
+<span class="podcast-speaker podcast-speaker--host2">Taylor:</span> Funds are locked until the outcome is 100% complete and accepted. You are not managing disconnected pieces. You are buying your entire growth engine under one roof.
+
+<span class="podcast-speaker podcast-speaker--host1">Alex:</span> They are opening the portal to founders soon. Drop your email in the comments or hit the link in bio. Find the missing piece before they officially launch in June.
+
+---
+
+<em style="color:rgba(255,255,255,0.35); font-style:normal; font-size:12px;">This is a launch announcement for BERMO. — an execution system for founder-led businesses. The platform is in beta. The expertise is 15 years deep. Five founders this month.</em>
+
+<em style="color:rgba(255,255,255,0.35); font-style:normal; font-size:12px;">#BERMO #Founders #GrowthEngine #LaunchSoon #ExecutionSystem #StartupGrowth #BetaWaitlist</em></div>
+      </div>
+
+      <div class="strategy-note fade-up fade-up-delay-1">
+        <div class="strategy-note__label">Why This Is Your Strongest Post</div>
+        <p class="strategy-note__text">The two-host podcast format signals social proof: people are already talking about BERMO. The "leaked memos" framing creates mystery and makes readers feel like insiders. The transcript format is unusual enough on LinkedIn to stop the scroll. Zero staffing language. Zero hiring language. Framed entirely as an execution engine buying outcomes. Safe for the noncompete. Post this the week before your official launch.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Carousel -->
+  <section class="post-section bg-black">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-header__eyebrow">PDF Carousel — 10 Slides</div>
+        <h2 class="section-header__headline">The BERMO Story Carousel</h2>
+        <p class="section-header__body">PDF carousels generate the highest dwell time and saves on LinkedIn. Each slide is 1080x1080px. Build in Canva. Export as PDF. Upload directly to LinkedIn as a document post.</p>
+      </div>
+
+      <div class="carousel-deck fade-up">
+        <div class="c-slide c-slide--dark">
+          <div class="c-slide__n">1/10</div>
+          <div class="c-slide__text">When did you stop being a founder?</div>
+          <div class="c-slide__sub">Swipe to see what changed.</div>
+        </div>
+        <div class="c-slide c-slide--cream">
+          <div class="c-slide__n">2/10</div>
+          <div class="c-slide__text">The revenue stall is not the idea.</div>
+          <div class="c-slide__sub">It is the translation.</div>
+        </div>
+        <div class="c-slide c-slide--dark">
+          <div class="c-slide__n">3/10</div>
+          <div class="c-slide__text">78% of orgs use AI. 80% see zero profit impact.</div>
+          <div class="c-slide__sub">Because they buy the tool. Not the workflow.</div>
+        </div>
+        <div class="c-slide c-slide--cream">
+          <div class="c-slide__n">4/10</div>
+          <div class="c-slide__text">Building with only AI to guide you is lonely.</div>
+          <div class="c-slide__sub">Same answers. Same voice. No pushback.</div>
+        </div>
+        <div class="c-slide c-slide--dark" style="background:var(--cyan);">
+          <div class="c-slide__n" style="color:rgba(0,0,0,0.3);">5/10</div>
+          <div class="c-slide__text" style="color:var(--black);">The Fatal First Move.</div>
+          <div class="c-slide__sub" style="color:rgba(0,0,0,0.5);">The wrong fix costs more than no fix.</div>
+        </div>
+        <div class="c-slide c-slide--dark">
+          <div class="c-slide__n">6/10</div>
+          <div class="c-slide__text">BERMO is the execution system for that gap.</div>
+          <div class="c-slide__sub">Not a marketplace. Not an agency.</div>
+        </div>
+        <div class="c-slide c-slide--cream">
+          <div class="c-slide__n">7/10</div>
+          <!--
+            DROP KIERA IMAGE:
+            <img src="../assets/images/kiera-standing.png" alt="Kiera" style="position:absolute; bottom:0; right:0; height:80%; object-fit:contain;" />
+          -->
+          <div class="c-slide__text">Kiera finds what is not connecting.</div>
+          <div class="c-slide__sub">Before a dollar moves.</div>
+        </div>
+        <div class="c-slide c-slide--dark">
+          <div class="c-slide__n">8/10</div>
+          <!--
+            DROP BB IMAGE:
+            <img src="../assets/images/bb-round.png" alt="BB" style="position:absolute; bottom:10px; right:10px; width:60px;" />
+          -->
+          <div class="c-slide__text">BB. Always there. Human led.</div>
+          <div class="c-slide__sub">The period behind the brand.</div>
+        </div>
+        <div class="c-slide c-slide--cream">
+          <div class="c-slide__n">9/10</div>
+          <div class="c-slide__text">This is what the marketplace will feel like.</div>
+          <div class="c-slide__sub">We are building it. Beta open now.</div>
+        </div>
+        <div class="c-slide c-slide--dark" style="background:var(--black3); border:1px solid rgba(0,245,212,0.3);">
+          <div class="c-slide__n">10/10</div>
+          <div class="c-slide__text" style="color:var(--cyan);">THE MARKET DOES NOT WAIT.</div>
+          <div class="c-slide__sub">Join the beta waitlist. Link in bio.</div>
+        </div>
+      </div>
+
+      <div style="margin-top:32px; max-width:680px;">
+        <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gray); margin-bottom:12px;">Carousel Post Caption</div>
+        <div class="post-card">
+          <div class="post-card__profile">
+            <div class="profile-photo"><div class="profile-photo--placeholder">L</div></div>
+            <div>
+              <div class="post-card__name">Lexi Bermingham</div>
+              <div class="post-card__title">Founder, BERMO.</div>
+            </div>
+            <div class="post-card__badge">PDF Carousel</div>
+          </div>
+          <div class="post-card__body">Most founders I talk to know something is off.
+
+They just cannot name it yet.
+
+This is the system I built to find it.
+
+Swipe through. If slide 2 stops you, it is your gap.
+
+Five spots this month. Link in bio.
+
+<em style="color:rgba(255,255,255,0.4); font-style:normal; font-size:13px;">#BERMO #Founders #GrowthEngine #ExecutionSystem #StartupStrategy</em></div>
+        </div>
+      </div>
+
+      <div class="strategy-note fade-up">
+        <div class="strategy-note__label">Carousel Build Notes</div>
+        <p class="strategy-note__text">Build each slide as 1080x1080px in Canva. Alternate dark and cream tiles through the deck. Slide 5 is cyan (the contrast break that forces a second look). Slides 7 and 8 use your mascot art. Slide 10 is the CTA. Export the full deck as a single PDF. Upload to LinkedIn as a document post, not an image carousel. Documents get 3x the reach of image posts on LinkedIn.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Video Concept -->
+  <section class="section bg-black2">
+    <div class="container--narrow">
+      <div class="section-header">
+        <div class="section-header__eyebrow">Video Post</div>
+        <h2 class="section-header__headline">60 Seconds. One Take.<br/>Maximum Credibility.</h2>
+      </div>
+
+      <div style="background:var(--black); border:1px solid rgba(0,245,212,0.15); border-radius:var(--radius-lg); padding:36px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:32px; margin-bottom:32px;">
+          <div>
+            <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--cyan); margin-bottom:12px;">Setup</div>
+            <ul style="font-size:14px; line-height:1.8; color:var(--gray);">
+              <li style="margin-bottom:8px;">Window light, not ring light</li>
+              <li style="margin-bottom:8px;">Phone propped or held — either works</li>
+              <li style="margin-bottom:8px;">Natural background — no need to clean</li>
+              <li style="margin-bottom:8px;">No makeup requirement</li>
+              <li>One take. The rawness is the point.</li>
+            </ul>
+          </div>
+          <div>
+            <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--cyan); margin-bottom:12px;">Why It Works</div>
+            <p style="font-size:14px; line-height:1.8; color:var(--gray);">LinkedIn rewards authenticity. Over-produced content reads as an ad. Talking head videos with direct eye contact perform better than polished studio cuts because they trigger conversational engagement. The founder who looks real earns more trust than the one who looks like a commercial.</p>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid rgba(255,255,255,0.07); padding-top:24px;">
+          <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--cyan); margin-bottom:16px;">60-Second Script</div>
+          <div style="font-size:15px; line-height:1.85; color:rgba(255,255,255,0.8);">
+            <p style="margin-bottom:12px;"><strong style="color:var(--gray); font-size:12px;">[On-screen text, first 2 seconds]</strong><br/>"I know what is missing from your business."</p>
+            <p style="margin-bottom:12px;"><strong style="color:var(--gray); font-size:12px;">[Speaking, 0-15 sec]</strong><br/>"I walk into a brand and within five minutes I know what is working, what is a miss, and what would fix it. What the founder is too close to their own amazing thing to see. I have done it for 15 years. For Fortune 500. For growth-stage companies. For brands that were stalling and needed to move."</p>
+            <p style="margin-bottom:12px;"><strong style="color:var(--gray); font-size:12px;">[Speaking, 15-40 sec]</strong><br/>"Most founders are not failing because their idea is wrong. They are failing because the gap between their vision and their execution is too wide. And the current tools for fixing that gap are either too slow, too expensive, or too disconnected. So I built BERMO."</p>
+            <p style="margin-bottom:12px;"><strong style="color:var(--gray); font-size:12px;">[Speaking, 40-55 sec]</strong><br/>"The platform is in beta. But the expertise is 15 years deep. I am taking five founders this month for a manual Alignment Review. One conversation. I tell you exactly what I see."</p>
+            <p><strong style="color:var(--gray); font-size:12px;">[On-screen text, final 5 sec]</strong><br/>"Find the missing piece. Link in bio."</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <div>
+          <div class="footer__logo">BERMO<span>.</span></div>
+          <p class="footer__tagline">LinkedIn Launch Kit — Internal.</p>
+        </div>
+        <a href="../business-card/card.html" class="btn btn--outline" style="align-self:center;">Next: Business Card &rarr;</a>
+      </div>
+      <div class="footer__copy">&copy; 2025 BERMO. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/main.js"></script>
+</body>
+</html>

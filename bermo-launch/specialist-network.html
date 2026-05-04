@@ -7,532 +7,410 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@500;600;700;800&family=Montserrat:wght@900&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --cyan:  #00f5d4;
+      --cyan: #00f5d4;
       --black: #0a0a0a;
-      --ink:   #0e0e10;
-      --white: #ffffff;
-      --cream: #f0efe9;
-      --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+      --spring: cubic-bezier(0.16, 1, 0.3, 1);
     }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
-      background: #080808;
+      background: #07070f;
       font-family: 'Inter', sans-serif;
-      color: var(--white);
+      color: #fff;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 80px 24px;
+      padding: 60px 20px;
     }
 
-    /* ─── Section ─── */
-    .section {
-      width: 100%;
-      max-width: 680px;
-      text-align: center;
-    }
+    .section { width: 100%; max-width: 600px; text-align: center; }
 
-    .section-label {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.35);
-      margin-bottom: 16px;
-    }
-
-    .headline {
-      font-family: 'Inter Tight', sans-serif;
-      font-size: clamp(26px, 4.5vw, 44px);
-      font-weight: 800;
-      line-height: 1.1;
-      color: var(--white);
-      margin-bottom: 12px;
-    }
-
-    .headline .cyan { color: var(--cyan); }
-
-    .sub {
-      font-size: 15px;
-      color: rgba(255,255,255,0.45);
-      line-height: 1.6;
-      margin-bottom: 44px;
-    }
-
-    /* ─── Flip bar ─── */
+    /* Flip bar */
     .flip-bar {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
+      display: inline-flex; align-items: center; gap: 10px;
       background: rgba(255,255,255,0.06);
       border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 100px;
-      padding: 7px 18px 7px 12px;
-      margin-bottom: 40px;
+      border-radius: 100px; padding: 7px 18px 7px 12px;
+      margin-bottom: 32px;
     }
-
     .flip-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--cyan);
-      box-shadow: 0 0 6px var(--cyan);
-      flex-shrink: 0;
-      animation: pulse 1.8s ease-in-out infinite;
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--cyan); box-shadow: 0 0 6px var(--cyan);
+      animation: blink 1.8s ease-in-out infinite;
     }
+    @keyframes blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.6)} }
+    .flip-label { font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.35);white-space:nowrap; }
+    .flip-container { display:inline-block;height:1.25em;overflow:hidden;perspective:400px;min-width:138px;text-align:left; }
+    .flip-word { display:block;font-size:13px;font-weight:700;color:var(--cyan);transform-origin:top center; }
+    .flip-word.in  { animation: fIn  .42s var(--spring) forwards; }
+    .flip-word.out { animation: fOut .3s  ease-in forwards; }
+    @keyframes fIn  { from{transform:rotateX(-80deg);opacity:0} to{transform:rotateX(0);opacity:1} }
+    @keyframes fOut { from{transform:rotateX(0);opacity:1} to{transform:rotateX(80deg);opacity:0} }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: 0.5; transform: scale(0.7); }
-    }
+    /* Diagram */
+    .diagram-wrap { width: 100%; max-width: 480px; margin: 0 auto 36px; }
+    .diagram-wrap svg { width: 100%; height: auto; overflow: visible; }
 
-    .flip-bar-label {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.35);
-      white-space: nowrap;
-    }
-
-    .flip-container {
-      display: inline-block;
-      height: 1.25em;
-      overflow: hidden;
-      perspective: 400px;
-      min-width: 140px;
-      text-align: left;
-    }
-
-    .flip-word {
-      display: block;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--cyan);
-      transform-origin: top center;
-    }
-
-    .flip-word.in  { animation: fIn  0.42s var(--ease-spring) forwards; }
-    .flip-word.out { animation: fOut 0.32s ease-in forwards; }
-
-    @keyframes fIn  {
-      from { transform: rotateX(-80deg); opacity: 0; }
-      to   { transform: rotateX(0);      opacity: 1; }
-    }
-    @keyframes fOut {
-      from { transform: rotateX(0);     opacity: 1; }
-      to   { transform: rotateX(80deg); opacity: 0; }
-    }
-
-    /* ─── Puzzle SVG ─── */
-    .puzzle-wrap {
-      width: 100%;
-      max-width: 400px;
-      margin: 0 auto 44px;
-    }
-
-    .puzzle-wrap svg { width: 100%; height: auto; overflow: visible; }
-
-    /* Piece groups */
-    .piece-g {
-      transform-box: fill-box;
-      transform-origin: center;
-    }
-
-    .piece-g.will-snap {
-      opacity: 0;
-    }
+    /* Piece snap animation */
+    .piece-g { transform-box: fill-box; transform-origin: center; }
+    .piece-g.pending { opacity: 0; }
 
     @keyframes snapIn {
-      0%   { transform: translate(var(--fx,0px), var(--fy,0px)) scale(0.72); opacity: 0; }
-      62%  { transform: translate(0,0) scale(1.06); opacity: 1; }
-      78%  { transform: translate(0,0) scale(0.97); }
-      90%  { transform: translate(0,0) scale(1.01); }
-      100% { transform: translate(0,0) scale(1);    opacity: 1; }
+      0%   { transform: translate(var(--fx,0px),var(--fy,0px)) scale(.72); opacity: 0; }
+      62%  { transform: translate(0,0) scale(1.07); opacity: 1; }
+      80%  { transform: translate(0,0) scale(.96); }
+      92%  { transform: translate(0,0) scale(1.02); }
+      100% { transform: translate(0,0) scale(1); opacity: 1; }
     }
+    .piece-g.snapping { animation: snapIn .72s var(--spring) forwards; }
 
-    .piece-g.snapping {
-      animation: snapIn 0.72s var(--ease-spring) forwards;
+    /* Connector draw-in */
+    @keyframes drawLine { from { stroke-dashoffset: var(--L, 300) } to { stroke-dashoffset: 0 } }
+    .conn.draw { animation: drawLine .55s ease-out forwards; }
+
+    /* Checklist check */
+    .ck-mark {
+      opacity: 0; transform: scale(0);
+      transform-box: fill-box; transform-origin: center;
+      transition: opacity .25s, transform .3s var(--spring);
     }
+    .ck-mark.on { opacity: 1; transform: scale(1); }
 
-    /* Hover lift on non-core pieces */
-    .piece-g:not(.core-g):hover .piece-bg {
-      filter: brightness(1.08);
-      cursor: pointer;
-    }
-
-    /* ─── Stats row ─── */
+    /* Stats */
     .stats {
-      display: flex;
-      justify-content: center;
-      gap: 40px;
-      flex-wrap: wrap;
-      margin-bottom: 40px;
-      opacity: 0;
-      transform: translateY(18px);
-      transition: opacity 0.5s 0.3s, transform 0.5s 0.3s var(--ease-spring);
+      display: flex; justify-content: center; gap: 36px; flex-wrap: wrap;
+      opacity: 0; transform: translateY(14px);
+      transition: opacity .5s .2s, transform .5s .2s var(--spring);
     }
-
     .stats.show { opacity: 1; transform: translateY(0); }
-
-    .stat-num {
-      font-family: 'Inter Tight', sans-serif;
-      font-size: 28px;
-      font-weight: 800;
-      color: var(--white);
-      display: block;
-      line-height: 1;
-    }
-
-    .stat-num span { color: var(--cyan); }
-    .stat-label { font-size: 12px; color: rgba(255,255,255,0.35); margin-top: 4px; display: block; }
-
-    /* ─── CTA ─── */
-    .cta-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--cyan);
-      text-decoration: none;
-      opacity: 0.8;
-      transition: opacity 0.2s, gap 0.2s;
-    }
-
-    .cta-link:hover { opacity: 1; gap: 10px; }
+    .stat-n { font-family:'Inter Tight',sans-serif;font-size:26px;font-weight:800;display:block;line-height:1; }
+    .stat-n span { color: var(--cyan); }
+    .stat-l { font-size:11px;color:rgba(255,255,255,.35);margin-top:4px;display:block; }
   </style>
 </head>
 <body>
+<section class="section">
 
-<section class="section" id="section">
-
-  <p class="section-label">The BERMO Network</p>
-
-  <h2 class="headline">
-    One scan. Every specialist.<br>
-    <span class="cyan">Snapped in.</span>
-  </h2>
-
-  <p class="sub">Pre-vetted across every discipline. Deployed from one command center.</p>
-
-  <!-- Flip bar -->
   <div class="flip-bar">
     <span class="flip-dot"></span>
-    <span class="flip-bar-label">Now deploying</span>
+    <span class="flip-label">Now deploying</span>
     <div class="flip-container" id="flipContainer">
       <span class="flip-word">Website Design</span>
     </div>
   </div>
 
-  <!-- Puzzle -->
-  <div class="puzzle-wrap">
-    <svg id="puzzleSvg" viewBox="0 0 390 390" xmlns="http://www.w3.org/2000/svg"></svg>
+  <div class="diagram-wrap">
+    <svg id="diag" viewBox="0 0 420 490" xmlns="http://www.w3.org/2000/svg"></svg>
   </div>
 
-  <!-- Stats -->
   <div class="stats" id="stats">
-    <div>
-      <span class="stat-num">6<span>+</span></span>
-      <span class="stat-label">Specialist pods</span>
-    </div>
-    <div>
-      <span class="stat-num">16<span>+</span></span>
-      <span class="stat-label">Industries</span>
-    </div>
-    <div>
-      <span class="stat-num">1<span> wk</span></span>
-      <span class="stat-label">Avg. deploy</span>
-    </div>
+    <div><span class="stat-n">6<span>+</span></span><span class="stat-l">Specialist pods</span></div>
+    <div><span class="stat-n">16<span>+</span></span><span class="stat-l">Industries</span></div>
+    <div><span class="stat-n">1<span> wk</span></span><span class="stat-l">Avg deploy</span></div>
   </div>
-
-  <a href="#" class="cta-link">
-    See how pods deploy
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-      <path d="M2.5 7h9M8 3.5L11.5 7 8 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </a>
 
 </section>
-
 <script>
-/* ────────────────────────────────────────────────
-   Puzzle piece path generator
+/* ── Puzzle piece path at origin (0,0) ──
    tabs: { top, right, bottom, left }
-     1 = tab OUT (bump)
-    -1 = slot IN (indent)
-     0 = flat edge
-   tr = tab circle radius
-──────────────────────────────────────────────── */
-function piecePath(px, py, pw, ph, tabs, tr = 17) {
-  const r = 9;
-  const { top = 0, right = 0, bottom = 0, left = 0 } = tabs;
-  const cx = px + pw / 2, cy = py + ph / 2;
+   1 = tab OUT, -1 = slot IN, 0 = flat          */
+function pp(w, h, tabs, tr = 12) {
+  const r = 8;
+  const { top=0, right=0, bottom=0, left=0 } = tabs;
+  const cx = w/2, cy = h/2;
   const d = [];
-
-  d.push(`M ${px + r} ${py}`);
-
-  // TOP edge — left to right
-  if (top !== 0) {
-    d.push(`H ${cx - tr}`);
-    // tab up: sweep 0 (CCW); slot down: sweep 1 (CW)
-    d.push(`A ${tr} ${tr} 0 0 ${top === 1 ? 0 : 1} ${cx + tr} ${py}`);
-  }
-  d.push(`H ${px + pw - r}`);
-  d.push(`Q ${px + pw} ${py} ${px + pw} ${py + r}`);
-
-  // RIGHT edge — top to bottom
-  if (right !== 0) {
-    d.push(`V ${cy - tr}`);
-    // tab right: sweep 1 (CW); slot left: sweep 0 (CCW)
-    d.push(`A ${tr} ${tr} 0 0 ${right === 1 ? 1 : 0} ${px + pw} ${cy + tr}`);
-  }
-  d.push(`V ${py + ph - r}`);
-  d.push(`Q ${px + pw} ${py + ph} ${px + pw - r} ${py + ph}`);
-
-  // BOTTOM edge — right to left
-  if (bottom !== 0) {
-    d.push(`H ${cx + tr}`);
-    // tab down: sweep 1 (CW); slot up: sweep 0 (CCW)
-    d.push(`A ${tr} ${tr} 0 0 ${bottom === 1 ? 1 : 0} ${cx - tr} ${py + ph}`);
-  }
-  d.push(`H ${px + r}`);
-  d.push(`Q ${px} ${py + ph} ${px} ${py + ph - r}`);
-
-  // LEFT edge — bottom to top
-  if (left !== 0) {
-    d.push(`V ${cy + tr}`);
-    // tab left: sweep 0 (CCW); slot right: sweep 1 (CW)
-    d.push(`A ${tr} ${tr} 0 0 ${left === 1 ? 0 : 1} ${px} ${cy - tr}`);
-  }
-  d.push(`V ${py + r}`);
-  d.push(`Q ${px} ${py} ${px + r} ${py}`);
-
-  d.push('Z');
+  d.push(`M ${r} 0`);
+  if (top) { d.push(`H ${cx-tr} A ${tr} ${tr} 0 0 ${top>0?0:1} ${cx+tr} 0`); }
+  d.push(`H ${w-r} Q ${w} 0 ${w} ${r}`);
+  if (right) { d.push(`V ${cy-tr} A ${tr} ${tr} 0 0 ${right>0?1:0} ${w} ${cy+tr}`); }
+  d.push(`V ${h-r} Q ${w} ${h} ${w-r} ${h}`);
+  if (bottom) { d.push(`H ${cx+tr} A ${tr} ${tr} 0 0 ${bottom>0?1:0} ${cx-tr} ${h}`); }
+  d.push(`H ${r} Q 0 ${h} 0 ${h-r}`);
+  if (left) { d.push(`V ${cy+tr} A ${tr} ${tr} 0 0 ${left>0?0:1} 0 ${cy-tr}`); }
+  d.push(`V ${r} Q 0 0 ${r} 0 Z`);
   return d.join(' ');
 }
 
-/* ────────────────────────────────────────────────
-   Piece definitions
-   Layout (col, row):
-     [empty]        [Website Design] [AI Agents]
-     [Brand Strategy] [BERMO.]      [AI Visibility]
-     [Brand Messaging][Content]     [empty]
-──────────────────────────────────────────────── */
-const P = 110; // piece size
-const O = 30;  // origin offset
+/* ── Constants ── */
+const PW = 80, PH = 80;           // piece size
+const BX = 165, BY = 225;         // BERMO top-left
+const BW = 90, BH = 90;           // BERMO size
+const BCX = BX + BW/2;            // BERMO center X = 210
+const BCY = BY + BH/2;            // BERMO center Y = 270
 
+/* ── Piece data ── */
 const PIECES = [
-  // (1,0) Website Design
-  {
-    id: 'website', label: ['Website', 'Design'], icon: '🌐',
-    x: O + P, y: O,
-    tabs: { right: 1, bottom: 1 },
-    fill: '#1c1c20', stroke: 'rgba(255,255,255,0.1)',
-    textFill: '#fff',
-    delay: 80, fx: 0, fy: -180
-  },
-  // (2,0) AI Agents
-  {
-    id: 'ai-agents', label: ['AI', 'Agents'], icon: '🤖',
-    x: O + P * 2, y: O,
-    tabs: { left: -1, bottom: 1 },
-    fill: '#00f5d4', stroke: 'none',
-    textFill: '#0a0a0a',
-    delay: 220, fx: 180, fy: -180
-  },
-  // (0,1) Brand Strategy
-  {
-    id: 'brand-strategy', label: ['Brand', 'Strategy'], icon: '⚡',
-    x: O, y: O + P,
-    tabs: { right: 1, bottom: 1 },
-    fill: '#1c1c20', stroke: 'rgba(255,255,255,0.1)',
-    textFill: '#fff',
-    delay: 340, fx: -180, fy: 0
-  },
-  // (1,1) BERMO — CORE
-  {
-    id: 'bermo', isCore: true,
-    x: O + P, y: O + P,
-    tabs: { top: -1, left: -1, right: 1, bottom: 1 },
-    fill: '#0d0d11',
-    delay: 0
-  },
-  // (2,1) AI Visibility
-  {
-    id: 'ai-vis', label: ['AI', 'Visibility'], icon: '👁️',
-    x: O + P * 2, y: O + P,
-    tabs: { top: -1, left: -1 },
-    fill: '#00f5d4', stroke: 'none',
-    textFill: '#0a0a0a',
-    delay: 340, fx: 180, fy: 0
-  },
-  // (0,2) Brand Messaging
-  {
-    id: 'brand-msg', label: ['Brand', 'Messaging'], icon: '✍️',
-    x: O, y: O + P * 2,
-    tabs: { top: -1, right: 1 },
-    fill: '#1c1c20', stroke: 'rgba(255,255,255,0.1)',
-    textFill: '#fff',
-    delay: 220, fx: -180, fy: 180
-  },
-  // (1,2) Content
-  {
-    id: 'content', label: ['Content', 'Creation'], icon: '📱',
-    x: O + P, y: O + P * 2,
-    tabs: { top: -1, left: -1 },
-    fill: '#1c1c20', stroke: 'rgba(255,255,255,0.1)',
-    textFill: '#fff',
-    delay: 80, fx: 0, fy: 180
-  },
+  { id:'website',  label:['Website','Design'],   emoji:'🌐',
+    x:110, y:132, tabs:{bottom:1},
+    fill:'#161622', stroke:'rgba(255,255,255,0.12)', text:'#fff',
+    gap:'Outdated web presence',   delay:0,   fx:0,    fy:-170 },
+
+  { id:'ai-agents', label:['AI','Agents'],       emoji:'🤖',
+    x:255, y:132, tabs:{bottom:1},
+    fill:'#00f5d4', stroke:'none', text:'#0a0a0a',
+    gap:'Manual workflows',        delay:160, fx:160,  fy:-170 },
+
+  { id:'brand-strat', label:['Brand','Strategy'],emoji:'⚡',
+    x:15,  y:235, tabs:{right:1},
+    fill:'#161622', stroke:'rgba(255,255,255,0.12)', text:'#fff',
+    gap:'Unclear positioning',     delay:280, fx:-170, fy:0    },
+
+  { id:'ai-vis',   label:['AI','Visibility'],    emoji:'👁️',
+    x:325, y:235, tabs:{left:1},
+    fill:'#00f5d4', stroke:'none', text:'#0a0a0a',
+    gap:'Missing AI presence',     delay:280, fx:170,  fy:0    },
+
+  { id:'brand-msg', label:['Brand','Messaging'], emoji:'✍️',
+    x:55,  y:368, tabs:{top:1},
+    fill:'#161622', stroke:'rgba(255,255,255,0.12)', text:'#fff',
+    gap:'Inconsistent voice',      delay:160, fx:-170, fy:170  },
+
+  { id:'content',  label:['Content','Creation'], emoji:'📱',
+    x:230, y:368, tabs:{top:1},
+    fill:'#161622', stroke:'rgba(255,255,255,0.12)', text:'#fff',
+    gap:'No content system',       delay:0,   fx:0,    fy:170  },
 ];
 
-/* ─── Build SVG ─── */
-const svg = document.getElementById('puzzleSvg');
+const INDUSTRIES = ['E-commerce','SaaS','Agencies','Startups','Consulting'];
 
-svg.innerHTML = `
-  <defs>
-    <filter id="core-glow" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="blur"/>
-      <feFlood flood-color="#00f5d4" flood-opacity="0.55" result="c"/>
-      <feComposite in="c" in2="blur" operator="in" result="glow"/>
-      <feMerge>
-        <feMergeNode in="glow"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-    <filter id="piece-shadow">
-      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000" flood-opacity="0.5"/>
-    </filter>
-    <!-- Subtle dot grid pattern -->
-    <pattern id="dots" x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse">
-      <circle cx="1" cy="1" r="0.8" fill="rgba(255,255,255,0.07)"/>
-    </pattern>
-  </defs>
+/* ── SVG helpers ── */
+const SVG_NS = 'http://www.w3.org/2000/svg';
+function mk(tag, attrs, inner) {
+  const e = document.createElementNS(SVG_NS, tag);
+  if (attrs) Object.entries(attrs).forEach(([k,v]) => e.setAttribute(k, v));
+  if (inner != null) e.innerHTML = inner;
+  return e;
+}
 
-  <!-- Background dot grid inside the puzzle area -->
-  <rect x="${O}" y="${O}" width="${P * 3}" height="${P * 3}" fill="url(#dots)" opacity="0.6"/>
-`;
+const diag = document.getElementById('diag');
 
-PIECES.forEach(p => {
-  const path = piecePath(p.x, p.y, P, P, p.tabs);
-  const midX = p.x + P / 2;
-  const midY = p.y + P / 2;
+/* ── Defs ── */
+diag.appendChild(mk('defs', {}, `
+  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="b"/>
+    <feFlood flood-color="#00f5d4" flood-opacity=".55" result="c"/>
+    <feComposite in="c" in2="b" operator="in" result="g"/>
+    <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="piece-sh">
+    <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000" flood-opacity=".55"/>
+  </filter>
+  <pattern id="dots" x="0" y="0" width="14" height="14" patternUnits="userSpaceOnUse">
+    <circle cx="1.5" cy="1.5" r=".9" fill="rgba(255,255,255,.06)"/>
+  </pattern>
+`));
 
-  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  g.classList.add('piece-g');
-  if (p.isCore) g.classList.add('core-g');
-  else          g.classList.add('will-snap');
+/* ── Background ── */
+diag.appendChild(mk('rect', {width:420, height:490, fill:'#07070f'}));
+diag.appendChild(mk('rect', {width:420, height:490, fill:'url(#dots)'}));
 
-  g.dataset.delay = p.delay || 0;
-  if (!p.isCore) {
-    g.style.setProperty('--fx', (p.fx || 0) + 'px');
-    g.style.setProperty('--fy', (p.fy || 0) + 'px');
-  }
+/* ── Industry box (top left) ── */
+const indG = mk('g');
+indG.appendChild(mk('rect', {
+  x:8, y:8, width:280, height:108, rx:10,
+  fill:'rgba(255,255,255,.03)',
+  stroke:'rgba(0,245,212,.28)', 'stroke-width':1, 'stroke-dasharray':'5 4'
+}));
 
-  if (p.isCore) {
-    // Core: dark fill + cyan ring path + wordmark
-    const corePath = piecePath(p.x, p.y, P, P, p.tabs);
-    g.innerHTML = `
-      <!-- Core glow ring (slightly larger) -->
-      <path d="${piecePath(p.x - 1, p.y - 1, P + 2, P + 2, p.tabs)}"
-            fill="none" stroke="#00f5d4" stroke-width="1.5" opacity="0.35"/>
-      <!-- Core body -->
-      <path class="piece-bg" d="${corePath}" fill="${p.fill}" filter="url(#core-glow)"/>
-      <!-- Wordmark -->
-      <text x="${midX}" y="${midY - 7}"
-            text-anchor="middle"
-            font-family="Montserrat, sans-serif"
-            font-weight="900" font-size="17" fill="#ffffff">BERMO<tspan fill="#00f5d4">.</tspan></text>
-      <text x="${midX}" y="${midY + 9}"
-            text-anchor="middle"
-            font-family="Inter, sans-serif"
-            font-weight="600" font-size="7.5"
-            fill="rgba(255,255,255,0.3)"
-            letter-spacing="1.2">COMMAND CENTER</text>
-    `;
-  } else {
-    const lines = p.label || [];
-    const iconY   = midY - (lines.length > 1 ? 18 : 10);
-    const line1Y  = midY + (lines.length > 1 ? 4 : 6);
-    const line2Y  = line1Y + 13;
+// Tag pills — row 1: 3 tags, row 2: 2 tags
+let tx = 18, ty = 28;
+INDUSTRIES.forEach((tag, i) => {
+  const tw = tag.length * 6.3 + 18;
+  if (i === 3) { tx = 18; ty = 70; }
+  indG.appendChild(mk('rect', {
+    x:tx, y:ty, width:tw, height:26, rx:5,
+    fill:'rgba(255,255,255,.07)',
+    stroke:'rgba(255,255,255,.13)', 'stroke-width':.8
+  }));
+  indG.appendChild(mk('text', {
+    x: tx + tw/2, y: ty + 17,
+    'text-anchor':'middle', fill:'rgba(255,255,255,.75)',
+    'font-family':'Inter, sans-serif', 'font-weight':500, 'font-size':10.5
+  }, tag));
+  tx += tw + 8;
+});
+diag.appendChild(indG);
 
-    const strokeAttr = p.stroke !== 'none'
-      ? `stroke="${p.stroke}" stroke-width="1"`
-      : '';
+/* ── Checklist box (top right) ── */
+const ckG = mk('g');
+ckG.appendChild(mk('rect', {
+  x:295, y:8, width:117, height:210, rx:10,
+  fill:'rgba(255,255,255,.04)',
+  stroke:'rgba(255,255,255,.08)', 'stroke-width':1
+}));
+ckG.appendChild(mk('text', {
+  x:354, y:30, 'text-anchor':'middle',
+  fill:'rgba(0,245,212,.8)',
+  'font-family':'Inter Tight, sans-serif',
+  'font-weight':700, 'font-size':9, 'letter-spacing':1.5
+}, 'GAPS FOUND'));
 
-    g.innerHTML = `
-      <path class="piece-bg" d="${path}" fill="${p.fill}" ${strokeAttr} filter="url(#piece-shadow)"/>
-      <text x="${midX}" y="${iconY}" text-anchor="middle" font-size="20" dominant-baseline="middle">${p.icon || ''}</text>
-      <text x="${midX}" y="${line1Y}"
-            text-anchor="middle"
-            font-family="'Inter Tight', sans-serif"
-            font-weight="800" font-size="10"
-            fill="${p.textFill}" letter-spacing="0.3">${lines[0] || ''}</text>
-      ${lines[1] ? `<text x="${midX}" y="${line2Y}"
-            text-anchor="middle"
-            font-family="'Inter Tight', sans-serif"
-            font-weight="800" font-size="10"
-            fill="${p.textFill}" letter-spacing="0.3">${lines[1]}</text>` : ''}
-    `;
-  }
+// Horizontal rule under title
+ckG.appendChild(mk('line', {
+  x1:303, y1:36, x2:404, y2:36,
+  stroke:'rgba(255,255,255,.07)', 'stroke-width':.8
+}));
 
-  svg.appendChild(g);
+PIECES.forEach((p, i) => {
+  const iy = 50 + i * 27;
+  // Unchecked box
+  ckG.appendChild(mk('rect', {
+    x:303, y:iy - 8, width:13, height:13, rx:3,
+    fill:'rgba(255,255,255,.05)',
+    stroke:'rgba(255,255,255,.18)', 'stroke-width':.9
+  }));
+  // Check mark (hidden until piece snaps)
+  const cm = mk('text', {
+    x:309.5, y:iy + 3.5, 'text-anchor':'middle',
+    fill:'#00f5d4', 'font-size':9.5, 'font-weight':700,
+    class:'ck-mark', id:`cm-${i}`
+  }, '✓');
+  ckG.appendChild(cm);
+  // Gap label (wraps at 2 lines)
+  const words = p.gap.split(' ');
+  const half = Math.ceil(words.length / 2);
+  ckG.appendChild(mk('text', {
+    x:321, y:iy + 1,
+    fill:'rgba(255,255,255,.55)',
+    'font-family':'Inter, sans-serif', 'font-weight':500, 'font-size':8.2
+  }, words.slice(0, half).join(' ')));
+  ckG.appendChild(mk('text', {
+    x:321, y:iy + 11,
+    fill:'rgba(255,255,255,.55)',
+    'font-family':'Inter, sans-serif', 'font-weight':500, 'font-size':8.2
+  }, words.slice(half).join(' ')));
+});
+diag.appendChild(ckG);
+
+/* ── Connector lines ── */
+const connG = mk('g');
+
+// Industry box → fork → Website Design + AI Agents
+const forkX = 148, forkY1 = 116, forkY2 = 130;
+[[150, 132],[295, 132]].forEach(([px, py]) => {
+  const pathD = `M ${forkX} ${forkY1} V ${forkY2} H ${px + PW/2}`;
+  const L = Math.abs(px + PW/2 - forkX) + (forkY2 - forkY1);
+  const c = mk('path', {
+    d: pathD, fill:'none',
+    stroke:'rgba(0,245,212,.3)', 'stroke-width':1.5,
+    'stroke-dasharray':5, 'stroke-dashoffset':L + 40,
+    class:'conn', style:`--L:${L+40}`
+  });
+  connG.appendChild(c);
 });
 
-/* ─── Snap animation trigger ─── */
+// Each piece → BERMO center
+PIECES.forEach(p => {
+  const px = p.x + PW/2, py = p.y + PH/2;
+  const L = Math.round(Math.hypot(px - BCX, py - BCY));
+  const c = mk('line', {
+    x1:px, y1:py, x2:BCX, y2:BCY,
+    stroke:'rgba(0,245,212,.22)', 'stroke-width':1.5,
+    'stroke-dasharray':5, 'stroke-dashoffset':L,
+    class:'conn', id:`cl-${p.id}`, style:`--L:${L}`
+  });
+  connG.appendChild(c);
+});
+diag.appendChild(connG);
+
+/* ── Specialist pieces ── */
+const piecesLayer = mk('g');
+PIECES.forEach((p, i) => {
+  const path = pp(PW, PH, p.tabs);
+  const mx = PW / 2, my = PH / 2;
+  const g = mk('g', {
+    class:'piece-g pending',
+    id:`pg-${p.id}`,
+    transform:`translate(${p.x},${p.y})`,
+    style:`--fx:${p.fx}px;--fy:${p.fy}px`,
+    'data-delay': p.delay,
+    'data-idx': i
+  });
+  const str = p.stroke !== 'none' ? `stroke="${p.stroke}" stroke-width="1"` : '';
+  const iY = my - 15, l1Y = my + 5, l2Y = my + 16;
+  g.innerHTML = `
+    <path d="${path}" fill="${p.fill}" ${str} filter="url(#piece-sh)"/>
+    <text x="${mx}" y="${iY}" text-anchor="middle" font-size="17" dominant-baseline="middle">${p.emoji}</text>
+    <text x="${mx}" y="${l1Y}" text-anchor="middle" font-family="'Inter Tight',sans-serif" font-weight="800" font-size="9" fill="${p.text}" letter-spacing=".3">${p.label[0]}</text>
+    ${p.label[1] ? `<text x="${mx}" y="${l2Y}" text-anchor="middle" font-family="'Inter Tight',sans-serif" font-weight="800" font-size="9" fill="${p.text}" letter-spacing=".3">${p.label[1]}</text>` : ''}
+  `;
+  piecesLayer.appendChild(g);
+});
+diag.appendChild(piecesLayer);
+
+/* ── BERMO core ── */
+const coreG = mk('g', {transform:`translate(${BX},${BY})`});
+coreG.innerHTML = `
+  <path d="${pp(BW, BH, {})}" fill="#0f0f1c" filter="url(#glow)"/>
+  <path d="${pp(BW, BH, {})}" fill="none" stroke="rgba(0,245,212,.45)" stroke-width="1.5"/>
+  <text x="${BW/2}" y="${BH/2 - 7}" text-anchor="middle"
+        font-family="Montserrat,sans-serif" font-weight="900" font-size="17" fill="#fff">BERMO<tspan fill="#00f5d4">.</tspan></text>
+  <text x="${BW/2}" y="${BH/2 + 9}" text-anchor="middle"
+        font-family="Inter,sans-serif" font-weight="600" font-size="7"
+        fill="rgba(255,255,255,.3)" letter-spacing="1.5">COMMAND CENTER</text>
+`;
+diag.appendChild(coreG);
+
+/* ── Animation sequence ── */
 let fired = false;
 
-function snapAll() {
+function runAnimation() {
   if (fired) return;
   fired = true;
 
-  document.querySelectorAll('.piece-g.will-snap').forEach(g => {
-    const delay = parseInt(g.dataset.delay || 0);
-    setTimeout(() => g.classList.add('snapping'), delay);
+  // Step 1: draw fork connectors from industry box
+  document.querySelectorAll('.conn').forEach((c, i) => {
+    setTimeout(() => c.classList.add('draw'), 80 + i * 30);
   });
 
-  setTimeout(() => {
-    document.getElementById('stats').classList.add('show');
-  }, 900);
+  // Step 2: snap pieces in sequentially, check off gaps
+  // Sort pieces by their delay to get snap order
+  const sorted = [...PIECES].map((p, i) => ({...p, origIdx: i}))
+    .sort((a, b) => a.delay - b.delay);
+
+  sorted.forEach((p, order) => {
+    const snapAt = 400 + p.delay;
+    const g = document.getElementById(`pg-${p.id}`);
+    if (!g) return;
+
+    setTimeout(() => {
+      g.classList.add('snapping');
+      // Check the gap item off after piece lands
+      setTimeout(() => {
+        const cm = document.getElementById(`cm-${p.origIdx}`);
+        if (cm) cm.classList.add('on');
+      }, 480);
+    }, snapAt);
+  });
+
+  // Step 3: stats row
+  setTimeout(() => document.getElementById('stats').classList.add('show'), 1700);
 }
 
 const obs = new IntersectionObserver(entries => {
-  if (entries[0].isIntersecting) { snapAll(); obs.disconnect(); }
-}, { threshold: 0.35 });
+  if (entries[0].isIntersecting) { runAnimation(); obs.disconnect(); }
+}, { threshold: 0.3 });
+obs.observe(diag);
 
-obs.observe(svg);
+if (diag.getBoundingClientRect().top < window.innerHeight * 0.9) runAnimation();
 
-// Auto-fire if already visible on load
-if (svg.getBoundingClientRect().top < window.innerHeight * 0.95) snapAll();
-
-/* ─── Flip bar ─── */
+/* ── Flip bar ── */
 const WORDS = [
-  'Website Design', 'AI Agents', 'Brand Strategy',
-  'AI Visibility', 'Brand Messaging', 'Content Creation',
-  'SEO & Search', 'Paid Media', 'Revenue Ops', 'Product Launches',
+  'Website Design','AI Agents','Brand Strategy',
+  'AI Visibility','Brand Messaging','Content Creation',
+  'SEO & Search','Paid Media','Revenue Ops','Product Launches',
 ];
-
-let wordIdx = 0;
-const flipContainer = document.getElementById('flipContainer');
-
-function nextWord() {
-  const old = flipContainer.querySelector('.flip-word');
-  if (old) {
-    old.classList.add('out');
-    old.addEventListener('animationend', () => old.remove(), { once: true });
-  }
-  wordIdx = (wordIdx + 1) % WORDS.length;
-  const next = document.createElement('span');
-  next.className = 'flip-word in';
-  next.textContent = WORDS[wordIdx];
-  flipContainer.appendChild(next);
-}
-
-setInterval(nextWord, 2200);
+let wi = 0;
+const fc = document.getElementById('flipContainer');
+setInterval(() => {
+  const old = fc.querySelector('.flip-word');
+  if (old) { old.classList.add('out'); old.addEventListener('animationend', () => old.remove(), {once:true}); }
+  wi = (wi + 1) % WORDS.length;
+  const nxt = document.createElement('span');
+  nxt.className = 'flip-word in';
+  nxt.textContent = WORDS[wi];
+  fc.appendChild(nxt);
+}, 2200);
 </script>
 </body>
 </html>

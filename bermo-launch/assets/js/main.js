@@ -1,143 +1,161 @@
-/* ─── BERMO Launch — Main JS ─────────────────────────────────────── */
+/* ─── BERMO Launch — Main JS ───────────────────────────────────────
+   Animations, counters, interactivity. Stripe-DNA: motion is purposeful. */
 
 document.addEventListener('DOMContentLoaded', () => {
-  initModal();
-  initFadeUp();
-  initLoadingBar();
-  initCTAForm();
-  initCopyBlock();
   initNav();
+  initReveal();
+  initLoader();
+  initCounter();
+  initWaitlistTrigger();
+  initCopy();
+  initModal();
 });
 
-/* ─── Coming-soon waitlist modal ─────────────────────────────────── */
-function initModal() {
-  const overlay = document.getElementById('waitlist-modal');
-  const dismiss = document.getElementById('modal-dismiss');
-  if (!overlay) return;
-
-  if (!sessionStorage.getItem('bermo-modal-seen')) {
-    setTimeout(() => overlay.classList.add('is-visible'), 600);
-  }
-
-  function closeModal() {
-    overlay.classList.remove('is-visible');
-    sessionStorage.setItem('bermo-modal-seen', '1');
-  }
-
-  if (dismiss) dismiss.addEventListener('click', closeModal);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+/* ═══════════════════════════════════════════════════════════════════
+   1. Nav — adds shadow when scrolled
+   ═══════════════════════════════════════════════════════════════════ */
+function initNav() {
+  const nav = document.querySelector('.nav');
+  if (!nav) return;
+  const onScroll = () => {
+    nav.classList.toggle('is-scrolled', window.scrollY > 12);
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
 }
 
-/* ─── Fade-up on scroll ──────────────────────────────────────────── */
-function initFadeUp() {
-  const els = document.querySelectorAll('.fade-up');
+/* ═══════════════════════════════════════════════════════════════════
+   2. Reveal-on-scroll
+   ═══════════════════════════════════════════════════════════════════ */
+function initReveal() {
+  const els = document.querySelectorAll('.reveal');
   if (!els.length) return;
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
       if (entry.isIntersecting) {
-        entry.target.classList.add('is-visible');
-        observer.unobserve(entry.target);
+        entry.target.classList.add('is-in');
+        io.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-
-  els.forEach(el => observer.observe(el));
+  }, { threshold: 0.1, rootMargin: '0px 0px -10% 0px' });
+  els.forEach((el) => io.observe(el));
 }
 
-/* ─── Animated loading bar (BB interface) ────────────────────────── */
-function initLoadingBar() {
-  const fill = document.querySelector('.loading-bar-block__fill');
-  const percent = document.querySelector('.loading-bar-block__percent');
-  if (!fill) return;
+/* ═══════════════════════════════════════════════════════════════════
+   3. Loader — animates fill to 37%, ticks the percent label,
+      progressively lights up network rows. Stops at 37 forever.
+   ═══════════════════════════════════════════════════════════════════ */
+function initLoader() {
+  const loader = document.querySelector('.loader');
+  if (!loader) return;
 
+  const fill = loader.querySelector('.loader__fill');
+  const pct  = loader.querySelector('.loader__pct');
+  const rows = loader.querySelectorAll('.loader__row');
   const target = 37;
-  let current = 0;
+  let played = false;
 
-  const observer = new IntersectionObserver((entries) => {
-    if (entries[0].isIntersecting) {
-      fill.style.width = target + '%';
-
-      const interval = setInterval(() => {
-        current = Math.min(current + 1, target);
-        if (percent) percent.textContent = current + '%';
-        if (current >= target) clearInterval(interval);
-      }, 65);
-
-      observer.disconnect();
+  const io = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && !played) {
+      played = true;
+      if (fill) fill.style.width = target + '%';
+      let n = 0;
+      const tick = setInterval(() => {
+        n = Math.min(n + 1, target);
+        if (pct) pct.textContent = n + '%';
+        if (n === 14 && rows[0]) rows[0].classList.add('is-on');
+        if (n >= target) clearInterval(tick);
+      }, 60);
+      io.disconnect();
     }
   }, { threshold: 0.5 });
-
-  observer.observe(fill.closest('.loading-bar-block'));
+  io.observe(loader);
 }
 
-/* ─── CTA inline form expand ─────────────────────────────────────── */
-function initCTAForm() {
-  const trigger = document.querySelector('.cta-trigger');
-  const form = document.querySelector('.inline-form');
-  const formEl = document.querySelector('#waitlist-form');
-  const successEl = document.querySelector('.form-success');
-
-  if (!trigger || !form) return;
-
-  trigger.addEventListener('click', () => {
-    const isOpen = form.classList.contains('is-open');
-    form.classList.toggle('is-open');
-    trigger.setAttribute('aria-expanded', String(!isOpen));
-
-    if (!isOpen) {
-      setTimeout(() => {
-        form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        const firstInput = form.querySelector('input');
-        if (firstInput) firstInput.focus();
-      }, 100);
-    }
-  });
-
-  if (formEl) {
-    formEl.addEventListener('submit', async (e) => {
-      const submitBtn = formEl.querySelector('.form-submit');
-      if (submitBtn) {
-        submitBtn.textContent = 'Sending...';
-        submitBtn.disabled = true;
-      }
+/* ═══════════════════════════════════════════════════════════════════
+   4. Counter — counts up to data-target when in view
+   ═══════════════════════════════════════════════════════════════════ */
+function initCounter() {
+  const counters = document.querySelectorAll('[data-counter]');
+  if (!counters.length) return;
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+      const target = parseInt(el.dataset.counter, 10);
+      const dur = 1400;
+      const start = performance.now();
+      const tick = (now) => {
+        const t = Math.min((now - start) / dur, 1);
+        const eased = 1 - Math.pow(1 - t, 3);
+        el.textContent = Math.round(target * eased).toLocaleString();
+        if (t < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+      io.unobserve(el);
     });
-  }
+  }, { threshold: 0.5 });
+  counters.forEach((el) => io.observe(el));
 }
 
-/* ─── Copy-to-clipboard for context block ────────────────────────── */
-function initCopyBlock() {
-  const btns = document.querySelectorAll('.code-block__copy');
-  btns.forEach(btn => {
+/* ═══════════════════════════════════════════════════════════════════
+   5. Waitlist trigger — smooth-scroll to #waitlist
+   ═══════════════════════════════════════════════════════════════════ */
+function initWaitlistTrigger() {
+  document.querySelectorAll('[data-scroll]').forEach((el) => {
+    el.addEventListener('click', (e) => {
+      const id = el.getAttribute('data-scroll');
+      const target = document.querySelector(id);
+      if (!target) return;
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const input = target.querySelector('input[type="email"]');
+      setTimeout(() => input && input.focus(), 700);
+    });
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   6. Copy-to-clipboard for code blocks
+   ═══════════════════════════════════════════════════════════════════ */
+function initCopy() {
+  document.querySelectorAll('.code__copy').forEach((btn) => {
     btn.addEventListener('click', () => {
-      const block = btn.closest('.code-block');
-      const text = block ? block.querySelector('code')?.textContent || block.textContent.replace('Copy', '').trim() : '';
+      const block = btn.closest('.code');
+      if (!block) return;
+      const body = block.querySelector('.code__body');
+      const text = (body ? body.textContent : block.textContent).trim();
       navigator.clipboard.writeText(text).then(() => {
-        btn.textContent = 'Copied!';
-        btn.classList.add('copied');
+        const orig = btn.textContent;
+        btn.textContent = 'Copied';
+        btn.classList.add('is-copied');
         setTimeout(() => {
-          btn.textContent = 'Copy';
-          btn.classList.remove('copied');
-        }, 2000);
+          btn.textContent = orig || 'Copy';
+          btn.classList.remove('is-copied');
+        }, 1800);
       });
     });
   });
 }
 
-/* ─── Nav scroll effect ──────────────────────────────────────────── */
-function initNav() {
-  const nav = document.querySelector('.nav');
-  if (!nav) return;
+/* ═══════════════════════════════════════════════════════════════════
+   7. Coming-soon modal — first visit only, sessionStorage gate
+   ═══════════════════════════════════════════════════════════════════ */
+function initModal() {
+  const modal = document.getElementById('modal');
+  if (!modal) return;
+  const dismiss = modal.querySelector('[data-modal-dismiss]');
 
-  let lastY = 0;
-  window.addEventListener('scroll', () => {
-    const y = window.scrollY;
-    if (y > 80) {
-      nav.style.background = 'rgba(10,10,10,0.97)';
-    } else {
-      nav.style.background = 'rgba(10,10,10,0.88)';
-    }
-    lastY = y;
-  }, { passive: true });
+  if (!sessionStorage.getItem('bermo-modal-seen')) {
+    setTimeout(() => modal.classList.add('is-open'), 700);
+  }
+
+  const close = () => {
+    modal.classList.remove('is-open');
+    sessionStorage.setItem('bermo-modal-seen', '1');
+  };
+
+  if (dismiss) dismiss.addEventListener('click', close);
+  modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
 }

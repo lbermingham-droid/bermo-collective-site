@@ -8,10 +8,10 @@
   <style>
     :root {
       --cyan: #00f5d4;
-      --black: #0a0a0a;
       --spring: cubic-bezier(0.16, 1, 0.3, 1);
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
       background: #07070f;
       font-family: 'Inter', sans-serif;
@@ -25,13 +25,11 @@
 
     .section { width: 100%; max-width: 600px; text-align: center; }
 
-    /* Flip bar */
+    /* ── Flip bar ── */
     .flip-bar {
       display: inline-flex; align-items: center; gap: 10px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 100px; padding: 7px 18px 7px 12px;
-      margin-bottom: 32px;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 100px; padding: 7px 18px 7px 12px; margin-bottom: 32px;
     }
     .flip-dot {
       width: 6px; height: 6px; border-radius: 50%;
@@ -40,51 +38,78 @@
     }
     @keyframes blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.6)} }
     .flip-label { font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.35);white-space:nowrap; }
-    .flip-container { display:inline-block;height:1.25em;overflow:hidden;perspective:400px;min-width:138px;text-align:left; }
+    .flip-container { display:inline-block;height:1.25em;overflow:hidden;perspective:400px;min-width:148px;text-align:left; }
     .flip-word { display:block;font-size:13px;font-weight:700;color:var(--cyan);transform-origin:top center; }
-    .flip-word.in  { animation: fIn  .42s var(--spring) forwards; }
-    .flip-word.out { animation: fOut .3s  ease-in forwards; }
+    .flip-word.in  { animation:fIn  .42s var(--spring) forwards; }
+    .flip-word.out { animation:fOut .3s ease-in forwards; }
     @keyframes fIn  { from{transform:rotateX(-80deg);opacity:0} to{transform:rotateX(0);opacity:1} }
     @keyframes fOut { from{transform:rotateX(0);opacity:1} to{transform:rotateX(80deg);opacity:0} }
 
-    /* Diagram */
-    .diagram-wrap { width: 100%; max-width: 480px; margin: 0 auto 36px; }
+    /* ── Diagram ── */
+    .diagram-wrap { width: 100%; max-width: 520px; margin: 0 auto 36px; }
     .diagram-wrap svg { width: 100%; height: auto; overflow: visible; }
 
-    /* Piece snap animation */
-    .piece-g { transform-box: fill-box; transform-origin: center; }
+    /* ── Piece snap ── */
+    .piece-g { transform-box:fill-box; transform-origin:center; }
     .piece-g.pending { opacity: 0; }
-
     @keyframes snapIn {
-      0%   { transform: translate(var(--fx,0px),var(--fy,0px)) scale(.72); opacity: 0; }
-      62%  { transform: translate(0,0) scale(1.07); opacity: 1; }
-      80%  { transform: translate(0,0) scale(.96); }
-      92%  { transform: translate(0,0) scale(1.02); }
-      100% { transform: translate(0,0) scale(1); opacity: 1; }
+      0%   { transform:translate(var(--fx,0px),var(--fy,0px)) scale(.72); opacity:0; }
+      62%  { transform:translate(0,0) scale(1.07); opacity:1; }
+      80%  { transform:translate(0,0) scale(.96); }
+      92%  { transform:translate(0,0) scale(1.02); }
+      100% { transform:translate(0,0) scale(1); opacity:1; }
     }
     .piece-g.snapping { animation: snapIn .72s var(--spring) forwards; }
 
-    /* Connector draw-in */
-    @keyframes drawLine { from { stroke-dashoffset: var(--L, 300) } to { stroke-dashoffset: 0 } }
-    .conn.draw { animation: drawLine .55s ease-out forwards; }
+    /* ── Connector draw ── */
+    @keyframes drawLine { from{stroke-dashoffset:var(--L,400)} to{stroke-dashoffset:0} }
+    .conn.draw { animation: drawLine .5s ease-out forwards; }
 
-    /* Checklist check */
-    .ck-mark {
+    /* ── Checklist (rendered inside SVG foreignObject) ── */
+    .ck-wrap {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 10px;
+      padding: 10px 8px 8px;
+      font-family: 'Inter', sans-serif;
+      height: 100%;
+    }
+    .ck-head {
+      font-size: 8px; font-weight: 700; letter-spacing: 1.2px;
+      text-transform: uppercase; color: rgba(0,245,212,.85);
+      margin-bottom: 7px; padding-bottom: 6px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+    .ck-item {
+      display: flex; align-items: flex-start; gap: 5px; margin-bottom: 6px;
+    }
+    .ck-box {
+      width: 11px; height: 11px; flex-shrink: 0; margin-top: 1px;
+      border: 1px solid rgba(255,255,255,.2); border-radius: 2px;
+      background: rgba(255,255,255,.05);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 8px; font-weight: 700; color: #00f5d4;
+      transition: background .25s, border-color .25s;
+      overflow: hidden;
+    }
+    .ck-check {
       opacity: 0; transform: scale(0);
-      transform-box: fill-box; transform-origin: center;
-      transition: opacity .25s, transform .3s var(--spring);
+      display: block;
+      transition: opacity .25s var(--spring), transform .3s var(--spring);
     }
-    .ck-mark.on { opacity: 1; transform: scale(1); }
+    .ck-box.on { background: rgba(0,245,212,.14); border-color: rgba(0,245,212,.5); }
+    .ck-box.on .ck-check { opacity: 1; transform: scale(1); }
+    .ck-lbl { font-size: 8px; color: rgba(255,255,255,.5); line-height: 1.35; }
 
-    /* Stats */
+    /* ── Stats ── */
     .stats {
-      display: flex; justify-content: center; gap: 36px; flex-wrap: wrap;
-      opacity: 0; transform: translateY(14px);
-      transition: opacity .5s .2s, transform .5s .2s var(--spring);
+      display:flex; justify-content:center; gap:36px; flex-wrap:wrap;
+      opacity:0; transform:translateY(14px);
+      transition:opacity .5s .2s, transform .5s .2s var(--spring);
     }
-    .stats.show { opacity: 1; transform: translateY(0); }
+    .stats.show { opacity:1; transform:translateY(0); }
     .stat-n { font-family:'Inter Tight',sans-serif;font-size:26px;font-weight:800;display:block;line-height:1; }
-    .stat-n span { color: var(--cyan); }
+    .stat-n span { color:var(--cyan); }
     .stat-l { font-size:11px;color:rgba(255,255,255,.35);margin-top:4px;display:block; }
   </style>
 </head>
@@ -100,80 +125,82 @@
   </div>
 
   <div class="diagram-wrap">
-    <svg id="diag" viewBox="0 0 420 490" xmlns="http://www.w3.org/2000/svg"></svg>
+    <svg id="diag" viewBox="0 0 510 530" xmlns="http://www.w3.org/2000/svg"></svg>
   </div>
 
   <div class="stats" id="stats">
-    <div><span class="stat-n">6<span>+</span></span><span class="stat-l">Specialist pods</span></div>
+    <div><span class="stat-n">8<span>+</span></span><span class="stat-l">Specialist pods</span></div>
     <div><span class="stat-n">16<span>+</span></span><span class="stat-l">Industries</span></div>
     <div><span class="stat-n">1<span> wk</span></span><span class="stat-l">Avg deploy</span></div>
   </div>
 
 </section>
 <script>
-/* ── Puzzle piece path at origin (0,0) ──
-   tabs: { top, right, bottom, left }
-   1 = tab OUT, -1 = slot IN, 0 = flat          */
+/* ── Puzzle piece path at (0,0) ── */
 function pp(w, h, tabs, tr = 12) {
-  const r = 8;
-  const { top=0, right=0, bottom=0, left=0 } = tabs;
-  const cx = w/2, cy = h/2;
+  const r = 8, cx = w/2, cy = h/2;
+  const {top=0,right=0,bottom=0,left=0} = tabs;
   const d = [];
   d.push(`M ${r} 0`);
-  if (top) { d.push(`H ${cx-tr} A ${tr} ${tr} 0 0 ${top>0?0:1} ${cx+tr} 0`); }
+  if (top)    { d.push(`H ${cx-tr} A ${tr} ${tr} 0 0 ${top>0?0:1} ${cx+tr} 0`); }
   d.push(`H ${w-r} Q ${w} 0 ${w} ${r}`);
-  if (right) { d.push(`V ${cy-tr} A ${tr} ${tr} 0 0 ${right>0?1:0} ${w} ${cy+tr}`); }
+  if (right)  { d.push(`V ${cy-tr} A ${tr} ${tr} 0 0 ${right>0?1:0} ${w} ${cy+tr}`); }
   d.push(`V ${h-r} Q ${w} ${h} ${w-r} ${h}`);
   if (bottom) { d.push(`H ${cx+tr} A ${tr} ${tr} 0 0 ${bottom>0?1:0} ${cx-tr} ${h}`); }
   d.push(`H ${r} Q 0 ${h} 0 ${h-r}`);
-  if (left) { d.push(`V ${cy+tr} A ${tr} ${tr} 0 0 ${left>0?0:1} 0 ${cy-tr}`); }
+  if (left)   { d.push(`V ${cy+tr} A ${tr} ${tr} 0 0 ${left>0?0:1} 0 ${cy-tr}`); }
   d.push(`V ${r} Q 0 0 ${r} 0 Z`);
   return d.join(' ');
 }
 
-/* ── Constants ── */
-const PW = 80, PH = 80;           // piece size
-const BX = 165, BY = 225;         // BERMO top-left
-const BW = 90, BH = 90;           // BERMO size
-const BCX = BX + BW/2;            // BERMO center X = 210
-const BCY = BY + BH/2;            // BERMO center Y = 270
+/* ── Layout constants ── */
+const PW = 80, PH = 80;
+const BX = 185, BY = 225, BW = 90, BH = 90;
+const BCX = BX + BW/2;  // 230
+const BCY = BY + BH/2;  // 270
 
 /* ── Piece data ── */
+//  8 pieces around BERMO core, 2 left / 2 right / 2 top / 2 bottom
 const PIECES = [
-  { id:'website',  label:['Website','Design'],   emoji:'🌐',
-    x:110, y:132, tabs:{bottom:1},
-    fill:'#161622', stroke:'rgba(255,255,255,0.12)', text:'#fff',
-    gap:'Outdated web presence',   delay:0,   fx:0,    fy:-170 },
+  { id:'website',   label:['Website','Design'],        emoji:'🌐',
+    x:100, y:140, tabs:{bottom:1}, fill:'#161622', stroke:'rgba(255,255,255,.12)', text:'#fff',
+    gap:'Outdated web presence',    delay:0,   fx:0,    fy:-170 },
 
-  { id:'ai-agents', label:['AI','Agents'],       emoji:'🤖',
-    x:255, y:132, tabs:{bottom:1},
-    fill:'#00f5d4', stroke:'none', text:'#0a0a0a',
-    gap:'Manual workflows',        delay:160, fx:160,  fy:-170 },
+  { id:'ai-agents', label:['AI','Agents'],             emoji:'🤖',
+    x:255, y:140, tabs:{bottom:1}, fill:'#00f5d4', stroke:'none',               text:'#0a0a0a',
+    gap:'Manual workflows',         delay:180, fx:150,  fy:-170 },
 
-  { id:'brand-strat', label:['Brand','Strategy'],emoji:'⚡',
-    x:15,  y:235, tabs:{right:1},
-    fill:'#161622', stroke:'rgba(255,255,255,0.12)', text:'#fff',
-    gap:'Unclear positioning',     delay:280, fx:-170, fy:0    },
+  { id:'brand-s',   label:['Brand','Strategy'],        emoji:'⚡',
+    x:8,   y:232, tabs:{right:1},  fill:'#161622', stroke:'rgba(255,255,255,.12)', text:'#fff',
+    gap:'Unclear positioning',      delay:300, fx:-170, fy:-30  },
 
-  { id:'ai-vis',   label:['AI','Visibility'],    emoji:'👁️',
-    x:325, y:235, tabs:{left:1},
-    fill:'#00f5d4', stroke:'none', text:'#0a0a0a',
-    gap:'Missing AI presence',     delay:280, fx:170,  fy:0    },
+  { id:'ai-vis',    label:['AI','Visibility'],         emoji:'👁️',
+    x:322, y:232, tabs:{left:1},   fill:'#00f5d4', stroke:'none',               text:'#0a0a0a',
+    gap:'Missing AI presence',      delay:300, fx:170,  fy:-30  },
 
-  { id:'brand-msg', label:['Brand','Messaging'], emoji:'✍️',
-    x:55,  y:368, tabs:{top:1},
-    fill:'#161622', stroke:'rgba(255,255,255,0.12)', text:'#fff',
-    gap:'Inconsistent voice',      delay:160, fx:-170, fy:170  },
+  { id:'niche',     label:['Niche','Specialties'],     emoji:'🎯',
+    x:8,   y:325, tabs:{right:1},  fill:'#161622', stroke:'rgba(255,255,255,.12)', text:'#fff',
+    gap:'No niche experts',         delay:420, fx:-170, fy:30   },
 
-  { id:'content',  label:['Content','Creation'], emoji:'📱',
-    x:230, y:368, tabs:{top:1},
-    fill:'#161622', stroke:'rgba(255,255,255,0.12)', text:'#fff',
-    gap:'No content system',       delay:0,   fx:0,    fy:170  },
+  { id:'crm',       label:['CRM / Software','Support'],emoji:'⚙️',
+    x:322, y:325, tabs:{left:1},   fill:'#00f5d4', stroke:'none',               text:'#0a0a0a',
+    gap:'Disconnected systems',     delay:420, fx:170,  fy:30   },
+
+  { id:'brand-m',   label:['Brand','Messaging'],       emoji:'✍️',
+    x:70,  y:418, tabs:{top:1},    fill:'#161622', stroke:'rgba(255,255,255,.12)', text:'#fff',
+    gap:'Inconsistent voice',       delay:540, fx:-130, fy:170  },
+
+  { id:'content',   label:['Content','Creation'],      emoji:'📱',
+    x:235, y:418, tabs:{top:1},    fill:'#161622', stroke:'rgba(255,255,255,.12)', text:'#fff',
+    gap:'No content system',        delay:540, fx:0,    fy:170  },
 ];
 
-const INDUSTRIES = ['E-commerce','SaaS','Agencies','Startups','Consulting'];
+const INDUSTRIES = [
+  'E-commerce','SaaS','AI Startups','Trades & Services',
+  'Manufacturing','Biotech','Small Business','Pharma',
+];
 
-/* ── SVG helpers ── */
+/* ── SVG builder ── */
 const SVG_NS = 'http://www.w3.org/2000/svg';
 function mk(tag, attrs, inner) {
   const e = document.createElementNS(SVG_NS, tag);
@@ -184,232 +211,199 @@ function mk(tag, attrs, inner) {
 
 const diag = document.getElementById('diag');
 
-/* ── Defs ── */
+/* Defs */
 diag.appendChild(mk('defs', {}, `
   <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-    <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="b"/>
-    <feFlood flood-color="#00f5d4" flood-opacity=".55" result="c"/>
+    <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="b"/>
+    <feFlood flood-color="#00f5d4" flood-opacity=".6" result="c"/>
     <feComposite in="c" in2="b" operator="in" result="g"/>
     <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
   </filter>
-  <filter id="piece-sh">
-    <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000" flood-opacity=".55"/>
+  <filter id="sh">
+    <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#000" flood-opacity=".6"/>
   </filter>
   <pattern id="dots" x="0" y="0" width="14" height="14" patternUnits="userSpaceOnUse">
-    <circle cx="1.5" cy="1.5" r=".9" fill="rgba(255,255,255,.06)"/>
+    <circle cx="1.5" cy="1.5" r=".9" fill="rgba(255,255,255,.055)"/>
   </pattern>
 `));
 
-/* ── Background ── */
-diag.appendChild(mk('rect', {width:420, height:490, fill:'#07070f'}));
-diag.appendChild(mk('rect', {width:420, height:490, fill:'url(#dots)'}));
+/* Background */
+diag.appendChild(mk('rect', {width:510, height:530, fill:'#07070f'}));
+diag.appendChild(mk('rect', {width:510, height:530, fill:'url(#dots)'}));
 
-/* ── Industry box (top left) ── */
+/* ── Industry box — full width, 3 rows ── */
 const indG = mk('g');
 indG.appendChild(mk('rect', {
-  x:8, y:8, width:280, height:108, rx:10,
+  x:6, y:6, width:498, height:118, rx:10,
   fill:'rgba(255,255,255,.03)',
-  stroke:'rgba(0,245,212,.28)', 'stroke-width':1, 'stroke-dasharray':'5 4'
+  stroke:'rgba(0,245,212,.28)', 'stroke-width':1.2, 'stroke-dasharray':'5 4'
 }));
 
-// Tag pills — row 1: 3 tags, row 2: 2 tags
-let tx = 18, ty = 28;
-INDUSTRIES.forEach((tag, i) => {
-  const tw = tag.length * 6.3 + 18;
-  if (i === 3) { tx = 18; ty = 70; }
+// Lay out pills across 3 rows, auto-wrap
+const ROW_X = 16, ROW_WIDTHS = [478]; // max row width
+let rx = ROW_X, ry = 24;
+const ROW_H = 24, ROW_GAP = 30, PILL_PAD = 18, FONT_W = 5.8;
+const rowBreaks = [3, 3, 2]; // pills per row
+let pIdx = 0;
+
+[...INDUSTRIES, '+ many more'].forEach((tag, i) => {
+  const isMore = tag.startsWith('+');
+  const tw = Math.round(tag.length * FONT_W + PILL_PAD * 2);
+  if (i === rowBreaks[0])         { rx = ROW_X; ry = 54; }
+  if (i === rowBreaks[0] + rowBreaks[1]) { rx = ROW_X; ry = 84; }
+
   indG.appendChild(mk('rect', {
-    x:tx, y:ty, width:tw, height:26, rx:5,
-    fill:'rgba(255,255,255,.07)',
-    stroke:'rgba(255,255,255,.13)', 'stroke-width':.8
+    x:rx, y:ry, width:tw, height:ROW_H, rx:5,
+    fill: isMore ? 'transparent' : 'rgba(255,255,255,.07)',
+    stroke: isMore ? 'rgba(0,245,212,.4)' : 'rgba(255,255,255,.13)',
+    'stroke-width':.9,
+    'stroke-dasharray': isMore ? '3 2' : 'none'
   }));
   indG.appendChild(mk('text', {
-    x: tx + tw/2, y: ty + 17,
-    'text-anchor':'middle', fill:'rgba(255,255,255,.75)',
-    'font-family':'Inter, sans-serif', 'font-weight':500, 'font-size':10.5
+    x: rx + tw/2, y: ry + 16,
+    'text-anchor':'middle',
+    fill: isMore ? 'rgba(0,245,212,.8)' : 'rgba(255,255,255,.75)',
+    'font-family':'Inter, sans-serif', 'font-weight': isMore ? 600 : 500,
+    'font-size':10.5, 'font-style': isMore ? 'italic' : 'normal'
   }, tag));
-  tx += tw + 8;
+  rx += tw + 8;
 });
 diag.appendChild(indG);
 
-/* ── Checklist box (top right) ── */
-const ckG = mk('g');
-ckG.appendChild(mk('rect', {
-  x:295, y:8, width:117, height:210, rx:10,
-  fill:'rgba(255,255,255,.04)',
-  stroke:'rgba(255,255,255,.08)', 'stroke-width':1
-}));
-ckG.appendChild(mk('text', {
-  x:354, y:30, 'text-anchor':'middle',
-  fill:'rgba(0,245,212,.8)',
-  'font-family':'Inter Tight, sans-serif',
-  'font-weight':700, 'font-size':9, 'letter-spacing':1.5
-}, 'GAPS FOUND'));
-
-// Horizontal rule under title
-ckG.appendChild(mk('line', {
-  x1:303, y1:36, x2:404, y2:36,
-  stroke:'rgba(255,255,255,.07)', 'stroke-width':.8
-}));
-
-PIECES.forEach((p, i) => {
-  const iy = 50 + i * 27;
-  // Unchecked box
-  ckG.appendChild(mk('rect', {
-    x:303, y:iy - 8, width:13, height:13, rx:3,
-    fill:'rgba(255,255,255,.05)',
-    stroke:'rgba(255,255,255,.18)', 'stroke-width':.9
-  }));
-  // Check mark (hidden until piece snaps)
-  const cm = mk('text', {
-    x:309.5, y:iy + 3.5, 'text-anchor':'middle',
-    fill:'#00f5d4', 'font-size':9.5, 'font-weight':700,
-    class:'ck-mark', id:`cm-${i}`
-  }, '✓');
-  ckG.appendChild(cm);
-  // Gap label (wraps at 2 lines)
-  const words = p.gap.split(' ');
-  const half = Math.ceil(words.length / 2);
-  ckG.appendChild(mk('text', {
-    x:321, y:iy + 1,
-    fill:'rgba(255,255,255,.55)',
-    'font-family':'Inter, sans-serif', 'font-weight':500, 'font-size':8.2
-  }, words.slice(0, half).join(' ')));
-  ckG.appendChild(mk('text', {
-    x:321, y:iy + 11,
-    fill:'rgba(255,255,255,.55)',
-    'font-family':'Inter, sans-serif', 'font-weight':500, 'font-size':8.2
-  }, words.slice(half).join(' ')));
-});
-diag.appendChild(ckG);
+/* ── Checklist — SVG foreignObject (top right of diagram) ── */
+const fo = mk('foreignObject', {x:406, y:138, width:98, height:278});
+const ckDiv = document.createElement('div');
+ckDiv.className = 'ck-wrap';
+ckDiv.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+ckDiv.innerHTML = `
+  <div class="ck-head">Gaps found</div>
+  ${PIECES.map((p, i) => `
+    <div class="ck-item" id="cki-${i}">
+      <div class="ck-box" id="ckb-${i}">
+        <span class="ck-check">✓</span>
+      </div>
+      <div class="ck-lbl">${p.gap}</div>
+    </div>`).join('')}
+`;
+fo.appendChild(ckDiv);
+diag.appendChild(fo);
 
 /* ── Connector lines ── */
 const connG = mk('g');
 
-// Industry box → fork → Website Design + AI Agents
-const forkX = 148, forkY1 = 116, forkY2 = 130;
-[[150, 132],[295, 132]].forEach(([px, py]) => {
-  const pathD = `M ${forkX} ${forkY1} V ${forkY2} H ${px + PW/2}`;
-  const L = Math.abs(px + PW/2 - forkX) + (forkY2 - forkY1);
-  const c = mk('path', {
-    d: pathD, fill:'none',
-    stroke:'rgba(0,245,212,.3)', 'stroke-width':1.5,
-    'stroke-dasharray':5, 'stroke-dashoffset':L + 40,
+// Fork from industry box bottom → two top pieces
+const forkX = 170, forkY0 = 124, forkY1 = 138;
+[[140, 140],[295, 140]].forEach(([px]) => {
+  const L = Math.abs(px - forkX) + (forkY1 - forkY0);
+  connG.appendChild(mk('path', {
+    d:`M ${forkX} ${forkY0} V ${forkY1} H ${px}`,
+    fill:'none', stroke:'rgba(0,245,212,.28)', 'stroke-width':1.5,
+    'stroke-dasharray':5, 'stroke-dashoffset': L + 40,
     class:'conn', style:`--L:${L+40}`
-  });
-  connG.appendChild(c);
+  }));
 });
 
-// Each piece → BERMO center
+// Each piece → BERMO
 PIECES.forEach(p => {
   const px = p.x + PW/2, py = p.y + PH/2;
   const L = Math.round(Math.hypot(px - BCX, py - BCY));
-  const c = mk('line', {
+  connG.appendChild(mk('line', {
     x1:px, y1:py, x2:BCX, y2:BCY,
-    stroke:'rgba(0,245,212,.22)', 'stroke-width':1.5,
+    stroke:'rgba(0,245,212,.2)', 'stroke-width':1.5,
     'stroke-dasharray':5, 'stroke-dashoffset':L,
     class:'conn', id:`cl-${p.id}`, style:`--L:${L}`
-  });
-  connG.appendChild(c);
+  }));
 });
 diag.appendChild(connG);
 
 /* ── Specialist pieces ── */
-const piecesLayer = mk('g');
+const pLayer = mk('g');
 PIECES.forEach((p, i) => {
   const path = pp(PW, PH, p.tabs);
-  const mx = PW / 2, my = PH / 2;
+  const mx = PW/2, my = PH/2;
   const g = mk('g', {
-    class:'piece-g pending',
-    id:`pg-${p.id}`,
+    class:'piece-g pending', id:`pg-${p.id}`,
     transform:`translate(${p.x},${p.y})`,
     style:`--fx:${p.fx}px;--fy:${p.fy}px`,
-    'data-delay': p.delay,
-    'data-idx': i
+    'data-delay': p.delay, 'data-idx': i
   });
   const str = p.stroke !== 'none' ? `stroke="${p.stroke}" stroke-width="1"` : '';
-  const iY = my - 15, l1Y = my + 5, l2Y = my + 16;
+  // Label split: handle "CRM / Software Support" being longer
+  const lines = p.label;
+  const iY = my - (lines.length > 1 ? 16 : 8);
   g.innerHTML = `
-    <path d="${path}" fill="${p.fill}" ${str} filter="url(#piece-sh)"/>
-    <text x="${mx}" y="${iY}" text-anchor="middle" font-size="17" dominant-baseline="middle">${p.emoji}</text>
-    <text x="${mx}" y="${l1Y}" text-anchor="middle" font-family="'Inter Tight',sans-serif" font-weight="800" font-size="9" fill="${p.text}" letter-spacing=".3">${p.label[0]}</text>
-    ${p.label[1] ? `<text x="${mx}" y="${l2Y}" text-anchor="middle" font-family="'Inter Tight',sans-serif" font-weight="800" font-size="9" fill="${p.text}" letter-spacing=".3">${p.label[1]}</text>` : ''}
+    <path d="${path}" fill="${p.fill}" ${str} filter="url(#sh)"/>
+    <text x="${mx}" y="${iY}" text-anchor="middle" font-size="16" dominant-baseline="middle">${p.emoji}</text>
+    <text x="${mx}" y="${my+5}" text-anchor="middle"
+          font-family="'Inter Tight',sans-serif" font-weight="800" font-size="8.5"
+          fill="${p.text}" letter-spacing=".3">${lines[0]}</text>
+    ${lines[1] ? `<text x="${mx}" y="${my+16}" text-anchor="middle"
+          font-family="'Inter Tight',sans-serif" font-weight="800" font-size="8.5"
+          fill="${p.text}" letter-spacing=".3">${lines[1]}</text>` : ''}
   `;
-  piecesLayer.appendChild(g);
+  pLayer.appendChild(g);
 });
-diag.appendChild(piecesLayer);
+diag.appendChild(pLayer);
 
 /* ── BERMO core ── */
-const coreG = mk('g', {transform:`translate(${BX},${BY})`});
-coreG.innerHTML = `
+const core = mk('g', {transform:`translate(${BX},${BY})`});
+core.innerHTML = `
   <path d="${pp(BW, BH, {})}" fill="#0f0f1c" filter="url(#glow)"/>
   <path d="${pp(BW, BH, {})}" fill="none" stroke="rgba(0,245,212,.45)" stroke-width="1.5"/>
-  <text x="${BW/2}" y="${BH/2 - 7}" text-anchor="middle"
-        font-family="Montserrat,sans-serif" font-weight="900" font-size="17" fill="#fff">BERMO<tspan fill="#00f5d4">.</tspan></text>
-  <text x="${BW/2}" y="${BH/2 + 9}" text-anchor="middle"
+  <text x="${BW/2}" y="${BH/2-8}" text-anchor="middle"
+        font-family="Montserrat,sans-serif" font-weight="900" font-size="16" fill="#fff">BERMO<tspan fill="#00f5d4">.</tspan></text>
+  <text x="${BW/2}" y="${BH/2+7}" text-anchor="middle"
         font-family="Inter,sans-serif" font-weight="600" font-size="7"
         fill="rgba(255,255,255,.3)" letter-spacing="1.5">COMMAND CENTER</text>
 `;
-diag.appendChild(coreG);
+diag.appendChild(core);
 
-/* ── Animation sequence ── */
+/* ── Animation ── */
 let fired = false;
-
-function runAnimation() {
+function run() {
   if (fired) return;
   fired = true;
 
-  // Step 1: draw fork connectors from industry box
+  // Draw connectors
   document.querySelectorAll('.conn').forEach((c, i) => {
-    setTimeout(() => c.classList.add('draw'), 80 + i * 30);
+    setTimeout(() => c.classList.add('draw'), 80 + i * 28);
   });
 
-  // Step 2: snap pieces in sequentially, check off gaps
-  // Sort pieces by their delay to get snap order
-  const sorted = [...PIECES].map((p, i) => ({...p, origIdx: i}))
-    .sort((a, b) => a.delay - b.delay);
-
-  sorted.forEach((p, order) => {
-    const snapAt = 400 + p.delay;
+  // Snap pieces in, check gaps off
+  PIECES.forEach((p, i) => {
     const g = document.getElementById(`pg-${p.id}`);
-    if (!g) return;
-
     setTimeout(() => {
       g.classList.add('snapping');
-      // Check the gap item off after piece lands
       setTimeout(() => {
-        const cm = document.getElementById(`cm-${p.origIdx}`);
-        if (cm) cm.classList.add('on');
-      }, 480);
-    }, snapAt);
+        const box = document.getElementById(`ckb-${i}`);
+        if (box) box.classList.add('on');
+      }, 450);
+    }, 380 + p.delay);
   });
 
-  // Step 3: stats row
-  setTimeout(() => document.getElementById('stats').classList.add('show'), 1700);
+  setTimeout(() => document.getElementById('stats').classList.add('show'), 1800);
 }
 
-const obs = new IntersectionObserver(entries => {
-  if (entries[0].isIntersecting) { runAnimation(); obs.disconnect(); }
-}, { threshold: 0.3 });
+const obs = new IntersectionObserver(e => { if (e[0].isIntersecting) { run(); obs.disconnect(); } }, {threshold:.25});
 obs.observe(diag);
-
-if (diag.getBoundingClientRect().top < window.innerHeight * 0.9) runAnimation();
+if (diag.getBoundingClientRect().top < window.innerHeight * .9) run();
 
 /* ── Flip bar ── */
 const WORDS = [
-  'Website Design','AI Agents','Brand Strategy',
-  'AI Visibility','Brand Messaging','Content Creation',
-  'SEO & Search','Paid Media','Revenue Ops','Product Launches',
+  'Website Design','AI Agents','Brand Strategy','AI Visibility',
+  'Niche Specialties','CRM / Software','Brand Messaging','Content Creation',
+  'Revenue Ops','Product Launches','SEO & Search','Paid Media',
 ];
 let wi = 0;
 const fc = document.getElementById('flipContainer');
 setInterval(() => {
   const old = fc.querySelector('.flip-word');
   if (old) { old.classList.add('out'); old.addEventListener('animationend', () => old.remove(), {once:true}); }
-  wi = (wi + 1) % WORDS.length;
-  const nxt = document.createElement('span');
-  nxt.className = 'flip-word in';
-  nxt.textContent = WORDS[wi];
-  fc.appendChild(nxt);
+  wi = (wi+1) % WORDS.length;
+  const n = document.createElement('span');
+  n.className = 'flip-word in';
+  n.textContent = WORDS[wi];
+  fc.appendChild(n);
 }, 2200);
 </script>
 </body>

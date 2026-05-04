@@ -1,12 +1,33 @@
 /* ─── BERMO Launch — Main JS ─────────────────────────────────────── */
 
 document.addEventListener('DOMContentLoaded', () => {
+  initModal();
   initFadeUp();
   initLoadingBar();
   initCTAForm();
   initCopyBlock();
   initNav();
 });
+
+/* ─── Coming-soon waitlist modal ─────────────────────────────────── */
+function initModal() {
+  const overlay = document.getElementById('waitlist-modal');
+  const dismiss = document.getElementById('modal-dismiss');
+  if (!overlay) return;
+
+  if (!sessionStorage.getItem('bermo-modal-seen')) {
+    setTimeout(() => overlay.classList.add('is-visible'), 600);
+  }
+
+  function closeModal() {
+    overlay.classList.remove('is-visible');
+    sessionStorage.setItem('bermo-modal-seen', '1');
+  }
+
+  if (dismiss) dismiss.addEventListener('click', closeModal);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+}
 
 /* ─── Fade-up on scroll ──────────────────────────────────────────── */
 function initFadeUp() {

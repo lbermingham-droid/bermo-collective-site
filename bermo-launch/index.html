@@ -231,6 +231,31 @@
 </head>
 <body>
 
+  <!-- ─── Waitlist Modal ───────────────────────────────────────── -->
+  <div class="modal-overlay" id="waitlist-modal" role="dialog" aria-modal="true" aria-label="Join the BERMO waitlist">
+    <div class="modal">
+      <div class="modal__wordmark">BERMO<span>.</span></div>
+      <p class="modal__label">Something is loading.</p>
+      <p class="modal__body">
+        The platform is at <strong>37%</strong>. The expertise is 15 years deep.<br/>
+        We are taking 5 founders this month for manual Alignment Reviews.
+      </p>
+      <form class="modal__form" name="waitlist-modal" method="POST" data-netlify="true">
+        <input type="hidden" name="form-name" value="waitlist-modal" />
+        <input
+          class="modal__input"
+          type="email"
+          name="email"
+          placeholder="your@email.com"
+          required
+          autocomplete="email"
+        />
+        <button type="submit" class="modal__submit">Join the Waitlist</button>
+      </form>
+      <button class="modal__dismiss" id="modal-dismiss" type="button">I will wait</button>
+    </div>
+  </div>
+
   <!-- ─── Navigation ─────────────────────────────────────────── -->
   <nav class="nav" role="navigation" aria-label="Main navigation">
     <div class="nav__inner">
@@ -264,7 +289,6 @@
 
   <!-- ─── Hero ───────────────────────────────────────────────── -->
   <section class="hero section--lg">
-    <div class="hero__bg-text" aria-hidden="true">BERMO</div>
     <div class="container">
       <div class="hero__split">
 
@@ -302,21 +326,8 @@
               <div class="bb-panel__dot"></div>
             </div>
 
-            <!-- BB avatar -->
-            <!--
-              DROP YOUR BB IMAGE HERE:
-              Replace the placeholder circle below with:
-              <img src="assets/images/bb-round.png" alt="BB" />
-              File: assets/images/bb-round.png
-            -->
             <div class="bb-avatar">
-              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                <circle cx="14" cy="14" r="14" fill="#0a0a0a"/>
-                <rect x="7" y="11" width="14" height="7" rx="3.5" fill="#00f5d4"/>
-                <circle cx="10.5" cy="14.5" r="2" fill="#0a0a0a"/>
-                <circle cx="17.5" cy="14.5" r="2" fill="#0a0a0a"/>
-                <path d="M10 20 Q14 23 18 20" stroke="#00f5d4" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-              </svg>
+              <img src="assets/images/bb-portrait.png" alt="BB the Bot" />
             </div>
 
             <div class="bb-panel__title">BERMO LOADING<span style="opacity:0.5">...</span></div>
@@ -392,23 +403,8 @@
     <div class="mascot-section__grid">
 
       <!-- Kiera panel -->
-      <!--
-        DROP YOUR KIERA IMAGE HERE:
-        <img src="assets/images/kiera-shop-hunting.png" alt="Kiera the Wolf crouching near The Shop door" />
-        File: assets/images/kiera-shop-hunting.png
-        (The cyan background hunting scene with the crack in the ground)
-      -->
       <div class="mascot-section__panel mascot-section__panel--cyan fade-up">
-        <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">
-          <!-- Placeholder: replace with actual Kiera image -->
-          <div style="text-align:center; opacity:0.3;">
-            <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-              <circle cx="40" cy="40" r="38" stroke="#0a0a0a" stroke-width="2" stroke-dasharray="6 4"/>
-              <text x="40" y="36" text-anchor="middle" fill="#0a0a0a" font-size="10" font-family="monospace">KIERA IMAGE</text>
-              <text x="40" y="50" text-anchor="middle" fill="#0a0a0a" font-size="8" font-family="monospace">kiera-shop-hunting.png</text>
-            </svg>
-          </div>
-        </div>
+        <img src="assets/images/kiera-gap.png" alt="Kiera the Wolf crouching near The Shop door, tracking the growth gap" />
         <div class="mascot-section__overlay"></div>
         <div class="mascot-section__text">
           <div class="mascot-section__name">Kiera the Wolf</div>
@@ -418,23 +414,8 @@
       </div>
 
       <!-- BB panel -->
-      <!--
-        DROP YOUR BB IMAGE HERE:
-        <img src="assets/images/bb-solution.png" alt="BB the Bot scanning the growth gap with BERMO LOADING interface" />
-        File: assets/images/bb-solution.png
-        (The dark background server room scene with the loading interface)
-      -->
       <div class="mascot-section__panel mascot-section__panel--dark fade-up fade-up-delay-2">
-        <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">
-          <!-- Placeholder: replace with actual BB image -->
-          <div style="text-align:center; opacity:0.2;">
-            <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-              <circle cx="40" cy="40" r="38" stroke="#00f5d4" stroke-width="2" stroke-dasharray="6 4"/>
-              <text x="40" y="36" text-anchor="middle" fill="#00f5d4" font-size="10" font-family="monospace">BB IMAGE</text>
-              <text x="40" y="50" text-anchor="middle" fill="#00f5d4" font-size="8" font-family="monospace">bb-solution.png</text>
-            </svg>
-          </div>
-        </div>
+        <img src="assets/images/bb-loading.png" alt="BB the Bot in the server room with BERMO LOADING 37% diagnostic interface" />
         <div class="mascot-section__overlay"></div>
         <div class="mascot-section__text">
           <div class="mascot-section__name">BB the Bot</div>

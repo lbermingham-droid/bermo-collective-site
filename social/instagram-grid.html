@@ -3,691 +3,167 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BERMO. — Instagram Launch Grid</title>
+  <title>BERMO. — Instagram Launch Kit</title>
   <meta name="robots" content="noindex, nofollow" />
   <link rel="stylesheet" href="../assets/css/global.css" />
   <link rel="stylesheet" href="../assets/css/components.css" />
-  <style>
-    body { background: var(--black2); }
-
-    .page-header {
-      background: var(--black);
-      padding: 100px 0 60px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-
-    /* Full grid preview */
-    .grid-preview {
-      max-width: 540px;
-      margin: 0 auto 64px;
-      background: #000;
-    }
-
-    .ig-grid-full {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 3px;
-      background: #1a1a1a;
-    }
-
-    /* Individual tile styles */
-    .tile {
-      aspect-ratio: 1;
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-    }
-
-    .tile img {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .tile__overlay-dark {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 50%, transparent 100%);
-    }
-
-    .tile__overlay-cyan {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to top, rgba(0,60,50,0.7) 0%, transparent 60%);
-    }
-
-    .tile__body {
-      position: relative;
-      z-index: 2;
-      padding: 12px;
-    }
-
-    .tile__eyebrow {
-      font-size: 7px;
-      font-weight: 700;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-      display: block;
-    }
-
-    .tile__headline {
-      font-family: var(--font-display);
-      font-weight: 900;
-      letter-spacing: -0.02em;
-      text-transform: uppercase;
-      line-height: 1.1;
-    }
-
-    /* Dark tile */
-    .tile--dark { background: var(--black); }
-    .tile--dark .tile__eyebrow { color: var(--cyan); }
-    .tile--dark .tile__headline { font-size: 11px; color: var(--white); }
-
-    /* Cream/light tile */
-    .tile--cream { background: var(--cream); }
-    .tile--cream .tile__overlay-dark { background: linear-gradient(to top, rgba(240,239,233,0.85) 0%, transparent 50%); }
-    .tile--cream .tile__eyebrow { color: rgba(0,0,0,0.45); }
-    .tile--cream .tile__headline { font-size: 11px; color: var(--black); }
-
-    /* Cyan tile */
-    .tile--cyan { background: var(--cyan); }
-    .tile--cyan .tile__eyebrow { color: rgba(0,0,0,0.5); }
-    .tile--cyan .tile__headline { font-size: 11px; color: var(--black); }
-
-    /* Reel tile */
-    .tile--reel { background: var(--black3); border: 1px solid rgba(0,245,212,0.2); }
-    .tile--reel .tile__eyebrow { color: var(--cyan); }
-    .tile--reel .tile__headline { font-size: 11px; color: var(--white); }
-    .tile--reel::before {
-      content: '▶';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -70%);
-      font-size: 24px;
-      color: rgba(0,245,212,0.5);
-      z-index: 2;
-    }
-
-    /* ─── Full post detail cards ─── */
-    .post-detail {
-      background: var(--black);
-      border: 1px solid rgba(255,255,255,0.07);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-      margin-bottom: 40px;
-    }
-
-    .post-detail__header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 16px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-
-    .post-detail__num {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: var(--cyan);
-      color: var(--black);
-      font-family: var(--font-display);
-      font-size: 13px;
-      font-weight: 900;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .post-detail__title {
-      font-family: var(--font-tight);
-      font-size: 15px;
-      font-weight: 800;
-      color: var(--white);
-    }
-
-    .post-detail__type {
-      margin-left: auto;
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      padding: 4px 10px;
-      border-radius: 20px;
-    }
-    .post-detail__type--dark { background: rgba(255,255,255,0.06); color: var(--gray); }
-    .post-detail__type--light { background: rgba(240,239,233,0.15); color: var(--cream); }
-    .post-detail__type--reel { background: rgba(0,245,212,0.1); color: var(--cyan); border:1px solid rgba(0,245,212,0.2); }
-
-    .post-detail__visual {
-      aspect-ratio: 1;
-      max-width: 400px;
-      margin: 0 auto;
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-    }
-
-    .post-detail__body {
-      padding: 24px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-    }
-
-    .post-detail__caption {
-      font-size: 14px;
-      line-height: 1.8;
-      color: rgba(255,255,255,0.7);
-      white-space: pre-line;
-    }
-
-    .post-detail__notes {
-      border-left: 2px solid rgba(0,245,212,0.2);
-      padding-left: 20px;
-    }
-
-    .post-detail__note-label {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--cyan);
-      margin-bottom: 8px;
-    }
-
-    .post-detail__note-text {
-      font-size: 13px;
-      line-height: 1.6;
-      color: var(--gray);
-    }
-
-    @media (max-width: 640px) {
-      .post-detail__body { grid-template-columns: 1fr; }
-    }
-  </style>
 </head>
 <body>
 
   <nav class="nav">
     <div class="nav__inner">
-      <a href="../index.html" class="nav__logo">BERMO<span>.</span></a>
-      <div class="nav__links">
-        <span style="font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--gray); font-weight:600;">Instagram Grid — Launch Kit</span>
-      </div>
+      <a href="../index.html" class="nav__logo wordmark">BERMO<span class="dot">.</span></a>
+      <a href="../index.html" class="nav__cta">Back to site
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
     </div>
   </nav>
 
-  <div class="page-header">
+  <!-- Hero -->
+  <section class="hero">
+    <div class="wave-bg" aria-hidden="true"><div class="wave-bg__grain"></div></div>
     <div class="container">
-      <p class="t-eyebrow" style="margin-bottom:16px;">Social Media Kit</p>
-      <h1 class="t-h1" style="color:var(--white); max-width:700px; margin-bottom:24px;">Instagram<br/>Launch Grid<span style="color:var(--cyan);">.</span></h1>
-      <p class="t-body-lg" style="color:var(--mgray); max-width:560px;">
-        The checkerboard grid strategy. Nine tiles. Alternating dark and light. Kiera on the left. BB on the right. Bold typography tiles inspired by Foundr and Salesforce Dreamforce's mascot content.
+      <span class="hero__eyebrow reveal"><span class="dot"></span> Launch kit · Instagram</span>
+      <h1 class="hero__h1 reveal" data-delay="1">A <span class="accent">cohesive</span><br/>checkerboard.</h1>
+      <p class="hero__sub reveal" data-delay="2">
+        Nine tiles. Three tones. Cyan for energy. Cream for stop-the-scroll type.
+        Ink for the platform-in-beta moments. One reel cover. Built for Canva Bulk Create.
       </p>
     </div>
-  </div>
+  </section>
 
-  <!-- Grid Preview -->
+  <!-- The grid -->
   <section class="section">
     <div class="container">
-      <div class="section-header">
-        <div class="section-header__eyebrow">Grid Preview</div>
-        <h2 class="section-header__headline">How It Looks on Profile</h2>
-        <p class="section-header__body">This is the 3x3 checkerboard as it appears on your Instagram profile. Odd tiles (1, 3, 5, 7, 9) are dark. Even tiles (2, 4, 6, 8) are cream/light. Tile 9 is the launch reel cover.</p>
+      <div class="section-head reveal">
+        <div class="section-head__label">The grid</div>
+        <h2 class="section-head__h">Nine tiles. Read top-down.</h2>
+        <p class="section-head__sub">
+          Order: cyan / cream / ink, repeated. The mascot scenes anchor every third row.
+          Type-only cream tiles do the heavy stop-the-scroll work.
+        </p>
       </div>
 
-      <div class="grid-preview">
-        <div class="ig-grid-full">
-          <!-- Row 1 -->
-          <div class="tile tile--dark">
-            <!--
-              DROP IMAGE: kiera-shop-hunting.png
-              <img src="../assets/images/kiera-shop-hunting.png" alt="Kiera hunting" />
-              <div class="tile__overlay-dark"></div>
-            -->
-            <div class="tile__body">
-              <span class="tile__eyebrow">Kiera</span>
-              <div class="tile__headline">Five minutes. That is all she needs.</div>
+      <div style="max-width: 720px; margin: 0 auto;">
+        <div class="ig-grid reveal">
+
+          <!-- 1: Cyan, Kiera scene -->
+          <div class="ig-tile ig-tile--cyan">
+            <img class="ig-tile__bg" src="../assets/images/kiera-gap.png" alt="" />
+          </div>
+
+          <!-- 2: Cream, type only -->
+          <div class="ig-tile ig-tile--cream">
+            <span class="ig-tile__lab">Hook</span>
+            <span class="ig-tile__txt">The market does not wait.</span>
+          </div>
+
+          <!-- 3: Ink, BB loading -->
+          <div class="ig-tile ig-tile--ink">
+            <img class="ig-tile__bg" src="../assets/images/bb-loading.png" alt="" />
+            <div class="ig-tile__veil"></div>
+            <span class="ig-tile__lab" style="color: var(--cyan);">Beta state</span>
+            <span class="ig-tile__txt">BERMO loading. 37%.</span>
+          </div>
+
+          <!-- 4: Cyan, Kiera portrait -->
+          <div class="ig-tile ig-tile--cyan" style="display:flex; align-items:flex-end; justify-content:flex-end; padding:0;">
+            <img src="../assets/images/kiera-portrait.png" alt="" style="width:80%; height:auto; align-self:flex-end;" />
+            <span class="ig-tile__lab" style="position:absolute; top:20px; left:20px; color:var(--ink);">Meet Kiera</span>
+            <span class="ig-tile__txt" style="position:absolute; top:38px; left:20px; max-width: 60%;">Quality guardian.</span>
+          </div>
+
+          <!-- 5: Cream, type -->
+          <div class="ig-tile ig-tile--cream">
+            <span class="ig-tile__lab">Question</span>
+            <span class="ig-tile__txt">What is your business saying when you are not in the room?</span>
+          </div>
+
+          <!-- 6: Ink, BB portrait -->
+          <div class="ig-tile ig-tile--ink" style="display:flex; align-items:flex-end; justify-content:flex-end; padding:0;">
+            <img src="../assets/images/bb-portrait.png" alt="" style="width:60%; height:auto; align-self:flex-end; margin: 0 20px 20px 0;" />
+            <span class="ig-tile__lab" style="position:absolute; top:20px; left:20px; color:var(--cyan);">Meet BB</span>
+            <span class="ig-tile__txt" style="position:absolute; top:38px; left:20px; max-width: 60%;">Always there. Human led.</span>
+          </div>
+
+          <!-- 7: Cyan, type -->
+          <div class="ig-tile ig-tile--cyan">
+            <span class="ig-tile__lab" style="color:var(--ink); opacity:0.6;">15 years deep</span>
+            <span class="ig-tile__txt">16 industries. Broken growth engines fixed.</span>
+          </div>
+
+          <!-- 8: Cream, type -->
+          <div class="ig-tile ig-tile--cream">
+            <span class="ig-tile__lab">Question</span>
+            <span class="ig-tile__txt">Do you know what your business actually needs?</span>
+          </div>
+
+          <!-- 9: Ink, reel cover -->
+          <div class="ig-tile ig-tile--ink" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px;">
+            <span class="wordmark" style="font-size: 28px; color: var(--white);">BERMO<span class="dot">.</span></span>
+            <span class="ig-tile__lab" style="margin-top: 8px; color: var(--cyan);">Reel cover · Coming soon</span>
+            <div style="position: absolute; bottom: 16px; left: 0; right: 0; height: 2px; background: var(--shade-2);">
+              <div style="width: 37%; height: 100%; background: linear-gradient(90deg, var(--cyan), var(--lime));"></div>
             </div>
           </div>
 
-          <div class="tile tile--cream">
-            <div class="tile__body">
-              <span class="tile__eyebrow">Engage</span>
-              <div class="tile__headline" style="font-size:10px;">What is your business saying when you are not in the room?</div>
-            </div>
-          </div>
-
-          <div class="tile tile--dark" style="background:var(--black2);">
-            <div class="tile__body">
-              <span class="tile__eyebrow">Track Record</span>
-              <div class="tile__headline" style="font-size:22px; color:var(--cyan);">15<br/>Yrs.</div>
-            </div>
-          </div>
-
-          <!-- Row 2 -->
-          <div class="tile tile--cream">
-            <!--
-              DROP IMAGE: bb-round.png
-              <img src="../assets/images/bb-round.png" alt="BB the Bot" />
-              <div class="tile__overlay-dark" style="background:linear-gradient(to top, rgba(240,239,233,0.9) 0%, transparent 50%);"></div>
-            -->
-            <div class="tile__body">
-              <span class="tile__eyebrow">BB</span>
-              <div class="tile__headline">Always there. Human led.</div>
-            </div>
-          </div>
-
-          <div class="tile tile--dark">
-            <div class="tile__overlay-dark"></div>
-            <div class="tile__body">
-              <span class="tile__eyebrow">Personal</span>
-              <div class="tile__headline" style="font-size:10px;">I left to build this for founders. The instinct is already here.</div>
-            </div>
-          </div>
-
-          <div class="tile tile--cream">
-            <div class="tile__body">
-              <span class="tile__eyebrow">Question</span>
-              <div class="tile__headline" style="font-size:10px;">Do you know who you actually need right now?</div>
-            </div>
-          </div>
-
-          <!-- Row 3 -->
-          <div class="tile tile--dark">
-            <!--
-              DROP IMAGE: triptych or bb-solution.png for the dark tech aesthetic
-            -->
-            <div class="tile__body">
-              <span class="tile__eyebrow">Beta</span>
-              <div class="tile__headline" style="font-size:10px;">Platform in beta. Expertise is not.</div>
-            </div>
-          </div>
-
-          <div class="tile tile--cream">
-            <div class="tile__body">
-              <span class="tile__eyebrow">Waitlist</span>
-              <div class="tile__headline" style="font-size:10px;">5 spots. This month. Find the missing piece.</div>
-            </div>
-          </div>
-
-          <div class="tile tile--reel">
-            <div class="tile__body" style="position:relative; z-index:3;">
-              <span class="tile__eyebrow">Reel</span>
-              <div class="tile__headline" style="font-size:10px;">I know what is missing.</div>
-            </div>
-          </div>
         </div>
       </div>
 
-      <p style="text-align:center; font-size:12px; color:var(--gray); letter-spacing:0.1em; text-transform:uppercase; font-weight:600;">Create these tiles in Canva using Bulk Create. Instructions below.</p>
+      <!-- Captions -->
+      <div style="max-width: 720px; margin: 48px auto 0;">
+        <div class="section-head" style="margin-bottom: 24px;">
+          <div class="section-head__label">Captions</div>
+          <h3 class="section-head__h" style="font-size: clamp(1.5rem, 2.5vw, 2rem);">Copy for each tile.</h3>
+        </div>
+
+        <div class="ig-captions">
+          <div class="ig-cap reveal"><div class="ig-cap__num">Tile 01 · Cyan · Kiera scene</div><div class="ig-cap__txt">Five minutes. That is all it takes to find what is not connecting. Fifteen years of walking into businesses and seeing the gap before anyone names it. Now we built the system. BERMO is in beta. The instinct is not.</div></div>
+          <div class="ig-cap reveal" data-delay="1"><div class="ig-cap__num">Tile 02 · Cream · Hook</div><div class="ig-cap__txt">The market does not wait. What is your business saying when you are not in the room? Tech. Branding. Sales. Drop it below.</div></div>
+          <div class="ig-cap reveal" data-delay="2"><div class="ig-cap__num">Tile 03 · Ink · BB loading</div><div class="ig-cap__txt">BERMO loading. 37 percent. The platform is being built. The expertise is already here. Five founders. This month. Manual Alignment Reviews. Link in bio.</div></div>
+          <div class="ig-cap reveal" data-delay="3"><div class="ig-cap__num">Tile 04 · Cyan · Kiera portrait</div><div class="ig-cap__txt">She finds what is broken before you know it is broken. Meet Kiera. Quality guardian. Always watching.</div></div>
+          <div class="ig-cap reveal" data-delay="4"><div class="ig-cap__num">Tile 05 · Cream · Question</div><div class="ig-cap__txt">The translation gap is real. Between your vision and who executes it. Between the AI running your ops and the human who knows your voice. BERMO closes it.</div></div>
+          <div class="ig-cap reveal" data-delay="5"><div class="ig-cap__num">Tile 06 · Ink · BB portrait</div><div class="ig-cap__txt">BB is always there. Human led. AI leveraged. Voice protected. The period behind the brand.</div></div>
+          <div class="ig-cap reveal"><div class="ig-cap__num">Tile 07 · Cyan · Stat</div><div class="ig-cap__txt">15 years. Fortune 500 operations. 16 plus industries. Broken growth engines fixed. Now building the system for founders who need to move.</div></div>
+          <div class="ig-cap reveal" data-delay="1"><div class="ig-cap__num">Tile 08 · Cream · Question</div><div class="ig-cap__txt">Do you know what your business actually needs right now? Or are you building from assumptions? The answer changes everything.</div></div>
+          <div class="ig-cap reveal" data-delay="2"><div class="ig-cap__num">Tile 09 · Ink · Reel cover</div><div class="ig-cap__txt">Branded reel cover with BERMO wordmark and the 37 percent loading bar. Use as the cover frame for your launch reel.</div></div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- Individual Post Details -->
-  <section class="section bg-black2">
+  <!-- Reel concept -->
+  <section class="section bg-white">
     <div class="container">
-      <div class="section-header">
-        <div class="section-header__eyebrow">Post Details</div>
-        <h2 class="section-header__headline">Full Caption Kit</h2>
+      <div class="section-head">
+        <div class="section-head__label">The reel</div>
+        <h2 class="section-head__h">One take. Phone. Window light.</h2>
+        <p class="section-head__sub">
+          The whole point is no makeup stress, no clean-house stress, no editing rabbit hole.
+          The rawness is the credibility signal.
+        </p>
       </div>
 
-      <!-- Post 1 -->
-      <div class="post-detail fade-up">
-        <div class="post-detail__header">
-          <div class="post-detail__num">1</div>
-          <div class="post-detail__title">Kiera — The Hunt Post (Dark Tile)</div>
-          <div class="post-detail__type post-detail__type--dark">Static</div>
+      <div class="bento">
+        <div class="cell cell--c6 reveal">
+          <div class="cell__label">Hook · 2 seconds</div>
+          <h3 class="cell__h">"I walk into a brand and within five minutes I know."</h3>
+          <p class="cell__desc">On-screen text in BERMO display font. Show before the founder speaks.</p>
         </div>
-        <div class="post-detail__body">
-          <div>
-            <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gray); margin-bottom:12px;">Caption</div>
-            <p class="post-detail__caption">Five minutes.
-
-That is all I need to find what is not working.
-
-Fifteen years of walking into brands and seeing the gap before anyone names it. The messy code no one admits is there. The brand voice that sounds like a bot. The sales motion that stalls at the same point every quarter.
-
-Now I am building BERMO to do it for founders.
-
-We are testing the tech. The instinct is already 15 years deep.
-
-The platform is in beta.
-The expertise is not.
-
-Five founders this month. Link in bio.
-
-#BERMO #GrowthEngine #FounderLife #ExecutionSystem #StartupGrowth</p>
-          </div>
-          <div class="post-detail__notes">
-            <div class="post-detail__note-label">Design Note</div>
-            <p class="post-detail__note-text" style="margin-bottom:16px;">Dark tile. Use the Kiera crouching hunting scene. THE SHOP door visible. Crack in the ground. Bold white Montserrat 900 headline in upper third of tile.<br/><br/>Image file: kiera-shop-hunting.png</p>
-            <div class="post-detail__note-label">Hook Strategy</div>
-            <p class="post-detail__note-text">Start with the number "Five minutes." — stops the scroll. Short declarative. Personal. Then build to the product reveal at the end. Classic Foundr-style bold typography on first frame.</p>
-          </div>
+        <div class="cell cell--c6 reveal" data-delay="1">
+          <div class="cell__label">Body · 30 to 45 seconds</div>
+          <h3 class="cell__h">Talking head, one take.</h3>
+          <p class="cell__desc">Founder speaks directly to camera. Three short punchy lines. One question. CTA.</p>
         </div>
-      </div>
-
-      <!-- Post 2 -->
-      <div class="post-detail fade-up">
-        <div class="post-detail__header">
-          <div class="post-detail__num">2</div>
-          <div class="post-detail__title">Engagement Question (Cream Tile)</div>
-          <div class="post-detail__type post-detail__type--light">Static</div>
+        <div class="cell cell--c6 reveal" data-delay="2">
+          <div class="cell__label">B-roll</div>
+          <h3 class="cell__h">None required.</h3>
+          <p class="cell__desc">No screen recordings, no overlays, no transitions. The face is the shot.</p>
         </div>
-        <div class="post-detail__body">
-          <div>
-            <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gray); margin-bottom:12px;">Caption</div>
-            <p class="post-detail__caption">What is your business saying when you are not in the room?
-
-Tech. Branding. Sales. Something else entirely.
-
-I am asking because the answer tells me more about a business than an hour-long call does.
-
-Drop it below. I am reading every single reply.
-
-#Founders #StartupLife #GrowthGap #BERMO #BusinessStrategy</p>
-          </div>
-          <div class="post-detail__notes">
-            <div class="post-detail__note-label">Design Note</div>
-            <p class="post-detail__note-text" style="margin-bottom:16px;">Cream/off-white tile. Large Montserrat 900 black question text. Minimal. The question fills the frame like the Foundr "START SMALL. BUT START." style. No mascot on this tile. Just the words.</p>
-            <div class="post-detail__note-label">Engagement Goal</div>
-            <p class="post-detail__note-text">This is your market research post disguised as engagement. Every comment is a real data point. This is also your waitlist feeder: "Drop your email below if you want us to find your answer."</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Post 3 -->
-      <div class="post-detail fade-up">
-        <div class="post-detail__header">
-          <div class="post-detail__num">3</div>
-          <div class="post-detail__title">Track Record — Stats (Dark Tile)</div>
-          <div class="post-detail__type post-detail__type--dark">Static</div>
-        </div>
-        <div class="post-detail__body">
-          <div>
-            <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gray); margin-bottom:12px;">Caption</div>
-            <p class="post-detail__caption">15 years.
-16 industries.
-$250k to $5M+ in under two years.
-
-I did not just consult. I fixed it.
-
-Broken operations at Fortune 500 scale. Revenue that was stalling and needed to move. Brands that were saying nothing and needed to say everything.
-
-Now I am building BERMO to bring that track record to founders.
-
-Five spots this month. Manual Alignment Review only.
-
-The market does not wait. Neither do we.
-
-#BERMO #ExecutionSystem #FounderGrowth #TrackRecord</p>
-          </div>
-          <div class="post-detail__notes">
-            <div class="post-detail__note-label">Design Note</div>
-            <p class="post-detail__note-text" style="margin-bottom:16px;">Dark tile. Inspired by Salesforce's stat posts (327% growth, 15M, etc.). Three large cyan numbers stacked vertically: 15 / 16 / 5M+. Each with a small cream label. No mascot needed here.</p>
-            <div class="post-detail__note-label">Trust Signal</div>
-            <p class="post-detail__note-text">Numbers earn trust without claiming it. This tile anchors the grid with credibility before anyone reads the caption.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Post 4 -->
-      <div class="post-detail fade-up">
-        <div class="post-detail__header">
-          <div class="post-detail__num">4</div>
-          <div class="post-detail__title">Meet BB (Cream Tile)</div>
-          <div class="post-detail__type post-detail__type--light">Static</div>
-        </div>
-        <div class="post-detail__body">
-          <div>
-            <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gray); margin-bottom:12px;">Caption</div>
-            <p class="post-detail__caption">She is always there.
-
-That is the entire point.
-
-Human led. AI leveraged. Voice protected.
-
-Meet BB. The period behind BERMO. The alignment infrastructure operator who runs the handoffs, loads the system, and connects the dots so the humans can focus on the actual work.
-
-She does not need to announce herself.
-You just notice when she is there.
-
-BERMO. Loading.
-
-#MeetBB #BERMO #AILeveraged #HumanLed #ExecutionSystem</p>
-          </div>
-          <div class="post-detail__notes">
-            <div class="post-detail__note-label">Design Note</div>
-            <p class="post-detail__note-text" style="margin-bottom:16px;">Cream tile with BB centered. The round BB character on cream background with small "BERMO LOADING... 37%" interface element visible. Inspired by Salesforce's mascot introduction posts.<br/><br/>Image file: bb-round.png on cream background.</p>
-            <div class="post-detail__note-label">Mascot Introduction</div>
-            <p class="post-detail__note-text">This is your Salesforce-style mascot reveal post. The caption explains who BB is without over-explaining. Let the art carry the emotion.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Post 5 -->
-      <div class="post-detail fade-up">
-        <div class="post-detail__header">
-          <div class="post-detail__num">5</div>
-          <div class="post-detail__title">Personal Founder Story (Dark Tile)</div>
-          <div class="post-detail__type post-detail__type--dark">Personal</div>
-        </div>
-        <div class="post-detail__body">
-          <div>
-            <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gray); margin-bottom:12px;">Caption</div>
-            <p class="post-detail__caption">I walked away from a role that looked perfect on paper.
-
-VP track. Top sales. Teams I was proud of. A company I had grown.
-
-But I kept coming back to the same thought: founders are doing this alone. They are brilliant at their product and completely in over their heads on everything else. And the systems built to help them are either too slow, too expensive, or too disconnected to actually work.
-
-I have the pattern recognition. I have the track record. And I genuinely care about the quiet builders who are too close to their own thing to see the gap.
-
-So I built BERMO.
-
-We are in beta. The mission is not.
-
-#FounderStory #BERMO #BuildingInPublic #WhyIBuiltThis</p>
-          </div>
-          <div class="post-detail__notes">
-            <div class="post-detail__note-label">Design Note</div>
-            <p class="post-detail__note-text" style="margin-bottom:16px;">Dark tile with founder photo (lexi-photo.jpg) as background. Overlay gradient. Bold white text in upper portion. Make 1-2 of your tiles personal. This is one of them.</p>
-            <div class="post-detail__note-label">Connection Strategy</div>
-            <p class="post-detail__note-text">The personal story posts get the most saves and shares. They convert skeptics into believers. This tile earns the right for the rest of the grid to talk about the product.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Post 6 -->
-      <div class="post-detail fade-up">
-        <div class="post-detail__header">
-          <div class="post-detail__num">6</div>
-          <div class="post-detail__title">Beta Waitlist CTA (Cream Tile)</div>
-          <div class="post-detail__type post-detail__type--light">CTA</div>
-        </div>
-        <div class="post-detail__body">
-          <div>
-            <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gray); margin-bottom:12px;">Caption</div>
-            <p class="post-detail__caption">The Shop is in closed beta.
-
-Five spots this month. Manual Alignment Review only.
-
-You bring the business. We find the missing piece. No dollar moves until we know exactly what needs to be fixed.
-
-Less than the cost of one full-time hire.
-Deploys in under a week.
-Human vetted. AI leveraged.
-
-The market does not wait.
-
-Link in bio.
-
-#BetaWaitlist #BERMO #TheShop #GrowthEngine #StartupFounder</p>
-          </div>
-          <div class="post-detail__notes">
-            <div class="post-detail__note-label">Design Note</div>
-            <p class="post-detail__note-text" style="margin-bottom:16px;">Cream tile. Montserrat 900 black text. Bold typographic treatment like the Foundr posts. "THE SHOP IS OPEN." large. Or "5 SPOTS." filling the frame. Clean. No clutter.</p>
-            <div class="post-detail__note-label">CTA Strategy</div>
-            <p class="post-detail__note-text">Every grid needs a clear conversion tile. This is it. Caption closes with three sharp benefit lines then "Link in bio." No fluff.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Post 7 -->
-      <div class="post-detail fade-up">
-        <div class="post-detail__header">
-          <div class="post-detail__num">7</div>
-          <div class="post-detail__title">Beta Transparency (Dark Tile)</div>
-          <div class="post-detail__type post-detail__type--dark">Static</div>
-        </div>
-        <div class="post-detail__body">
-          <div>
-            <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gray); margin-bottom:12px;">Caption</div>
-            <p class="post-detail__caption">The platform is in beta.
-
-The expertise is 15 years deep.
-
-BERMO is building the tech infrastructure that will automate the entire alignment and deployment process. While The Shop and The Fleet are in closed beta, we are taking on founders manually.
-
-That means you get direct access right now. My pattern recognition. My network. My 15 years of fixing exactly what is breaking in your business.
-
-This is not a waiting list for something someday. This is early access to something that is already working.
-
-Five spots. This month. Find the missing piece.
-
-#BERMO #BetaAccess #ExecutionSystem #EarlyAccess #FounderGrowth</p>
-          </div>
-          <div class="post-detail__notes">
-            <div class="post-detail__note-label">Design Note</div>
-            <p class="post-detail__note-text" style="margin-bottom:16px;">Dark tile with the BB loading interface artwork. "BERMO LOADING... 37%" visible. Dark server room aesthetic. Cyan glow. This is your transparency post.<br/><br/>Image file: bb-solution.png</p>
-            <div class="post-detail__note-label">Beta Framing</div>
-            <p class="post-detail__note-text">The "beta" framing manages expectations AND creates exclusivity at the same time. You are not apologizing for being new. You are offering direct access.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Post 8 -->
-      <div class="post-detail fade-up">
-        <div class="post-detail__header">
-          <div class="post-detail__num">8</div>
-          <div class="post-detail__title">Question Post 2 (Cream Tile)</div>
-          <div class="post-detail__type post-detail__type--light">Engage</div>
-        </div>
-        <div class="post-detail__body">
-          <div>
-            <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gray); margin-bottom:12px;">Caption — Inspired by Salesforce "where are you sitting?" interactive format</div>
-            <p class="post-detail__caption">POV: BB just scanned your business.
-
-Which gap did she find?
-
-A. Tech is running but nobody understands it
-B. Brand sounds like a bot wrote it
-C. Sales motion is stalling at the same point
-D. You are honestly not sure and that is the problem
-
-Comment your letter below.
-
-Every A, B, C, D is a data point. And if you are a D, that is actually the most interesting answer.
-
-#BERMO #FounderGap #StartupProblems #GrowthEngine #BusinessDiagnostic</p>
-          </div>
-          <div class="post-detail__notes">
-            <div class="post-detail__note-label">Design Note</div>
-            <p class="post-detail__note-text" style="margin-bottom:16px;">Cream tile with the Salesforce-style interactive format. Four options (A, B, C, D) in bold black text. BB character small in corner. Clean grid layout like the Dreamforce "where are you sitting" post.</p>
-            <div class="post-detail__note-label">Interactive Strategy</div>
-            <p class="post-detail__note-text">Adapting the Salesforce Dreamforce seating chart mechanic. Simple letter comments generate massive engagement signals and give you real market data. Everyone has an answer.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Post 9 — Reel -->
-      <div class="post-detail fade-up">
-        <div class="post-detail__header">
-          <div class="post-detail__num">9</div>
-          <div class="post-detail__title">Launch Reel (Dark Tile)</div>
-          <div class="post-detail__type post-detail__type--reel">Reel</div>
-        </div>
-        <div class="post-detail__body">
-          <div>
-            <div style="font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gray); margin-bottom:12px;">Reel Caption</div>
-            <p class="post-detail__caption">I walk into a brand and within five minutes I know.
-
-What is working. What is a miss. What would fix it. I have done it for 15 years for Fortune 500 companies.
-
-Now I am building BERMO to do it for founders.
-
-The platform is in beta. The instinct is not.
-
-Five founders this month. Link in bio.
-
-#BERMO #LaunchReel #ExecutionSystem #FounderLife #GrowthEngine</p>
-          </div>
-          <div class="post-detail__notes">
-            <div class="post-detail__note-label">Recording Setup</div>
-            <p class="post-detail__note-text" style="margin-bottom:12px;">Window light. Phone propped or held. One take. Talking head. No editing required. The rawness is the aesthetic. Natural background is fine.</p>
-            <div class="post-detail__note-label">Script (30 seconds)</div>
-            <p class="post-detail__note-text"><strong style="color:rgba(255,255,255,0.5);">[On screen text]</strong> "I walk into a brand and within five minutes I know."<br/><br/><strong style="color:rgba(255,255,255,0.5);">[Speaking]</strong> "What is working. What is a miss. What would fix it. I have done it for 15 years. For Fortune 500. Now I am building BERMO to do it for founders. We are testing the tech. The instinct is already here."<br/><br/><strong style="color:rgba(255,255,255,0.5);">[On screen text]</strong> "Five spots this month. Find the missing piece."</p>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- Canva Batch Instructions -->
-  <section class="section bg-black">
-    <div class="container--narrow">
-      <div class="section-header">
-        <div class="section-header__eyebrow">Production Workflow</div>
-        <h2 class="section-header__headline">Batch in Canva.<br/>Under One Hour.</h2>
-      </div>
-
-      <div style="counter-reset:steps;">
-        <div style="display:flex; gap:20px; margin-bottom:24px; align-items:flex-start;">
-          <div style="width:32px; height:32px; border-radius:50%; background:var(--cyan); color:var(--black); font-family:var(--font-display); font-size:14px; font-weight:900; display:flex; align-items:center; justify-content:center; flex-shrink:0;">1</div>
-          <div>
-            <h3 class="t-h4" style="color:var(--white); margin-bottom:8px;">Create two base templates in Canva</h3>
-            <p class="t-body-sm">Template A: 1080x1080, near-black background (#0a0a0a), white Montserrat 900 headline, small cyan label. Template B: 1080x1080, cream background (#f0efe9), black Montserrat 900 headline, dark label.</p>
-          </div>
-        </div>
-        <div style="display:flex; gap:20px; margin-bottom:24px; align-items:flex-start;">
-          <div style="width:32px; height:32px; border-radius:50%; background:var(--cyan); color:var(--black); font-family:var(--font-display); font-size:14px; font-weight:900; display:flex; align-items:center; justify-content:center; flex-shrink:0;">2</div>
-          <div>
-            <h3 class="t-h4" style="color:var(--white); margin-bottom:8px;">Open Apps and search Bulk Create</h3>
-            <p class="t-body-sm">In the left menu, go to Apps, search for Bulk Create, and click it. Choose Enter data manually. A table opens.</p>
-          </div>
-        </div>
-        <div style="display:flex; gap:20px; margin-bottom:24px; align-items:flex-start;">
-          <div style="width:32px; height:32px; border-radius:50%; background:var(--cyan); color:var(--black); font-family:var(--font-display); font-size:14px; font-weight:900; display:flex; align-items:center; justify-content:center; flex-shrink:0;">3</div>
-          <div>
-            <h3 class="t-h4" style="color:var(--white); margin-bottom:8px;">Paste the tile headlines into the table</h3>
-            <p class="t-body-sm">Column 1: Tile label (e.g. "Kiera"). Column 2: Headline text (e.g. "Five minutes. That is all she needs."). Use the copy above from each tile's design note.</p>
-          </div>
-        </div>
-        <div style="display:flex; gap:20px; margin-bottom:24px; align-items:flex-start;">
-          <div style="width:32px; height:32px; border-radius:50%; background:var(--cyan); color:var(--black); font-family:var(--font-display); font-size:14px; font-weight:900; display:flex; align-items:center; justify-content:center; flex-shrink:0;">4</div>
-          <div>
-            <h3 class="t-h4" style="color:var(--white); margin-bottom:8px;">Connect data to your text boxes</h3>
-            <p class="t-body-sm">Right-click each text element in your template, select Connect Data, and choose the column. Canva links your data to the design.</p>
-          </div>
-        </div>
-        <div style="display:flex; gap:20px; align-items:flex-start;">
-          <div style="width:32px; height:32px; border-radius:50%; background:var(--cyan); color:var(--black); font-family:var(--font-display); font-size:14px; font-weight:900; display:flex; align-items:center; justify-content:center; flex-shrink:0;">5</div>
-          <div>
-            <h3 class="t-h4" style="color:var(--white); margin-bottom:8px;">Generate and export all tiles</h3>
-            <p class="t-body-sm">Click Generate Pages. Canva creates all variations instantly. Export as PNG 1080x1080. Drop mascot images onto the relevant tiles. Schedule in Buffer or Later.</p>
-          </div>
+        <div class="cell cell--c6 reveal" data-delay="3">
+          <div class="cell__label">Caption</div>
+          <h3 class="cell__h">Hook + 3 lines + question + CTA.</h3>
+          <p class="cell__desc">First line is the on-screen hook. Last line is "Five spots this month. Link in bio."</p>
         </div>
       </div>
     </div>
@@ -695,14 +171,10 @@ Five founders this month. Link in bio.
 
   <footer class="footer">
     <div class="container">
-      <div class="footer__inner">
-        <div>
-          <div class="footer__logo">BERMO<span>.</span></div>
-          <p class="footer__tagline">Instagram Launch Kit — Internal.</p>
-        </div>
-        <a href="../social/linkedin-posts.html" class="btn btn--outline" style="align-self:center;">Next: LinkedIn Kit &rarr;</a>
+      <div class="footer__bottom">
+        <span>© 2026 BERMO.</span>
+        <a href="../index.html" style="color:var(--cyan);">Back to launch site →</a>
       </div>
-      <div class="footer__copy">&copy; 2025 BERMO. All rights reserved.</div>
     </div>
   </footer>
 

@@ -4,660 +4,357 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BERMO. — Your Entire Growth Engine. Under One Roof.</title>
-  <meta name="description" content="BERMO is an under-one-roof execution system for startups and founder-led businesses. Human vetted. AI leveraged. Voice protected. Built to deploy." />
+  <meta name="description" content="An execution system for founder-led businesses. We find what is not connecting, then deploy human-vetted specialists, partner units, and execution pods through one command center. Less than the cost of one full-time hire. Deploys in under a week." />
   <meta name="robots" content="noindex, nofollow" />
 
-  <!-- Open Graph -->
   <meta property="og:title" content="BERMO. — Your Entire Growth Engine. Under One Roof." />
-  <meta property="og:description" content="The platform is in beta. The expertise is 15 years deep." />
+  <meta property="og:description" content="The platform is at 37%. The expertise is 15 years deep." />
   <meta property="og:type" content="website" />
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg" />
-
-  <!-- Styles -->
   <link rel="stylesheet" href="assets/css/global.css" />
   <link rel="stylesheet" href="assets/css/components.css" />
-
-  <style>
-    /* Page-level overrides */
-    .hero { min-height: 100vh; }
-
-    .hero__split {
-      display: grid;
-      grid-template-columns: 1fr 480px;
-      gap: 48px;
-      align-items: center;
-    }
-
-    .hero__right {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      align-items: flex-start;
-    }
-
-    @media (max-width: 1024px) {
-      .hero__split { grid-template-columns: 1fr; }
-      .hero__right { display: none; }
-    }
-
-    /* "BERMO LOADING" interface panel in hero */
-    .bb-panel {
-      background: var(--black2);
-      border: 1px solid rgba(0, 245, 212, 0.2);
-      border-radius: var(--radius-lg);
-      padding: 28px;
-      position: relative;
-      box-shadow: 0 0 60px rgba(0, 245, 212, 0.06), inset 0 1px 0 rgba(255,255,255,0.05);
-    }
-
-    .bb-panel__dots {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 20px;
-    }
-    .bb-panel__dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.12);
-    }
-    .bb-panel__dot:first-child { background: rgba(255,90,90,0.5); }
-    .bb-panel__dot:nth-child(2) { background: rgba(255,200,90,0.5); }
-    .bb-panel__dot:nth-child(3) { background: rgba(0,245,212,0.5); }
-
-    .bb-panel__title {
-      font-family: var(--font-display);
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--cyan);
-      margin-bottom: 16px;
-    }
-
-    .bb-panel__bar-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-
-    .bb-panel__network {
-      margin-top: 24px;
-      padding-top: 20px;
-      border-top: 1px solid rgba(255,255,255,0.07);
-    }
-
-    .bb-panel__network-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.04);
-    }
-
-    .bb-panel__network-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--cyan);
-      box-shadow: 0 0 8px rgba(0,245,212,0.6);
-      flex-shrink: 0;
-    }
-    .bb-panel__network-dot--dim {
-      background: rgba(255,255,255,0.2);
-      box-shadow: none;
-    }
-
-    .bb-panel__network-label {
-      font-size: 12px;
-      font-weight: 500;
-      letter-spacing: 0.05em;
-      color: rgba(255,255,255,0.5);
-    }
-    .bb-panel__network-label strong {
-      color: var(--white);
-      font-weight: 600;
-    }
-
-    .bb-panel__network-status {
-      margin-left: auto;
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-    .bb-panel__network-status--active { color: var(--cyan); }
-    .bb-panel__network-status--pending { color: rgba(255,255,255,0.25); }
-
-    .bb-avatar {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: var(--cyan);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 16px;
-      overflow: hidden;
-      box-shadow: 0 0 20px rgba(0,245,212,0.3);
-    }
-    .bb-avatar img { width: 100%; height: 100%; object-fit: cover; }
-
-    /* Mascot visual section */
-    .mascot-section {
-      background: var(--black);
-      padding: 0;
-      overflow: hidden;
-    }
-
-    .mascot-section__grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-    }
-
-    .mascot-section__panel {
-      position: relative;
-      overflow: hidden;
-      min-height: 480px;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-    }
-
-    .mascot-section__panel img {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .mascot-section__panel--cyan { background: var(--cyan); }
-    .mascot-section__panel--dark { background: var(--black3); }
-
-    .mascot-section__overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%);
-    }
-    .mascot-section__panel--cyan .mascot-section__overlay {
-      background: linear-gradient(to top, rgba(0,60,50,0.6) 0%, transparent 50%);
-    }
-
-    .mascot-section__text {
-      position: relative;
-      z-index: 2;
-      padding: 32px;
-    }
-
-    .mascot-section__name {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: var(--cyan);
-      margin-bottom: 6px;
-    }
-    .mascot-section__panel--cyan .mascot-section__name { color: var(--black); }
-
-    .mascot-section__role {
-      font-family: var(--font-display);
-      font-size: clamp(18px, 3vw, 28px);
-      font-weight: 900;
-      letter-spacing: -0.02em;
-      text-transform: uppercase;
-      color: var(--white);
-      margin-bottom: 8px;
-      line-height: 1.05;
-    }
-    .mascot-section__panel--cyan .mascot-section__role { color: var(--black); }
-
-    .mascot-section__desc {
-      font-size: 13px;
-      line-height: 1.6;
-      color: rgba(255,255,255,0.65);
-      max-width: 320px;
-    }
-    .mascot-section__panel--cyan .mascot-section__desc { color: rgba(0,0,0,0.6); }
-
-    @media (max-width: 768px) {
-      .mascot-section__grid { grid-template-columns: 1fr; }
-      .mascot-section__panel { min-height: 320px; }
-    }
-  </style>
 </head>
 <body>
 
-  <!-- ─── Waitlist Modal ───────────────────────────────────────── -->
-  <div class="modal-overlay" id="waitlist-modal" role="dialog" aria-modal="true" aria-label="Join the BERMO waitlist">
-    <div class="modal">
-      <div class="modal__wordmark">BERMO<span>.</span></div>
-      <p class="modal__label">Something is loading.</p>
-      <p class="modal__body">
-        The platform is at <strong>37%</strong>. The expertise is 15 years deep.<br/>
-        We are taking 5 founders this month for manual Alignment Reviews.
-      </p>
-      <form class="modal__form" name="waitlist-modal" method="POST" data-netlify="true">
-        <input type="hidden" name="form-name" value="waitlist-modal" />
-        <input
-          class="modal__input"
-          type="email"
-          name="email"
-          placeholder="your@email.com"
-          required
-          autocomplete="email"
-        />
-        <button type="submit" class="modal__submit">Join the Waitlist</button>
-      </form>
-      <button class="modal__dismiss" id="modal-dismiss" type="button">I will wait</button>
+  <!-- ═══ Coming Soon Modal (first visit only) ═══════════════════ -->
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-h">
+    <div class="modal__card">
+      <div class="modal__wave" aria-hidden="true"></div>
+      <div class="modal__inner">
+        <div class="modal__wordmark wordmark">BERMO<span class="dot">.</span></div>
+        <div class="modal__pill"><span class="dot"></span> Something is loading</div>
+        <h2 class="modal__h" id="modal-h">The platform is at <span class="accent">37%</span>. The expertise is 15 years deep.</h2>
+        <p class="modal__body">Five founders this month for manual Alignment Reviews. Drop your email and we will be in touch.</p>
+        <form class="modal__form" name="waitlist-modal" method="POST" data-netlify="true">
+          <input type="hidden" name="form-name" value="waitlist-modal" />
+          <input class="modal__input" type="email" name="email" placeholder="you@yourcompany.com" autocomplete="email" required />
+          <button type="submit" class="modal__submit">Join the waitlist</button>
+        </form>
+        <button type="button" class="modal__dismiss" data-modal-dismiss>I will wait</button>
+      </div>
     </div>
   </div>
 
-  <!-- ─── Navigation ─────────────────────────────────────────── -->
-  <nav class="nav" role="navigation" aria-label="Main navigation">
+  <!-- ═══ Nav ════════════════════════════════════════════════════ -->
+  <nav class="nav" role="navigation" aria-label="Primary">
     <div class="nav__inner">
-      <a href="/" class="nav__logo" aria-label="BERMO Home">BERMO<span>.</span></a>
-      <div class="nav__links flex gap-32">
+      <a href="/" class="nav__logo wordmark" aria-label="BERMO">BERMO<span class="dot">.</span></a>
+      <div class="nav__right">
         <div class="nav__social">
-          <!-- Instagram icon -->
-          <a href="#" aria-label="Instagram" rel="noopener noreferrer">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="2" width="20" height="20" rx="5"/>
-              <circle cx="12" cy="12" r="5"/>
-              <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+          <a href="#" aria-label="Instagram" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="0.9" fill="currentColor" stroke="none"/>
             </svg>
           </a>
-          <!-- LinkedIn icon -->
-          <a href="#" aria-label="LinkedIn" rel="noopener noreferrer">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
-              <rect x="2" y="9" width="4" height="12"/>
-              <circle cx="4" cy="4" r="2"/>
+          <a href="#" aria-label="LinkedIn" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/>
             </svg>
           </a>
         </div>
-        <a href="#find-piece" class="nav__cta">Book an Alignment Review</a>
+        <a href="#waitlist" class="nav__cta" data-scroll="#waitlist">
+          Book an Alignment Review
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
       </div>
-      <button class="nav__hamburger hide-mobile" aria-label="Menu" aria-expanded="false">
-        <span></span><span></span><span></span>
-      </button>
     </div>
   </nav>
 
-  <!-- ─── Hero ───────────────────────────────────────────────── -->
-  <section class="hero section--lg">
+  <!-- ═══ Hero ═══════════════════════════════════════════════════ -->
+  <section class="hero">
+    <div class="wave-bg" aria-hidden="true">
+      <div class="wave-bg__grain"></div>
+    </div>
     <div class="container">
-      <div class="hero__split">
+      <div class="hero__inner">
 
-        <!-- Left: Copy -->
-        <div class="hero__left">
-          <p class="hero__eyebrow fade-up">Execution System for Founders</p>
-          <h1 class="hero__headline fade-up fade-up-delay-1">
-            Your Entire<br/>
-            Growth<br/>
-            Engine<span class="accent">.</span><br/>
-            Under One<br/>
-            Roof<span class="accent">.</span>
-          </h1>
-          <p class="hero__sub fade-up fade-up-delay-2">
-            BERMO finds what is not connecting, then snaps the right human-vetted specialists, partner units, and execution pods into place through one command center. Less than the cost of one full-time hire. Deploys in under a week.
-          </p>
-          <div class="hero__actions fade-up fade-up-delay-3">
-            <a href="#find-piece" class="btn btn--primary btn--lg">Find the missing piece</a>
-            <a href="#how-it-works" class="btn btn--outline">See how it works</a>
-          </div>
-          <div class="hero__trust fade-up fade-up-delay-4">
-            <span class="hero__trust-item">Human vetted</span>
-            <span class="hero__trust-item">AI leveraged</span>
-            <span class="hero__trust-item">Voice protected</span>
-            <span class="hero__trust-item">Built to deploy</span>
-          </div>
+        <span class="hero__eyebrow reveal">
+          <span class="dot"></span>
+          Now in beta · 5 founder spots this month
+        </span>
+
+        <h1 class="hero__h1 reveal" data-delay="1">
+          Your entire<br/>
+          growth engine.<br/>
+          <span class="accent">Under one roof.</span>
+        </h1>
+
+        <p class="hero__sub reveal" data-delay="2">
+          BERMO is an execution system for founder-led businesses.
+          We find what is not connecting, then deploy the right
+          human-vetted specialists, partner units, and execution pods
+          through one command center. Less than the cost of one
+          full-time hire. Deploys in under a week.
+        </p>
+
+        <div class="hero__actions reveal" data-delay="3">
+          <a href="#waitlist" class="btn btn--ink btn--lg" data-scroll="#waitlist">
+            Find the missing piece
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+          <a href="#how" class="btn btn--ghost btn--lg">See how it works</a>
         </div>
 
-        <!-- Right: BB loading panel -->
-        <div class="hero__right fade-up fade-up-delay-3">
-          <div class="bb-panel">
-            <div class="bb-panel__dots">
-              <div class="bb-panel__dot"></div>
-              <div class="bb-panel__dot"></div>
-              <div class="bb-panel__dot"></div>
-            </div>
-
-            <div class="bb-avatar">
-              <img src="assets/images/bb-portrait.png" alt="BB the Bot" />
-            </div>
-
-            <div class="bb-panel__title">BERMO LOADING<span style="opacity:0.5">...</span></div>
-
-            <div class="loading-bar-block" style="background:transparent; border:none; padding:0; min-width:auto;">
-              <div class="bb-panel__bar-row">
-                <div class="loading-bar-block__track" style="flex:1;">
-                  <div class="loading-bar-block__fill"></div>
-                </div>
-                <div class="loading-bar-block__percent" style="margin-left:12px;">0%</div>
-              </div>
-            </div>
-
-            <div class="bb-panel__network">
-              <div class="bb-panel__network-row">
-                <div class="bb-panel__network-dot"></div>
-                <span class="bb-panel__network-label"><strong>Founders</strong></span>
-                <span class="bb-panel__network-status bb-panel__network-status--active">Active</span>
-              </div>
-              <div class="bb-panel__network-row">
-                <div class="bb-panel__network-dot bb-panel__network-dot--dim"></div>
-                <span class="bb-panel__network-label"><strong>The Shop</strong> &mdash; Specialist Registry</span>
-                <span class="bb-panel__network-status bb-panel__network-status--pending">Beta</span>
-              </div>
-              <div class="bb-panel__network-row">
-                <div class="bb-panel__network-dot bb-panel__network-dot--dim"></div>
-                <span class="bb-panel__network-label"><strong>The Fleet</strong> &mdash; Execution Pods</span>
-                <span class="bb-panel__network-status bb-panel__network-status--pending">Beta</span>
-              </div>
-              <div class="bb-panel__network-row" style="border:none;">
-                <div class="bb-panel__network-dot bb-panel__network-dot--dim"></div>
-                <span class="bb-panel__network-label"><strong>Operators</strong></span>
-                <span class="bb-panel__network-status bb-panel__network-status--pending">Coming</span>
-              </div>
-            </div>
-          </div>
-
-          <p style="font-size:11px; color: var(--gray); letter-spacing:0.12em; text-transform:uppercase; text-align:center; width:100%;">
-            The platform is in beta. The expertise is 15 years deep.
-          </p>
+        <div class="trust mt-32 reveal" data-delay="4">
+          <span class="trust__item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Human vetted
+          </span>
+          <span class="trust__item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            AI leveraged
+          </span>
+          <span class="trust__item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Voice protected
+          </span>
+          <span class="trust__item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Built to deploy
+          </span>
         </div>
 
       </div>
     </div>
   </section>
 
-  <!-- ─── Trust Strip ─────────────────────────────────────────── -->
-  <div class="trust-strip">
+  <!-- ═══ Bento Grid: The System ════════════════════════════════ -->
+  <section class="section" id="how">
     <div class="container">
-      <div class="trust-strip__grid">
-        <div class="trust-strip__item">
-          <div class="trust-strip__item-value">15 Years</div>
-          <div class="trust-strip__item-label">Operational Experience</div>
-        </div>
-        <div class="trust-strip__item">
-          <div class="trust-strip__item-value">16 Industries</div>
-          <div class="trust-strip__item-label">Growth Architecture</div>
-        </div>
-        <div class="trust-strip__item">
-          <div class="trust-strip__item-value">5 Founders</div>
-          <div class="trust-strip__item-label">This Month. Beta Only.</div>
-        </div>
-        <div class="trust-strip__item">
-          <div class="trust-strip__item-value">Under 1 Week</div>
-          <div class="trust-strip__item-label">Deployment Timeline</div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- ─── Mascot Visual ────────────────────────────────────────── -->
-  <section class="mascot-section" id="how-it-works" aria-label="Meet Kiera and BB">
-    <div class="mascot-section__grid">
-
-      <!-- Kiera panel -->
-      <div class="mascot-section__panel mascot-section__panel--cyan fade-up">
-        <img src="assets/images/kiera-gap.png" alt="Kiera the Wolf crouching near The Shop door, tracking the growth gap" />
-        <div class="mascot-section__overlay"></div>
-        <div class="mascot-section__text">
-          <div class="mascot-section__name">Kiera the Wolf</div>
-          <div class="mascot-section__role">Hunter.<br/>Protector.<br/>She finds<br/>the gap.</div>
-          <p class="mascot-section__desc">Before a dollar moves, Kiera finds what is not working. She does not announce herself. Results do.</p>
-        </div>
-      </div>
-
-      <!-- BB panel -->
-      <div class="mascot-section__panel mascot-section__panel--dark fade-up fade-up-delay-2">
-        <img src="assets/images/bb-loading.png" alt="BB the Bot in the server room with BERMO LOADING 37% diagnostic interface" />
-        <div class="mascot-section__overlay"></div>
-        <div class="mascot-section__text">
-          <div class="mascot-section__name">BB the Bot</div>
-          <div class="mascot-section__role">Always there.<br/>Human led.<br/>The period<br/>behind the brand.</div>
-          <p class="mascot-section__desc">BB is the alignment infrastructure operator. She is always in the background, running the handoffs so humans can focus on the work.</p>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ─── Triptych Visual ──────────────────────────────────────── -->
-  <!--
-    DROP YOUR TRIPTYCH IMAGE HERE:
-    <img class="triptych__img" src="assets/images/triptych.png" alt="BERMO story: Kiera finds the crack, opens The Shop, BB reveals The Solution" />
-    File: assets/images/triptych.png
-    (The three-panel horizontal story image)
-  -->
-  <section class="triptych" aria-label="The BERMO story">
-    <div style="background:var(--black3); padding:64px 0; text-align:center; border-top:1px solid rgba(255,255,255,0.05);">
-      <div class="container--narrow">
-        <!-- Placeholder block: replace entire div below with the actual triptych img tag above -->
-        <div style="background:rgba(255,255,255,0.03); border:1px dashed rgba(0,245,212,0.2); border-radius:8px; padding:48px; color:var(--gray); font-size:13px; letter-spacing:0.1em; text-transform:uppercase; font-weight:600;">
-          Triptych image goes here<br/>
-          <span style="font-size:11px; opacity:0.5; text-transform:none; letter-spacing:0;">assets/images/triptych.png</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── Beta Expert Block ────────────────────────────────────── -->
-  <section class="beta-block" aria-label="About BERMO">
-    <div class="container">
-      <div class="beta-block__eyebrow fade-up">Transparency</div>
-      <div class="beta-block__badge fade-up fade-up-delay-1">
-        <div class="beta-block__badge-dot"></div>
-        The Platform is in Beta. The Expertise is 15 Years Deep.
-      </div>
-      <h2 class="beta-block__quote fade-up fade-up-delay-2">
-        I walk into a brand and within five minutes I know what is working, what is a miss, <span class="accent">and what would fix it.</span>
-      </h2>
-      <p class="beta-block__body fade-up fade-up-delay-3">
-        I have spent 15 years fixing broken business operations and scaling revenue across 16 industries. Right now, we are building the tech infrastructure that will automate this entire process. While The Shop and The Fleet are in closed beta, we are taking on 5 founders this month for manual Alignment Reviews.
-      </p>
-      <p class="beta-block__body fade-up fade-up-delay-3" style="margin-bottom:40px;">
-        What the founder is too close to their amazing business to see. I have done it for 15 years in the corporate world. Now I am building BERMO to do it for founders. The instinct is already here.
-      </p>
-      <div class="beta-block__stat-row fade-up fade-up-delay-4">
-        <div class="beta-block__stat">
-          <strong>15</strong>
-          <span>Years Experience</span>
-        </div>
-        <div class="beta-block__stat">
-          <strong>16+</strong>
-          <span>Industries</span>
-        </div>
-        <div class="beta-block__stat">
-          <strong>5</strong>
-          <span>Spots This Month</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── How It Works ────────────────────────────────────────── -->
-  <section class="section bg-black2" id="how" aria-label="How BERMO works">
-    <div class="container">
-      <div class="section-header">
-        <div class="section-header__eyebrow fade-up">The System</div>
-        <h2 class="section-header__headline fade-up fade-up-delay-1">Keep the vision.<br/>We manage the fix.</h2>
-        <p class="section-header__body fade-up fade-up-delay-2">
-          You are not hiring people. You are buying a guaranteed outcome. BERMO diagnoses your blind spot, then deploys the right execution pods to fix it under one command center.
+      <div class="section-head reveal">
+        <div class="section-head__label">The system</div>
+        <h2 class="section-head__h">Keep the vision.<br/>We manage the fix.</h2>
+        <p class="section-head__sub">
+          You are not hiring people. You are buying a guaranteed outcome.
+          BERMO diagnoses your blind spot, then deploys the exact execution pod to fix it.
         </p>
       </div>
 
-      <div class="grid-3 gap-24">
-        <div class="fade-up">
-          <div style="width:48px; height:48px; background:rgba(0,245,212,0.1); border:1px solid rgba(0,245,212,0.2); border-radius:8px; display:flex; align-items:center; justify-content:center; margin-bottom:20px;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00f5d4" stroke-width="2" stroke-linecap="round">
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-            </svg>
+      <div class="bento">
+
+        <!-- Cell 1: Diagnose (large, with mascot) -->
+        <div class="cell cell--c8 cell--cyan reveal">
+          <div class="cell__label">01 · Diagnose</div>
+          <h3 class="cell__h" style="max-width: 14ch;">Five minutes. Fifteen years of pattern.</h3>
+          <p class="cell__desc" style="max-width: 38ch;">
+            Kiera runs the alignment scan. We find what is not connecting before a dollar moves.
+            You stop guessing. We start knowing.
+          </p>
+          <div class="cell__mascot">
+            <img src="assets/images/kiera-portrait.png" alt="Kiera the Wolf, BERMO quality guardian" />
           </div>
-          <h3 class="t-h4" style="color:var(--white); margin-bottom:12px;">01. Diagnose</h3>
-          <p class="t-body-sm">BB runs a free alignment scan to find your exact blind spot. No dollar moves until we know precisely what needs to be fixed. You stop guessing. We start knowing.</p>
         </div>
-        <div class="fade-up fade-up-delay-1">
-          <div style="width:48px; height:48px; background:rgba(0,245,212,0.1); border:1px solid rgba(0,245,212,0.2); border-radius:8px; display:flex; align-items:center; justify-content:center; margin-bottom:20px;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00f5d4" stroke-width="2" stroke-linecap="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            </svg>
-          </div>
-          <h3 class="t-h4" style="color:var(--white); margin-bottom:12px;">02. Deploy</h3>
-          <p class="t-body-sm">Kiera deploys the exact execution pod your business needs. Human vetted. AI leveraged. Your voice protected. One communication layer. Often in under a week.</p>
-        </div>
-        <div class="fade-up fade-up-delay-2">
-          <div style="width:48px; height:48px; background:rgba(0,245,212,0.1); border:1px solid rgba(0,245,212,0.2); border-radius:8px; display:flex; align-items:center; justify-content:center; margin-bottom:20px;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00f5d4" stroke-width="2" stroke-linecap="round">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-          </div>
-          <h3 class="t-h4" style="color:var(--white); margin-bottom:12px;">03. Done</h3>
-          <p class="t-body-sm">Funds stay in the vault until the outcome is 100% complete and accepted. You get back to running your company. The market does not wait. Neither do we.</p>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- ─── CTA Form Section ─────────────────────────────────────── -->
-  <section class="cta-section" id="find-piece" aria-label="Join the waitlist">
-    <div class="cta-section__bg" aria-hidden="true"></div>
-    <div class="container--narrow" style="position:relative; z-index:2;">
-
-      <div class="section-header">
-        <div class="section-header__eyebrow fade-up">Beta Waitlist</div>
-        <h2 class="cta-section__headline fade-up fade-up-delay-1">
-          Find the<br/><span class="accent">Missing Piece.</span>
-        </h2>
-        <p class="cta-section__sub fade-up fade-up-delay-2">
-          Five founders this month. Manual Alignment Review. We find what is not connecting before a single dollar moves.
-        </p>
-      </div>
-
-      <div class="fade-up fade-up-delay-3">
-        <button
-          class="cta-trigger"
-          id="cta-btn"
-          aria-expanded="false"
-          aria-controls="waitlist-form-wrap"
-        >
-          Find the Missing Piece
-          <svg class="cta-trigger__arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6"/>
-          </svg>
-        </button>
-      </div>
-
-      <!-- Inline form (expands on click) -->
-      <div class="inline-form" id="waitlist-form-wrap" aria-hidden="true">
-        <div class="inline-form__inner">
-          <h3 class="inline-form__question">What is your business saying when you are not in the room?</h3>
-          <p class="inline-form__hint">Drop your email and tell us where the gap is. We read every submission.</p>
-
-          <form
-            id="waitlist-form"
-            name="waitlist"
-            method="POST"
-            data-netlify="true"
-            netlify-honeypot="bot-field"
-            action="/thanks"
-          >
-            <input type="hidden" name="form-name" value="waitlist" />
-            <p style="display:none;"><label>Do not fill this out: <input name="bot-field" /></label></p>
-
-            <div class="form-field">
-              <label for="email">Email address</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                placeholder="you@yourcompany.com"
-                required
-                autocomplete="email"
-              />
+        <!-- Cell 2: Loader widget (the BERMO LOADING 37% signature) -->
+        <div class="cell cell--c4 reveal" data-delay="1" style="padding:14px;">
+          <div class="loader">
+            <div class="loader__chrome">
+              <span class="loader__dot"></span><span class="loader__dot"></span><span class="loader__dot"></span>
             </div>
-
-            <div class="form-field">
-              <label>The gap I keep running into is&hellip;</label>
-              <div class="radio-group">
-                <div class="radio-option">
-                  <input type="radio" id="gap-tech" name="gap" value="Tech" />
-                  <label for="gap-tech">Tech</label>
-                </div>
-                <div class="radio-option">
-                  <input type="radio" id="gap-brand" name="gap" value="Branding" />
-                  <label for="gap-brand">Branding</label>
-                </div>
-                <div class="radio-option">
-                  <input type="radio" id="gap-sales" name="gap" value="Sales" />
-                  <label for="gap-sales">Sales</label>
-                </div>
-                <div class="radio-option">
-                  <input type="radio" id="gap-unsure" name="gap" value="Not Sure" />
-                  <label for="gap-unsure">Not Sure</label>
-                </div>
+            <div class="loader__heading">
+              <span class="loader__title">BERMO LOADING</span>
+              <span class="loader__pct">0%</span>
+            </div>
+            <div class="loader__bar">
+              <div class="loader__fill"></div>
+            </div>
+            <div class="loader__rows">
+              <div class="loader__row">
+                <span class="loader__node"></span>
+                <span><strong>Founders</strong></span>
+                <span class="loader__status">Active</span>
+              </div>
+              <div class="loader__row">
+                <span class="loader__node"></span>
+                <span><strong>The Shop</strong></span>
+                <span class="loader__status">Beta</span>
+              </div>
+              <div class="loader__row">
+                <span class="loader__node"></span>
+                <span><strong>The Fleet</strong></span>
+                <span class="loader__status">Beta</span>
               </div>
             </div>
-
-            <button type="submit" class="form-submit">
-              Get on the list &rarr;
-            </button>
-          </form>
-
-          <div class="form-success">
-            <div class="form-success__icon">
-              <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-                <circle cx="18" cy="18" r="17" stroke="#00f5d4" stroke-width="2"/>
-                <polyline points="11 18 16 23 25 13" stroke="#00f5d4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-              </svg>
-            </div>
-            <div class="form-success__headline">We will be in touch.</div>
-            <p class="form-success__body">You just took the first step. The market does not wait. Neither do we.</p>
           </div>
         </div>
-      </div>
 
+        <!-- Cell 3: Counter -->
+        <div class="cell cell--c4 reveal" data-delay="2">
+          <div class="cell__label">15 years deep</div>
+          <div class="counter">
+            <span class="counter__num" data-counter="16">0</span>
+            <span class="counter__suffix">+</span>
+          </div>
+          <p class="cell__desc mt-12">
+            Industries scaled. Operations rebuilt. Revenue engines fixed.
+          </p>
+        </div>
+
+        <!-- Cell 4: BB the Bot -->
+        <div class="cell cell--c4 cell--ink reveal" data-delay="3">
+          <div class="cell__label">02 · Deploy</div>
+          <h3 class="cell__h">BB runs the handoffs.</h3>
+          <p class="cell__desc">
+            Always there. Human led. The period behind the brand.
+            BB is the alignment infrastructure that keeps your specialists, pods, and voice in sync.
+          </p>
+          <div class="cell__mascot">
+            <img src="assets/images/bb-portrait.png" alt="BB the Bot, BERMO alignment infrastructure operator" />
+          </div>
+        </div>
+
+        <!-- Cell 5: Slot meter -->
+        <div class="cell cell--c4 reveal" data-delay="4">
+          <div class="cell__label">This month</div>
+          <div class="counter">
+            <span class="counter__num">5</span>
+            <span class="counter__suffix">spots</span>
+          </div>
+          <p class="cell__desc">Manual Alignment Reviews. By the founder.</p>
+          <div class="slots" aria-label="2 of 5 spots filled">
+            <span class="slot is-filled"></span>
+            <span class="slot is-filled"></span>
+            <span class="slot is-pending"></span>
+            <span class="slot is-pending"></span>
+            <span class="slot is-pending"></span>
+          </div>
+        </div>
+
+      </div>
     </div>
   </section>
 
-  <!-- ─── Footer ───────────────────────────────────────────────── -->
+  <!-- ═══ Quote section: Transparency moment ═════════════════════ -->
+  <section class="section--sm">
+    <div class="container">
+      <div class="quote reveal">
+        <div class="quote__wave" aria-hidden="true"></div>
+        <div class="quote__mark">&ldquo;</div>
+        <p class="quote__text">
+          I walk into a brand and within five minutes I know what is working,
+          what is missing, and what would fix it.
+        </p>
+        <p class="quote__attr">— Lexi Bermingham, Founder. 15 years scaling revenue and operations.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Three pillars (small cards) ════════════════════════════ -->
+  <section class="section">
+    <div class="container">
+      <div class="bento">
+        <div class="cell cell--c4 reveal">
+          <div class="cell__label">Diagnose</div>
+          <h3 class="cell__h">Find the gap.</h3>
+          <p class="cell__desc">A free first scan locates your blind spot. No dollar moves until we know what to fix.</p>
+        </div>
+        <div class="cell cell--c4 reveal" data-delay="1">
+          <div class="cell__label">Deploy</div>
+          <h3 class="cell__h">Snap it into place.</h3>
+          <p class="cell__desc">Human-vetted specialists, partner units, and execution pods through one command center. Often in under a week.</p>
+        </div>
+        <div class="cell cell--c4 reveal" data-delay="2">
+          <div class="cell__label">Done</div>
+          <h3 class="cell__h">Funds release on outcome.</h3>
+          <p class="cell__desc">The vault stays locked until the work is complete and accepted. The market does not wait. Neither do we.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Waitlist CTA ═══════════════════════════════════════════ -->
+  <section class="section" id="waitlist">
+    <div class="container">
+      <div class="bento">
+
+        <div class="cell cell--c5 cell--cream reveal" style="padding:40px;">
+          <div class="cell__label">Beta waitlist</div>
+          <h2 class="cell__h" style="font-size: clamp(1.75rem, 3vw, 2.5rem);">
+            Find the missing<br/>piece.
+          </h2>
+          <p class="cell__desc mt-12" style="max-width: 36ch;">
+            Drop your email and tell us where the gap is. We read every submission.
+            Five founders this month for a manual Alignment Review.
+          </p>
+          <div class="trust mt-24">
+            <span class="trust__item">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Free initial scan
+            </span>
+            <span class="trust__item">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              No spam. Ever.
+            </span>
+          </div>
+        </div>
+
+        <div class="cell cell--c7 reveal" data-delay="1" style="padding:0; background:transparent; border:none; box-shadow:none; overflow:visible;">
+          <div class="form-card">
+            <h3 class="form-card__title">Get on the list</h3>
+            <p class="form-card__sub">We will be in touch within one business day.</p>
+            <form name="waitlist" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+              <input type="hidden" name="form-name" value="waitlist" />
+              <p style="display:none;"><label>Do not fill: <input name="bot-field" /></label></p>
+
+              <div class="field">
+                <label class="field__label" for="email">Email</label>
+                <input class="field__input" type="email" id="email" name="email" placeholder="you@yourcompany.com" required autocomplete="email" />
+              </div>
+
+              <div class="field">
+                <label class="field__label">What is your business saying when you are not in the room?</label>
+                <div class="choice">
+                  <div class="choice__opt"><input type="radio" id="g-tech"  name="gap" value="Tech" /><label for="g-tech">Tech</label></div>
+                  <div class="choice__opt"><input type="radio" id="g-brand" name="gap" value="Branding" /><label for="g-brand">Branding</label></div>
+                  <div class="choice__opt"><input type="radio" id="g-sales" name="gap" value="Sales" /><label for="g-sales">Sales</label></div>
+                  <div class="choice__opt"><input type="radio" id="g-unsure" name="gap" value="Not sure" /><label for="g-unsure">Not sure</label></div>
+                </div>
+              </div>
+
+              <button type="submit" class="form-submit">
+                Join the waitlist
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Footer ═════════════════════════════════════════════════ -->
   <footer class="footer">
     <div class="container">
       <div class="footer__inner">
         <div>
-          <div class="footer__logo">BERMO<span>.</span></div>
-          <p class="footer__tagline">The platform is in beta. The expertise is not.</p>
-          <div class="footer__social">
-            <a href="#" rel="noopener noreferrer">Instagram</a>
-            <a href="#" rel="noopener noreferrer">LinkedIn</a>
+          <div class="footer__wordmark wordmark">BERMO<span class="dot">.</span></div>
+          <p class="footer__tag">An execution system for founder-led businesses. The platform is in beta. The expertise is not.</p>
+        </div>
+        <div>
+          <div class="footer__h">Follow</div>
+          <div class="footer__list">
+            <a href="#" rel="noopener">Instagram</a>
+            <a href="#" rel="noopener">LinkedIn</a>
           </div>
         </div>
-        <div style="text-align:right;">
-          <div style="font-size:11px; font-weight:600; letter-spacing:0.2em; text-transform:uppercase; color:var(--cyan); margin-bottom:8px;">Human vetted. AI leveraged.</div>
-          <div style="font-size:12px; color:var(--gray); max-width:220px; line-height:1.6;">Your voice protected. Built to deploy. Under one roof.</div>
+        <div>
+          <div class="footer__h">Brand</div>
+          <div class="footer__list">
+            <a href="mascot-strategy.html">Mascot strategy</a>
+            <a href="social/instagram-grid.html">Instagram kit</a>
+            <a href="social/linkedin-posts.html">LinkedIn kit</a>
+            <a href="business-card/card.html">Business card</a>
+          </div>
         </div>
       </div>
-      <div class="footer__copy">&copy; 2025 BERMO. All rights reserved. The growth gap ends here.</div>
+      <div class="footer__bottom">
+        <span>© 2026 BERMO. All rights reserved.</span>
+        <span>Human vetted. AI leveraged. Voice protected.</span>
+      </div>
     </div>
   </footer>
 
   <script src="assets/js/main.js"></script>
-
-  <!-- Handle Netlify form success state -->
-  <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('form') === 'waitlist') {
-      const wrap = document.getElementById('waitlist-form-wrap');
-      const form = document.getElementById('waitlist-form');
-      const success = document.querySelector('.form-success');
-      if (wrap) wrap.classList.add('is-open');
-      if (form) form.style.display = 'none';
-      if (success) success.classList.add('is-visible');
-    }
-  </script>
 </body>
 </html>

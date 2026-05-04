@@ -1,32 +1,61 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@700;800;900&display=swap');
+/* ─── BERMO Launch — Global ───────────────────────────────────────
+   Cream-dominant, Stripe-DNA. Brand colors and fonts only.
+   Nothing carried over from any previous site. */
 
-/* ─── Variables ─────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@500;600;700;800&family=Montserrat:wght@900&display=swap');
+
+/* ─── Brand variables (the ONLY things kept from before) ─────────── */
 :root {
-  --black:   #0a0a0a;
-  --black2:  #111111;
-  --black3:  #181818;
+  /* Brand palette */
   --cyan:    #00f5d4;
-  --cyan-dim: #00c4a9;
+  --cyan-2:  #00d4b8;
+  --cyan-3:  #00a896;
   --lime:    #c8f500;
+  --lime-2:  #a3d600;
+  --black:   #0a0a0a;
   --cream:   #f0efe9;
   --off:     #f5f5f0;
   --white:   #ffffff;
-  --gray:    #888888;
-  --lgray:   #e2e0db;
-  --mgray:   #555555;
 
-  --font-display: 'Montserrat', sans-serif;
-  --font-tight:   'Inter Tight', sans-serif;
+  /* Working palette derived from brand */
+  --ink:     #0e0e10;          /* primary text on cream */
+  --ink-2:   #4a4a52;          /* secondary text */
+  --ink-3:   #6e6e76;          /* tertiary text / labels */
+  --line:    rgba(14,14,16,0.08);
+  --line-2:  rgba(14,14,16,0.14);
+  --shade:   rgba(14,14,16,0.04);
+  --shade-2: rgba(14,14,16,0.06);
+
+  /* Surface */
+  --bg:        var(--cream);
+  --surface:   var(--white);
+  --surface-2: var(--off);
+
+  /* Type */
+  --font-display: 'Inter Tight', sans-serif;
   --font-body:    'Inter', sans-serif;
+  --font-mark:    'Montserrat', sans-serif; /* reserved for BERMO. wordmark only */
 
-  --radius-sm: 4px;
-  --radius:    8px;
-  --radius-lg: 16px;
+  /* Radius */
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-2xl: 36px;
 
-  --nav-h: 64px;
+  /* Shadow */
+  --shadow-1: 0 1px 2px rgba(14,14,16,0.04), 0 1px 3px rgba(14,14,16,0.06);
+  --shadow-2: 0 4px 8px rgba(14,14,16,0.04), 0 12px 24px rgba(14,14,16,0.08);
+  --shadow-3: 0 8px 16px rgba(14,14,16,0.06), 0 24px 48px rgba(14,14,16,0.12);
 
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in:  cubic-bezier(0.7, 0, 0.84, 0);
+  /* Motion */
+  --ease-out:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in:   cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-bezo: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Layout */
+  --nav-h: 72px;
+  --max:   1240px;
 }
 
 /* ─── Reset ──────────────────────────────────────────────────────── */
@@ -35,179 +64,136 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  font-size: 16px;
 }
 
 body {
   font-family: var(--font-body);
+  font-weight: 400;
   font-size: 16px;
-  line-height: 1.7;
-  color: var(--white);
-  background: var(--black);
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--bg);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
-img, video { display: block; max-width: 100%; }
+img, video, svg { display: block; max-width: 100%; }
 a { color: inherit; text-decoration: none; }
-button { cursor: pointer; border: none; background: none; font: inherit; }
-input, textarea, select { font: inherit; }
+button { cursor: pointer; border: none; background: none; font: inherit; color: inherit; }
+input, textarea, select { font: inherit; color: inherit; }
 ul, ol { list-style: none; }
 
-/* ─── Typography Scale ───────────────────────────────────────────── */
-.t-label {
-  font-family: var(--font-body);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
+::selection { background: var(--cyan); color: var(--ink); }
+
+/* ─── Type scale ─────────────────────────────────────────────────── */
+.t-display-xl {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.75rem, 7vw, 5.75rem);
+  line-height: 0.98;
+  letter-spacing: -0.035em;
 }
 
-.t-eyebrow {
-  font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--cyan);
+.t-display-lg {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.25rem, 5vw, 4rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
 }
 
-.t-body-sm { font-size: 14px; line-height: 1.6; color: var(--gray); }
-.t-body    { font-size: 16px; line-height: 1.75; }
-.t-body-lg { font-size: 18px; line-height: 1.8; }
+.t-display-md {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+}
 
-.t-h4 {
-  font-family: var(--font-tight);
-  font-size: 20px;
-  font-weight: 800;
-  line-height: 1.2;
+.t-display-sm {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.375rem, 2.5vw, 1.75rem);
+  line-height: 1.15;
   letter-spacing: -0.02em;
 }
 
-.t-h3 {
-  font-family: var(--font-tight);
-  font-size: clamp(22px, 3vw, 28px);
-  font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: -0.03em;
+.t-h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.125rem;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
-.t-h2 {
-  font-family: var(--font-display);
-  font-size: clamp(28px, 4vw, 42px);
-  font-weight: 900;
-  line-height: 1.05;
-  letter-spacing: -0.03em;
+.t-body-lg { font-size: 1.125rem; line-height: 1.65; color: var(--ink-2); font-weight: 400; }
+.t-body    { font-size: 1rem;     line-height: 1.65; color: var(--ink-2); font-weight: 400; }
+.t-body-sm { font-size: 0.875rem; line-height: 1.6;  color: var(--ink-2); font-weight: 400; }
+.t-mono    { font-family: 'JetBrains Mono', 'SF Mono', Menlo, monospace; font-size: 0.8125rem; }
+
+.t-label {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+  color: var(--ink-3);
 }
 
-.t-h1 {
-  font-family: var(--font-display);
-  font-size: clamp(42px, 7vw, 88px);
+.t-label--cyan { color: var(--cyan-3); }
+
+/* BERMO. wordmark — only place Montserrat lives */
+.wordmark {
+  font-family: var(--font-mark);
   font-weight: 900;
-  line-height: 0.92;
   letter-spacing: -0.04em;
-  text-transform: uppercase;
+  line-height: 1;
 }
+.wordmark .dot { color: var(--cyan); }
 
-/* ─── Layout Utilities ───────────────────────────────────────────── */
+/* ─── Layout helpers ─────────────────────────────────────────────── */
 .container {
   width: 100%;
-  max-width: 1160px;
-  margin: 0 auto;
-  padding: 0 24px;
+  max-width: var(--max);
+  margin-inline: auto;
+  padding-inline: clamp(20px, 4vw, 40px);
 }
 
-.container--narrow {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 0 24px;
+.section {
+  padding-block: clamp(64px, 8vw, 112px);
+  position: relative;
 }
 
-.section { padding: 96px 0; }
-.section--sm { padding: 64px 0; }
-.section--lg { padding: 128px 0; }
+.section--sm { padding-block: clamp(48px, 5vw, 72px); }
 
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
+/* Bg variants */
+.bg-cream  { background: var(--cream); }
+.bg-white  { background: var(--white); }
+.bg-off    { background: var(--off); }
+.bg-ink    { background: var(--ink); color: var(--white); }
 
-.grid-3 {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-}
-
-.grid-4 {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
-}
-
-.flex { display: flex; }
-.flex-center { display: flex; align-items: center; justify-content: center; }
-.flex-between { display: flex; align-items: center; justify-content: space-between; }
-.flex-col { display: flex; flex-direction: column; }
-.gap-4  { gap: 4px; }
-.gap-8  { gap: 8px; }
-.gap-12 { gap: 12px; }
-.gap-16 { gap: 16px; }
-.gap-24 { gap: 24px; }
-.gap-32 { gap: 32px; }
-.gap-48 { gap: 48px; }
-
-/* ─── Color Helpers ──────────────────────────────────────────────── */
-.text-cyan   { color: var(--cyan); }
-.text-cream  { color: var(--cream); }
-.text-gray   { color: var(--gray); }
-.text-white  { color: var(--white); }
-.text-black  { color: var(--black); }
-.bg-black    { background: var(--black); }
-.bg-black2   { background: var(--black2); }
-.bg-cream    { background: var(--cream); color: var(--black); }
-.bg-cyan     { background: var(--cyan); color: var(--black); }
-
-/* ─── Divider ────────────────────────────────────────────────────── */
-.divider {
-  width: 100%;
-  height: 1px;
-  background: rgba(255,255,255,0.07);
-}
-
-.divider--cyan {
-  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-  height: 1px;
-  opacity: 0.4;
-}
-
-/* ─── Animations ─────────────────────────────────────────────────── */
-.fade-up {
+/* Reveal on scroll */
+.reveal {
   opacity: 0;
-  transform: translateY(28px);
+  transform: translateY(20px);
   transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
 }
-.fade-up.is-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
+.reveal.is-in { opacity: 1; transform: translateY(0); }
 
-.fade-up-delay-1 { transition-delay: 0.1s; }
-.fade-up-delay-2 { transition-delay: 0.2s; }
-.fade-up-delay-3 { transition-delay: 0.3s; }
-.fade-up-delay-4 { transition-delay: 0.4s; }
-.fade-up-delay-5 { transition-delay: 0.5s; }
+.reveal[data-delay="1"] { transition-delay: 80ms; }
+.reveal[data-delay="2"] { transition-delay: 160ms; }
+.reveal[data-delay="3"] { transition-delay: 240ms; }
+.reveal[data-delay="4"] { transition-delay: 320ms; }
+.reveal[data-delay="5"] { transition-delay: 400ms; }
 
-/* ─── Responsive ─────────────────────────────────────────────────── */
-@media (max-width: 900px) {
-  .grid-4 { grid-template-columns: repeat(2, 1fr); }
-  .grid-3 { grid-template-columns: 1fr 1fr; }
-  .hide-mobile { display: none !important; }
-}
-
-@media (max-width: 640px) {
-  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
-  .section { padding: 64px 0; }
-  .section--lg { padding: 80px 0; }
-  .container, .container--narrow { padding: 0 20px; }
+/* Hide for accessibility users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

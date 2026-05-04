@@ -67,12 +67,17 @@ exports.handler = async function (event) {
     return { statusCode: 405, headers: corsHeaders, body: "Method not allowed" };
   }
 
-  const key = process.env.ANTHROPIC_API_KEY;
+  // Accept the canonical name OR a couple of friendly aliases the site
+  // owner may have used in Netlify env (some accounts reject certain names).
+  const key = process.env.ANTHROPIC_API_KEY
+           || process.env.BERMOFIT
+           || process.env.BERMO_AI_KEY
+           || process.env.CLAUDE_API_KEY;
   if (!key) {
     return {
       statusCode: 503,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "AI is not configured for this site. Ask Lexi to set ANTHROPIC_API_KEY in Netlify env." }),
+      body: JSON.stringify({ error: "AI is not configured for this site. Ask Lexi to set ANTHROPIC_API_KEY (or BERMOFIT) in Netlify env." }),
     };
   }
 

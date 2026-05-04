@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BERMO — Specialist Network Component</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@500;600;700;800&family=Montserrat:wght@900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --cyan:   #00f5d4;
+      --black:  #0a0a0a;
+      --cream:  #f0efe9;
+      --ink:    #0e0e10;
+      --ink-2:  #4a4a52;
+      --white:  #ffffff;
+      --font-display: 'Inter Tight', sans-serif;
+      --font-body:    'Inter', sans-serif;
+      --font-mark:    'Montserrat', sans-serif;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--cream);
+      font-family: var(--font-body);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 24px;
+    }
+
+    /* ─── Section wrapper ─── */
+    .network-section {
+      width: 100%;
+      max-width: 700px;
+      text-align: center;
+    }
+
+    .section-label {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-2);
+      margin-bottom: 14px;
+    }
+
+    .section-headline {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 800;
+      line-height: 1.1;
+      color: var(--ink);
+      margin-bottom: 10px;
+    }
+
+    .section-headline .accent { color: var(--cyan); }
+
+    .section-sub {
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--ink-2);
+      line-height: 1.6;
+      margin-bottom: 48px;
+      max-width: 520px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* ─── Flip bar ─── */
+    .flip-bar-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--black);
+      border-radius: 100px;
+      padding: 8px 20px 8px 14px;
+      margin-bottom: 52px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--white);
+    }
+
+    .flip-bar-label {
+      color: var(--cyan);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .flip-word-container {
+      display: inline-block;
+      height: 1.2em;
+      overflow: hidden;
+      perspective: 300px;
+      min-width: 120px;
+      text-align: left;
+    }
+
+    .flip-word {
+      display: block;
+      animation: flipIn 0.45s var(--ease-out) forwards;
+      transform-origin: top center;
+      color: var(--white);
+    }
+
+    @keyframes flipIn {
+      0%   { transform: rotateX(-90deg); opacity: 0; }
+      60%  { transform: rotateX(8deg);   opacity: 1; }
+      100% { transform: rotateX(0deg);   opacity: 1; }
+    }
+
+    @keyframes flipOut {
+      0%   { transform: rotateX(0deg);   opacity: 1; }
+      40%  { transform: rotateX(8deg);   opacity: 1; }
+      100% { transform: rotateX(90deg);  opacity: 0; }
+    }
+
+    .flip-word.out {
+      animation: flipOut 0.35s var(--ease-out) forwards;
+    }
+
+    /* ─── Puzzle board ─── */
+    .puzzle-board {
+      position: relative;
+      width: 460px;
+      height: 460px;
+      margin: 0 auto 52px;
+    }
+
+    /* Center core */
+    .core {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 120px;
+      height: 120px;
+      background: var(--black);
+      border-radius: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      z-index: 10;
+      box-shadow: 0 0 0 6px var(--cream), 0 0 0 8px rgba(0,245,212,0.3), 0 0 32px rgba(0,245,212,0.15);
+    }
+
+    .core-wordmark {
+      font-family: var(--font-mark);
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--white);
+      letter-spacing: -0.01em;
+    }
+
+    .core-wordmark span { color: var(--cyan); }
+
+    .core-label {
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+    }
+
+    /* ─── Piece base ─── */
+    .piece {
+      position: absolute;
+      width: 140px;
+      height: 140px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-radius: 20px;
+      cursor: default;
+      transition: transform 0.2s var(--ease-out), box-shadow 0.2s;
+      opacity: 0;
+    }
+
+    .piece.snapped {
+      animation: snapIn 0.6s var(--ease-out) forwards;
+    }
+
+    @keyframes snapIn {
+      0%   { opacity: 0; transform: var(--from-transform) scale(0.75); }
+      70%  { opacity: 1; transform: var(--to-transform) scale(1.04); }
+      85%  { transform: var(--to-transform) scale(0.97); }
+      100% { opacity: 1; transform: var(--to-transform) scale(1); }
+    }
+
+    .piece:hover {
+      transform: var(--to-transform) scale(1.05) !important;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      z-index: 5;
+    }
+
+    /* Piece positions: 6 pieces in ring */
+    /* Top */
+    .piece-1 {
+      top: 0; left: 50%;
+      --from-transform: translate(-50%, -120%) scale(0.75);
+      --to-transform:   translate(-50%, 0);
+    }
+    /* Top-right */
+    .piece-2 {
+      top: 18%; right: 0;
+      --from-transform: translate(120%, -60%) scale(0.75);
+      --to-transform:   translate(0, 0);
+    }
+    /* Bottom-right */
+    .piece-3 {
+      bottom: 18%; right: 0;
+      --from-transform: translate(120%, 60%) scale(0.75);
+      --to-transform:   translate(0, 0);
+    }
+    /* Bottom */
+    .piece-4 {
+      bottom: 0; left: 50%;
+      --from-transform: translate(-50%, 120%) scale(0.75);
+      --to-transform:   translate(-50%, 0);
+    }
+    /* Bottom-left */
+    .piece-5 {
+      bottom: 18%; left: 0;
+      --from-transform: translate(-120%, 60%) scale(0.75);
+      --to-transform:   translate(0, 0);
+    }
+    /* Top-left */
+    .piece-6 {
+      top: 18%; left: 0;
+      --from-transform: translate(-120%, -60%) scale(0.75);
+      --to-transform:   translate(0, 0);
+    }
+
+    /* Piece colors */
+    .piece-1 { background: var(--black); color: var(--white); }
+    .piece-2 { background: var(--white); color: var(--ink); border: 1.5px solid rgba(14,14,16,0.08); }
+    .piece-3 { background: var(--cyan);  color: var(--black); }
+    .piece-4 { background: var(--black); color: var(--white); }
+    .piece-5 { background: var(--white); color: var(--ink); border: 1.5px solid rgba(14,14,16,0.08); }
+    .piece-6 { background: var(--cyan);  color: var(--black); }
+
+    /* Puzzle tab connectors (pure CSS) */
+    .piece::before,
+    .piece::after {
+      content: '';
+      position: absolute;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: inherit;
+      z-index: 1;
+    }
+
+    /* Inner tab toward center on each piece */
+    .piece-1::before { bottom: -13px; left: 50%; transform: translateX(-50%); }
+    .piece-2::before { bottom: 50%; left: -13px; transform: translateY(50%); }
+    .piece-3::before { top: 50%;    left: -13px; transform: translateY(-50%); }
+    .piece-4::before { top: -13px;  left: 50%; transform: translateX(-50%); }
+    .piece-5::before { top: 50%;    right: -13px; transform: translateY(-50%); }
+    .piece-6::before { bottom: 50%; right: -13px; transform: translateY(50%); }
+
+    /* Outer decorative tab */
+    .piece-1::after { top: -13px; left: 50%; transform: translateX(-50%); opacity: 0.4; }
+    .piece-2::after { top: -13px; left: 50%; transform: translateX(-50%); opacity: 0.4; }
+    .piece-3::after { top: -13px; left: 50%; transform: translateX(-50%); opacity: 0.4; }
+    .piece-4::after { bottom: -13px; left: 50%; transform: translateX(-50%); opacity: 0.4; }
+    .piece-5::after { bottom: -13px; left: 50%; transform: translateX(-50%); opacity: 0.4; }
+    .piece-6::after { bottom: -13px; left: 50%; transform: translateX(-50%); opacity: 0.4; }
+
+    /* Piece icon */
+    .piece-icon {
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .piece-title {
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .piece-sub {
+      font-size: 9px;
+      font-weight: 500;
+      opacity: 0.6;
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    /* Connector lines (SVG overlay) */
+    .connector-svg {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 2;
+      opacity: 0;
+      transition: opacity 0.8s 0.8s;
+    }
+
+    .connector-svg.visible { opacity: 1; }
+
+    .connector-line {
+      stroke: var(--cyan);
+      stroke-width: 1.5;
+      stroke-dasharray: 4 4;
+      opacity: 0.4;
+      fill: none;
+    }
+
+    /* ─── Count strip ─── */
+    .count-strip {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+
+    .count-item {
+      text-align: center;
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.5s var(--ease-out), transform 0.5s var(--ease-out);
+    }
+
+    .count-item.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .count-num {
+      font-family: var(--font-display);
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1;
+      display: block;
+    }
+
+    .count-num span { color: var(--cyan); }
+
+    .count-desc {
+      font-size: 12px;
+      color: var(--ink-2);
+      margin-top: 4px;
+      display: block;
+    }
+
+    /* ─── CTA link ─── */
+    .section-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink);
+      text-decoration: none;
+      border-bottom: 1.5px solid var(--cyan);
+      padding-bottom: 2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .section-cta:hover { color: var(--cyan); }
+
+    .section-cta svg { transition: transform 0.2s; }
+    .section-cta:hover svg { transform: translateX(4px); }
+  </style>
+</head>
+<body>
+
+<section class="network-section" id="network">
+
+  <p class="section-label">The BERMO Network</p>
+
+  <h2 class="section-headline">
+    One scan. Every specialist.<br>
+    <span class="accent">Snapped in.</span>
+  </h2>
+
+  <p class="section-sub">
+    BERMO matches your growth gap to pre-vetted specialists across every discipline. No recruiting. No guessing. One command center.
+  </p>
+
+  <!-- Flip bar -->
+  <div class="flip-bar-wrap" aria-live="polite" aria-label="Current specialty">
+    <span class="flip-bar-label">Now deploying</span>
+    <div class="flip-word-container" id="flipContainer">
+      <span class="flip-word" id="flipWord">Growth Strategy</span>
+    </div>
+  </div>
+
+  <!-- Puzzle board -->
+  <div class="puzzle-board" id="puzzleBoard" aria-hidden="true">
+
+    <!-- Connector SVG -->
+    <svg class="connector-svg" id="connectorSvg" viewBox="0 0 460 460">
+      <!-- Lines from center (230,230) to each piece center -->
+      <line class="connector-line" x1="230" y1="230" x2="230" y2="70"  />
+      <line class="connector-line" x1="230" y1="230" x2="390" y2="152" />
+      <line class="connector-line" x1="230" y1="230" x2="390" y2="308" />
+      <line class="connector-line" x1="230" y1="230" x2="230" y2="390" />
+      <line class="connector-line" x1="230" y1="230" x2="70"  y2="308" />
+      <line class="connector-line" x1="230" y1="230" x2="70"  y2="152" />
+    </svg>
+
+    <!-- Pieces -->
+    <div class="piece piece-1" data-delay="100">
+      <div class="piece-icon">📈</div>
+      <div class="piece-title">Growth<br>Strategy</div>
+      <div class="piece-sub">Revenue ops</div>
+    </div>
+
+    <div class="piece piece-2" data-delay="250">
+      <div class="piece-icon">🎨</div>
+      <div class="piece-title">Brand &<br>Creative</div>
+      <div class="piece-sub">Identity, copy</div>
+    </div>
+
+    <div class="piece piece-3" data-delay="400">
+      <div class="piece-icon">⚙️</div>
+      <div class="piece-title">Tech &<br>Systems</div>
+      <div class="piece-sub">Infra, automation</div>
+    </div>
+
+    <div class="piece piece-4" data-delay="550">
+      <div class="piece-icon">📣</div>
+      <div class="piece-title">Sales &<br>Marketing</div>
+      <div class="piece-sub">Demand, pipeline</div>
+    </div>
+
+    <div class="piece piece-5" data-delay="700">
+      <div class="piece-icon">🔧</div>
+      <div class="piece-title">Ops &<br>Finance</div>
+      <div class="piece-sub">Execution, CFO</div>
+    </div>
+
+    <div class="piece piece-6" data-delay="850">
+      <div class="piece-icon">📱</div>
+      <div class="piece-title">Content &<br>Social</div>
+      <div class="piece-sub">Reach, community</div>
+    </div>
+
+    <!-- Core -->
+    <div class="core">
+      <div class="core-wordmark">BERMO<span>.</span></div>
+      <div class="core-label">Command Center</div>
+    </div>
+
+  </div><!-- /puzzle-board -->
+
+  <!-- Count strip -->
+  <div class="count-strip" id="countStrip">
+    <div class="count-item">
+      <span class="count-num">6<span>+</span></span>
+      <span class="count-desc">Specialist pods</span>
+    </div>
+    <div class="count-item" style="transition-delay:0.1s">
+      <span class="count-num">16<span>+</span></span>
+      <span class="count-desc">Industries served</span>
+    </div>
+    <div class="count-item" style="transition-delay:0.2s">
+      <span class="count-num">1<span> week</span></span>
+      <span class="count-desc">Avg. deploy time</span>
+    </div>
+  </div>
+
+  <a href="#" class="section-cta">
+    See how pods deploy
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </a>
+
+</section>
+
+<script>
+  /* ─── Flip bar ─── */
+  const words = [
+    'Growth Strategy',
+    'Brand & Creative',
+    'Tech & Systems',
+    'Sales & Marketing',
+    'Ops & Finance',
+    'Content & Social',
+    'Product Launches',
+    'Revenue Operations',
+    'Community Building',
+    'Demand Generation',
+  ];
+
+  let current = 0;
+  const container = document.getElementById('flipContainer');
+
+  function flipNext() {
+    const outEl = container.querySelector('.flip-word');
+    if (outEl) {
+      outEl.classList.add('out');
+      outEl.addEventListener('animationend', () => outEl.remove(), { once: true });
+    }
+
+    current = (current + 1) % words.length;
+    const inEl = document.createElement('span');
+    inEl.className = 'flip-word';
+    inEl.textContent = words[current];
+    container.appendChild(inEl);
+  }
+
+  setInterval(flipNext, 2200);
+
+  /* ─── Puzzle snap-in on scroll ─── */
+  const board  = document.getElementById('puzzleBoard');
+  const pieces = board.querySelectorAll('.piece');
+  const svg    = document.getElementById('connectorSvg');
+  const strip  = document.getElementById('countStrip');
+  const counts = strip.querySelectorAll('.count-item');
+
+  let triggered = false;
+
+  function triggerAnimation() {
+    if (triggered) return;
+    triggered = true;
+
+    pieces.forEach(piece => {
+      const delay = parseInt(piece.dataset.delay || 0);
+      setTimeout(() => {
+        piece.classList.add('snapped');
+      }, delay);
+    });
+
+    setTimeout(() => {
+      svg.classList.add('visible');
+    }, 1000);
+
+    counts.forEach((c, i) => {
+      setTimeout(() => c.classList.add('visible'), 1200 + i * 120);
+    });
+  }
+
+  /* Trigger when section is 30% in view */
+  const observer = new IntersectionObserver(
+    entries => {
+      if (entries[0].isIntersecting) triggerAnimation();
+    },
+    { threshold: 0.3 }
+  );
+
+  observer.observe(board);
+
+  /* Auto-trigger if already in view on load */
+  const rect = board.getBoundingClientRect();
+  if (rect.top < window.innerHeight * 0.9) triggerAnimation();
+</script>
+</body>
+</html>

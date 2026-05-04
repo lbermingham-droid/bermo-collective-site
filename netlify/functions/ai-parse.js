@@ -69,15 +69,32 @@ exports.handler = async function (event) {
 
   // Accept the canonical name OR a couple of friendly aliases the site
   // owner may have used in Netlify env (some accounts reject certain names).
-  const key = process.env.ANTHROPIC_API_KEY
-           || process.env.BERMOFIT
-           || process.env.BERMO_AI_KEY
-           || process.env.CLAUDE_API_KEY;
+  // Use bracket access so names with dots/case work.
+  const env = process.env;
+  const key =
+       env["ANTHROPIC_API_KEY"]
+    || env["BERMO.Fit"]
+    || env["BERMO.FIT"]
+    || env["bermo.fit"]
+    || env["BERMOFIT"]
+    || env["bermofit"]
+    || env["BERMO_FIT"]
+    || env["bermo_fit"]
+    || env["BERMO_AI_KEY"]
+    || env["CLAUDE_API_KEY"]
+    // Last-resort scan: any env var whose value looks like a Claude key
+    || (() => {
+         for(const k of Object.keys(env)){
+           const v = env[k];
+           if(typeof v === "string" && v.startsWith("sk-ant-")) return v;
+         }
+         return null;
+       })();
   if (!key) {
     return {
       statusCode: 503,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "AI is not configured for this site. Ask Lexi to set ANTHROPIC_API_KEY (or BERMOFIT) in Netlify env." }),
+      body: JSON.stringify({ error: "AI is not configured. Set BERMO.Fit (or ANTHROPIC_API_KEY) in Netlify env to a value starting with sk-ant-." }),
     };
   }
 

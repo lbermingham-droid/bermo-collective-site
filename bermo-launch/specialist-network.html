@@ -54,11 +54,11 @@
       93% {transform:translate(0,0) scale(1.02)}
       100%{transform:translate(0,0) scale(1);opacity:1}
     }
-    .piece-anim.snap{animation:snapIn .72s var(--spring) forwards}
+    .piece-anim.snap{animation:snapIn 1.1s var(--spring) forwards}
 
     /* connector draw */
     @keyframes drawLine{from{stroke-dashoffset:var(--L,400)}to{stroke-dashoffset:0}}
-    .conn.draw{animation:drawLine .5s ease-out forwards}
+    .conn.draw{animation:drawLine .8s ease-out forwards}
 
     /* checklist (inside SVG foreignObject — inherits doc styles) */
     .ck-wrap{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
@@ -131,43 +131,45 @@ function pp(w,h,tabs,tr=12){
   return d.join(' ');
 }
 
-const PW=80,PH=80;
-const BX=185,BY=222,BW=90,BH=90;
-const BCX=BX+BW/2; // 230
-const BCY=BY+BH/2; // 267
+// Piece size: 65x65 (small puzzle pieces)
+const PW=65,PH=65;
+const BX=193,BY=228,BW=90,BH=90;
+const BCX=BX+BW/2; // 238
+const BCY=BY+BH/2; // 273
 
+// Delays: one piece every 700ms — slow, deliberate
 const PIECES=[
-  {id:'website',  label:['Website','Design'],      emoji:'🌐',
-   x:100,y:138,tabs:{bottom:1},fill:'#161622',stroke:'rgba(255,255,255,.12)',text:'#fff',
-   gap:'Outdated web presence',  delay:0,  fx:0,   fy:-170},
+  {id:'website',  label:['Website','Design'],
+   x:108,y:148,tabs:{bottom:1},fill:'#161622',stroke:'rgba(255,255,255,.12)',text:'#fff',
+   gap:'Outdated web presence',  delay:0,    fx:0,   fy:-160},
 
-  {id:'ai-agents',label:['AI','Agents'],            emoji:'🤖',
-   x:255,y:138,tabs:{bottom:1},fill:'#00f5d4',stroke:'none',text:'#0a0a0a',
-   gap:'Manual workflows',       delay:180,fx:150, fy:-170},
+  {id:'ai-agents',label:['AI','Agents'],
+   x:265,y:148,tabs:{bottom:1},fill:'#00f5d4',stroke:'none',text:'#0a0a0a',
+   gap:'Manual workflows',       delay:700,  fx:140, fy:-160},
 
-  {id:'brand-s',  label:['Brand','Strategy'],       emoji:'⚡',
-   x:8,  y:230,tabs:{right:1}, fill:'#161622',stroke:'rgba(255,255,255,.12)',text:'#fff',
-   gap:'Unclear positioning',   delay:300,fx:-170,fy:-30},
+  {id:'brand-s',  label:['Brand','Strategy'],
+   x:14, y:240,tabs:{right:1}, fill:'#161622',stroke:'rgba(255,255,255,.12)',text:'#fff',
+   gap:'Unclear positioning',   delay:1400, fx:-160,fy:-20},
 
-  {id:'ai-vis',   label:['AI','Visibility'],        emoji:'👁️',
-   x:322,y:230,tabs:{left:1},  fill:'#00f5d4',stroke:'none',text:'#0a0a0a',
-   gap:'Missing AI presence',   delay:300,fx:170, fy:-30},
+  {id:'ai-vis',   label:['AI','Visibility'],
+   x:337,y:240,tabs:{left:1},  fill:'#00f5d4',stroke:'none',text:'#0a0a0a',
+   gap:'Missing AI presence',   delay:2100, fx:160, fy:-20},
 
-  {id:'niche',    label:['Niche','Specialties'],    emoji:'🎯',
-   x:8,  y:323,tabs:{right:1}, fill:'#161622',stroke:'rgba(255,255,255,.12)',text:'#fff',
-   gap:'No niche experts',      delay:420,fx:-170,fy:30},
+  {id:'niche',    label:['Niche','Specialties'],
+   x:14, y:328,tabs:{right:1}, fill:'#161622',stroke:'rgba(255,255,255,.12)',text:'#fff',
+   gap:'No niche experts',      delay:2800, fx:-160,fy:20},
 
-  {id:'crm',      label:['CRM /','Software'],       emoji:'⚙️',
-   x:322,y:323,tabs:{left:1},  fill:'#00f5d4',stroke:'none',text:'#0a0a0a',
-   gap:'Disconnected systems',  delay:420,fx:170, fy:30},
+  {id:'crm',      label:['CRM /','Software'],
+   x:337,y:328,tabs:{left:1},  fill:'#00f5d4',stroke:'none',text:'#0a0a0a',
+   gap:'Disconnected systems',  delay:3500, fx:160, fy:20},
 
-  {id:'brand-m',  label:['Brand','Messaging'],      emoji:'✍️',
-   x:70, y:415,tabs:{top:1},   fill:'#161622',stroke:'rgba(255,255,255,.12)',text:'#fff',
-   gap:'Inconsistent voice',    delay:540,fx:-130,fy:170},
+  {id:'brand-m',  label:['Brand','Messaging'],
+   x:82, y:415,tabs:{top:1},   fill:'#161622',stroke:'rgba(255,255,255,.12)',text:'#fff',
+   gap:'Inconsistent voice',    delay:4200, fx:-120,fy:160},
 
-  {id:'content',  label:['Content','Creation'],     emoji:'📱',
-   x:235,y:415,tabs:{top:1},   fill:'#161622',stroke:'rgba(255,255,255,.12)',text:'#fff',
-   gap:'No content system',     delay:540,fx:0,   fy:170},
+  {id:'content',  label:['Content','Creation'],
+   x:248,y:415,tabs:{top:1},   fill:'#161622',stroke:'rgba(255,255,255,.12)',text:'#fff',
+   gap:'No content system',     delay:4900, fx:0,   fy:160},
 ];
 
 const INDUSTRIES=[
@@ -248,12 +250,12 @@ diag.appendChild(fo);
 /* ── Connector lines ── */
 const connG=mk('g');
 
-// Fork: industry box → top two pieces
-const forkX=170,forkYa=124,forkYb=138;
-[[140],[295]].forEach(([px])=>{
+// Fork: industry box → top two pieces (x=108 and x=265, center = 140 and 297)
+const forkX=219,forkYa=124,forkYb=148;
+[[140],[297]].forEach(([px])=>{
   const L=Math.abs(px-forkX)+(forkYb-forkYa);
   connG.appendChild(mk('path',{
-    d:`M ${forkX} ${forkYa} V ${forkYb} H ${px+PW/2}`,
+    d:`M ${forkX} ${forkYa} V ${forkYb} H ${px}`,
     fill:'none',stroke:'rgba(0,245,212,.28)','stroke-width':1.5,
     'stroke-dasharray':5,'stroke-dashoffset':L+40,
     class:'conn',style:`--L:${L+40}`}));
@@ -290,16 +292,17 @@ PIECES.forEach((p,i)=>{
     'data-delay':p.delay,'data-idx':i});
 
   const str=p.stroke!=='none'?`stroke="${p.stroke}" stroke-width="1"`:'';
+  const hasTwo=p.label.length>1&&p.label[1];
+  const l1y=hasTwo?my-3:my+4;
+  const l2y=my+9;
   inner.innerHTML=`
     <path d="${path}" fill="${p.fill}" ${str} filter="url(#sh)"/>
-    <text x="${mx}" y="${my-16}" text-anchor="middle"
-          font-size="17" dominant-baseline="middle">${p.emoji}</text>
-    <text x="${mx}" y="${my+4}" text-anchor="middle"
+    <text x="${mx}" y="${l1y}" text-anchor="middle"
           font-family="'Inter Tight',sans-serif" font-weight="800"
-          font-size="8.5" fill="${p.text}" letter-spacing=".3">${p.label[0]}</text>
-    ${p.label[1]?`<text x="${mx}" y="${my+15}" text-anchor="middle"
+          font-size="8" fill="${p.text}" letter-spacing=".3">${p.label[0]}</text>
+    ${hasTwo?`<text x="${mx}" y="${l2y}" text-anchor="middle"
           font-family="'Inter Tight',sans-serif" font-weight="800"
-          font-size="8.5" fill="${p.text}" letter-spacing=".3">${p.label[1]}</text>`:''}`;
+          font-size="8" fill="${p.text}" letter-spacing=".3">${p.label[1]}</text>`:''}`;
 
   outer.appendChild(inner);
   pLayer.appendChild(outer);
@@ -325,25 +328,27 @@ function run(){
   if(fired)return;
   fired=true;
 
-  // draw connector lines
+  // draw connector lines slowly, one at a time matching piece sequence
   document.querySelectorAll('.conn').forEach((c,i)=>{
-    setTimeout(()=>c.classList.add('draw'),60+i*25);
+    setTimeout(()=>c.classList.add('draw'),80+i*35);
   });
 
-  // snap pieces + check off gaps
+  // snap pieces one at a time — 700ms apart, slow 1.1s animation each
   PIECES.forEach((p,i)=>{
     const inner=document.getElementById(`pg-${p.id}`);
     if(!inner)return;
     setTimeout(()=>{
       inner.classList.add('snap');
+      // check off the gap item after piece finishes landing
       setTimeout(()=>{
         const b=document.getElementById(`ckb-${i}`);
         if(b)b.classList.add('on');
-      },460);
-    },350+p.delay);
+      },700);
+    },400+p.delay);
   });
 
-  setTimeout(()=>document.getElementById('stats').classList.add('show'),1900);
+  // stats appear after last piece has settled (last delay = 4900 + 400 + 700 + buffer)
+  setTimeout(()=>document.getElementById('stats').classList.add('show'),6500);
 }
 
 // IntersectionObserver + guaranteed fallback on load

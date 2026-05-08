@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BERMO — Specialist Network</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@500;600;700;800&family=Montserrat:wght@900&display=swap" rel="stylesheet" />
+  <style>
+    :root { --cyan:#00f5d4; --spring:cubic-bezier(0.16,1,0.3,1); }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:#07070f;font-family:'Inter',sans-serif;color:#fff;
+         min-height:100vh;display:flex;align-items:center;
+         justify-content:center;padding:60px 20px}
+    .section{width:100%;max-width:600px;text-align:center}
+
+    /* flip bar */
+    .flip-bar{display:inline-flex;align-items:center;gap:10px;
+      background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+      border-radius:100px;padding:7px 18px 7px 12px;margin-bottom:32px}
+    .flip-dot{width:6px;height:6px;border-radius:50%;
+      background:var(--cyan);box-shadow:0 0 6px var(--cyan);
+      animation:blink 1.8s ease-in-out infinite}
+    @keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.6)}}
+    .flip-label{font-size:10px;font-weight:700;letter-spacing:.1em;
+      text-transform:uppercase;color:rgba(255,255,255,.35);white-space:nowrap}
+    .flip-container{display:inline-block;height:1.25em;overflow:hidden;
+      perspective:400px;min-width:148px;text-align:left}
+    .flip-word{display:block;font-size:13px;font-weight:700;color:var(--cyan);
+      transform-origin:top center}
+    .flip-word.in {animation:fIn  .42s var(--spring) forwards}
+    .flip-word.out{animation:fOut .3s  ease-in  forwards}
+    @keyframes fIn {from{transform:rotateX(-80deg);opacity:0}to{transform:rotateX(0);opacity:1}}
+    @keyframes fOut{from{transform:rotateX(0);opacity:1}to{transform:rotateX(80deg);opacity:0}}
+
+    /* diagram */
+    .diagram-wrap{width:100%;max-width:520px;margin:0 auto 36px}
+    .diagram-wrap svg{width:100%;height:auto;display:block}
+
+    /* ── Piece animation
+       OUTER <g transform="translate(x,y)"> = static SVG position (never animated)
+       INNER <g class="piece-anim">         = CSS-animated; ends at translate(0,0)
+         which is correct because (0,0) is relative to the outer group's origin. ── */
+    .piece-anim{transform-box:fill-box;transform-origin:center;opacity:0}
+
+    @keyframes plugIn{
+      0%  {transform:translate(var(--fx,0px),var(--fy,0px)) scale(.8);opacity:0}
+      55% {transform:translate(0,0) scale(1.04);opacity:1}
+      75% {transform:translate(0,0) scale(.98)}
+      90% {transform:translate(0,0) scale(1.01)}
+      100%{transform:translate(0,0) scale(1);opacity:1}
+    }
+    .piece-anim.plug{animation:plugIn 1.1s var(--spring) forwards}
+
+    /* connector fork */
+    @keyframes drawLine{from{stroke-dashoffset:var(--L,300)}to{stroke-dashoffset:0}}
+    .conn.draw{animation:drawLine .7s ease-out forwards}
+
+    /* checklist (inside SVG foreignObject) */
+    .ck-wrap{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+      border-radius:10px;padding:10px 8px 6px;height:100%}
+    .ck-head{font-size:8px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;
+      color:rgba(0,245,212,.85);margin-bottom:7px;padding-bottom:6px;
+      border-bottom:1px solid rgba(255,255,255,.07)}
+    .ck-item{display:flex;align-items:flex-start;gap:5px;margin-bottom:7px}
+    .ck-box{width:12px;height:12px;flex-shrink:0;margin-top:1px;
+      border:1px solid rgba(255,255,255,.22);border-radius:3px;
+      background:rgba(255,255,255,.05);display:flex;align-items:center;
+      justify-content:center;font-size:9px;font-weight:700;color:#00f5d4;
+      overflow:hidden;transition:background .3s,border-color .3s}
+    .ck-check{opacity:0;transform:scale(0);display:block;
+      transition:opacity .3s var(--spring),transform .35s var(--spring)}
+    .ck-box.on{background:rgba(0,245,212,.15);border-color:rgba(0,245,212,.6)}
+    .ck-box.on .ck-check{opacity:1;transform:scale(1)}
+    .ck-lbl{font-size:8px;color:rgba(255,255,255,.5);line-height:1.35}
+
+    /* stats */
+    .stats{display:flex;justify-content:center;gap:36px;flex-wrap:wrap;
+      opacity:0;transform:translateY(14px);
+      transition:opacity .5s .2s,transform .5s .2s var(--spring)}
+    .stats.show{opacity:1;transform:translateY(0)}
+    .stat-n{font-family:'Inter Tight',sans-serif;font-size:26px;font-weight:800;
+      display:block;line-height:1}
+    .stat-n span{color:var(--cyan)}
+    .stat-l{font-size:11px;color:rgba(255,255,255,.35);margin-top:4px;display:block}
+  </style>
+</head>
+<body>
+<section class="section">
+
+  <div class="flip-bar">
+    <span class="flip-dot"></span>
+    <span class="flip-label">Now deploying</span>
+    <div class="flip-container" id="flipContainer">
+      <span class="flip-word">Website Design</span>
+    </div>
+  </div>
+
+  <div class="diagram-wrap">
+    <svg id="diag" viewBox="0 0 510 440"
+         xmlns="http://www.w3.org/2000/svg"
+         xmlns:xhtml="http://www.w3.org/1999/xhtml"></svg>
+  </div>
+
+  <div class="stats" id="stats">
+    <div><span class="stat-n">8<span>+</span></span><span class="stat-l">Specialist pods</span></div>
+    <div><span class="stat-n">16<span>+</span></span><span class="stat-l">Industries</span></div>
+    <div><span class="stat-n">1<span> wk</span></span><span class="stat-l">Avg deploy</span></div>
+  </div>
+
+</section>
+<script>
+/* ── Puzzle piece path at origin (0,0)
+   tabs: { top, right, bottom, left }  1=tab out, -1=slot in, 0=flat ── */
+function pp(w, h, tabs, tr=11) {
+  const r=8, cx=w/2, cy=h/2;
+  const{top=0,right=0,bottom=0,left=0}=tabs;
+  const d=[];
+  d.push(`M ${r} 0`);
+  if(top)   {d.push(`H ${cx-tr} A ${tr} ${tr} 0 0 ${top>0?0:1} ${cx+tr} 0`);}
+  d.push(`H ${w-r} Q ${w} 0 ${w} ${r}`);
+  if(right) {d.push(`V ${cy-tr} A ${tr} ${tr} 0 0 ${right>0?1:0} ${w} ${cy+tr}`);}
+  d.push(`V ${h-r} Q ${w} ${h} ${w-r} ${h}`);
+  if(bottom){d.push(`H ${cx+tr} A ${tr} ${tr} 0 0 ${bottom>0?1:0} ${cx-tr} ${h}`);}
+  d.push(`H ${r} Q 0 ${h} 0 ${h-r}`);
+  if(left)  {d.push(`V ${cy+tr} A ${tr} ${tr} 0 0 ${left>0?0:1} 0 ${cy-tr}`);}
+  d.push(`V ${r} Q 0 0 ${r} 0 Z`);
+  return d.join(' ');
+}
+
+/* ── Layout constants ── */
+// Landscape pieces (top/bottom): 86×50
+// Portrait pieces (left/right):  50×86
+const LW=86, LH=50;   // landscape
+const PP=50, PQ=86;   // portrait
+
+// BERMO core
+const BX=197, BY=218, BW=114, BH=94;
+const BCX=BX+BW/2;  // 254
+const BCY=BY+BH/2;  // 265
+
+/* ── Piece definitions ──
+   Positioning so tabs PHYSICALLY MEET BERMO's edges and adjacent pieces:
+   - Top pieces bottom edge+tab(11px) reaches BY=218
+   - Bottom pieces top edge-tab(11px) reaches BY+BH=312
+   - Left pieces right edge+tab(11px) reaches BX=197
+   - Right pieces left edge-tab(11px) reaches BX+BW=311
+   Adjacent pieces interlock: e.g. top pair share x=254 with tab/slot meeting there
+── */
+const PIECES = [
+  // Top landscape  (slide DOWN, fy=-140)
+  { id:'website',  label:['Website','Design'],
+    x:168, y:157, w:LW, h:LH, tabs:{bottom:1, right:1},
+    fill:'#161622', stroke:'rgba(255,255,255,.13)', text:'#fff',
+    gap:'Outdated web presence',  delay:0,    fx:0,    fy:-140 },
+
+  { id:'ai-agents',label:['AI','Agents'],
+    x:254, y:157, w:LW, h:LH, tabs:{bottom:1, left:-1},
+    fill:'#00f5d4', stroke:'none',               text:'#0a0a0a',
+    gap:'Manual workflows',       delay:650,  fx:0,    fy:-140 },
+
+  // Left portrait  (slide RIGHT, fx=-130)
+  { id:'brand-s',  label:['Brand','Strategy'],
+    x:136, y:179, w:PP, h:PQ, tabs:{right:1, bottom:1},
+    fill:'#161622', stroke:'rgba(255,255,255,.13)', text:'#fff',
+    gap:'Unclear positioning',    delay:1300, fx:-130, fy:0    },
+
+  { id:'ai-vis',   label:['AI','Visibility'],
+    x:322, y:179, w:PP, h:PQ, tabs:{left:1,  bottom:1},
+    fill:'#00f5d4', stroke:'none',               text:'#0a0a0a',
+    gap:'Missing AI presence',    delay:1950, fx:130,  fy:0    },
+
+  // Left lower / Right lower portrait  (slide from sides)
+  { id:'niche',    label:['Niche','Specialties'],
+    x:136, y:265, w:PP, h:PQ, tabs:{right:1, top:-1},
+    fill:'#00f5d4', stroke:'none',               text:'#0a0a0a',
+    gap:'No niche experts',       delay:2600, fx:-130, fy:0    },
+
+  { id:'crm',      label:['CRM /','Software'],
+    x:322, y:265, w:PP, h:PQ, tabs:{left:1,  top:-1},
+    fill:'#161622', stroke:'rgba(255,255,255,.13)', text:'#fff',
+    gap:'Disconnected systems',   delay:3250, fx:130,  fy:0    },
+
+  // Bottom landscape  (slide UP, fy=+140)
+  { id:'brand-m',  label:['Brand','Messaging'],
+    x:168, y:323, w:LW, h:LH, tabs:{top:1,    right:1},
+    fill:'#161622', stroke:'rgba(255,255,255,.13)', text:'#fff',
+    gap:'Inconsistent voice',     delay:3900, fx:0,    fy:140  },
+
+  { id:'content',  label:['Content','Creation'],
+    x:254, y:323, w:LW, h:LH, tabs:{top:1,    left:-1},
+    fill:'#00f5d4', stroke:'none',               text:'#0a0a0a',
+    gap:'No content system',      delay:4550, fx:0,    fy:140  },
+];
+
+const INDUSTRIES=[
+  'E-commerce','SaaS','AI Startups',
+  'Trades & Services','Manufacturing','Biotech',
+  'Small Business','Pharma',
+];
+
+/* ── SVG helper ── */
+const NS='http://www.w3.org/2000/svg';
+function mk(tag,attrs,inner){
+  const e=document.createElementNS(NS,tag);
+  if(attrs)Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));
+  if(inner!=null)e.innerHTML=inner;
+  return e;
+}
+const diag=document.getElementById('diag');
+
+/* defs */
+diag.appendChild(mk('defs',{},`
+  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="b"/>
+    <feFlood flood-color="#00f5d4" flood-opacity=".6" result="c"/>
+    <feComposite in="c" in2="b" operator="in" result="g"/>
+    <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="sh">
+    <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="#000" flood-opacity=".65"/>
+  </filter>
+  <pattern id="dots" x="0" y="0" width="14" height="14" patternUnits="userSpaceOnUse">
+    <circle cx="1.5" cy="1.5" r=".85" fill="rgba(255,255,255,.05)"/>
+  </pattern>
+`));
+
+/* background */
+diag.appendChild(mk('rect',{width:510,height:440,fill:'#07070f'}));
+diag.appendChild(mk('rect',{width:510,height:440,fill:'url(#dots)'}));
+
+/* ── Industry box — centered pills per row ── */
+const indG=mk('g');
+indG.appendChild(mk('rect',{x:6,y:6,width:498,height:112,rx:10,
+  fill:'rgba(255,255,255,.03)',
+  stroke:'rgba(0,245,212,.3)','stroke-width':1.2,'stroke-dasharray':'5 4'}));
+
+const IND_ROWS=[
+  INDUSTRIES.slice(0,3),
+  INDUSTRIES.slice(3,6),
+  [...INDUSTRIES.slice(6),'+ many more'],
+];
+const ROW_Y=[24,56,88];
+const BOX_CX=6+498/2; // 255 — center of the industry box
+const PILL_GAP=8, FW=5.9, HPAD=18;
+
+IND_ROWS.forEach((row,ri)=>{
+  // pre-calculate each pill width
+  const sizes=row.map(t=>Math.round(t.length*FW+HPAD*2));
+  const totalW=sizes.reduce((a,b)=>a+b,0)+(row.length-1)*PILL_GAP;
+  let rx=Math.round(BOX_CX-totalW/2); // start x — centered
+  const ry=ROW_Y[ri];
+
+  row.forEach((tag,ti)=>{
+    const tw=sizes[ti];
+    const isMore=tag.startsWith('+');
+    indG.appendChild(mk('rect',{x:rx,y:ry,width:tw,height:24,rx:5,
+      fill:isMore?'transparent':'rgba(255,255,255,.07)',
+      stroke:isMore?'rgba(0,245,212,.45)':'rgba(255,255,255,.13)',
+      'stroke-width':.9,'stroke-dasharray':isMore?'3 2':'none'}));
+    indG.appendChild(mk('text',{x:rx+tw/2,y:ry+16.5,'text-anchor':'middle',
+      fill:isMore?'rgba(0,245,212,.9)':'rgba(255,255,255,.8)',
+      'font-family':'Inter,sans-serif',
+      'font-weight':isMore?600:500,'font-size':10.5,
+      'font-style':isMore?'italic':'normal'},tag));
+    rx+=tw+PILL_GAP;
+  });
+});
+diag.appendChild(indG);
+
+/* ── Checklist (foreignObject top-right) ── */
+const fo=mk('foreignObject',{x:380,y:134,width:122,height:272});
+const ckDiv=document.createElementNS('http://www.w3.org/1999/xhtml','div');
+ckDiv.className='ck-wrap';
+ckDiv.innerHTML=`
+  <div class="ck-head">Gaps found</div>
+  ${PIECES.map((p,i)=>`
+    <div class="ck-item">
+      <div class="ck-box" id="ckb-${i}"><span class="ck-check">✓</span></div>
+      <div class="ck-lbl">${p.gap}</div>
+    </div>`).join('')}`;
+fo.appendChild(ckDiv);
+diag.appendChild(fo);
+
+/* ── Fork connector: industry box → top pieces ── */
+const connG=mk('g');
+// From industry box center-bottom, down then branch to each top piece center
+const forkX=BCX, forkYa=118, forkYb=148;
+[[168+LW/2],[254+LW/2]].forEach(([px])=>{
+  const L=Math.abs(px-forkX)+(forkYb-forkYa)+4;
+  connG.appendChild(mk('path',{
+    d:`M ${forkX} ${forkYa} V ${forkYb} H ${px} V ${157}`,
+    fill:'none',stroke:'rgba(0,245,212,.28)','stroke-width':1.5,
+    'stroke-dasharray':5,'stroke-dashoffset':L+40,
+    class:'conn',style:`--L:${L+40}`}));
+});
+diag.appendChild(connG);
+
+/* ── Specialist pieces ──
+   Outer <g> = SVG position (never touched by CSS animation)
+   Inner <g class="piece-anim"> = CSS animation target
+─────────────────────────────────────────────────────── */
+const pLayer=mk('g');
+PIECES.forEach((p,i)=>{
+  const path=pp(p.w,p.h,p.tabs);
+  const mx=p.w/2, my=p.h/2;
+
+  const outer=mk('g',{transform:`translate(${p.x},${p.y})`});
+
+  const inner=mk('g',{
+    class:'piece-anim',id:`pg-${p.id}`,
+    style:`--fx:${p.fx}px;--fy:${p.fy}px`,
+    'data-delay':p.delay,'data-idx':i});
+
+  const str=p.stroke!=='none'?`stroke="${p.stroke}" stroke-width="1"`:'';
+  // two-line centered label, no emojis
+  const l1y=p.label[1]?my-3.5:my+4;
+  const l2y=my+8.5;
+  inner.innerHTML=`
+    <path d="${path}" fill="${p.fill}" ${str} filter="url(#sh)"/>
+    <text x="${mx}" y="${l1y}" text-anchor="middle"
+          font-family="'Inter Tight',sans-serif" font-weight="800"
+          font-size="${p.w===PP?7.5:8}" fill="${p.text}" letter-spacing=".3"
+          >${p.label[0]}</text>
+    ${p.label[1]?`<text x="${mx}" y="${l2y}" text-anchor="middle"
+          font-family="'Inter Tight',sans-serif" font-weight="800"
+          font-size="${p.w===PP?7.5:8}" fill="${p.text}" letter-spacing=".3"
+          >${p.label[1]}</text>`:''}`;
+
+  outer.appendChild(inner);
+  pLayer.appendChild(outer);
+});
+diag.appendChild(pLayer);
+
+/* ── BERMO core (drawn last, on top) ── */
+const core=mk('g',{transform:`translate(${BX},${BY})`});
+core.innerHTML=`
+  <path d="${pp(BW,BH,{})}" fill="#0f0f1c" filter="url(#glow)"/>
+  <path d="${pp(BW,BH,{})}" fill="none" stroke="rgba(0,245,212,.5)" stroke-width="1.5"/>
+  <text x="${BW/2}" y="${BH/2-8}" text-anchor="middle"
+        font-family="Montserrat,sans-serif" font-weight="900"
+        font-size="17" fill="#fff">BERMO<tspan fill="#00f5d4">.</tspan></text>
+  <text x="${BW/2}" y="${BH/2+8}" text-anchor="middle"
+        font-family="Inter,sans-serif" font-weight="600" font-size="7"
+        fill="rgba(255,255,255,.3)" letter-spacing="1.5">COMMAND CENTER</text>`;
+diag.appendChild(core);
+
+/* ── Animation sequence ── */
+let fired=false;
+function run(){
+  if(fired)return;
+  fired=true;
+
+  // 1. Draw fork connectors first
+  document.querySelectorAll('.conn').forEach((c,i)=>{
+    setTimeout(()=>c.classList.add('draw'),60+i*40);
+  });
+
+  // 2. Plug pieces in one at a time (650ms apart)
+  PIECES.forEach((p,i)=>{
+    const inner=document.getElementById(`pg-${p.id}`);
+    if(!inner)return;
+    setTimeout(()=>{
+      inner.classList.add('plug');
+      // check off gap item after piece settles
+      setTimeout(()=>{
+        const b=document.getElementById(`ckb-${i}`);
+        if(b)b.classList.add('on');
+      },750);
+    },350+p.delay);
+  });
+
+  // 3. Stats after last piece settles
+  // Last delay = 4550ms, + 350 run offset + 1100 anim + 750 check + 300 buffer = 7050
+  setTimeout(()=>document.getElementById('stats').classList.add('show'),7200);
+}
+
+const obs=new IntersectionObserver(e=>{
+  if(e[0].isIntersecting){run();obs.disconnect();}
+},{threshold:.15});
+obs.observe(diag);
+window.addEventListener('load',()=>setTimeout(run,350));
+
+/* ── Flip bar ── */
+const WORDS=['Website Design','AI Agents','Brand Strategy','AI Visibility',
+  'Niche Specialties','CRM / Software','Brand Messaging','Content Creation',
+  'Revenue Ops','Product Launches','SEO & Search','Paid Media'];
+let wi=0;
+const fc=document.getElementById('flipContainer');
+setInterval(()=>{
+  const old=fc.querySelector('.flip-word');
+  if(old){old.classList.add('out');old.addEventListener('animationend',()=>old.remove(),{once:true});}
+  wi=(wi+1)%WORDS.length;
+  const n=document.createElement('span');
+  n.className='flip-word in';n.textContent=WORDS[wi];
+  fc.appendChild(n);
+},2200);
+</script>
+</body>
+</html>

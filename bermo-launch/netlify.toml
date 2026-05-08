@@ -1,0 +1,28 @@
+# BERMO Launch — Netlify config
+# This file lives inside the bermo-launch/ folder and is intended to be
+# the root config when this folder is moved into its own repo (Bermo.).
+
+[build]
+  publish = "."
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Netlify Forms auto-detect from any HTML form with data-netlify="true"
+# Two forms on the landing page:
+#   - waitlist-modal (the coming-soon popup)
+#   - waitlist (the inline form on the page)

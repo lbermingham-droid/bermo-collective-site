@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BERMO. — Business Card</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="../assets/css/global.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+  <style>
+    /* Print-specific layout: front and back side by side on screen, stacked for print */
+    .card-stage { background: var(--off); }
+    .card-row { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+    .card-side { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .card-label { font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); }
+  </style>
+</head>
+<body>
+
+  <nav class="nav no-print">
+    <div class="nav__inner">
+      <a href="../index.html" class="nav__logo wordmark">BERMO<span class="dot">.</span></a>
+      <a href="../index.html" class="nav__cta">Back to site
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+  </nav>
+
+  <section class="hero no-print">
+    <div class="wave-bg" aria-hidden="true"><div class="wave-bg__grain"></div></div>
+    <div class="container">
+      <span class="hero__eyebrow reveal"><span class="dot"></span> Print-ready · 3.5 × 2 in</span>
+      <h1 class="hero__h1 reveal" data-delay="1">The card.</h1>
+      <p class="hero__sub reveal" data-delay="2">
+        Cream front. Ink back. Cyan wave through both.
+        Open this page in Chrome. File → Print → Save as PDF.
+        Set margins to none. Send to your printer of choice.
+      </p>
+    </div>
+  </section>
+
+  <!-- Card preview -->
+  <section class="card-stage section">
+    <div class="card-row">
+
+      <div class="card-side">
+        <span class="card-label no-print">Front</span>
+        <div class="bcard bcard--front">
+          <div class="bcard__wave" aria-hidden="true"></div>
+          <div class="bcard__inner">
+            <div>
+              <div class="bcard__wordmark">BERMO<span class="dot">.</span></div>
+              <div class="bcard__tagline" style="margin-top: 6px; color: var(--ink-2);">Your growth engine. Under one roof.</div>
+            </div>
+            <div style="display: flex; align-items: flex-end; justify-content: space-between;">
+              <div class="bcard__tagline" style="color: var(--ink-3);">bermoco.com</div>
+            </div>
+          </div>
+          <img class="bcard__mascot" src="../assets/images/kiera-portrait.png" alt="" style="width:55%; bottom:-6px; right:-12px;" />
+        </div>
+      </div>
+
+      <div class="card-side">
+        <span class="card-label no-print">Back</span>
+        <div class="bcard bcard--back">
+          <div class="bcard__wave" aria-hidden="true"></div>
+          <div class="bcard__inner">
+            <div>
+              <div class="bcard__name">Lexi Bermingham</div>
+              <div class="bcard__role">Founder</div>
+            </div>
+            <div class="bcard__contact">
+              <span>lexi@bermoco.com</span>
+              <span>linkedin.com/in/lexibermingham</span>
+              <span>bermoco.com</span>
+            </div>
+          </div>
+          <img class="bcard__mascot" src="../assets/images/bb-portrait.png" alt="" style="width:30%; bottom:6px; right:8px; opacity:0.85;" />
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Print instructions -->
+  <section class="section bg-white no-print">
+    <div class="container">
+      <div class="section-head reveal">
+        <div class="section-head__label">Print specs</div>
+        <h2 class="section-head__h">Send to a printer.</h2>
+        <p class="section-head__sub">
+          Standard 3.5 × 2 inch with 0.125 inch bleed on all sides (3.75 × 2.25 trim).
+          300 dpi. Both sides print full bleed. Round corners optional.
+        </p>
+      </div>
+
+      <div class="bento">
+        <div class="cell cell--c4 reveal">
+          <div class="cell__label">Step 1</div>
+          <h3 class="cell__h">Open in Chrome.</h3>
+          <p class="cell__desc">Or any modern browser. Avoid Safari for printing — it scales unpredictably.</p>
+        </div>
+        <div class="cell cell--c4 reveal" data-delay="1">
+          <div class="cell__label">Step 2</div>
+          <h3 class="cell__h">File → Print.</h3>
+          <p class="cell__desc">Or ⌘ P (Mac) / Ctrl P (Windows). Select "Save as PDF" as the destination.</p>
+        </div>
+        <div class="cell cell--c4 reveal" data-delay="2">
+          <div class="cell__label">Step 3</div>
+          <h3 class="cell__h">Margins: None. Scale: 100%.</h3>
+          <p class="cell__desc">Background graphics: ON. Save the PDF. Send to MOO, Vistaprint, or your local printer.</p>
+        </div>
+      </div>
+
+      <div class="mt-32 reveal" data-delay="3">
+        <div class="trust">
+          <span class="trust__item">3.5 × 2 in trim</span>
+          <span class="trust__item">0.125 in bleed</span>
+          <span class="trust__item">300 dpi</span>
+          <span class="trust__item">Inter Tight 700 + Montserrat 900</span>
+          <span class="trust__item">CMYK safe palette</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer no-print">
+    <div class="container">
+      <div class="footer__bottom">
+        <span>© 2026 BERMO.</span>
+        <a href="../index.html" style="color:var(--cyan);">Back to launch site →</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BERMO — The Translation Engine</title>
+<meta name="description" content="Watch a generic brand get translated into clarity in real time. BERMO.COLLECTIVE — Growth breaks when translation breaks.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter+Tight:wght@700;800;900&family=Inter:wght@400;500;600;700&family=Montserrat:wght@900&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     BERMO — THE TRANSLATION ENGINE
+     Self-contained, dependency-free. The <section class="te">,
+     this <style> block, and the <script> at the bottom are the
+     only three things that need to move onto the contact page.
+     All selectors are namespaced with .te / te- to avoid
+     collisions when transplanted.
+     ========================================================= */
+  :root{
+    --te-cyan:#00f5d4; --te-lime:#c8f500; --te-pink:#ff2d7a;
+    --te-black:#0a0a0a; --te-white:#ffffff; --te-cream:#f0efe9;
+    --te-gray:#888; --te-lgray:#e2e0db;
+    --te-ease:cubic-bezier(.16,1,.3,1);
+    --te-spring:cubic-bezier(.34,1.56,.64,1);
+  }
+  /* page chrome only — NOT part of the portable component */
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--te-black);font-family:'Inter',sans-serif;color:#fff;}
+  .page-note{max-width:760px;margin:48px auto 0;padding:0 24px;text-align:center;}
+  .page-note h1{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(22px,4vw,34px);letter-spacing:-.03em;margin:0 0 10px;}
+  .page-note p{color:#9a9a96;font-size:14px;line-height:1.6;margin:0;}
+
+  /* ============ PORTABLE COMPONENT STARTS ============ */
+  .te{
+    --pad:clamp(20px,4vw,56px);
+    position:relative; width:100%; max-width:1180px;
+    margin:56px auto; padding:0 24px;
+    font-family:'Inter',sans-serif;
+  }
+  .te-stage{
+    position:relative; width:100%;
+    aspect-ratio:16/10; min-height:480px;
+    border-radius:20px; overflow:hidden;
+    background:var(--te-black);
+    box-shadow:0 40px 120px -40px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06);
+    isolation:isolate;
+  }
+  @media(max-width:680px){ .te-stage{aspect-ratio:auto; height:78vh; min-height:560px;} }
+
+  /* grain overlay (same recipe as site hero) */
+  .te-grain{position:absolute;inset:0;z-index:40;pointer-events:none;mix-blend-mode:overlay;opacity:.5;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");}
+
+  /* ---- ACT LAYERS ---- */
+  .te-act{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .6s var(--te-ease);z-index:1;}
+  .te-act.is-active{opacity:1;visibility:visible;z-index:2;}
+
+  /* ===== The fake "stranger" website (Acts 1 & 2) ===== */
+  .te-mock{position:absolute;inset:0;display:flex;flex-direction:column;background:#fbfbf9;color:#1c1c1c;
+    transition:filter 1s var(--te-ease), transform 1s var(--te-ease);}
+  .te-stage[data-act="2"] .te-mock{filter:grayscale(1) contrast(.92) brightness(.96);}
+  .te-mock-bar{display:flex;align-items:center;gap:8px;padding:11px 16px;background:#ececea;border-bottom:1px solid #dadad6;}
+  .te-dot{width:11px;height:11px;border-radius:50%;background:#cfcfca;}
+  .te-url{flex:1;margin-left:10px;background:#fff;border-radius:7px;padding:6px 12px;font-size:12px;color:#9b9b95;font-family:'Inter',sans-serif;}
+  .te-mock-nav{display:flex;align-items:center;justify-content:space-between;padding:18px clamp(20px,4vw,46px);}
+  .te-mock-logo{font-family:'Inter',sans-serif;font-weight:700;font-size:clamp(15px,2vw,19px);color:#3a3a3a;letter-spacing:.02em;}
+  .te-mock-links{display:flex;gap:clamp(12px,2.5vw,30px);font-size:13px;color:#8a8a8a;}
+  @media(max-width:560px){.te-mock-links{display:none;}}
+  .te-mock-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:clamp(16px,4vw,40px);gap:18px;}
+  .te-mock-kicker{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#b3b3ad;}
+  .te-mock-h{font-family:'Inter',sans-serif;font-weight:700;font-size:clamp(22px,4.4vw,46px);line-height:1.1;color:#2c2c2c;max-width:14ch;letter-spacing:-.01em;}
+  .te-mock-p{font-size:clamp(13px,1.7vw,16px);color:#9a9a93;max-width:46ch;line-height:1.6;}
+  .te-mock-cta{display:flex;gap:12px;margin-top:6px;}
+  .te-mock-btn{padding:11px 22px;border-radius:7px;font-size:13px;font-weight:600;}
+  .te-mock-btn.ghost{background:transparent;border:1px solid #cfcfca;color:#8a8a8a;}
+  .te-mock-btn.fill{background:#d8d8d2;color:#7a7a72;}
+
+  /* ===== Act 1 countdown + verdict ===== */
+  .te-timer{position:absolute;top:14px;right:14px;z-index:25;display:flex;align-items:center;gap:9px;
+    background:rgba(10,10,10,.82);backdrop-filter:blur(6px);border-radius:999px;padding:7px 15px 7px 11px;}
+  .te-timer-ring{position:relative;width:30px;height:30px;}
+  .te-timer-ring svg{transform:rotate(-90deg);}
+  .te-timer-ring circle{fill:none;stroke-width:3;}
+  .te-timer-ring .bg{stroke:rgba(255,255,255,.16);}
+  .te-timer-ring .fg{stroke:var(--te-cyan);stroke-linecap:round;stroke-dasharray:88;stroke-dashoffset:0;transition:stroke-dashoffset .25s linear;}
+  .te-timer-num{position:absolute;inset:0;display:grid;place-items:center;font-family:'Inter Tight',sans-serif;font-weight:800;font-size:13px;color:#fff;}
+  .te-timer-label{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.6);font-weight:600;}
+
+  .te-verdict{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;gap:14px;padding:32px;background:rgba(10,10,10,.55);backdrop-filter:blur(2px);
+    opacity:0;visibility:hidden;transition:opacity .7s var(--te-ease);}
+  .te-verdict.show{opacity:1;visibility:visible;}
+  .te-verdict h3{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(26px,5vw,52px);letter-spacing:-.03em;margin:0;line-height:1;color:#fff;}
+  .te-verdict h3 em{font-style:normal;color:var(--te-pink);}
+  .te-verdict p{margin:0;color:rgba(255,255,255,.72);font-size:clamp(13px,1.8vw,16px);max-width:40ch;line-height:1.6;}
+
+  /* ===== Act 2 hotspots ===== */
+  .te-hot{position:absolute;z-index:22;width:30px;height:30px;border-radius:50%;border:0;cursor:pointer;
+    background:var(--te-pink);color:#fff;display:grid;place-items:center;font-size:18px;font-weight:700;line-height:1;
+    box-shadow:0 0 0 0 rgba(255,45,122,.55);animation:te-pulse 2s infinite var(--te-ease);transition:transform .3s var(--te-spring);}
+  .te-hot:hover{transform:scale(1.12);}
+  .te-hot.found{background:var(--te-cyan);color:var(--te-black);animation:none;box-shadow:0 0 0 4px rgba(0,245,212,.22);}
+  @keyframes te-pulse{0%{box-shadow:0 0 0 0 rgba(255,45,122,.5);}70%{box-shadow:0 0 0 16px rgba(255,45,122,0);}100%{box-shadow:0 0 0 0 rgba(255,45,122,0);}}
+  .te-tip{position:absolute;z-index:23;background:var(--te-black);color:#fff;border-radius:10px;padding:10px 13px;
+    width:max-content;max-width:200px;font-size:12px;line-height:1.45;box-shadow:0 12px 30px -10px rgba(0,0,0,.6);
+    opacity:0;transform:translateY(6px) scale(.96);transition:all .35s var(--te-spring);pointer-events:none;border:1px solid rgba(255,255,255,.1);}
+  .te-tip strong{color:var(--te-cyan);display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;}
+  .te-tip.show{opacity:1;transform:translateY(0) scale(1);}
+  .te-counter{position:absolute;left:14px;bottom:14px;z-index:24;display:flex;align-items:center;gap:10px;
+    background:rgba(10,10,10,.82);backdrop-filter:blur(6px);color:#fff;border-radius:999px;padding:8px 16px;font-size:12px;font-weight:600;letter-spacing:.04em;}
+  .te-counter b{font-family:'Inter Tight',sans-serif;font-weight:900;color:var(--te-cyan);font-size:14px;}
+  .te-prompt{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);z-index:24;
+    font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:rgba(0,0,0,.55);font-weight:600;
+    animation:te-bob 2.2s infinite var(--te-ease);}
+  @keyframes te-bob{0%,100%{transform:translate(-50%,0);}50%{transform:translate(-50%,-5px);}}
+
+  /* ===== Act 3 transformation ===== */
+  .te-after{position:absolute;inset:0;background:
+    radial-gradient(ellipse 70% 80% at 88% 6%,rgba(255,255,255,.7),rgba(255,255,255,.05) 45%,transparent 65%),var(--te-cyan);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:18px;padding:32px;
+    clip-path:inset(0 100% 0 0);transition:clip-path 1.5s var(--te-ease);}
+  .te-stage[data-act="3"] .te-after, .te-stage[data-act="4"] .te-after{clip-path:inset(0 0 0 0);}
+  .te-scan{position:absolute;top:0;bottom:0;width:3px;z-index:15;left:-5%;
+    background:linear-gradient(180deg,transparent,#fff,transparent);
+    box-shadow:0 0 24px 6px rgba(255,255,255,.85);opacity:0;}
+  .te-stage[data-act="3"] .te-scan{animation:te-sweep 1.5s var(--te-ease) forwards;}
+  @keyframes te-sweep{0%{left:-5%;opacity:1;}90%{opacity:1;}100%{left:105%;opacity:0;}}
+
+  .te-chips{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;max-width:540px;}
+  .te-chip{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:clamp(12px,1.6vw,15px);letter-spacing:.06em;
+    text-transform:uppercase;padding:6px 13px;border-radius:999px;background:rgba(10,10,10,.9);color:#fff;
+    opacity:0;transform:translateY(14px) scale(.9);}
+  .te-stage[data-act="3"] .te-chip, .te-stage[data-act="4"] .te-chip{opacity:1;transform:translateY(0) scale(1);
+    transition:all .6s var(--te-spring) calc(.5s + var(--i,0)*.07s);}
+  .te-chip.brand{background:var(--te-black);color:var(--te-cyan);}
+
+  .te-after-logo{font-family:'Montserrat',sans-serif;font-weight:900;font-size:clamp(56px,12vw,140px);line-height:.85;
+    letter-spacing:-.04em;text-transform:uppercase;color:var(--te-black);opacity:0;transform:scale(.92);}
+  .te-after-logo .c{color:var(--te-black);opacity:.55;}
+  .te-stage[data-act="3"] .te-after-logo, .te-stage[data-act="4"] .te-after-logo{opacity:1;transform:scale(1);transition:all .8s var(--te-spring) .9s;}
+  .te-after-h{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(20px,3.4vw,40px);letter-spacing:-.02em;
+    color:var(--te-black);margin:0;opacity:0;transform:translateY(12px);}
+  .te-stage[data-act="3"] .te-after-h, .te-stage[data-act="4"] .te-after-h{opacity:1;transform:none;transition:all .7s var(--te-ease) 1.3s;}
+
+  /* ===== Act 4 handoff ===== */
+  .te-handoff{position:absolute;inset:0;z-index:6;background:var(--te-black);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:24px;padding:clamp(24px,5vw,56px);
+    opacity:0;visibility:hidden;transition:opacity .8s var(--te-ease);}
+  .te-stage[data-act="4"] .te-handoff{opacity:1;visibility:visible;}
+  .te-handoff .kick{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--te-cyan);font-weight:600;}
+  .te-handoff h2{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(24px,4.6vw,52px);line-height:1.05;
+    letter-spacing:-.03em;margin:0;max-width:18ch;color:#fff;}
+  .te-handoff h2 em{font-style:normal;color:var(--te-cyan);}
+  .te-form{display:flex;gap:10px;width:min(520px,100%);flex-wrap:wrap;justify-content:center;}
+  .te-input{flex:1;min-width:200px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);border-radius:10px;
+    padding:15px 18px;color:#fff;font-size:15px;font-family:'Inter',sans-serif;}
+  .te-input::placeholder{color:rgba(255,255,255,.4);}
+  .te-input:focus{outline:none;border-color:var(--te-cyan);box-shadow:0 0 0 3px rgba(0,245,212,.18);}
+  .te-submit{background:var(--te-cyan);color:var(--te-black);border:0;border-radius:10px;padding:15px 26px;
+    font-weight:800;font-size:15px;font-family:'Inter Tight',sans-serif;letter-spacing:-.01em;cursor:pointer;
+    transition:transform .25s var(--te-spring),box-shadow .25s var(--te-ease);}
+  .te-submit:hover{transform:translateY(-2px);box-shadow:0 14px 30px -10px rgba(0,245,212,.5);}
+  .te-microcopy{font-size:12px;color:rgba(255,255,255,.45);}
+  .te-microcopy b{color:rgba(255,255,255,.7);font-weight:600;}
+
+  /* ===== shared controls ===== */
+  .te-controls{position:absolute;left:0;right:0;bottom:14px;z-index:35;display:flex;align-items:center;justify-content:center;gap:18px;pointer-events:none;}
+  .te-dots{display:flex;gap:8px;pointer-events:auto;}
+  .te-dotbtn{width:8px;height:8px;border-radius:50%;border:0;padding:0;cursor:pointer;background:rgba(255,255,255,.28);transition:all .3s var(--te-ease);}
+  .te-dotbtn.active{width:24px;border-radius:6px;background:var(--te-cyan);}
+  .te-stage[data-act="1"] .te-controls,.te-stage[data-act="2"] .te-controls{position:absolute;top:14px;left:50%;right:auto;transform:translateX(-50%);bottom:auto;}
+  .te-replay{pointer-events:auto;position:absolute;right:14px;bottom:14px;z-index:36;display:none;align-items:center;gap:7px;
+    background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:999px;padding:8px 15px;
+    font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
+  .te-stage[data-act="4"] .te-replay{display:flex;}
+  .te-replay svg{width:14px;height:14px;}
+
+  /* start veil */
+  .te-veil{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+    background:var(--te-black);text-align:center;padding:32px;transition:opacity .6s var(--te-ease);}
+  .te-veil.hide{opacity:0;visibility:hidden;}
+  .te-veil .kick{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--te-cyan);font-weight:600;}
+  .te-veil h2{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(24px,4.4vw,46px);letter-spacing:-.03em;margin:0;max-width:20ch;line-height:1.05;}
+  .te-veil h2 em{font-style:normal;color:var(--te-cyan);}
+  .te-start{background:var(--te-cyan);color:var(--te-black);border:0;border-radius:999px;padding:14px 30px;font-weight:800;
+    font-size:15px;font-family:'Inter Tight',sans-serif;cursor:pointer;transition:transform .25s var(--te-spring);}
+  .te-start:hover{transform:scale(1.04);}
+
+  /* reduced motion: collapse to static before/after + CTA */
+  @media(prefers-reduced-motion:reduce){
+    .te-hot,.te-scan,.te-chip,.te-after-logo,.te-after-h,.te-prompt{animation:none!important;transition:none!important;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="page-note">
+    <h1>The Translation Engine</h1>
+    <p>Preview build. This entire experience is one portable <code style="color:#00f5d4">&lt;section class="te"&gt;</code> — ready to drop onto the contact page. Scroll it into view to start, or press play.</p>
+  </div>
+
+  <!-- ============ PORTABLE COMPONENT ============ -->
+  <section class="te" aria-label="Interactive brand demo: The Translation Engine">
+    <div class="te-stage" id="teStage" data-act="0" data-audit-url="bermo-audit.html">
+
+      <!-- grain -->
+      <div class="te-grain"></div>
+
+      <!-- ===== START VEIL ===== -->
+      <div class="te-veil" id="teVeil">
+        <span class="kick">BERMO.COLLECTIVE</span>
+        <h2>What is your business saying when <em>you're not in the room?</em></h2>
+        <button class="te-start" id="teStart" type="button">Run the 15-second test &nbsp;&rarr;</button>
+      </div>
+
+      <!-- ===== ACT 1 + 2 share the mock site ===== -->
+      <div class="te-act" data-layer="mock">
+        <div class="te-mock" id="teMock">
+          <div class="te-mock-bar"><span class="te-dot"></span><span class="te-dot"></span><span class="te-dot"></span><span class="te-url">yourbrand.com</span></div>
+          <div class="te-mock-nav">
+            <span class="te-mock-logo" data-hot="logo">YOUR BRAND NAME</span>
+            <span class="te-mock-links"><span>About</span><span>Services</span><span>Blog</span><span>Contact</span></span>
+          </div>
+          <div class="te-mock-body">
+            <span class="te-mock-kicker" data-hot="value">Innovative Solutions</span>
+            <h2 class="te-mock-h" data-hot="headline">We provide innovative solutions for businesses looking to grow.</h2>
+            <p class="te-mock-p" data-hot="copy">We leverage cutting-edge technology and strategic thinking to deliver results that matter for your growing business needs.</p>
+            <div class="te-mock-cta" data-hot="cta">
+              <span class="te-mock-btn ghost">Learn More</span>
+              <span class="te-mock-btn fill">Contact Us</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Act 1 timer -->
+        <div class="te-timer" id="teTimer" hidden>
+          <div class="te-timer-ring">
+            <svg width="30" height="30" viewBox="0 0 30 30"><circle class="bg" cx="15" cy="15" r="14"/><circle class="fg" id="teRing" cx="15" cy="15" r="14"/></svg>
+            <span class="te-timer-num" id="teNum">15</span>
+          </div>
+          <span class="te-timer-label">watching like<br>a stranger</span>
+        </div>
+
+        <!-- Act 1 verdict -->
+        <div class="te-verdict" id="teVerdict">
+          <h3>What do you remember?<br><em>Nothing.</em></h3>
+          <p>15 seconds. That's all you get — and this brand just wasted every one of them.</p>
+        </div>
+
+        <!-- Act 2 chrome -->
+        <div class="te-counter" id="teCounter" hidden><span>Blind spots uncovered</span><b id="teFound">0</b>/5</div>
+        <div class="te-prompt" id="tePrompt" hidden>Click the hotspots a stranger sees</div>
+      </div>
+
+      <!-- ===== ACT 3 + 4 brand "after" ===== -->
+      <div class="te-act" data-layer="after">
+        <div class="te-scan"></div>
+        <div class="te-after">
+          <div class="te-chips" id="teChips">
+            <span class="te-chip" style="--i:0">Brand</span>
+            <span class="te-chip" style="--i:1">Strategy</span>
+            <span class="te-chip" style="--i:2">AI Leverage</span>
+            <span class="te-chip" style="--i:3">Sales</span>
+            <span class="te-chip" style="--i:4">Hiring</span>
+            <span class="te-chip" style="--i:5">Content</span>
+          </div>
+          <div class="te-after-logo">BERMO<span class="c">.</span></div>
+          <h2 class="te-after-h">This is what clarity looks like.</h2>
+        </div>
+      </div>
+
+      <!-- ===== ACT 4 handoff ===== -->
+      <div class="te-handoff">
+        <span class="kick">Your turn</span>
+        <h2>What is <em>your</em> business saying when you're not in the room?</h2>
+        <form class="te-form" id="teForm">
+          <input class="te-input" id="teBrand" type="text" placeholder="yourbrand.com" aria-label="Your website or brand name" autocomplete="off">
+          <button class="te-submit" type="submit">Get my Free Brand Audit</button>
+        </form>
+        <p class="te-microcopy"><b>10 questions. ~2 minutes. No cost.</b> &nbsp;Human-led. AI-leveraged.</p>
+      </div>
+
+      <!-- controls -->
+      <div class="te-controls">
+        <div class="te-dots" id="teDots">
+          <button class="te-dotbtn" data-go="1" aria-label="Act 1: The 15-second test"></button>
+          <button class="te-dotbtn" data-go="2" aria-label="Act 2: The brand autopsy"></button>
+          <button class="te-dotbtn" data-go="3" aria-label="Act 3: The translation"></button>
+          <button class="te-dotbtn" data-go="4" aria-label="Act 4: Your audit"></button>
+        </div>
+      </div>
+      <button class="te-replay" id="teReplay" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>Replay</button>
+
+    </div>
+  </section>
+  <!-- ============ /PORTABLE COMPONENT ============ -->
+
+<script>
+(function(){
+  const stage   = document.getElementById('teStage');
+  if(!stage) return;
+  const veil    = document.getElementById('teVeil');
+  const startBtn= document.getElementById('teStart');
+  const timer   = document.getElementById('teTimer');
+  const ring    = document.getElementById('teRing');
+  const num     = document.getElementById('teNum');
+  const verdict = document.getElementById('teVerdict');
+  const counter = document.getElementById('teCounter');
+  const foundEl = document.getElementById('teFound');
+  const prompt  = document.getElementById('tePrompt');
+  const mock    = document.getElementById('teMock');
+  const chips   = document.getElementById('teChips');
+  const dots    = Array.from(document.querySelectorAll('.te-dotbtn'));
+  const replay  = document.getElementById('teReplay');
+  const form    = document.getElementById('teForm');
+  const reduce  = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const RING_LEN = 2 * Math.PI * 14; // ~88
+
+  // Annotations a stranger "sees" — what each weak spot communicates.
+  const HOTS = {
+    logo:    {label:'The logo', text:'Generic wordmark. Says nothing, remembers nothing.', x:'18%', y:'30%'},
+    value:   {label:'The value prop', text:'"Innovative solutions" — a phrase every brand uses, so no one does.', x:'50%', y:'40%'},
+    headline:{label:'The headline', text:'Describes you, not the customer. No tension, no promise.', x:'50%', y:'52%'},
+    copy:    {label:'The body', text:'Buzzwords stacked on buzzwords. A stranger checks out here.', x:'50%', y:'64%'},
+    cta:     {label:'The CTA', text:'"Contact Us" with no reason and no urgency to act.', x:'50%', y:'76%'}
+  };
+
+  let acts = [];      // act layers
+  let timers = [];    // pending timeouts (cleared on reset/replay)
+  let found = new Set();
+  let started = false;
+
+  function later(fn, ms){ const id = setTimeout(fn, ms); timers.push(id); return id; }
+  function clearTimers(){ timers.forEach(clearTimeout); timers = []; }
+
+  function setAct(n){
+    stage.setAttribute('data-act', n);
+    document.querySelectorAll('.te-act').forEach(a=>a.classList.remove('is-active'));
+    // mock layer is shared by act 1 & 2; after layer by act 3 & 4
+    if(n===1||n===2) document.querySelector('[data-layer="mock"]').classList.add('is-active');
+    if(n===3||n===4) document.querySelector('[data-layer="after"]').classList.add('is-active');
+    dots.forEach((d,i)=>d.classList.toggle('active', i === n-1));
+  }
+
+  // ---------- ACT 1 ----------
+  function runAct1(){
+    setAct(1);
+    timer.hidden = false; verdict.classList.remove('show');
+    let t = 15;
+    num.textContent = t; ring.style.strokeDashoffset = '0';
+    const step = ()=>{
+      t--;
+      num.textContent = Math.max(t,0);
+      ring.style.strokeDashoffset = String(RING_LEN * (1 - t/15));
+      if(t>0){ later(step, reduce?60:300); }
+      else { later(showVerdict, 250); }
+    };
+    later(step, reduce?60:300);
+  }
+  function showVerdict(){
+    verdict.classList.add('show');
+    later(()=>{ verdict.classList.remove('show'); timer.hidden = true; runAct2(); }, reduce?400:1900);
+  }
+
+  // ---------- ACT 2 ----------
+  function placeHotspots(){
+    // remove any prior
+    stage.querySelectorAll('.te-hot,.te-tip').forEach(e=>e.remove());
+    Object.keys(HOTS).forEach(key=>{
+      const h = HOTS[key];
+      const btn = document.createElement('button');
+      btn.className='te-hot'; btn.type='button'; btn.textContent='+';
+      btn.style.left=h.x; btn.style.top=h.y; btn.style.transform='translate(-50%,-50%)';
+      btn.setAttribute('aria-label', 'Reveal: '+h.label);
+      const tip = document.createElement('div');
+      tip.className='te-tip'; tip.style.left=h.x; tip.style.top=`calc(${h.y} + 26px)`;
+      tip.style.transform='translateX(-50%)';
+      tip.innerHTML = `<strong>${h.label}</strong>${h.text}`;
+      const reveal = ()=>{
+        if(found.has(key)) return;
+        found.add(key); btn.classList.add('found'); btn.textContent='✓';
+        tip.classList.add('show'); foundEl.textContent = found.size;
+        if(found.size===5){ prompt.textContent='Now watch the fix →'; later(runAct3, 1100); }
+      };
+      btn.addEventListener('click', reveal);
+      btn.addEventListener('mouseenter', ()=>{ if(!found.has(key)) tip.classList.add('show'); });
+      stage.appendChild(btn); stage.appendChild(tip);
+    });
+  }
+  function runAct2(){
+    setAct(2);
+    found.clear(); foundEl.textContent='0';
+    counter.hidden=false; prompt.hidden=false; prompt.textContent='Click the hotspots a stranger sees';
+    placeHotspots();
+    if(reduce){ // auto-reveal for reduced motion
+      Object.keys(HOTS).forEach(k=>found.add(k)); foundEl.textContent='5';
+      stage.querySelectorAll('.te-tip').forEach(t=>t.classList.add('show'));
+      stage.querySelectorAll('.te-hot').forEach(b=>{b.classList.add('found');b.textContent='✓';});
+      later(runAct3, 600);
+    }
+  }
+
+  // ---------- ACT 3 ----------
+  function runAct3(){
+    counter.hidden=true; prompt.hidden=true;
+    stage.querySelectorAll('.te-hot,.te-tip').forEach(e=>e.remove());
+    setAct(3);
+    later(runAct4, reduce?400:3600);
+  }
+
+  // ---------- ACT 4 ----------
+  function runAct4(){ setAct(4); }
+
+  // ---------- control / reset ----------
+  function reset(toAct){
+    clearTimers();
+    found.clear(); foundEl.textContent='0';
+    counter.hidden=true; prompt.hidden=true; timer.hidden=true; verdict.classList.remove('show');
+    stage.querySelectorAll('.te-hot,.te-tip').forEach(e=>e.remove());
+    if(toAct===1) runAct1();
+    else if(toAct===2) runAct2();
+    else if(toAct===3) runAct3();
+    else if(toAct===4) runAct4();
+  }
+
+  function begin(){
+    if(started) return; started = true;
+    veil.classList.add('hide');
+    later(()=> reduce ? runAct4() : runAct1(), 500);
+  }
+
+  startBtn.addEventListener('click', begin);
+  replay.addEventListener('click', ()=>{ started=true; reset(1); });
+  dots.forEach(d=> d.addEventListener('click', ()=>{
+    started=true; veil.classList.add('hide'); reset(parseInt(d.dataset.go,10));
+  }));
+
+  form.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const url = stage.getAttribute('data-audit-url') || 'bermo-audit.html';
+    const brand = document.getElementById('teBrand').value.trim();
+    window.location.href = brand ? `${url}?brand=${encodeURIComponent(brand)}` : url;
+  });
+
+  // auto-start when scrolled into view (once)
+  if('IntersectionObserver' in window){
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(en=>{ if(en.isIntersecting && !started){ begin(); io.disconnect(); } });
+    }, {threshold:0.6});
+    io.observe(stage);
+  }
+})();
+</script>
+</body>
+</html>

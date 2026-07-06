@@ -23,31 +23,27 @@ body{background:#141414;font-family:'Inter',sans-serif;display:flex;flex-directi
 .bar{position:absolute;top:64px;left:80px;right:80px;display:flex;justify-content:space-between;align-items:center;z-index:3;}
 .cover .bar{left:120px;right:120px;}
 .wordmark{font:900 34px 'Montserrat',sans-serif;letter-spacing:1px;color:var(--ink);}
-.site{font:600 17px 'Inter',sans-serif;letter-spacing:0.5px;color:rgba(10,10,10,0.55);}
 .dark .wordmark{color:var(--off);}
-.dark .site{color:rgba(245,245,240,0.55);}
 /* footer nav */
 .next{position:absolute;bottom:56px;left:50%;transform:translateX(-50%);width:64px;height:64px;border-radius:50%;background:var(--ink);color:var(--cyan);display:flex;align-items:center;justify-content:center;font:700 28px 'Inter',sans-serif;z-index:3;}
 .dark .next{background:var(--cyan);color:var(--ink);}
-.pager{position:absolute;bottom:70px;right:80px;font:700 17px 'Barlow Condensed',sans-serif;letter-spacing:3px;color:rgba(10,10,10,0.45);z-index:3;}
-.dark .pager{color:rgba(245,245,240,0.5);}
+.pager{position:absolute;bottom:70px;right:80px;font:700 17px 'Barlow Condensed',sans-serif;letter-spacing:3px;color:var(--ink);z-index:3;}
+.dark .pager{color:var(--off);}
 /* content area: centered, fills the canvas */
 .content{flex:1;display:flex;flex-direction:column;justify-content:flex-start;padding-top:72px;align-items:center;text-align:center;gap:46px;width:100%;}
 /* type */
-.kicker{font:700 22px 'Barlow Condensed',sans-serif;letter-spacing:7px;text-transform:uppercase;color:rgba(10,10,10,0.6);}
-.dark .kicker{color:rgba(245,245,240,0.6);}
+.kicker{font:700 22px 'Barlow Condensed',sans-serif;letter-spacing:7px;text-transform:uppercase;color:var(--ink);}
+.dark .kicker{color:var(--cyan);}
 h1{font:900 92px/1.05 'Inter Tight',sans-serif;letter-spacing:-2.5px;text-wrap:balance;width:100%;}
 h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:balance;width:100%;}
 .dark h1,.dark h2{color:var(--off);}
 /* emphasis: cyan highlight box on offwhite only, cyan text on dark, plain on mint */
 .light .hl{background:var(--cyan);padding:0 14px;box-decoration-break:clone;-webkit-box-decoration-break:clone;}
 .dark .hl{color:var(--cyan);}
-.body{font:500 32px/1.5 'Inter',sans-serif;color:rgba(10,10,10,0.82);text-wrap:pretty;max-width:880px;}
+.body{font:500 32px/1.5 'Inter',sans-serif;color:var(--ink);text-wrap:pretty;max-width:880px;}
 .body b{font-weight:700;color:var(--ink);}
-.dark .body{color:rgba(245,245,240,0.85);}
+.dark .body{color:var(--off);}
 .dark .body b{color:#fff;}
-.hand{font:700 36px 'Caveat',cursive;color:rgba(10,10,10,0.75);}
-.dark .hand{color:rgba(245,245,240,0.8);}
 /* CTA button */
 .cta{display:inline-flex;align-items:center;gap:14px;background:var(--ink);color:var(--cyan);font:800 30px 'Inter Tight',sans-serif;padding:26px 52px;border-radius:16px;box-shadow:0 14px 40px rgba(10,10,10,0.35);}
 .dark .cta{background:var(--cyan);color:var(--ink);box-shadow:0 14px 40px rgba(0,229,196,0.25);}
@@ -270,6 +266,9 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .rrow:last-child{margin-bottom:0;}
 .rrow .ri{width:44px;height:44px;border-radius:10px;background:#0a0a0a;border:1px solid rgba(0,245,212,0.35);color:var(--cyan);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
 .rrow p{font:600 21px 'Inter',sans-serif;color:#e6e6e6;flex:1;text-align:left;}
+/* middle slides (not cover, not CTA closer): one text size outside UI, every post */
+.slide.mid h2{font-size:46px;line-height:1.3;letter-spacing:-1px;}
+.slide.mid .body{font-size:46px;line-height:1.35;max-width:920px;}
 /* mint posts: one size, one weight, left aligned outside UI on non-cover slides */
 .mint:not(.cover) .content{align-items:flex-start;text-align:left;}
 .mint:not(.cover) h2{font:900 50px/1.28 'Inter Tight',sans-serif;letter-spacing:-1.2px;}
@@ -387,14 +386,14 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 """
 
 def header():
-    return ('<div class="bar"><div class="wordmark">BERMO.</div>'
-            '<div class="site">bermoco.com</div></div>')
+    return '<div class="bar"><div class="wordmark">BERMO.</div></div>'
 
 def slide(bg, body, idx, total, cover=False):
     nxt = '<div class="next">&#8594;</div>' if idx < total else ''
     pager = f'<div class="pager">{idx} / {total}</div>'
     cov = ' cover' if cover else ''
-    return (f'<div class="slide {bg}{cov}">{header()}'
+    mid = ' mid' if (not cover and idx < total) else ''
+    return (f'<div class="slide {bg}{cov}{mid}">{header()}'
             f'<div class="content">{body}</div>{nxt}{pager}</div>')
 
 # ============ UI components, each used exactly once across all six posts ============
@@ -802,7 +801,7 @@ posts["post-2-why-founders-use-bermo.html"] = page(
   slide("light", """
      <h2>When you are too close to the brand, it can be hard to see what is <span class="hl">right in front of you.</span></h2>
      <p class="body">It can be hard to see what is truly stalling growth and what the next step should be, because you are closing deals, running the team, and putting out fires all at once.</p>
-     <p class="hand">Every founder we work with knows this feeling.</p>""", 2, 5),
+     <p class="body"><b>Every founder we work with knows this feeling.</b></p>""", 2, 5),
   slide("light", f"""
      <h2>The bottleneck hides in <span class="hl">plain sight.</span></h2>
      <p class="body">It might be messaging, your website, the systems behind the scenes, your target market, or hires that need training, and it is rarely the loudest one.</p>
@@ -866,7 +865,7 @@ posts["post-4-how-bermo-does-it.html"] = page(
   slide("light", """
      <h2>Step three is the right work, done in the <span class="hl">right order.</span></h2>
      <p class="body">Whether it is brand, website, AI, CRM, content, hiring or training, we do the work with you, one right move at a time.</p>
-     <p class="hand">No guessing, no busywork, just the next right move.</p>""", 4, 5),
+     <p class="body"><b>No guessing, no busywork, just the next right move.</b></p>""", 4, 5),
   slide("light", f"""
      <h2>Stop guessing, spend smarter, and <span class="hl">move faster.</span></h2>
      {CHART}
@@ -915,7 +914,7 @@ posts["post-6-not-in-the-room.html"] = page(
   slide("dark", """
      <h2>When those pieces do not line up, buyers <span class="hl">feel it fast.</span></h2>
      <p class="body">The website says one thing, the pitch says another, and the follow up goes quiet, so each piece looks fine on its own while together they cost you the deal.</p>
-     <p class="hand">Buyers rarely tell you, they just move on.</p>""", 3, 5),
+     <p class="body"><b>Buyers rarely tell you, they just move on.</b></p>""", 3, 5),
   slide("dark", f"""
      <h2>BERMO. shows you what buyers <span class="hl">actually see.</span></h2>
      <p class="body">What is coming across, what is getting missed, and what needs to change first.</p>

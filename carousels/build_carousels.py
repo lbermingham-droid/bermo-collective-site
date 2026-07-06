@@ -270,6 +270,64 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .rrow:last-child{margin-bottom:0;}
 .rrow .ri{width:44px;height:44px;border-radius:10px;background:#0a0a0a;border:1px solid rgba(0,245,212,0.35);color:var(--cyan);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
 .rrow p{font:600 21px 'Inter',sans-serif;color:#e6e6e6;flex:1;text-align:left;}
+/* mint posts: uniform text size outside UI on non-cover slides */
+.mint:not(.cover) h2{font-size:44px;line-height:1.3;letter-spacing:-1px;}
+.mint:not(.cover) .body{font-size:44px;line-height:1.4;max-width:900px;}
+.mint:not(.cover) .hand{font-size:46px;}
+/* hero composite (post 1 cover) */
+.hero{position:relative;width:100%;height:580px;}
+.hero-main{position:absolute;left:60px;right:60px;top:60px;bottom:44px;background:#0d0d0d;border:1px solid rgba(255,255,255,0.09);border-radius:24px;box-shadow:0 34px 80px rgba(10,10,10,0.4);padding:30px 32px;text-align:left;}
+.hero-kpis{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;}
+.hero-kpi{background:#161616;border-radius:12px;padding:16px 18px;}
+.hero-kpi .kl{font:600 13px 'Inter',sans-serif;letter-spacing:1px;text-transform:uppercase;color:#8a8a8a;}
+.hero-kpi .kv{font:900 32px 'Inter Tight',sans-serif;color:#fff;margin-top:6px;}
+.hero-kpi .kv em{font-style:normal;color:var(--cyan);}
+.hero-rows .hr1{display:flex;align-items:center;gap:12px;background:#161616;border-radius:10px;padding:13px 16px;margin-bottom:9px;}
+.hero-rows .hr1 .hd{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.hero-rows .hr1 p{font:500 17px 'Inter',sans-serif;color:#dedede;flex:1;}
+.hero-rows .hr1 .ht{font:600 14px 'Inter',sans-serif;color:#8a8a8a;}
+.hero-float{position:absolute;background:#fff;border-radius:16px;box-shadow:0 24px 56px rgba(10,10,10,0.30);border:1px solid rgba(10,10,10,0.06);text-align:left;}
+.hero-chart{top:0;right:0;width:250px;padding:20px;transform:rotate(3deg);}
+.hero-chart .hc1{font:600 15px 'Inter',sans-serif;color:rgba(10,10,10,0.55);}
+.hero-chart .hc2{font:900 30px 'Inter Tight',sans-serif;color:var(--ink);margin:2px 0 8px;}
+.hero-msg{bottom:0;left:0;width:330px;padding:18px 20px;transform:rotate(-3deg);display:flex;gap:12px;align-items:flex-start;}
+.hero-msg .ico{width:36px;height:36px;border-radius:10px;background:var(--ink);color:var(--cyan);display:flex;align-items:center;justify-content:center;font:800 16px 'Inter Tight',sans-serif;flex-shrink:0;}
+.hero-msg p{font:500 17px/1.4 'Inter',sans-serif;color:var(--ink);}
+/* services board (post 1, the shop) */
+.shopboard{padding:32px;}
+.svc{display:flex;align-items:center;gap:16px;background:#f6f6f2;border:1px solid rgba(10,10,10,0.05);border-radius:13px;padding:15px 18px;margin-bottom:10px;}
+.svc .sno{font:800 17px 'Barlow Condensed',sans-serif;color:rgba(10,10,10,0.4);width:30px;flex-shrink:0;}
+.svc .snm{font:700 21px 'Inter Tight',sans-serif;color:var(--ink);flex:1;text-align:left;}
+.svc .sds{font:500 16px 'Inter',sans-serif;color:rgba(10,10,10,0.5);text-align:left;flex:1.4;}
+.packs{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-top:18px;}
+.pack{background:var(--ink);border-radius:12px;padding:16px 14px;text-align:left;}
+.pack .pk1{font:800 18px 'Inter Tight',sans-serif;color:#fff;}
+.pack .pk2{font:500 14px/1.35 'Inter',sans-serif;color:#9a9a9a;margin-top:5px;}
+.pack.first{background:var(--cyan);}
+.pack.first .pk1{color:var(--ink);}
+.pack.first .pk2{color:rgba(10,10,10,0.65);}
+/* work board, monday style (post 5 cover) */
+.wb{padding:30px 32px;}
+.wb-cols{display:grid;grid-template-columns:1.5fr 70px 150px 1fr;gap:12px;align-items:center;padding:0 16px 10px;}
+.wb-cols span{font:700 13px 'Barlow Condensed',sans-serif;letter-spacing:2px;text-transform:uppercase;color:#8a8a8a;text-align:left;}
+.wb-row{display:grid;grid-template-columns:1.5fr 70px 150px 1fr;gap:12px;align-items:center;background:#161616;border-radius:12px;padding:14px 16px;margin-bottom:10px;border-left:5px solid #2c2c2c;}
+.wb-row.c1{border-left-color:var(--cyan);}
+.wb-row.c2{border-left-color:#ffb020;}
+.wb-row .wt{font:600 19px 'Inter',sans-serif;color:#f0f0f0;text-align:left;}
+.wb-row .wav{width:34px;height:34px;border-radius:50%;background:#242424;color:#cfcfcf;font:700 13px 'Inter',sans-serif;display:flex;align-items:center;justify-content:center;}
+.wb-row .wst{font:700 15px 'Inter',sans-serif;border-radius:8px;padding:9px 0;text-align:center;}
+.wb-row .wst.done{background:var(--cyan);color:var(--ink);}
+.wb-row .wst.doing{background:#ffb020;color:#3a2800;}
+.wb-row .wst.q{background:#242424;color:#9a9a9a;}
+.wb-row .wtl{height:12px;border-radius:6px;background:#242424;overflow:hidden;}
+.wb-row .wtl i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#00c9ab,#00f5d4);}
+/* results receipts (post 5 close) */
+.rcpt{padding:34px 36px;}
+.rc-row{display:flex;align-items:center;gap:18px;border-bottom:1px solid rgba(255,255,255,0.08);padding:17px 4px;}
+.rc-row:last-child{border-bottom:none;}
+.rc-row .rcv{font:900 34px 'Inter Tight',sans-serif;color:var(--cyan);width:190px;flex-shrink:0;text-align:left;}
+.rc-row p{font:500 21px 'Inter',sans-serif;color:#e6e6e6;flex:1;text-align:left;}
+.rc-row .rck{color:var(--cyan);font-size:24px;}
 """
 
 def header():
@@ -457,20 +515,20 @@ TEAM = """<div class="ui card-w team">
 
 CMP = """<div class="ui" style="display:flex;gap:22px;">
   <div class="card-w" style="flex:1;padding:34px 28px;text-align:left;">
-    <div style="font:700 17px 'Barlow Condensed',sans-serif;letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;color:rgba(10,10,10,0.5);">One early hire</div>
-    <div style="font:900 38px 'Inter Tight',sans-serif;letter-spacing:-1px;">One skill set</div>
+    <div style="font:700 17px 'Barlow Condensed',sans-serif;letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;color:rgba(10,10,10,0.5);">The usual way</div>
+    <div style="font:900 38px 'Inter Tight',sans-serif;letter-spacing:-1px;">Ten tools, five vendors</div>
     <ul style="list-style:none;margin-top:18px;">
-      <li style="font:500 20px/1.45 'Inter',sans-serif;color:rgba(10,10,10,0.65);padding:7px 0;">&#8594;&nbsp; Salary plus benefits</li>
-      <li style="font:500 20px/1.45 'Inter',sans-serif;color:rgba(10,10,10,0.65);padding:7px 0;">&#8594;&nbsp; Weeks to ramp up</li>
-      <li style="font:500 20px/1.45 'Inter',sans-serif;color:rgba(10,10,10,0.65);padding:7px 0;">&#8594;&nbsp; Covers one gap only</li>
+      <li style="font:500 20px/1.45 'Inter',sans-serif;color:rgba(10,10,10,0.65);padding:7px 0;">&#8594;&nbsp; Everyone sells their own lane</li>
+      <li style="font:500 20px/1.45 'Inter',sans-serif;color:rgba(10,10,10,0.65);padding:7px 0;">&#8594;&nbsp; No one owns the order</li>
+      <li style="font:500 20px/1.45 'Inter',sans-serif;color:rgba(10,10,10,0.65);padding:7px 0;">&#8594;&nbsp; Budget chases the loudest symptom</li>
     </ul>
   </div>
   <div class="card-d" style="flex:1;padding:34px 28px;text-align:left;">
     <div style="font:700 17px 'Barlow Condensed',sans-serif;letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;color:#00f5d4;">BERMO.</div>
-    <div style="font:900 38px 'Inter Tight',sans-serif;letter-spacing:-1px;color:#fff;">Whole growth team</div>
+    <div style="font:900 38px 'Inter Tight',sans-serif;letter-spacing:-1px;color:#fff;">One team, one plan</div>
     <ul style="list-style:none;margin-top:18px;">
+      <li style="font:500 20px/1.45 'Inter',sans-serif;color:rgba(255,255,255,0.8);padding:7px 0;"><span style="color:#00f5d4;">&#8594;</span>&nbsp; The gap decides the order</li>
       <li style="font:500 20px/1.45 'Inter',sans-serif;color:rgba(255,255,255,0.8);padding:7px 0;"><span style="color:#00f5d4;">&#8594;</span>&nbsp; 5 day specialist deploy</li>
-      <li style="font:500 20px/1.45 'Inter',sans-serif;color:rgba(255,255,255,0.8);padding:7px 0;"><span style="color:#00f5d4;">&#8594;</span>&nbsp; Every skill, one plan</li>
       <li style="font:500 20px/1.45 'Inter',sans-serif;color:rgba(255,255,255,0.8);padding:7px 0;"><span style="color:#00f5d4;">&#8594;</span>&nbsp; Scales up or down with you</li>
     </ul>
   </div>
@@ -520,6 +578,60 @@ REPORT = """<div class="ui card-d report">
   <div class="rrow"><div class="ri">1</div><p>The first fix, and why it pays back fastest</p></div>
 </div>"""
 
+HERO = """<div class="ui hero">
+  <div class="hero-main">
+    <div class="uihead" style="margin-bottom:18px;"><span class="t" style="color:#fff;">BERMO. HQ</span><span class="utag cy">Live</span></div>
+    <div class="hero-kpis">
+      <div class="hero-kpi"><div class="kl">Active projects</div><div class="kv">4</div></div>
+      <div class="hero-kpi"><div class="kl">Open deals</div><div class="kv">10</div></div>
+      <div class="hero-kpi"><div class="kl">This month</div><div class="kv"><em>+$18K</em></div></div>
+    </div>
+    <div class="hero-rows">
+      <div class="hr1"><span class="hd" style="background:#00f5d4;"></span><p>Homepage rebuild shipped to production</p><span class="ht">Today</span></div>
+      <div class="hr1"><span class="hd" style="background:#ffb020;"></span><p>Two vetted candidates ready for review</p><span class="ht">9:00</span></div>
+      <div class="hr1"><span class="hd" style="background:#ffb020;"></span><p>Follow up queued for the Hilton intro</p><span class="ht">11:30</span></div>
+      <div class="hr1"><span class="hd" style="background:#00f5d4;"></span><p>Gap Scan report sent to a new founder</p><span class="ht">Done</span></div>
+    </div>
+  </div>
+  <div class="hero-float hero-chart">
+    <div class="hc1">Revenue</div><div class="hc2">Up 50%+</div>
+    <svg width="100%" height="52" viewBox="0 0 210 52"><path d="M4 46 C 55 44, 95 34, 130 24 S 190 6, 206 4" fill="none" stroke="#00e5c4" stroke-width="5" stroke-linecap="round"/><path d="M4 46 C 55 44, 95 34, 130 24 S 190 6, 206 4 L206 52 L4 52 Z" fill="rgba(0,229,196,0.16)"/></svg>
+  </div>
+  <div class="hero-float hero-msg"><div class="ico">S</div><p><b>Shadow.</b> Your proposal is drafted and your follow ups are queued.</p></div>
+</div>"""
+
+SHOPBOARD = """<div class="ui card-w shopboard">
+  <div class="uihead"><span class="t">The Bermo Shop</span><span class="utag cy">All in one place</span></div>
+  <div class="svc"><span class="sno">01</span><span class="snm">Brand Growth, Strategy + Execution</span><span class="sds">We decide what matters, then we actually do it</span></div>
+  <div class="svc"><span class="sno">02</span><span class="snm">AI Translation</span><span class="sds">Use AI without losing your voice</span></div>
+  <div class="svc"><span class="sno">03</span><span class="snm">Brand Positioning + Social Content</span><span class="sds">Positioning that is instantly understood</span></div>
+  <div class="svc"><span class="sno">04</span><span class="snm">Hiring + Affiliate Marketing</span><span class="sds">The right people, at the right time</span></div>
+  <div class="svc"><span class="sno">05</span><span class="snm">Immersive + Experience Marketing</span><span class="sds">Pop ups and events that turn attention into demand</span></div>
+  <div class="packs">
+    <div class="pack first"><div class="pk1">The Try On</div><div class="pk2">Free audit and intro call</div></div>
+    <div class="pack"><div class="pk1">The Edit</div><div class="pk2">Strategy session and custom plan</div></div>
+    <div class="pack"><div class="pk1">The Launch</div><div class="pk2">A 12 week brand build</div></div>
+    <div class="pack"><div class="pk1">The Drop</div><div class="pk2">Fractional executive support</div></div>
+  </div>
+</div>"""
+
+WORKBOARD = """<div class="ui card-d wb">
+  <div class="uihead"><span class="t">This week, your startup &times; BERMO.</span><span class="utag cy">On track</span></div>
+  <div class="wb-cols"><span>Work</span><span>Owner</span><span>Status</span><span>Timeline</span></div>
+  <div class="wb-row c1"><span class="wt">Messaging rewrite</span><span class="wav">LB</span><span class="wst done">Shipped</span><span class="wtl"><i style="width:100%;"></i></span></div>
+  <div class="wb-row c2"><span class="wt">Homepage rebuild</span><span class="wav">WD</span><span class="wst doing">In motion</span><span class="wtl"><i style="width:64%;"></i></span></div>
+  <div class="wb-row c2"><span class="wt">CRM follow up flows</span><span class="wav">AE</span><span class="wst doing">In motion</span><span class="wtl"><i style="width:38%;"></i></span></div>
+  <div class="wb-row"><span class="wt">Vetted hiring shortlist</span><span class="wav">RC</span><span class="wst q">Queued</span><span class="wtl"><i style="width:12%;"></i></span></div>
+</div>"""
+
+RECEIPTS = """<div class="ui card-d rcpt">
+  <div class="uihead"><span class="t">Real results, real numbers</span><span class="utag cy">Verified</span></div>
+  <div class="rc-row"><span class="rcv">$25K</span><p>saved for a hospitality founder in week one</p><span class="rck">&#10003;</span></div>
+  <div class="rc-row"><span class="rcv">$130K</span><p>saved for an AI startup founder in month one</p><span class="rck">&#10003;</span></div>
+  <div class="rc-row"><span class="rcv">98%</span><p>of our permanent placements stay</p><span class="rck">&#10003;</span></div>
+  <div class="rc-row"><span class="rcv">5 days</span><p>to deploy a specialist, not weeks</p><span class="rck">&#10003;</span></div>
+</div>"""
+
 HIRECHECK = """<div class="ui card-w hire">
   <div class="uihead"><span class="t">Hire readiness check</span><span class="utag cy">Ready</span></div>
   <div class="cand"><div class="cav" style="background:#00c9ab;">&#10003;</div><div class="cm"><div class="cn">The gap is mapped</div><div class="cr">You know what is stalling revenue</div></div></div>
@@ -540,32 +652,34 @@ def page(title, note, slides):
 
 posts = {}
 
-# ---------------- POST 1 : Who is BERMO.? (mint) ----------------
+# ---------------- POST 1 : Who is BERMO.? (mint, 6 slides) ----------------
 posts["post-1-who-is-bermo.html"] = page(
  "BERMO. Carousel · Post 1 · Who is BERMO.?",
- "5 slides · 1080&times;1350 · mint",
+ "6 slides · 1080&times;1350 · mint",
  [
   slide("mint", f"""
      <div class="kicker">The Growth Store for Founder Led Companies</div>
      <h1>Who is BERMO.?</h1>
-     {STORE}""", 1, 5, cover=True),
+     {HERO}""", 1, 6, cover=True),
   slide("mint", """
-     <h2>We help founder led companies grow revenue.</h2>
-     <p class="body">BERMO. is your one stop shop for all of your growth needs. Sometimes that is the solution you already know you need. Sometimes it is us finding what is stalling growth, before you spend time or money fixing something that was never the gap.</p>
-     <p class="hand">One partner. Every piece talking to each other.</p>""", 2, 5),
+     <h2>We help founder led companies grow revenue, all under one roof.</h2>
+     <p class="body">BERMO. is your one stop shop for all of your growth needs, whether that is the solution you already know you need, or us finding what is stalling growth before you spend on something that was never the gap.</p>
+     <p class="hand">One partner, with every piece talking to each other.</p>""", 2, 6),
   slide("mint", f"""
-     <h2>Growth can stall anywhere.</h2>
-     <p class="body">Website, brand, messaging, social, AI workflows, CRM, hiring, training, SEO, GEO, even your target market. BERMO. organizes what matters most first, so the business moves together.</p>
-     {AREAS}""", 3, 5),
+     <h2>Here is everything we offer, in one shop.</h2>
+     {SHOPBOARD}""", 3, 6),
   slide("mint", f"""
-     <h2>We find the gap. We map the fix. You see the ROI.</h2>
-     <p class="body">Not ten random tools. Not five disconnected vendors. Just the work that actually moves the business, in the right order.</p>
-     {SAVE}""", 4, 5),
+     <h2>Growth can stall anywhere in the business, and it is rarely where the noise is.</h2>
+     <p class="body">It could be your website, brand, messaging, social, AI workflows, CRM, hiring, or even your target market, so we organize what matters most first.</p>
+     {AREAS}""", 4, 6),
   slide("mint", f"""
-     <h2>Gap scan first. Then the right next move.</h2>
-     <p class="body">Free, no pitch, just the gaps. See what is stalling your revenue this week.</p>
+     <h2>We find the gap, we map the fix, and you see the ROI.</h2>
+     {SAVE}""", 5, 6),
+  slide("mint", f"""
+     <h2>The Gap Scan comes first, and the right next move follows.</h2>
+     <p class="body">It is free, with no pitch, just the gaps that are stalling your revenue this week.</p>
      {SCANSUM}
-     {CTA_SCAN}""", 5, 5),
+     {CTA_SCAN}""", 6, 6),
  ])
 
 # ---------------- POST 2 : Why do founders use BERMO.? (offwhite) ----------------
@@ -578,22 +692,22 @@ posts["post-2-why-founders-use-bermo.html"] = page(
      <h1>Why do founders use <span class="hl">BERMO.</span>?</h1>
      {BRIEF}""", 1, 5, cover=True),
   slide("light", """
-     <h2>When you are deep in the business, it is hard to see what is <span class="hl">slowing growth.</span></h2>
-     <p class="body">You are closing deals, running the team, and putting out fires. Getting that close to the work makes the real bottleneck almost impossible to spot from the inside.</p>
+     <h2>When you are too close to the brand, it can be hard to see what is <span class="hl">right in front of you.</span></h2>
+     <p class="body">It can be hard to see what is truly stalling growth and what the next step should be, because you are closing deals, running the team, and putting out fires all at once.</p>
      <p class="hand">Every founder we work with knows this feeling.</p>""", 2, 5),
   slide("light", f"""
      <h2>The bottleneck hides in <span class="hl">plain sight.</span></h2>
-     <p class="body">It might be messaging, your website, the systems behind the scenes, your target market, or hires that need training. It is rarely the loudest one.</p>
+     <p class="body">It might be messaging, your website, the systems behind the scenes, your target market, or hires that need training, and it is rarely the loudest one.</p>
      {FUNNEL}""", 3, 5),
   slide("light", f"""
      <h2>BERMO. finds the gap and puts the work <span class="hl">in the right order.</span></h2>
      <p class="body">So your money goes where it will actually grow revenue, not where the noise is loudest.</p>
      {PLAN}""", 4, 5),
   slide("light", f"""
-     <h2>Stop paying for the loudest symptom. Start investing in what <span class="hl">drives growth.</span></h2>
+     <h2>Stop paying for the loudest symptom, and start investing in what <span class="hl">drives growth.</span></h2>
      {TILES}
      {CTA_SCAN}
-     <p class="body">Free, no pitch, just the gaps. bermoco.com</p>""", 5, 5),
+     <p class="body">It is free, with no pitch, just the gaps, at bermoco.com.</p>""", 5, 5),
  ])
 
 # ---------------- POST 3 : What does BERMO. actually help with? (dark) ----------------
@@ -606,20 +720,20 @@ posts["post-3-what-bermo-helps-with.html"] = page(
      <h1>What does BERMO. <span class="hl">actually</span> help with?</h1>
      {SHOP}""", 1, 5, cover=True),
   slide("dark", f"""
-     <h2>Get <span class="hl">found.</span> Get understood.</h2>
-     <p class="body">Website, SEO, GEO and AI discovery, so people can find you and understand you. Buyers now ask AI before they ever hit your site. We make sure you show up in both places.</p>
+     <h2>Get <span class="hl">found,</span> and get understood.</h2>
+     <p class="body">We handle website, SEO, GEO and AI discovery, so people can find you and understand you. Buyers now ask AI before they ever hit your site, so we make sure you show up in both places.</p>
      {AISEARCH}""", 2, 5),
   slide("dark", f"""
      <h2>Stay clear when you are <span class="hl">not in the room.</span></h2>
-     <p class="body">Branding, messaging and content, built in your voice. Your business keeps saying the right thing while you are heads down running it.</p>
+     <p class="body">We build branding, messaging and content in your voice, so your business keeps saying the right thing while you are heads down running it.</p>
      {LINKEDIN}""", 3, 5),
   slide("dark", f"""
      <h2>Run smoother <span class="hl">behind the scenes.</span></h2>
-     <p class="body">Systems, CRM, AI workflows and training, so follow ups happen, data stays in one place, and nothing slips.</p>
+     <p class="body">We set up systems, CRM, AI workflows and training, so follow ups happen, data stays in one place, and nothing slips.</p>
      {CRM}""", 4, 5),
   slide("dark", f"""
-     <h2>And when you need people, <span class="hl">the right help.</span></h2>
-     <p class="body">Hiring and execution support in the right place, at the right time.</p>
+     <h2>And when you need people, we bring <span class="hl">the right help.</span></h2>
+     <p class="body">We bring hiring and execution support in the right place, at the right time, with people who are vetted and matched to the plan.</p>
      {HIRE}
      <div><span class="cta">Shop your growth stack &#8594;</span></div>""", 5, 5),
  ])
@@ -634,49 +748,46 @@ posts["post-4-how-bermo-does-it.html"] = page(
      <h1>How does BERMO. <span class="hl">do it?</span></h1>
      {STEPPER}""", 1, 5, cover=True),
   slide("light", f"""
-     <h2>Step 1. The <span class="hl">Gap Scan.</span></h2>
-     <p class="body">BERMO. reads your business the way a buyer does, then shows you exactly what is stalling growth. Free, no pitch, just the gaps.</p>
+     <h2>Step one is the free <span class="hl">Gap Scan.</span></h2>
+     <p class="body">BERMO. reads your business the way a buyer does, then shows you exactly what is stalling growth, free, with no pitch, just the gaps.</p>
      {SCAN}""", 2, 5),
   slide("light", f"""
-     <h2>Step 2. A blueprint you can <span class="hl">actually use.</span></h2>
-     <p class="body">The scan becomes a clear plan. What to fix, what to skip, and what order pays you back fastest.</p>
+     <h2>Step two is a blueprint you can <span class="hl">actually use.</span></h2>
+     <p class="body">The scan becomes a clear plan that shows what to fix, what to skip, and which order pays you back fastest.</p>
      {BOARD}""", 3, 5),
   slide("light", """
-     <h2>Step 3. The right work, in the <span class="hl">right order.</span></h2>
-     <p class="body">Brand, website, AI, CRM, content, hiring or training. We do the work with you, one right move at a time.</p>
-     <p class="hand">No guessing. No busywork. Just the next right move.</p>""", 4, 5),
+     <h2>Step three is the right work, done in the <span class="hl">right order.</span></h2>
+     <p class="body">Whether it is brand, website, AI, CRM, content, hiring or training, we do the work with you, one right move at a time.</p>
+     <p class="hand">No guessing, no busywork, just the next right move.</p>""", 4, 5),
   slide("light", f"""
-     <h2>Stop guessing. Spend smarter. <span class="hl">Move faster.</span></h2>
+     <h2>Stop guessing, spend smarter, and <span class="hl">move faster.</span></h2>
      {CHART}
      {CTA_SCAN}
-     <p class="body">bermoco.com</p>""", 5, 5),
+     <p class="body">It all starts at bermoco.com.</p>""", 5, 5),
  ])
 
-# ---------------- POST 5 : Why BERMO. instead of hiring too early? (mint) ----------------
-posts["post-5-before-you-hire.html"] = page(
- "BERMO. Carousel · Post 5 · Why BERMO. instead of hiring too early?",
+# ---------------- POST 5 : What makes BERMO. different? (mint) ----------------
+posts["post-5-what-makes-bermo-different.html"] = page(
+ "BERMO. Carousel · Post 5 · What makes BERMO. different?",
  "5 slides · 1080&times;1350 · mint",
  [
   slide("mint", f"""
-     <div class="kicker">Before Your Next Hire</div>
-     <h1>Why BERMO. instead of hiring too early?</h1>
-     {TEAM}""", 1, 5, cover=True),
+     <div class="kicker">Human Led. AI Leveraged.</div>
+     <h1>What makes BERMO. different?</h1>
+     {WORKBOARD}""", 1, 5, cover=True),
   slide("mint", """
-     <h2>Most founders hire before they know what the business actually needs.</h2>
-     <p class="body">A salary is a twelve month commitment to one skill set. Growth usually needs three or four different skills in the same quarter, and the mix changes as you grow.</p>
-     <p class="hand">The gap moves. A single hire cannot chase it.</p>""", 2, 5),
+     <h2>Most founder led businesses do not stall because of demand, they stall because the pieces are not aligned.</h2>
+     <p class="body">BERMO. steps inside your business, clarifies what matters most, and then actually does the work with you.</p>
+     <p class="hand">We are human led and AI leveraged, and your voice stays yours.</p>""", 2, 5),
   slide("mint", f"""
-     <h2>BERMO. is your entire growth team, under one roof.</h2>
-     <p class="body">Brand, website, AI, CRM, content, hiring and training, working as one team on the same plan.</p>
-     {CMP}""", 3, 5),
+     <h2>You get your entire growth team under one roof, working on the same plan.</h2>
+     {TEAM}""", 3, 5),
   slide("mint", f"""
-     <h2>Then your team takes it over, ready to run.</h2>
-     <p class="body">When the time is right we help you make the hire, and it sticks. 98% of our permanent placements stay.</p>
-     {PLACE}""", 4, 5),
+     <h2>You are not buying ten tools, you are getting one plan that puts money where it pays back first.</h2>
+     {CMP}""", 4, 5),
   slide("mint", f"""
-     <h2>Know the gap before you sign the offer letter.</h2>
-     <p class="body">The free Gap Scan shows what the business needs first, so your next hire lands on work that is ready for them.</p>
-     {HIRECHECK}
+     <h2>The results speak in real numbers, and the free Gap Scan is where it starts.</h2>
+     {RECEIPTS}
      {CTA_SCAN}""", 5, 5),
  ])
 
@@ -695,8 +806,8 @@ posts["post-6-not-in-the-room.html"] = page(
      {MAIL}""", 2, 5),
   slide("dark", """
      <h2>When those pieces do not line up, buyers <span class="hl">feel it fast.</span></h2>
-     <p class="body">The website says one thing. The pitch says another. The follow up goes quiet. Each piece is fine on its own, and together they cost you the deal.</p>
-     <p class="hand">Buyers rarely tell you. They just move on.</p>""", 3, 5),
+     <p class="body">The website says one thing, the pitch says another, and the follow up goes quiet, so each piece looks fine on its own while together they cost you the deal.</p>
+     <p class="hand">Buyers rarely tell you, they just move on.</p>""", 3, 5),
   slide("dark", f"""
      <h2>BERMO. shows you what buyers <span class="hl">actually see.</span></h2>
      <p class="body">What is coming across, what is getting missed, and what needs to change first.</p>
@@ -705,7 +816,7 @@ posts["post-6-not-in-the-room.html"] = page(
      <h2>Growth gets easier when your business says the <span class="hl">right thing.</span></h2>
      {REPORT}
      {CTA_SCAN}
-     <p class="body">Free, no pitch, just the gaps. bermoco.com</p>""", 5, 5),
+     <p class="body">It is free, with no pitch, just the gaps, at bermoco.com.</p>""", 5, 5),
  ])
 
 for name, html in posts.items():

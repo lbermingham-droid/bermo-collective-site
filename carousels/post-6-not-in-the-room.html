@@ -273,6 +273,64 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .rrow:last-child{margin-bottom:0;}
 .rrow .ri{width:44px;height:44px;border-radius:10px;background:#0a0a0a;border:1px solid rgba(0,245,212,0.35);color:var(--cyan);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
 .rrow p{font:600 21px 'Inter',sans-serif;color:#e6e6e6;flex:1;text-align:left;}
+/* mint posts: uniform text size outside UI on non-cover slides */
+.mint:not(.cover) h2{font-size:44px;line-height:1.3;letter-spacing:-1px;}
+.mint:not(.cover) .body{font-size:44px;line-height:1.4;max-width:900px;}
+.mint:not(.cover) .hand{font-size:46px;}
+/* hero composite (post 1 cover) */
+.hero{position:relative;width:100%;height:580px;}
+.hero-main{position:absolute;left:60px;right:60px;top:60px;bottom:44px;background:#0d0d0d;border:1px solid rgba(255,255,255,0.09);border-radius:24px;box-shadow:0 34px 80px rgba(10,10,10,0.4);padding:30px 32px;text-align:left;}
+.hero-kpis{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;}
+.hero-kpi{background:#161616;border-radius:12px;padding:16px 18px;}
+.hero-kpi .kl{font:600 13px 'Inter',sans-serif;letter-spacing:1px;text-transform:uppercase;color:#8a8a8a;}
+.hero-kpi .kv{font:900 32px 'Inter Tight',sans-serif;color:#fff;margin-top:6px;}
+.hero-kpi .kv em{font-style:normal;color:var(--cyan);}
+.hero-rows .hr1{display:flex;align-items:center;gap:12px;background:#161616;border-radius:10px;padding:13px 16px;margin-bottom:9px;}
+.hero-rows .hr1 .hd{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.hero-rows .hr1 p{font:500 17px 'Inter',sans-serif;color:#dedede;flex:1;}
+.hero-rows .hr1 .ht{font:600 14px 'Inter',sans-serif;color:#8a8a8a;}
+.hero-float{position:absolute;background:#fff;border-radius:16px;box-shadow:0 24px 56px rgba(10,10,10,0.30);border:1px solid rgba(10,10,10,0.06);text-align:left;}
+.hero-chart{top:0;right:0;width:250px;padding:20px;transform:rotate(3deg);}
+.hero-chart .hc1{font:600 15px 'Inter',sans-serif;color:rgba(10,10,10,0.55);}
+.hero-chart .hc2{font:900 30px 'Inter Tight',sans-serif;color:var(--ink);margin:2px 0 8px;}
+.hero-msg{bottom:0;left:0;width:330px;padding:18px 20px;transform:rotate(-3deg);display:flex;gap:12px;align-items:flex-start;}
+.hero-msg .ico{width:36px;height:36px;border-radius:10px;background:var(--ink);color:var(--cyan);display:flex;align-items:center;justify-content:center;font:800 16px 'Inter Tight',sans-serif;flex-shrink:0;}
+.hero-msg p{font:500 17px/1.4 'Inter',sans-serif;color:var(--ink);}
+/* services board (post 1, the shop) */
+.shopboard{padding:32px;}
+.svc{display:flex;align-items:center;gap:16px;background:#f6f6f2;border:1px solid rgba(10,10,10,0.05);border-radius:13px;padding:15px 18px;margin-bottom:10px;}
+.svc .sno{font:800 17px 'Barlow Condensed',sans-serif;color:rgba(10,10,10,0.4);width:30px;flex-shrink:0;}
+.svc .snm{font:700 21px 'Inter Tight',sans-serif;color:var(--ink);flex:1;text-align:left;}
+.svc .sds{font:500 16px 'Inter',sans-serif;color:rgba(10,10,10,0.5);text-align:left;flex:1.4;}
+.packs{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-top:18px;}
+.pack{background:var(--ink);border-radius:12px;padding:16px 14px;text-align:left;}
+.pack .pk1{font:800 18px 'Inter Tight',sans-serif;color:#fff;}
+.pack .pk2{font:500 14px/1.35 'Inter',sans-serif;color:#9a9a9a;margin-top:5px;}
+.pack.first{background:var(--cyan);}
+.pack.first .pk1{color:var(--ink);}
+.pack.first .pk2{color:rgba(10,10,10,0.65);}
+/* work board, monday style (post 5 cover) */
+.wb{padding:30px 32px;}
+.wb-cols{display:grid;grid-template-columns:1.5fr 70px 150px 1fr;gap:12px;align-items:center;padding:0 16px 10px;}
+.wb-cols span{font:700 13px 'Barlow Condensed',sans-serif;letter-spacing:2px;text-transform:uppercase;color:#8a8a8a;text-align:left;}
+.wb-row{display:grid;grid-template-columns:1.5fr 70px 150px 1fr;gap:12px;align-items:center;background:#161616;border-radius:12px;padding:14px 16px;margin-bottom:10px;border-left:5px solid #2c2c2c;}
+.wb-row.c1{border-left-color:var(--cyan);}
+.wb-row.c2{border-left-color:#ffb020;}
+.wb-row .wt{font:600 19px 'Inter',sans-serif;color:#f0f0f0;text-align:left;}
+.wb-row .wav{width:34px;height:34px;border-radius:50%;background:#242424;color:#cfcfcf;font:700 13px 'Inter',sans-serif;display:flex;align-items:center;justify-content:center;}
+.wb-row .wst{font:700 15px 'Inter',sans-serif;border-radius:8px;padding:9px 0;text-align:center;}
+.wb-row .wst.done{background:var(--cyan);color:var(--ink);}
+.wb-row .wst.doing{background:#ffb020;color:#3a2800;}
+.wb-row .wst.q{background:#242424;color:#9a9a9a;}
+.wb-row .wtl{height:12px;border-radius:6px;background:#242424;overflow:hidden;}
+.wb-row .wtl i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#00c9ab,#00f5d4);}
+/* results receipts (post 5 close) */
+.rcpt{padding:34px 36px;}
+.rc-row{display:flex;align-items:center;gap:18px;border-bottom:1px solid rgba(255,255,255,0.08);padding:17px 4px;}
+.rc-row:last-child{border-bottom:none;}
+.rc-row .rcv{font:900 34px 'Inter Tight',sans-serif;color:var(--cyan);width:190px;flex-shrink:0;text-align:left;}
+.rc-row p{font:500 21px 'Inter',sans-serif;color:#e6e6e6;flex:1;text-align:left;}
+.rc-row .rck{color:var(--cyan);font-size:24px;}
 </style></head><body>
 <div class="pagehead"><strong>BERMO. Carousel · Post 6 · What is your business saying when you are not in the room?</strong><br>5 slides · 1080&times;1350 · black</div>
 <div class="slide dark cover"><div class="bar"><div class="wordmark">BERMO.</div><div class="site">bermoco.com</div></div><div class="content">
@@ -300,8 +358,8 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 </div></div><div class="next">&#8594;</div><div class="pager">2 / 5</div></div>
 <div class="slide dark"><div class="bar"><div class="wordmark">BERMO.</div><div class="site">bermoco.com</div></div><div class="content">
      <h2>When those pieces do not line up, buyers <span class="hl">feel it fast.</span></h2>
-     <p class="body">The website says one thing. The pitch says another. The follow up goes quiet. Each piece is fine on its own, and together they cost you the deal.</p>
-     <p class="hand">Buyers rarely tell you. They just move on.</p></div><div class="next">&#8594;</div><div class="pager">3 / 5</div></div>
+     <p class="body">The website says one thing, the pitch says another, and the follow up goes quiet, so each piece looks fine on its own while together they cost you the deal.</p>
+     <p class="hand">Buyers rarely tell you, they just move on.</p></div><div class="next">&#8594;</div><div class="pager">3 / 5</div></div>
 <div class="slide dark"><div class="bar"><div class="wordmark">BERMO.</div><div class="site">bermoco.com</div></div><div class="content">
      <h2>BERMO. shows you what buyers <span class="hl">actually see.</span></h2>
      <p class="body">What is coming across, what is getting missed, and what needs to change first.</p>
@@ -324,5 +382,5 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
   <div class="rrow"><div class="ri">1</div><p>The first fix, and why it pays back fastest</p></div>
 </div>
      <div><span class="cta">Get my free Gap Scan &#8594;</span></div>
-     <p class="body">Free, no pitch, just the gaps. bermoco.com</p></div><div class="pager">5 / 5</div></div>
+     <p class="body">It is free, with no pitch, just the gaps, at bermoco.com.</p></div><div class="pager">5 / 5</div></div>
 </body></html>

@@ -273,26 +273,113 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .rrow:last-child{margin-bottom:0;}
 .rrow .ri{width:44px;height:44px;border-radius:10px;background:#0a0a0a;border:1px solid rgba(0,245,212,0.35);color:var(--cyan);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
 .rrow p{font:600 21px 'Inter',sans-serif;color:#e6e6e6;flex:1;text-align:left;}
+/* mint posts: uniform text size outside UI on non-cover slides */
+.mint:not(.cover) h2{font-size:44px;line-height:1.3;letter-spacing:-1px;}
+.mint:not(.cover) .body{font-size:44px;line-height:1.4;max-width:900px;}
+.mint:not(.cover) .hand{font-size:46px;}
+/* hero composite (post 1 cover) */
+.hero{position:relative;width:100%;height:580px;}
+.hero-main{position:absolute;left:60px;right:60px;top:60px;bottom:44px;background:#0d0d0d;border:1px solid rgba(255,255,255,0.09);border-radius:24px;box-shadow:0 34px 80px rgba(10,10,10,0.4);padding:30px 32px;text-align:left;}
+.hero-kpis{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;}
+.hero-kpi{background:#161616;border-radius:12px;padding:16px 18px;}
+.hero-kpi .kl{font:600 13px 'Inter',sans-serif;letter-spacing:1px;text-transform:uppercase;color:#8a8a8a;}
+.hero-kpi .kv{font:900 32px 'Inter Tight',sans-serif;color:#fff;margin-top:6px;}
+.hero-kpi .kv em{font-style:normal;color:var(--cyan);}
+.hero-rows .hr1{display:flex;align-items:center;gap:12px;background:#161616;border-radius:10px;padding:13px 16px;margin-bottom:9px;}
+.hero-rows .hr1 .hd{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.hero-rows .hr1 p{font:500 17px 'Inter',sans-serif;color:#dedede;flex:1;}
+.hero-rows .hr1 .ht{font:600 14px 'Inter',sans-serif;color:#8a8a8a;}
+.hero-float{position:absolute;background:#fff;border-radius:16px;box-shadow:0 24px 56px rgba(10,10,10,0.30);border:1px solid rgba(10,10,10,0.06);text-align:left;}
+.hero-chart{top:0;right:0;width:250px;padding:20px;transform:rotate(3deg);}
+.hero-chart .hc1{font:600 15px 'Inter',sans-serif;color:rgba(10,10,10,0.55);}
+.hero-chart .hc2{font:900 30px 'Inter Tight',sans-serif;color:var(--ink);margin:2px 0 8px;}
+.hero-msg{bottom:0;left:0;width:330px;padding:18px 20px;transform:rotate(-3deg);display:flex;gap:12px;align-items:flex-start;}
+.hero-msg .ico{width:36px;height:36px;border-radius:10px;background:var(--ink);color:var(--cyan);display:flex;align-items:center;justify-content:center;font:800 16px 'Inter Tight',sans-serif;flex-shrink:0;}
+.hero-msg p{font:500 17px/1.4 'Inter',sans-serif;color:var(--ink);}
+/* services board (post 1, the shop) */
+.shopboard{padding:32px;}
+.svc{display:flex;align-items:center;gap:16px;background:#f6f6f2;border:1px solid rgba(10,10,10,0.05);border-radius:13px;padding:15px 18px;margin-bottom:10px;}
+.svc .sno{font:800 17px 'Barlow Condensed',sans-serif;color:rgba(10,10,10,0.4);width:30px;flex-shrink:0;}
+.svc .snm{font:700 21px 'Inter Tight',sans-serif;color:var(--ink);flex:1;text-align:left;}
+.svc .sds{font:500 16px 'Inter',sans-serif;color:rgba(10,10,10,0.5);text-align:left;flex:1.4;}
+.packs{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-top:18px;}
+.pack{background:var(--ink);border-radius:12px;padding:16px 14px;text-align:left;}
+.pack .pk1{font:800 18px 'Inter Tight',sans-serif;color:#fff;}
+.pack .pk2{font:500 14px/1.35 'Inter',sans-serif;color:#9a9a9a;margin-top:5px;}
+.pack.first{background:var(--cyan);}
+.pack.first .pk1{color:var(--ink);}
+.pack.first .pk2{color:rgba(10,10,10,0.65);}
+/* work board, monday style (post 5 cover) */
+.wb{padding:30px 32px;}
+.wb-cols{display:grid;grid-template-columns:1.5fr 70px 150px 1fr;gap:12px;align-items:center;padding:0 16px 10px;}
+.wb-cols span{font:700 13px 'Barlow Condensed',sans-serif;letter-spacing:2px;text-transform:uppercase;color:#8a8a8a;text-align:left;}
+.wb-row{display:grid;grid-template-columns:1.5fr 70px 150px 1fr;gap:12px;align-items:center;background:#161616;border-radius:12px;padding:14px 16px;margin-bottom:10px;border-left:5px solid #2c2c2c;}
+.wb-row.c1{border-left-color:var(--cyan);}
+.wb-row.c2{border-left-color:#ffb020;}
+.wb-row .wt{font:600 19px 'Inter',sans-serif;color:#f0f0f0;text-align:left;}
+.wb-row .wav{width:34px;height:34px;border-radius:50%;background:#242424;color:#cfcfcf;font:700 13px 'Inter',sans-serif;display:flex;align-items:center;justify-content:center;}
+.wb-row .wst{font:700 15px 'Inter',sans-serif;border-radius:8px;padding:9px 0;text-align:center;}
+.wb-row .wst.done{background:var(--cyan);color:var(--ink);}
+.wb-row .wst.doing{background:#ffb020;color:#3a2800;}
+.wb-row .wst.q{background:#242424;color:#9a9a9a;}
+.wb-row .wtl{height:12px;border-radius:6px;background:#242424;overflow:hidden;}
+.wb-row .wtl i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#00c9ab,#00f5d4);}
+/* results receipts (post 5 close) */
+.rcpt{padding:34px 36px;}
+.rc-row{display:flex;align-items:center;gap:18px;border-bottom:1px solid rgba(255,255,255,0.08);padding:17px 4px;}
+.rc-row:last-child{border-bottom:none;}
+.rc-row .rcv{font:900 34px 'Inter Tight',sans-serif;color:var(--cyan);width:190px;flex-shrink:0;text-align:left;}
+.rc-row p{font:500 21px 'Inter',sans-serif;color:#e6e6e6;flex:1;text-align:left;}
+.rc-row .rck{color:var(--cyan);font-size:24px;}
 </style></head><body>
-<div class="pagehead"><strong>BERMO. Carousel · Post 1 · Who is BERMO.?</strong><br>5 slides · 1080&times;1350 · mint</div>
+<div class="pagehead"><strong>BERMO. Carousel · Post 1 · Who is BERMO.?</strong><br>6 slides · 1080&times;1350 · mint</div>
 <div class="slide mint cover"><div class="bar"><div class="wordmark">BERMO.</div><div class="site">bermoco.com</div></div><div class="content">
      <div class="kicker">The Growth Store for Founder Led Companies</div>
      <h1>Who is BERMO.?</h1>
-     <div class="ui store">
-  <div class="prod"><span class="add">+ Add</span><div class="pico">&#9881;</div><div class="pt">AI + Automation</div><div class="pd">Custom agents, integrations and workflows built around you</div></div>
-  <div class="prod"><span class="add">+ Add</span><div class="pico">&#9639;</div><div class="pt">Website, UI and UX</div><div class="pd">A site built to convert, with copy that sells</div></div>
-  <div class="prod"><span class="add">+ Add</span><div class="pico">&#9740;</div><div class="pt">AI Discovery</div><div class="pd">SEO, GEO and AEO. Get found and chosen in AI search</div></div>
-  <div class="prod"><span class="add">+ Add</span><div class="pico">&#9998;</div><div class="pt">Brand + Messaging</div><div class="pd">Positioning translated so buyers actually get it</div></div>
-  <div class="prod"><span class="add">+ Add</span><div class="pico">&#9654;</div><div class="pt">Content + Social</div><div class="pd">Founder led content in your voice, every week</div></div>
-  <div class="prod"><span class="add">+ Add</span><div class="pico">&#10035;</div><div class="pt">Strategy + Hiring</div><div class="pd">Scale plans, warm GTM intros and vetted permanent hires</div></div>
-</div></div><div class="next">&#8594;</div><div class="pager">1 / 5</div></div>
+     <div class="ui hero">
+  <div class="hero-main">
+    <div class="uihead" style="margin-bottom:18px;"><span class="t" style="color:#fff;">BERMO. HQ</span><span class="utag cy">Live</span></div>
+    <div class="hero-kpis">
+      <div class="hero-kpi"><div class="kl">Active projects</div><div class="kv">4</div></div>
+      <div class="hero-kpi"><div class="kl">Open deals</div><div class="kv">10</div></div>
+      <div class="hero-kpi"><div class="kl">This month</div><div class="kv"><em>+$18K</em></div></div>
+    </div>
+    <div class="hero-rows">
+      <div class="hr1"><span class="hd" style="background:#00f5d4;"></span><p>Homepage rebuild shipped to production</p><span class="ht">Today</span></div>
+      <div class="hr1"><span class="hd" style="background:#ffb020;"></span><p>Two vetted candidates ready for review</p><span class="ht">9:00</span></div>
+      <div class="hr1"><span class="hd" style="background:#ffb020;"></span><p>Follow up queued for the Hilton intro</p><span class="ht">11:30</span></div>
+      <div class="hr1"><span class="hd" style="background:#00f5d4;"></span><p>Gap Scan report sent to a new founder</p><span class="ht">Done</span></div>
+    </div>
+  </div>
+  <div class="hero-float hero-chart">
+    <div class="hc1">Revenue</div><div class="hc2">Up 50%+</div>
+    <svg width="100%" height="52" viewBox="0 0 210 52"><path d="M4 46 C 55 44, 95 34, 130 24 S 190 6, 206 4" fill="none" stroke="#00e5c4" stroke-width="5" stroke-linecap="round"/><path d="M4 46 C 55 44, 95 34, 130 24 S 190 6, 206 4 L206 52 L4 52 Z" fill="rgba(0,229,196,0.16)"/></svg>
+  </div>
+  <div class="hero-float hero-msg"><div class="ico">S</div><p><b>Shadow.</b> Your proposal is drafted and your follow ups are queued.</p></div>
+</div></div><div class="next">&#8594;</div><div class="pager">1 / 6</div></div>
 <div class="slide mint"><div class="bar"><div class="wordmark">BERMO.</div><div class="site">bermoco.com</div></div><div class="content">
-     <h2>We help founder led companies grow revenue.</h2>
-     <p class="body">BERMO. is your one stop shop for all of your growth needs. Sometimes that is the solution you already know you need. Sometimes it is us finding what is stalling growth, before you spend time or money fixing something that was never the gap.</p>
-     <p class="hand">One partner. Every piece talking to each other.</p></div><div class="next">&#8594;</div><div class="pager">2 / 5</div></div>
+     <h2>We help founder led companies grow revenue, all under one roof.</h2>
+     <p class="body">BERMO. is your one stop shop for all of your growth needs, whether that is the solution you already know you need, or us finding what is stalling growth before you spend on something that was never the gap.</p>
+     <p class="hand">One partner, with every piece talking to each other.</p></div><div class="next">&#8594;</div><div class="pager">2 / 6</div></div>
 <div class="slide mint"><div class="bar"><div class="wordmark">BERMO.</div><div class="site">bermoco.com</div></div><div class="content">
-     <h2>Growth can stall anywhere.</h2>
-     <p class="body">Website, brand, messaging, social, AI workflows, CRM, hiring, training, SEO, GEO, even your target market. BERMO. organizes what matters most first, so the business moves together.</p>
+     <h2>Here is everything we offer, in one shop.</h2>
+     <div class="ui card-w shopboard">
+  <div class="uihead"><span class="t">The Bermo Shop</span><span class="utag cy">All in one place</span></div>
+  <div class="svc"><span class="sno">01</span><span class="snm">Brand Growth, Strategy + Execution</span><span class="sds">We decide what matters, then we actually do it</span></div>
+  <div class="svc"><span class="sno">02</span><span class="snm">AI Translation</span><span class="sds">Use AI without losing your voice</span></div>
+  <div class="svc"><span class="sno">03</span><span class="snm">Brand Positioning + Social Content</span><span class="sds">Positioning that is instantly understood</span></div>
+  <div class="svc"><span class="sno">04</span><span class="snm">Hiring + Affiliate Marketing</span><span class="sds">The right people, at the right time</span></div>
+  <div class="svc"><span class="sno">05</span><span class="snm">Immersive + Experience Marketing</span><span class="sds">Pop ups and events that turn attention into demand</span></div>
+  <div class="packs">
+    <div class="pack first"><div class="pk1">The Try On</div><div class="pk2">Free audit and intro call</div></div>
+    <div class="pack"><div class="pk1">The Edit</div><div class="pk2">Strategy session and custom plan</div></div>
+    <div class="pack"><div class="pk1">The Launch</div><div class="pk2">A 12 week brand build</div></div>
+    <div class="pack"><div class="pk1">The Drop</div><div class="pk2">Fractional executive support</div></div>
+  </div>
+</div></div><div class="next">&#8594;</div><div class="pager">3 / 6</div></div>
+<div class="slide mint"><div class="bar"><div class="wordmark">BERMO.</div><div class="site">bermoco.com</div></div><div class="content">
+     <h2>Growth can stall anywhere in the business, and it is rarely where the noise is.</h2>
+     <p class="body">It could be your website, brand, messaging, social, AI workflows, CRM, hiring, or even your target market, so we organize what matters most first.</p>
      <div class="ui areas">
   <div class="area"><div class="an">Website</div><div class="asc">62</div><div class="abar"><i style="width:62%;background:#ffb020;"></i></div></div>
   <div class="area"><div class="an">Messaging</div><div class="asc">41</div><div class="abar"><i style="width:41%;background:#ffb020;"></i></div></div>
@@ -300,10 +387,9 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
   <div class="area"><div class="an">CRM + follow up</div><div class="asc">55</div><div class="abar"><i style="width:55%;background:#ffb020;"></i></div></div>
   <div class="area"><div class="an">Social</div><div class="asc">47</div><div class="abar"><i style="width:47%;background:#ffb020;"></i></div></div>
   <div class="area"><div class="an">Hiring</div><div class="asc">70</div><div class="abar"><i style="width:70%;background:#00e5c4;"></i></div></div>
-</div></div><div class="next">&#8594;</div><div class="pager">3 / 5</div></div>
+</div></div><div class="next">&#8594;</div><div class="pager">4 / 6</div></div>
 <div class="slide mint"><div class="bar"><div class="wordmark">BERMO.</div><div class="site">bermoco.com</div></div><div class="content">
-     <h2>We find the gap. We map the fix. You see the ROI.</h2>
-     <p class="body">Not ten random tools. Not five disconnected vendors. Just the work that actually moves the business, in the right order.</p>
+     <h2>We find the gap, we map the fix, and you see the ROI.</h2>
      <div class="ui card-w save">
   <div class="spark"><span class="badge">+50%</span>
     <svg width="150" height="70" viewBox="0 0 150 70"><path d="M4 62 C 40 60, 70 48, 95 34 S 135 10, 146 5" fill="none" stroke="#00e5c4" stroke-width="5" stroke-linecap="round"/><path d="M4 62 C 40 60, 70 48, 95 34 S 135 10, 146 5 L146 70 L4 70 Z" fill="rgba(0,229,196,0.18)"/></svg>
@@ -311,10 +397,10 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
   <div class="save-row"><span class="pill">Week 1</span><div><div class="save-main">$25K <span class="sv">saved</span></div><div class="save-sub">for a hospitality founder</div></div></div>
   <div class="save-row"><span class="pill">Next</span><div><div class="save-main">Reallocated</div><div class="save-sub">to the work that actually grows revenue</div></div></div>
   <div class="save-row"><span class="pill">Today</span><div><div class="save-main">Up <span class="sv">50%+</span></div><div class="save-sub">in under 2 months</div></div></div>
-</div></div><div class="next">&#8594;</div><div class="pager">4 / 5</div></div>
+</div></div><div class="next">&#8594;</div><div class="pager">5 / 6</div></div>
 <div class="slide mint"><div class="bar"><div class="wordmark">BERMO.</div><div class="site">bermoco.com</div></div><div class="content">
-     <h2>Gap scan first. Then the right next move.</h2>
-     <p class="body">Free, no pitch, just the gaps. See what is stalling your revenue this week.</p>
+     <h2>The Gap Scan comes first, and the right next move follows.</h2>
+     <p class="body">It is free, with no pitch, just the gaps that are stalling your revenue this week.</p>
      <div class="ui card-d scansum">
   <div class="ringwrap">
     <svg width="210" height="210" viewBox="0 0 210 210">
@@ -329,5 +415,5 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
     <div class="sumrow"><span class="sl">Keep</span><span class="sn">AI discovery</span><span class="utag cy">Strength</span></div>
   </div>
 </div>
-     <div><span class="cta">Get my free Gap Scan &#8594;</span></div></div><div class="pager">5 / 5</div></div>
+     <div><span class="cta">Get my free Gap Scan &#8594;</span></div></div><div class="pager">6 / 6</div></div>
 </body></html>

@@ -32,7 +32,7 @@ body{background:#141414;font-family:'Inter',sans-serif;display:flex;flex-directi
 .pager{position:absolute;bottom:70px;right:80px;font:700 17px 'Barlow Condensed',sans-serif;letter-spacing:3px;color:rgba(10,10,10,0.45);z-index:3;}
 .dark .pager{color:rgba(245,245,240,0.5);}
 /* content area: centered, fills the canvas */
-.content{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:36px;width:100%;}
+.content{flex:1;display:flex;flex-direction:column;justify-content:flex-start;padding-top:72px;align-items:center;text-align:center;gap:46px;width:100%;}
 /* type */
 .kicker{font:700 22px 'Barlow Condensed',sans-serif;letter-spacing:7px;text-transform:uppercase;color:rgba(10,10,10,0.6);}
 .dark .kicker{color:rgba(245,245,240,0.6);}
@@ -108,7 +108,7 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 /* diagnostic areas grid */
 .areas{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;}
 .area{background:#fff;border-radius:16px;padding:26px 24px;border:1px solid rgba(10,10,10,0.06);box-shadow:0 14px 36px rgba(10,10,10,0.10);text-align:left;}
-.area .an{font:600 19px 'Inter',sans-serif;color:rgba(10,10,10,0.55);}
+.area .an{font:800 24px 'Inter Tight',sans-serif;color:var(--ink);}
 .area .asc{font:900 42px 'Inter Tight',sans-serif;margin-top:6px;color:var(--ink);}
 .area .abar{height:9px;border-radius:5px;background:#ececea;margin-top:14px;overflow:hidden;}
 .area .abar i{display:block;height:100%;border-radius:5px;}
@@ -270,10 +270,9 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .rrow:last-child{margin-bottom:0;}
 .rrow .ri{width:44px;height:44px;border-radius:10px;background:#0a0a0a;border:1px solid rgba(0,245,212,0.35);color:var(--cyan);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
 .rrow p{font:600 21px 'Inter',sans-serif;color:#e6e6e6;flex:1;text-align:left;}
-/* mint posts: uniform text size outside UI on non-cover slides */
-.mint:not(.cover) h2{font-size:44px;line-height:1.3;letter-spacing:-1px;}
-.mint:not(.cover) .body{font-size:44px;line-height:1.4;max-width:900px;}
-.mint:not(.cover) .hand{font-size:46px;}
+/* mint posts: one size, one weight outside UI on non-cover slides */
+.mint:not(.cover) h2{font:900 42px/1.32 'Inter Tight',sans-serif;letter-spacing:-1px;}
+.mint:not(.cover) .body{font:900 42px/1.32 'Inter Tight',sans-serif;letter-spacing:-1px;color:var(--ink);max-width:900px;}
 /* hero composite (post 1 cover) */
 .hero{position:relative;width:100%;height:580px;}
 .hero-main{position:absolute;left:60px;right:60px;top:60px;bottom:44px;background:#0d0d0d;border:1px solid rgba(255,255,255,0.09);border-radius:24px;box-shadow:0 34px 80px rgba(10,10,10,0.4);padding:30px 32px;text-align:left;}
@@ -328,6 +327,62 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .rc-row .rcv{font:900 34px 'Inter Tight',sans-serif;color:var(--cyan);width:190px;flex-shrink:0;text-align:left;}
 .rc-row p{font:500 21px 'Inter',sans-serif;color:#e6e6e6;flex:1;text-align:left;}
 .rc-row .rck{color:var(--cyan);font-size:24px;}
+/* growth stack cards (replica of bermoco.com) */
+.stack{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
+.stk{background:#fff;border:1px solid rgba(10,10,10,0.06);border-radius:20px;padding:38px 30px;box-shadow:0 18px 44px rgba(10,10,10,0.10);text-align:left;display:flex;flex-direction:column;}
+.stk .ski{width:66px;height:66px;border-radius:18px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;}
+.stk h4{font:800 32px 'Inter Tight',sans-serif;letter-spacing:-0.5px;color:var(--ink);}
+.stk .sd{font:500 20px/1.5 'Inter',sans-serif;color:rgba(10,10,10,0.62);margin-top:10px;flex:1;}
+.stk .sl{border-top:1px solid #ececea;margin-top:18px;padding-top:15px;font:500 17px/1.55 'Inter',sans-serif;color:#9a9a95;}
+.stk .see{font:700 18px 'Inter',sans-serif;color:var(--ink);margin-top:13px;}
+/* where should we start path picker (replica) */
+.path{padding:44px;}
+.path-q{border-radius:15px;padding:2.5px;background:linear-gradient(90deg,#ff9a3d,#ff2d7a,#00f5d4);}
+.path-qi{background:#141414;border-radius:12.5px;display:flex;gap:16px;align-items:center;padding:22px 26px;font:600 25px 'Inter',sans-serif;color:#f0f0f0;text-align:left;}
+.path-qi .mag{color:var(--cyan);font-size:22px;}
+.path-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-top:30px;}
+.pcard{background:#fff;border-radius:16px;padding:32px 18px;text-align:center;}
+.pcard .pl{font:500 17px 'Inter',sans-serif;color:#8a8a8a;}
+.pcard .pi{width:58px;height:58px;border-radius:15px;background:var(--cyan);margin:18px auto 16px;display:flex;align-items:center;justify-content:center;color:var(--ink);}
+.pcard .pn{font:800 25px 'Inter Tight',sans-serif;color:var(--ink);}
+.path-note{margin-top:24px;text-align:center;font:600 20px 'Inter',sans-serif;color:#9a9a9a;}
+.path-note b{color:var(--cyan);}
+/* code editor product panel (replica) */
+.code{padding:0;overflow:hidden;}
+.code-top{display:flex;justify-content:space-between;align-items:center;padding:18px 24px;}
+.code-top .ct1{font:700 24px 'Inter',sans-serif;color:#fff;display:flex;gap:12px;align-items:center;}
+.code-top .ct1 .gl{width:30px;height:30px;border-radius:8px;background:rgba(0,245,212,0.12);color:var(--cyan);display:flex;align-items:center;justify-content:center;font-size:16px;}
+.badge-cd{font:700 13px 'Inter',sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:var(--cyan);background:rgba(0,245,212,0.10);border:1px solid rgba(0,245,212,0.3);border-radius:100px;padding:7px 15px;}
+.badge-cd .bdot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--cyan);margin-right:7px;}
+.code-tabs{display:flex;gap:6px;background:#141414;padding:12px 20px 0;}
+.code-tab{font:500 18px 'Inter',sans-serif;padding:10px 18px;border-radius:9px 9px 0 0;color:#8a8a8a;}
+.code-tab.on{background:#050505;color:#f0f0f0;}
+.code-body{background:#050505;padding:28px 28px 34px;font:500 23px/1.85 'SF Mono','Menlo',monospace;text-align:left;color:#e6e6e6;}
+.code-body .ln{color:#4a4a4a;display:inline-block;width:42px;}
+.code-body .tg{color:var(--cyan);}
+.code-body .tx{color:#c8f500;}
+.code-body .cur{display:inline-block;width:11px;height:22px;background:var(--cyan);vertical-align:middle;}
+/* content engine panel (replica) */
+.ce{padding:0;overflow:hidden;background:linear-gradient(135deg,#1c1016,#241019);border:1px solid rgba(255,45,122,0.2);}
+.ce-top{display:flex;justify-content:space-between;align-items:center;padding:18px 24px;}
+.ce-top .ct1{font:700 24px 'Inter',sans-serif;color:#fff;display:flex;gap:12px;align-items:center;}
+.ce-top .ct1 .gl{width:30px;height:30px;border-radius:8px;background:rgba(255,45,122,0.15);color:#ff2d7a;display:flex;align-items:center;justify-content:center;font-size:15px;}
+.badge-li{font:700 13px 'Inter',sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:#ff6ba0;background:rgba(255,45,122,0.12);border:1px solid rgba(255,45,122,0.35);border-radius:100px;padding:7px 15px;}
+.ce-li{background:#fff;border-radius:13px;margin:0 22px 22px;padding:24px 26px;text-align:left;}
+.ce-h{display:flex;gap:13px;align-items:flex-start;}
+.ce-av{width:46px;height:46px;border-radius:50%;background:var(--ink);color:var(--cyan);display:flex;align-items:center;justify-content:center;font:900 16px 'Montserrat',sans-serif;flex-shrink:0;}
+.ce-nm{font:700 21px 'Inter',sans-serif;color:#191919;}
+.ce-sb{font:400 15px 'Inter',sans-serif;color:#666;margin-top:2px;}
+.ce-in{margin-left:auto;width:26px;height:26px;border-radius:5px;background:#0a66c2;color:#fff;font:800 14px 'Inter',sans-serif;display:flex;align-items:center;justify-content:center;}
+.ce-tx{font:400 20px/1.5 'Inter',sans-serif;color:#191919;margin-top:12px;}
+.ce-img{position:relative;height:190px;border-radius:11px;background:linear-gradient(100deg,#ff2d7a,#b44bf0);margin-top:14px;padding:26px 22px;}
+.ce-img .cb1{height:13px;border-radius:7px;background:rgba(255,255,255,0.95);width:72%;}
+.ce-img .cb2{height:13px;border-radius:7px;background:rgba(255,255,255,0.55);width:46%;margin-top:10px;}
+.ce-img .cnew{position:absolute;right:16px;bottom:14px;background:#c8f500;color:var(--ink);font:800 13px 'Inter',sans-serif;letter-spacing:0.5px;border-radius:6px;padding:6px 12px;}
+.ce-img .cwm{position:absolute;left:22px;bottom:12px;font:900 13px 'Montserrat',sans-serif;color:rgba(255,255,255,0.85);letter-spacing:1px;}
+.ce-st{display:flex;justify-content:space-between;font:400 15px 'Inter',sans-serif;color:#666;padding:13px 2px;border-bottom:1px solid #e8e8e8;}
+.ce-ac{display:flex;justify-content:space-around;padding-top:12px;}
+.ce-ac span{font:600 16px 'Inter',sans-serif;color:#555;}
 """
 
 def header():
@@ -353,12 +408,12 @@ STORE = """<div class="ui store">
 </div>"""
 
 AREAS = """<div class="ui areas">
-  <div class="area"><div class="an">Website</div><div class="asc">62</div><div class="abar"><i style="width:62%;background:#ffb020;"></i></div></div>
-  <div class="area"><div class="an">Messaging</div><div class="asc">41</div><div class="abar"><i style="width:41%;background:#ffb020;"></i></div></div>
-  <div class="area"><div class="an">AI discovery</div><div class="asc">78</div><div class="abar"><i style="width:78%;background:#00e5c4;"></i></div></div>
-  <div class="area"><div class="an">CRM + follow up</div><div class="asc">55</div><div class="abar"><i style="width:55%;background:#ffb020;"></i></div></div>
-  <div class="area"><div class="an">Social</div><div class="asc">47</div><div class="abar"><i style="width:47%;background:#ffb020;"></i></div></div>
-  <div class="area"><div class="an">Hiring</div><div class="asc">70</div><div class="abar"><i style="width:70%;background:#00e5c4;"></i></div></div>
+  <div class="area"><div class="an">Website</div><div style="margin-top:14px;"><span class="utag am">Gap found</span></div></div>
+  <div class="area"><div class="an">Messaging</div><div style="margin-top:14px;"><span class="utag am">Gap found</span></div></div>
+  <div class="area"><div class="an">AI discovery</div><div style="margin-top:14px;"><span class="utag cy">Strength</span></div></div>
+  <div class="area"><div class="an">CRM + follow up</div><div style="margin-top:14px;"><span class="utag gr">Scanning</span></div></div>
+  <div class="area"><div class="an">Social</div><div style="margin-top:14px;"><span class="utag gr">Scanning</span></div></div>
+  <div class="area"><div class="an">Hiring</div><div style="margin-top:14px;"><span class="utag cy">Strength</span></div></div>
 </div>"""
 
 SAVE = """<div class="ui card-w save">
@@ -578,7 +633,60 @@ REPORT = """<div class="ui card-d report">
   <div class="rrow"><div class="ri">1</div><p>The first fix, and why it pays back fastest</p></div>
 </div>"""
 
-HERO = """<div class="ui hero">
+STACK = """<div class="ui stack">
+  <div class="stk"><div class="ski" style="background:var(--cyan);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg></div>
+    <h4>Get found</h4><div class="sd">Be discovered and chosen by the buyers already looking for you.</div>
+    <div class="sl">Website + SEO/GEO &middot; Content Engine &middot; Strategy and Brand</div>
+    <div class="see">See what is inside &#8594;</div></div>
+  <div class="stk"><div class="ski" style="background:#ff2d7a;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,17 9,11 13,15 21,7"/><polyline points="15,7 21,7 21,13"/></svg></div>
+    <h4>Convert and sell</h4><div class="sd">Turn the attention you earn into booked, closed revenue.</div>
+    <div class="sl">Sales Pipeline &middot; AI and Automation &middot; Systems and CRM</div>
+    <div class="see">See what is inside &#8594;</div></div>
+  <div class="stk"><div class="ski" style="background:#c8f500;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.4" stroke-linecap="round"><circle cx="9" cy="8" r="3.4"/><path d="M3.5 20c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><circle cx="17" cy="9" r="2.6"/><path d="M16 15.2c2.6 0 4.5 1.7 4.5 4.3"/></svg></div>
+    <h4>Hire and build</h4><div class="sd">Place the permanent team to run it, vetted and matched.</div>
+    <div class="sl">Recruiting &middot; Permanent placement</div>
+    <div class="see">See what is inside &#8594;</div></div>
+</div>"""
+
+PATH = """<div class="ui card-d path">
+  <div class="path-q"><div class="path-qi"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00f5d4" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg>Where should we start?</div></div>
+  <div class="path-grid">
+    <div class="pcard"><div class="pl">Not sure what I need</div><div class="pi"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg></div><div class="pn">Gap Scan</div></div>
+    <div class="pcard"><div class="pl">I know what I need</div><div class="pi"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8l1.5-4h13L20 8"/><path d="M4 8h16v3a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 11z"/><path d="M6 13.5V20h12v-6.5"/></svg></div><div class="pn">Growth Store</div></div>
+    <div class="pcard"><div class="pl">I need a hire</div><div class="pi"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="8" r="3.8"/><path d="M5 20.5c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg></div><div class="pn">Recruiting</div></div>
+  </div>
+  <div class="path-note">Most people start with the <b>Gap Scan</b></div>
+</div>"""
+
+CODEPANEL = """<div class="ui card-d code">
+  <div class="code-top"><span class="ct1"><span class="gl">&#9737;</span>Website and SEO/GEO</span><span class="badge-cd"><span class="bdot"></span>Coding</span></div>
+  <div class="code-tabs"><span class="code-tab on">index.html</span><span class="code-tab">styles.css</span></div>
+  <div class="code-body">
+    <div><span class="ln">1</span><span class="tg">&lt;section</span> class=<span class="tx">"hero"</span><span class="tg">&gt;</span></div>
+    <div><span class="ln">2</span>&nbsp;&nbsp;<span class="tg">&lt;h1&gt;</span>Grow with BERMO.<span class="tg">&lt;/h1&gt;</span></div>
+    <div><span class="ln">3</span>&nbsp;&nbsp;<span class="tg">&lt;p&gt;</span>Your growth stack.<span class="tg">&lt;/p&gt;</span></div>
+    <div><span class="ln">4</span>&nbsp;&nbsp;<span class="tg">&lt;button&gt;</span>Get my scan<span class="tg">&lt;/button&gt;</span></div>
+    <div><span class="ln">5</span><span class="tg">&lt;/section&gt;</span></div>
+    <div><span class="ln">&nbsp;</span><span class="cur"></span></div>
+  </div>
+</div>"""
+
+CE = """<div class="ui ce">
+  <div class="ce-top"><span class="ct1"><span class="gl">&#128172;</span>Content Engine</span><span class="badge-li">&#9673; LinkedIn</span></div>
+  <div class="ce-li">
+    <div class="ce-h"><div class="ce-av">B.</div>
+      <div><div class="ce-nm">Lexi Bermingham</div><div class="ce-sb">Founder, BERMO.CO &middot; 1st</div></div>
+      <div class="ce-in">in</div></div>
+    <div class="ce-tx">Fresh on brand post templates, ready to publish. Here is this week&rsquo;s set.</div>
+    <div class="ce-img"><div class="cb1"></div><div class="cb2"></div><span class="cwm">BERMO.</span><span class="cnew">NEW</span></div>
+    <div class="ce-st"><span>&#128077; 842</span><span>34 comments</span></div>
+    <div class="ce-ac"><span>&#128077; Like</span><span>&#128172; Comment</span><span>&#128257; Repost</span></div>
+  </div>
+</div>"""
+
+HERO = """
+
+<div class="ui hero">
   <div class="hero-main">
     <div class="uihead" style="margin-bottom:18px;"><span class="t" style="color:#fff;">BERMO. HQ</span><span class="utag cy">Live</span></div>
     <div class="hero-kpis">
@@ -664,10 +772,10 @@ posts["post-1-who-is-bermo.html"] = page(
   slide("mint", """
      <h2>We help founder led companies grow revenue, all under one roof.</h2>
      <p class="body">BERMO. is your one stop shop for all of your growth needs, whether that is the solution you already know you need, or us finding what is stalling growth before you spend on something that was never the gap.</p>
-     <p class="hand">One partner, with every piece talking to each other.</p>""", 2, 6),
+     <p class="body">One partner, with every piece talking to each other.</p>""", 2, 6),
   slide("mint", f"""
-     <h2>Here is everything we offer, in one shop.</h2>
-     {SHOPBOARD}""", 3, 6),
+     <h2>Here is everything we offer, and there are three ways in.</h2>
+     {STACK}""", 3, 6),
   slide("mint", f"""
      <h2>Growth can stall anywhere in the business, and it is rarely where the noise is.</h2>
      <p class="body">It could be your website, brand, messaging, social, AI workflows, CRM, hiring, or even your target market, so we organize what matters most first.</p>
@@ -677,8 +785,7 @@ posts["post-1-who-is-bermo.html"] = page(
      {SAVE}""", 5, 6),
   slide("mint", f"""
      <h2>The Gap Scan comes first, and the right next move follows.</h2>
-     <p class="body">It is free, with no pitch, just the gaps that are stalling your revenue this week.</p>
-     {SCANSUM}
+     {PATH}
      {CTA_SCAN}""", 6, 6),
  ])
 
@@ -722,11 +829,11 @@ posts["post-3-what-bermo-helps-with.html"] = page(
   slide("dark", f"""
      <h2>Get <span class="hl">found,</span> and get understood.</h2>
      <p class="body">We handle website, SEO, GEO and AI discovery, so people can find you and understand you. Buyers now ask AI before they ever hit your site, so we make sure you show up in both places.</p>
-     {AISEARCH}""", 2, 5),
+     {CODEPANEL}""", 2, 5),
   slide("dark", f"""
      <h2>Stay clear when you are <span class="hl">not in the room.</span></h2>
      <p class="body">We build branding, messaging and content in your voice, so your business keeps saying the right thing while you are heads down running it.</p>
-     {LINKEDIN}""", 3, 5),
+     {CE}""", 3, 5),
   slide("dark", f"""
      <h2>Run smoother <span class="hl">behind the scenes.</span></h2>
      <p class="body">We set up systems, CRM, AI workflows and training, so follow ups happen, data stays in one place, and nothing slips.</p>
@@ -778,7 +885,7 @@ posts["post-5-what-makes-bermo-different.html"] = page(
   slide("mint", """
      <h2>Most founder led businesses do not stall because of demand, they stall because the pieces are not aligned.</h2>
      <p class="body">BERMO. steps inside your business, clarifies what matters most, and then actually does the work with you.</p>
-     <p class="hand">We are human led and AI leveraged, and your voice stays yours.</p>""", 2, 5),
+     <p class="body">We are human led and AI leveraged, and your voice stays yours.</p>""", 2, 5),
   slide("mint", f"""
      <h2>You get your entire growth team under one roof, working on the same plan.</h2>
      {TEAM}""", 3, 5),

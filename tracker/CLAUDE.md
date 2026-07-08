@@ -88,10 +88,17 @@ export/import, PWA install.
   CSV import + Apple Watch screenshot parsing via Brain Dump. Real auto-sync
   requires a native/Capacitor iOS app ($99/yr Apple dev, separate project).
 - Real SMS needs Twilio (~$2-3/mo) + a function; email function exists.
-- The assistant has never tested in a real browser — the user tests on
-  iPhone and sends screenshots. Treat every UI change as unverified until
-  she confirms. When something breaks, ask for a screenshot + the exact
-  element tapped.
+- TESTING (required before every commit): browser smoke test at
+  `tracker/tests/smoke.js` (Playwright). Serve repo root on :8901,
+  `npm i playwright` in the scratchpad, launch chromium with
+  `executablePath: "/opt/pw-browsers/chromium"` and proxy
+  `{ server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" }`
+  (do NOT `npx playwright install`). Covers load, wizard onboarding,
+  mobile overflow, all tabs, food + lift logging end-to-end, modal
+  close, dashboard re-render. Expected: 14/14 + zero page errors.
+  Also always `node --check tracker/app.js`. The user additionally
+  tests on iPhone — when something breaks there, ask for a screenshot
+  + the exact element tapped.
 
 ## Working conventions
 - Descriptive commits; push each batch; remind user to wait ~60s + check the

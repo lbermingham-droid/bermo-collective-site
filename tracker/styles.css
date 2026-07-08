@@ -890,13 +890,10 @@ a{color:inherit}
 
 /* ---------- HELP BANNER ---------- */
 .help-banner{
-  position:fixed; top:78px; left:50%; transform:translateX(-50%);
-  z-index:90; display:flex; align-items:flex-start; gap:12px;
+  display:flex; align-items:flex-start; gap:12px;
   background:var(--black); color:#fff; border-radius:14px;
-  padding:14px 16px; max-width:540px; width:calc(100% - 32px);
-  box-shadow:0 16px 40px rgba(0,0,0,.3);
+  padding:14px 16px; margin-bottom:14px;
   border:1px solid rgba(0,245,212,.3);
-  animation:slideDown .35s ease;
 }
 .hb-icon{font-size:24px;flex-shrink:0;line-height:1}
 .hb-body{flex:1}
@@ -908,10 +905,7 @@ a{color:inherit}
   font-size:16px;flex-shrink:0;line-height:1;transition:all .15s;
 }
 .hb-close:hover{background:rgba(255,255,255,.1);color:#fff}
-@keyframes slideDown{from{transform:translate(-50%,-20px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
-@media(max-width:720px){
-  .help-banner{top:70px;width:calc(100% - 16px)}
-}
+
 
 /* Tappable card hint */
 .card[style*="cursor:pointer"]:hover,

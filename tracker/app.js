@@ -6,6 +6,16 @@ const DATA = window.BERMO_DATA;
 const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
+// Bind an event to an element if it exists; warn (don't crash) if it doesn't.
+// Static UI evolves — a removed element must never take down the whole init.
+function on(sel, evt, fn){
+  const el = document.querySelector(sel);
+  if(el) el.addEventListener(evt, fn);
+  else console.warn("[bermo] missing element for binding:", sel);
+  return el;
+}
+
+
 // ---------- STORAGE ----------
 const KEY = "bermo.tracker.v1";
 let state = load();
@@ -274,45 +284,42 @@ function bindGlobal(){
   });
 
   // Nutrition date picker
-  $("#nutDateInput").addEventListener("change", (e) => { currentDate = e.target.value; renderAll(); });
-  $("#nutPrev").addEventListener("click", () => shiftDate(-1));
-  $("#nutNext").addEventListener("click", () => shiftDate(1));
+  on("#nutDateInput", "change", (e) => { currentDate = e.target.value; renderAll(); });
+  on("#nutPrev", "click", () => shiftDate(-1));
+  on("#nutNext", "click", () => shiftDate(1));
 
-  // Water
-  $$("#view-dashboard [data-water]").forEach(b => b.addEventListener("click", () => addWater(parseInt(b.dataset.water,10))));
-  $("#waterReset").addEventListener("click", () => { dayObj(currentDate).water = 0; save(); renderAll(); });
 
   // Meal add buttons
   $$(".btn-add[data-add-meal]").forEach(b => b.addEventListener("click", () => openFoodModal(b.dataset.addMeal)));
 
   // Quick chips
-  $("#dashCopyYesterday").addEventListener("click", copyYesterday);
+  on("#dashCopyYesterday", "click", copyYesterday);
 
   // WOD shuffle
-  $("#wodShuffle").addEventListener("click", shuffleWod);
-  $("#fitShuffle").addEventListener("click", shuffleWod);
-  $("#fitWodPicker").addEventListener("change", (e) => { dayObj(currentDate).wodId = parseInt(e.target.value,10); save(); renderAll(); });
+  on("#wodShuffle", "click", shuffleWod);
+  on("#fitShuffle", "click", shuffleWod);
+  on("#fitWodPicker", "change", (e) => { dayObj(currentDate).wodId = parseInt(e.target.value,10); save(); renderAll(); });
 
   // Fitness logging
-  $("#fitNewLift").addEventListener("click", openLiftModal);
-  $("#fitNewWod").addEventListener("click", openWodResultModal);
-  $("#fitLogResult").addEventListener("click", openWodResultModal);
-  $("#addPrBtn").addEventListener("click", openPrModal);
+  on("#fitNewLift", "click", openLiftModal);
+  on("#fitNewWod", "click", openWodResultModal);
+  on("#fitLogResult", "click", openWodResultModal);
+  on("#addPrBtn", "click", openPrModal);
 
   // Body
-  $("#weighInBtn").addEventListener("click", openWeighInModal);
-  $("#measureBtn").addEventListener("click", openMeasureModal);
+  on("#weighInBtn", "click", openWeighInModal);
+  on("#measureBtn", "click", openMeasureModal);
 
   // History filter
-  $("#historyFilter").addEventListener("change", renderHistory);
-  $("#exportBtn").addEventListener("click", exportData);
+  on("#historyFilter", "change", renderHistory);
+  on("#exportBtn", "click", exportData);
 
   // Settings forms
-  $("#profileForm").addEventListener("submit", saveProfile);
-  $("#goalsForm").addEventListener("submit", saveGoals);
-  $("#customFoodForm").addEventListener("submit", addCustomFood);
-  $("#logoutBtn").addEventListener("click", logout);
-  $("#resetBtn").addEventListener("click", resetAll);
+  on("#profileForm", "submit", saveProfile);
+  on("#goalsForm", "submit", saveGoals);
+  on("#customFoodForm", "submit", addCustomFood);
+  on("#logoutBtn", "click", logout);
+  on("#resetBtn", "click", resetAll);
 
   // Modal close
   $$("#modal [data-close]").forEach(b => b.addEventListener("click", closeModal));
@@ -836,8 +843,7 @@ function renderFitness(){
   $("#fitWodScript").textContent = wod.script;
   $("#fitWodType").textContent = wod.type;
 
-  // PR cards — SugarWOD-style per-lift rep-range board
-  $("#prList").outerHTML = `<div id="prList" class="pr-cards">${renderPrCards()}</div>`;
+  // Lift board is owned by renderLiftsList() (hooked below); nothing to do here.
 
   // Today's sessions
   const list = $("#todaySessions");

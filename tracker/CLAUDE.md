@@ -39,10 +39,17 @@ Deliberately NOT linked from the main site nav — it's a standalone app.
 - `state.days["YYYY-MM-DD"]` = `{ meals:{breakfast,lunch,dinner,snacks},
   water, sessions[], wodResult, activity:{move,exercise,stand}, checkin,
   symptoms[], workoutSession }`
-- **Wrapper pattern everywhere**: renders extended via
-  `const _origX = renderY; renderY = function(){ _origX(); ...extras }`.
-  Every `_orig*` const MUST have a unique name or `node --check` fails.
-  ALWAYS run `node --check tracker/app.js` before committing.
+- **Explicit pipelines (wrapper chains are GONE as of the 2026-07 cleanup)**:
+  feature renders are composed in ONE place — the "PIPELINES" block near
+  the end of app.js. `renderDashboard()` etc. call `renderXxxBase()` plus
+  named steps in order. To extend a render, add a call in its composed
+  function there. Do NOT reintroduce `const _orig = f; f = function(){...}`
+  monkey-patching — it is banned.
+- **Single init**: modules register startup code with `onReady(fn)`; one
+  DOMContentLoaded listener runs the queue with each step isolated, so a
+  throw in one step cannot kill the rest. Bind static elements with
+  `on(sel, evt, fn)` — it warns instead of crashing if the element is
+  missing. ALWAYS run `node --check tracker/app.js` before committing.
 - New JS gets spliced INSIDE the IIFE before the final `})();` — a python3
   heredoc splice has been the working method. Avoid giant single Write calls
   (they caused API stream timeouts); append in chunks instead.

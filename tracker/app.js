@@ -6,6 +6,12 @@ const DATA = window.BERMO_DATA;
 const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
+// Single-init pipeline: modules queue their setup with onReady(); ONE
+// DOMContentLoaded listener (registered at the bottom of this file) runs the
+// queue in file order, each step isolated so one failure can't kill the rest.
+const INIT_QUEUE = [];
+function onReady(fn){ INIT_QUEUE.push(fn); }
+
 // Bind an event to an element if it exists; warn (don't crash) if it doesn't.
 // Static UI evolves — a removed element must never take down the whole init.
 function on(sel, evt, fn){
@@ -1358,7 +1364,7 @@ function _reconcileCalories(){
     });
   });
 }
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   // Wire reconcile prompts. Use 'change' (fires on blur or Enter) so we
   // don't badger the user mid-typing.
   const wire = (id, field) => {
@@ -1408,7 +1414,7 @@ function resetAll(){
 }
 
 // ---------- BOOT ----------
-document.addEventListener("DOMContentLoaded", init);
+onReady(init);
 
 
 // =================================================================
@@ -1658,7 +1664,7 @@ function rebalanceMacros(cal){
 }
 
 // Boot extensions — call after main init
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   bindImport();
   // Auto-rebalance: when #setCal changes in settings, suggest new macros
   const calInput = document.getElementById("setCal");
@@ -2073,7 +2079,7 @@ if(_origRenderDashboard){
   };
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   const a = document.getElementById("logActivityBtn");
   if(a) a.addEventListener("click", openActivityLogModal);
   const m = document.getElementById("macroCalcBtn");
@@ -2319,7 +2325,7 @@ const _origRender = renderNutrition;
 // =================================================================
 // APP-LIKE TOPBAR — settings gear + user menu
 // =================================================================
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   const sg = document.getElementById("tbSettingsBtn");
   if(sg) sg.addEventListener("click", () => {
     if(window.BERMO_TRACKER && window.BERMO_TRACKER.go) window.BERMO_TRACKER.go("settings");
@@ -2426,7 +2432,7 @@ if(_origRenderNutritionForDetail){
 }
 
 // Extend custom food form to read fiber + sugar inputs
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   const form = document.getElementById("customFoodForm");
   if(!form) return;
   form.addEventListener("submit", (e) => {
@@ -2822,7 +2828,7 @@ if(_origGoForTrends){
 }
 
 // Wire buttons
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   const c = document.getElementById("trCheckinBtn");
   if(c) c.addEventListener("click", openCheckinModal);
   const r = document.getElementById("trRefreshBtn");
@@ -3220,7 +3226,7 @@ if(_origRenderDashForSb){
   };
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   const s = document.getElementById("trSymptomBtn");
   if(s) s.addEventListener("click", openSymptomModal);
 });
@@ -3240,7 +3246,7 @@ function renderAISetup(){
   const k = document.getElementById("aiKey"); if(k) k.value = ai.key ? "•".repeat(20) : "";
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   const form = document.getElementById("aiSetupForm");
   if(form){
     form.addEventListener("submit", (e) => {
@@ -3862,7 +3868,7 @@ function openBrainDumpReview(parsed){
   });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   const btn = document.getElementById("brainDumpBtn");
   if(btn) btn.addEventListener("click", openBrainDumpModal);
 });
@@ -3884,7 +3890,7 @@ function jumpToTab(tab){
   if(t) t.click();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   const fab = document.getElementById("fab");
   if(fab) fab.addEventListener("click", openFAB);
   document.querySelectorAll("[data-fab-close]").forEach(b => b.addEventListener("click", closeFAB));
@@ -4420,7 +4426,7 @@ if(_origGoForPlan){
 }
 
 // Wire planner buttons
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   const p = document.getElementById("planPrevWeek");
   if(p) p.addEventListener("click", () => { planViewDate = new Date(weekStart(planViewDate).getTime() - 7*86400000); renderPlan(); });
   const n = document.getElementById("planNextWeek");
@@ -4469,7 +4475,7 @@ function isStandalone(){
   return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   const btn = document.getElementById("pwaInstallBtn");
   if(!btn) return;
   if(isStandalone()){ btn.style.display = "none"; return; }
@@ -4630,7 +4636,7 @@ function _detailLogAction(){
     openCheckinModal();
   }
 }
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   const logBtn = document.getElementById("detailLogBtn");
   if(logBtn) logBtn.addEventListener("click", _detailLogAction);
 });
@@ -4750,7 +4756,7 @@ function drawDetailChart(series, goal, color, unitStr){
 }
 
 // ---- Wire up ----
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   const back = document.getElementById("detailBack");
   if(back) back.addEventListener("click", closeDetail);
   const close = document.getElementById("detailClose");
@@ -5018,7 +5024,7 @@ openDetail = function(metric){
 };
 
 // Update scale-button click handler so it preserves refDate
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   document.querySelectorAll(".ds-btn").forEach(b => {
     // remove old listener by cloning
     const nb = b.cloneNode(true);
@@ -5321,7 +5327,7 @@ renderDashboard = function(){
 };
 
 // ---- Hub click + log button wiring ----
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   document.querySelectorAll(".hub").forEach(hub => {
     hub.addEventListener("click", (e) => {
       // Don't intercept the inline log button or any inputs
@@ -5575,7 +5581,7 @@ function setupPTR(){
   });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   const btn = document.getElementById("hubCustomizeBtn");
   if(btn) btn.addEventListener("click", openCustomizeModal);
   applyHubPrefs();
@@ -5778,14 +5784,14 @@ renderDashboard = function(){
   renderRestartCard();
 };
 
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   const e = document.getElementById("ccEditBtn");
   if(e) e.addEventListener("click", openContractModal);
   setupRestartActions();
 });
 
 // Replace the FAB "checkin" handler to use the 3-tap version
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   document.querySelectorAll('[data-fab="checkin"]').forEach(b => {
     const nb = b.cloneNode(true);
     b.parentNode.replaceChild(nb, b);
@@ -5844,7 +5850,7 @@ openActivityDetail = function(){
 };
 
 // Make the ring canvas itself tappable (was excluded by closest(canvas))
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   document.querySelectorAll(".hub").forEach(hub => {
     // Replace prior click handler with one that allows canvas/svg taps
     const newHub = hub.cloneNode(true);
@@ -5957,7 +5963,7 @@ renderNutritionHub = function(){
 // (CSS does the visual work; just ensure it renders)
 
 // ---- CUSTOMIZE relocations ----
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   // Bottom button (re-create binding since the cloned hubs may have shadowed)
   const btn = document.getElementById("hubCustomizeBtn");
   if(btn && typeof openCustomizeModal === "function"){
@@ -6035,7 +6041,7 @@ function addBackButtons(){
     head.insertBefore(btn, head.firstChild);
   });
 }
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   setTimeout(addBackButtons, 100);
 });
 
@@ -6346,7 +6352,7 @@ if(_origRenderFitnessForMini){
   };
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   const go = document.getElementById("planMiniGo");
   if(go) go.addEventListener("click", () => {
     const t = document.querySelector('.tab[data-tab="plan"], .mtab[data-tab="plan"]');
@@ -6740,7 +6746,7 @@ document.addEventListener("click", (e) => {
 }, true);
 
 // "Today" indicator click in dashboard header returns to today
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   const dash = document.getElementById("dashDate");
   if(dash){
     dash.style.cursor = "pointer";
@@ -7902,7 +7908,7 @@ async function fireReminder(key, body, title){
   try{ new Notification(title || "BERMO Tracker", opts); }catch(e){}
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+onReady(() => {
   const enabledEl    = document.getElementById("remEnabled");
   const workoutOnEl  = document.getElementById("remWorkoutOn");
   const workoutEl    = document.getElementById("remWorkout");
@@ -7992,5 +7998,13 @@ document.addEventListener("visibilitychange", () => {
 setInterval(() => { try{ renderSmartBanners(); }catch(e){} }, 5*60*1000);
 
 // Service worker is already registered earlier in the file — reused for showNotification
+
+// ---------- SINGLE INIT ----------
+document.addEventListener("DOMContentLoaded", () => {
+  for(const step of INIT_QUEUE){
+    try { step(); }
+    catch(err){ console.error("[bermo] init step failed:", err); }
+  }
+});
 
 })();

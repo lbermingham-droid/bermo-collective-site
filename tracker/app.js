@@ -274,7 +274,7 @@ function enterApp(){
 }
 
 // ---------- TABS ----------
-function go(tab){
+function goBase(tab){
   currentTab = tab;
   $$(".view").forEach(v => v.classList.toggle("active", v.id === "view-"+tab));
   $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tab));
@@ -594,7 +594,7 @@ function renderAll(){
 
 // ---------- DASHBOARD ----------
 let calRingChart, weeklyChart, weightChart, fitnessHeatChartRef = null;
-function renderDashboard(){
+function renderDashboardBase(){
   const t = totalsFor(currentDate);
   const g = state.goals;
 
@@ -784,7 +784,7 @@ function drawWeeklyChart(){
 }
 
 // ---------- NUTRITION VIEW ----------
-function renderNutrition(){
+function renderNutritionBase(){
   $("#nutDate").textContent = fmtMed(currentDate);
   $("#nutDateInput").value = currentDate;
 
@@ -835,7 +835,7 @@ function renderNutrition(){
 }
 
 // ---------- FITNESS VIEW ----------
-function renderFitness(){
+function renderFitnessBase(){
   $("#fitDate").textContent = fmtMed(currentDate);
 
   // WOD picker / display
@@ -1202,7 +1202,7 @@ function renderHistory(){
 }
 
 // ---------- SETTINGS ----------
-function renderSettings(){
+function renderSettingsBase(){
   $("#setName").value = state.profile.name;
   $("#setUnits").value = state.profile.units;
   $("#setCal").value = state.goals.cal;
@@ -1526,7 +1526,7 @@ function bindImport(){
   });
 }
 
-function importHealthCSV(text){
+function importHealthCSVCore(text){
   const lines = text.split(/\r?\n/).filter(l => l.trim());
   if(lines.length < 2) throw new Error("CSV is empty");
   const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g,"").toLowerCase());
@@ -1739,7 +1739,7 @@ function getActivityGoals(){
   return state.activityGoals;
 }
 
-function drawActivityRings(){
+function drawActivityRingsBase(){
   const canvas = document.getElementById("rings3");
   if(!canvas) return;
   const ctx = canvas.getContext("2d");
@@ -2071,13 +2071,6 @@ function openMacroCalcModal(){
 }
 
 // Hook into existing render and global init
-const _origRenderDashboard = typeof renderDashboard === "function" ? renderDashboard : null;
-if(_origRenderDashboard){
-  renderDashboard = function(){
-    _origRenderDashboard();
-    drawActivityRings();
-  };
-}
 
 onReady(() => {
   const a = document.getElementById("logActivityBtn");
@@ -2087,34 +2080,30 @@ onReady(() => {
 });
 
 // Also import Active Energy + Apple Exercise Time from Health CSV if present
-const _origImportHealthCSV = typeof importHealthCSV === "function" ? importHealthCSV : null;
-if(_origImportHealthCSV){
-  importHealthCSV = function(text){
-    const result = _origImportHealthCSV(text);
-    // Re-parse to pick up activity columns
-    const lines = text.split(/\r?\n/).filter(l=>l.trim());
-    if(lines.length < 2) return result;
-    const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g,"").toLowerCase());
-    const findCol = (...n) => { for(let i=0;i<headers.length;i++) if(n.some(x => headers[i].includes(x))) return i; return -1; };
-    const dateIdx = findCol("date","start","time");
-    const moveIdx = findCol("active energy","activeenergy","active_energy");
-    const exIdx   = findCol("apple exercise time","exercise time","exercisetime");
-    const standIdx= findCol("apple stand hours","stand hours","standhours");
-    if(dateIdx === -1) return result;
-    let added = 0;
-    for(let i=1; i<lines.length; i++){
-      const cells = parseCsvLine(lines[i]);
-      const date = parseDate((cells[dateIdx]||"").trim());
-      if(!date) continue;
-      const day = dayObj(date);
-      if(!day.activity) day.activity = { move:0, exercise:0, stand:0 };
-      if(moveIdx>-1){ const v = parseFloat(cells[moveIdx]); if(!isNaN(v) && v>0){ day.activity.move = v; added++; } }
-      if(exIdx>-1){   const v = parseFloat(cells[exIdx]);   if(!isNaN(v) && v>0){ day.activity.exercise = v; added++; } }
-      if(standIdx>-1){const v = parseFloat(cells[standIdx]);if(!isNaN(v) && v>0){ day.activity.stand = v; added++; } }
-    }
-    if(added) result.activity = added;
-    return result;
-  };
+// Health Auto Export CSVs can carry Apple Watch activity columns; pull
+// Move / Exercise / Stand into each day's activity record.
+function importActivityColumns(text, result){
+  const lines = text.split(/\r?\n/).filter(l=>l.trim());
+  if(lines.length < 2) return;
+  const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g,"").toLowerCase());
+  const findCol = (...n) => { for(let i=0;i<headers.length;i++) if(n.some(x => headers[i].includes(x))) return i; return -1; };
+  const dateIdx = findCol("date","start","time");
+  const moveIdx = findCol("active energy","activeenergy","active_energy");
+  const exIdx   = findCol("apple exercise time","exercise time","exercisetime");
+  const standIdx= findCol("apple stand hours","stand hours","standhours");
+  if(dateIdx === -1) return;
+  let added = 0;
+  for(let i=1; i<lines.length; i++){
+    const cells = parseCsvLine(lines[i]);
+    const date = parseDate((cells[dateIdx]||"").trim());
+    if(!date) continue;
+    const day = dayObj(date);
+    if(!day.activity) day.activity = { move:0, exercise:0, stand:0 };
+    if(moveIdx>-1){ const v = parseFloat(cells[moveIdx]); if(!isNaN(v) && v>0){ day.activity.move = v; added++; } }
+    if(exIdx>-1){   const v = parseFloat(cells[exIdx]);   if(!isNaN(v) && v>0){ day.activity.exercise = v; added++; } }
+    if(standIdx>-1){const v = parseFloat(cells[standIdx]);if(!isNaN(v) && v>0){ day.activity.stand = v; added++; } }
+  }
+  if(added) result.activity = added;
 }
 
 
@@ -2128,7 +2117,7 @@ function getTemplates(){
 
 // Macro-based food classifier — three tiers based on actual nutrition content
 // Returns { tier: "clean" | "watch" | "indulgent", reason: "..." }
-function classifyFood(item){
+function classifyFoodMacros(item){
   if(item.clean) return { tier:"clean", reason:"manual override" };
   if(item.cheat) return { tier:"indulgent", reason:"manual override" };
 
@@ -2285,21 +2274,11 @@ function applyRedFlags(){
 // =================================================================
 // HOOKS — extend existing renders without rewriting them
 // =================================================================
-const _origRenderNutritionForFlags = (typeof renderNutrition === "function") ? renderNutrition : null;
-if(_origRenderNutritionForFlags){
-  renderNutrition = function(){
-    _origRenderNutritionForFlags();
-    renderUsuals();
-    addSaveAsUsualButtons();
-    applyRedFlags();
-  };
-}
-const _origRenderDashboardForFlags = (typeof renderDashboard === "function") ? renderDashboard : null;
-if(_origRenderDashboardForFlags){
-  renderDashboard = function(){
-    _origRenderDashboardForFlags();
-    applyRedFlags();
-  };
+// Pipeline step (extracted from a wrapper patch; composed at EOF).
+function renderNutritionStep_RenderNutritionForFlags(){
+  renderUsuals();
+  addSaveAsUsualButtons();
+  applyRedFlags();
 }
 
 function addSaveAsUsualButtons(){
@@ -2318,8 +2297,6 @@ function addSaveAsUsualButtons(){
   });
 }
 
-// Mark cheat foods in their data attribute when rendering meal items
-const _origRender = renderNutrition;
 
 
 // =================================================================
@@ -2423,13 +2400,6 @@ function renderDetail(){
 }
 
 // Hook into nutrition render
-const _origRenderNutritionForDetail = (typeof renderNutrition === "function") ? renderNutrition : null;
-if(_origRenderNutritionForDetail){
-  renderNutrition = function(){
-    _origRenderNutritionForDetail();
-    renderDetail();
-  };
-}
 
 // Extend custom food form to read fiber + sugar inputs
 onReady(() => {
@@ -2452,16 +2422,15 @@ onReady(() => {
 });
 
 // Refine classifier: use sugar when known
-const _origClassify = (typeof classifyFood === "function") ? classifyFood : null;
-if(_origClassify){
-  classifyFood = function(item){
-    const base = _origClassify(item);
-    if(item.sugar != null && item.sugar >= 15)
-      return { tier:"indulgent", reason:`high sugar — ${item.sugar}g per serving` };
-    if(item.sugar != null && item.sugar >= 8 && base.tier === "clean")
-      return { tier:"watch", reason:`moderate sugar — ${item.sugar}g per serving` };
-    return base;
-  };
+// Sugar-aware wrapper over the macro classifier: known-high sugar always
+// flags, moderate sugar upgrades an otherwise-clean food to "watch".
+function classifyFood(item){
+  if(item.sugar != null && item.sugar >= 15)
+    return { tier:"indulgent", reason:`high sugar — ${item.sugar}g per serving` };
+  const base = classifyFoodMacros(item);
+  if(item.sugar != null && item.sugar >= 8 && base.tier === "clean")
+    return { tier:"watch", reason:`moderate sugar — ${item.sugar}g per serving` };
+  return base;
 }
 
 
@@ -2806,7 +2775,7 @@ function renderCtxGrid(){
   grid.innerHTML = cells.map(([h,v,sub]) => `<div class="ctx-cell"><div class="ctx-h">${h}</div><div class="ctx-v">${v}</div><div class="ctx-sub">${sub}</div></div>`).join("");
 }
 
-function renderTrends(){
+function renderTrendsBase(){
   // hero hides once enough data
   const dayKeys = Object.keys(state.days);
   const hero = document.getElementById("trendHero");
@@ -2819,12 +2788,9 @@ function renderTrends(){
 }
 
 // Hook tab routing — call renderTrends when "trends" view becomes active
-const _origGoForTrends = (typeof go === "function") ? go : null;
-if(_origGoForTrends){
-  go = function(tab){
-    _origGoForTrends(tab);
-    if(tab === "trends") renderTrends();
-  };
+// Pipeline step (extracted from a wrapper patch; composed at EOF).
+function goStep_GoForTrends(tab){
+  if(tab === "trends") renderTrends();
 }
 
 // Wire buttons
@@ -2838,34 +2804,37 @@ onReady(() => {
 });
 
 // Expand Apple Health CSV to also import Sleep Analysis hours
-const _origImportForSleep = (typeof importHealthCSV === "function") ? importHealthCSV : null;
-if(_origImportForSleep){
-  importHealthCSV = function(text){
-    const result = _origImportForSleep(text);
-    const lines = text.split(/\r?\n/).filter(l => l.trim());
-    if(lines.length < 2) return result;
-    const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g,"").toLowerCase());
-    const findCol = (...n) => { for(let i=0;i<headers.length;i++) if(n.some(x => headers[i].includes(x))) return i; return -1; };
-    const dateIdx = findCol("date","start","time");
-    const sleepIdx = findCol("sleep analysis","sleep hours","asleep","sleep time");
-    if(dateIdx === -1 || sleepIdx === -1) return result;
-    let added = 0;
-    for(let i=1; i<lines.length; i++){
-      const cells = parseCsvLine(lines[i]);
-      const date = parseDate((cells[dateIdx]||"").trim());
-      if(!date) continue;
-      let hrs = parseFloat(cells[sleepIdx]);
-      if(isNaN(hrs) || hrs <= 0) continue;
-      // If value looks like minutes (>15), convert
-      if(hrs > 15) hrs = hrs / 60;
-      const day = dayObj(date);
-      if(!day.checkin) day.checkin = {};
-      day.checkin.sleep = Math.round(hrs * 4) / 4; // round to 0.25h
-      added++;
-    }
-    if(added) result.sleep = added;
-    return result;
-  };
+// Sleep Analysis columns -> each day's check-in (minutes auto-converted).
+function importSleepColumns(text, result){
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if(lines.length < 2) return;
+  const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g,"").toLowerCase());
+  const findCol = (...n) => { for(let i=0;i<headers.length;i++) if(n.some(x => headers[i].includes(x))) return i; return -1; };
+  const dateIdx = findCol("date","start","time");
+  const sleepIdx = findCol("sleep analysis","sleep hours","asleep","sleep time");
+  if(dateIdx === -1 || sleepIdx === -1) return;
+  let added = 0;
+  for(let i=1; i<lines.length; i++){
+    const cells = parseCsvLine(lines[i]);
+    const date = parseDate((cells[dateIdx]||"").trim());
+    if(!date) continue;
+    let hrs = parseFloat(cells[sleepIdx]);
+    if(isNaN(hrs) || hrs <= 0) continue;
+    if(hrs > 15) hrs = hrs / 60;   // value in minutes -> hours
+    const day = dayObj(date);
+    if(!day.checkin) day.checkin = {};
+    day.checkin.sleep = Math.round(hrs * 4) / 4;   // round to 0.25h
+    added++;
+  }
+  if(added) result.sleep = added;
+}
+
+// Composed CSV import: core rows, then supplemental Apple Watch columns.
+function importHealthCSV(text){
+  const result = importHealthCSVCore(text);
+  importActivityColumns(text, result);
+  importSleepColumns(text, result);
+  return result;
 }
 
 
@@ -3138,92 +3107,33 @@ function computeSymptomInsights(){
 }
 
 // ---------- Smart banners (missed log, over-cal alert) ----------
-function renderSmartBanners(){
-  const wrap = document.getElementById("smartBanners");
-  if(!wrap) return;
-  const banners = [];
-  const today = todayKey();
-  const todayLogged = totalsFor(today).cal > 0 || (state.days[today] && state.days[today].sessions || []).length > 0;
-
-  // Missed log streak
-  let missed = 0;
-  const d = new Date();
-  while(true){
-    const k = todayKey(d);
-    const has = totalsFor(k).cal > 0 || (state.days[k] && (state.days[k].sessions||[]).length > 0);
-    if(has) break;
-    missed++;
-    d.setDate(d.getDate()-1);
-    if(missed > 14) break;
-  }
-  if(missed === 1){
-    banners.push({ tier:"watch", icon:"📅", text:"You haven't logged today yet. Small log keeps the streak alive." });
-  } else if(missed >= 2 && missed < 14){
-    banners.push({ tier:"alert", icon:"⚠️", text:`${missed} days without a log. Tap a "My Usual" or quick add to restart.` });
-  }
-
-  // Over-calorie alert (today specifically)
-  const t = totalsFor(today);
-  if(t.cal > state.goals.cal){
-    banners.push({ tier:"alert", icon:"🔴", text:`Over by ${t.cal - state.goals.cal} kcal today. Tomorrow is the reset.` });
-  } else if(t.cal > state.goals.cal * 0.9){
-    banners.push({ tier:"warn", icon:"⚠️", text:`Within ${state.goals.cal - t.cal} kcal of today's goal — careful with the rest of the day.` });
-  }
-
-  // Streak win
-  const streak = (function(){
-    let n = 0; const c = new Date();
-    while(true){
-      const k = todayKey(c);
-      const has = totalsFor(k).cal > 0 || (state.days[k] && (state.days[k].sessions||[]).length > 0);
-      if(!has) break;
-      n++; c.setDate(c.getDate()-1);
-      if(n > 365) break;
-    }
-    return n;
-  })();
-  if(streak >= 7 && todayLogged){
-    banners.push({ tier:"good", icon:"🔥", text:`${streak}-day logging streak. Consistency is the variable that actually matters.` });
-  }
-
-  wrap.innerHTML = banners.map(b => `<div class="sbanner sbanner-${b.tier}"><span class="sb-icon">${b.icon}</span>${escape(b.text)}</div>`).join("");
-}
+// (superseded renderSmartBanners removed — reminders version below owns this)
 
 // ---------- Hooks ----------
-const _origRenderTrendsForSym = (typeof renderTrends === "function") ? renderTrends : null;
-if(_origRenderTrendsForSym){
-  renderTrends = function(){
-    _origRenderTrendsForSym();
-    renderSymptomPanel();
-    // Append symptom-driven insights to the existing list
-    const list = document.getElementById("insightsList");
-    if(list){
-      const extra = computeSymptomInsights();
-      if(extra.length){
-        const html = extra.map(i => `
-          <div class="ins-card ins-${i.tier}">
-            <div class="ins-icon">${i.icon}</div>
-            <div class="ins-body">
-              <div class="ins-headline">${escape(i.headline)}</div>
-              <div class="ins-text">${escape(i.body)}</div>
-            </div>
-          </div>`).join("");
-        list.insertAdjacentHTML("beforeend", html);
-        const totalEl = document.getElementById("trCount");
-        if(totalEl){
-          const cur = parseInt(totalEl.textContent, 10) || 0;
-          totalEl.textContent = (cur + extra.length) + " insight" + (cur + extra.length === 1 ? "" : "s");
-        }
+// Pipeline step (extracted from a wrapper patch; composed at EOF).
+function renderTrendsStep_RenderTrendsForSym(){
+  renderSymptomPanel();
+  // Append symptom-driven insights to the existing list
+  const list = document.getElementById("insightsList");
+  if(list){
+    const extra = computeSymptomInsights();
+    if(extra.length){
+      const html = extra.map(i => `
+        <div class="ins-card ins-${i.tier}">
+          <div class="ins-icon">${i.icon}</div>
+          <div class="ins-body">
+            <div class="ins-headline">${escape(i.headline)}</div>
+            <div class="ins-text">${escape(i.body)}</div>
+          </div>
+        </div>`).join("");
+      list.insertAdjacentHTML("beforeend", html);
+      const totalEl = document.getElementById("trCount");
+      if(totalEl){
+        const cur = parseInt(totalEl.textContent, 10) || 0;
+        totalEl.textContent = (cur + extra.length) + " insight" + (cur + extra.length === 1 ? "" : "s");
       }
     }
-  };
-}
-const _origRenderDashForSb = (typeof renderDashboard === "function") ? renderDashboard : null;
-if(_origRenderDashForSb){
-  renderDashboard = function(){
-    _origRenderDashForSb();
-    renderSmartBanners();
-  };
+  }
 }
 
 onReady(() => {
@@ -3277,11 +3187,6 @@ onReady(() => {
       save(); renderAISetup();
       toast("Key removed","cyan");
     });
-  }
-  // Hook into renderSettings to refresh
-  const _origRS = (typeof renderSettings === "function") ? renderSettings : null;
-  if(_origRS){
-    renderSettings = function(){ _origRS(); renderAISetup(); };
   }
 
   // Wire AI buttons on Nutrition tab
@@ -4004,26 +3909,7 @@ onReady(() => {
 });
 
 // Hint markers on initial views (subtle)
-function addHints(){
-  // Add a subtle "← log here" hint to the breakfast meal block first-time
-  const seen = localStorage.getItem("bermo.tracker.mealHintSeen");
-  if(seen) return;
-  const firstAdd = document.querySelector('.btn-add[data-add-meal="breakfast"]');
-  if(firstAdd && !firstAdd.dataset.hinted){
-    firstAdd.dataset.hinted = "1";
-    firstAdd.style.boxShadow = "0 0 0 4px rgba(0,245,212,.4)";
-    firstAdd.style.animation = "pulseAdd 1.5s ease-in-out 3";
-  }
-}
 
-// Hook into dashboard render to mark hints
-const _origRDForHints = (typeof renderDashboard === "function") ? renderDashboard : null;
-if(_origRDForHints){
-  renderDashboard = function(){
-    _origRDForHints();
-    setTimeout(addHints, 50);
-  };
-}
 
 
 // =================================================================
@@ -4106,7 +3992,7 @@ function renderLiftsList(){
   }));
 }
 
-function openLiftDetail(lift){
+function openLiftDetailBase(lift){
   const root = document.getElementById("liftsContent");
   const eyebrow = document.getElementById("liftsCardEyebrow");
   if(!root) return;
@@ -4248,13 +4134,6 @@ function updateRepPRsFromSet(set){
 }
 
 // Hook into existing fitness render to use new lift list
-const _origRenderFitness = (typeof renderFitness === "function") ? renderFitness : null;
-if(_origRenderFitness){
-  renderFitness = function(){
-    _origRenderFitness();
-    renderLiftsList();
-  };
-}
 
 // =================================================================
 // PLAN — Weekly workout planner
@@ -4293,7 +4172,7 @@ function weekStart(date){
 
 let planViewDate = new Date();
 
-function renderPlan(){
+function renderPlanBase(){
   const grid = document.getElementById("planGrid");
   if(!grid) return;
   const wkStart = weekStart(planViewDate);
@@ -4417,12 +4296,9 @@ function autofillFromLastWeek(){
 }
 
 // Hook tab routing
-const _origGoForPlan = (typeof go === "function") ? go : null;
-if(_origGoForPlan){
-  go = function(tab){
-    _origGoForPlan(tab);
-    if(tab === "plan") renderPlan();
-  };
+// Pipeline step (extracted from a wrapper patch; composed at EOF).
+function goStep_GoForPlan(tab){
+  if(tab === "plan") renderPlan();
 }
 
 // Wire planner buttons
@@ -4598,6 +4474,7 @@ const METRICS = {
 };
 
 function openDetail(metric){
+  detailRefDate = new Date();   // always open on today
   detailMetric = metric;
   detailScale = "7d";
   document.getElementById("detailOverlay").classList.add("open");
@@ -4662,7 +4539,7 @@ function collectSeries(metric, scale){
   return series;
 }
 
-function renderDetailView(){
+function renderDetailViewBase(){
   const m = METRICS[detailMetric];
   if(!m) return;
   document.getElementById("detailEyebrow").textContent = m.eyebrow;
@@ -5017,12 +4894,6 @@ drawDetailChart = function(series, goal, color, unitStr, mode){
 };
 
 // Override openDetail to reset refDate to today
-const _origOpenDetail = openDetail;
-openDetail = function(metric){
-  detailRefDate = new Date();
-  _origOpenDetail(metric);
-};
-
 // Update scale-button click handler so it preserves refDate
 onReady(() => {
   document.querySelectorAll(".ds-btn").forEach(b => {
@@ -5171,7 +5042,7 @@ drawActivityRings = function(){
 };
 
 // ---- Hub-specific renders ----
-function renderNutritionHub(){
+function renderNutritionHubBase(){
   const t = totalsFor(currentDate);
   const g = state.goals;
   const setText = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = txt; };
@@ -5310,7 +5181,7 @@ function renderWeightHub(){
   }
 }
 
-function renderHubsAll(){
+function renderHubsAllBase(){
   drawActivityRings();
   renderNutritionHub();
   renderFitnessHub();
@@ -5320,11 +5191,6 @@ function renderHubsAll(){
 }
 
 // Hook into dashboard render
-const _origRDForHubs = renderDashboard;
-renderDashboard = function(){
-  if(_origRDForHubs) _origRDForHubs();
-  renderHubsAll();
-};
 
 // ---- Hub click + log button wiring ----
 onReady(() => {
@@ -5517,13 +5383,10 @@ function applyHubTimestamps(){
 }
 
 // Hook hub renders to also stamp + apply prefs
-const _origRenderHubsAll = (typeof renderHubsAll === "function") ? renderHubsAll : null;
-if(_origRenderHubsAll){
-  renderHubsAll = function(){
-    _origRenderHubsAll();
-    applyHubPrefs();
-    applyHubTimestamps();
-  };
+// Pipeline step (extracted from a wrapper patch; composed at EOF).
+function renderHubsAllStep_RenderHubsAll(){
+  applyHubPrefs();
+  applyHubTimestamps();
 }
 
 // ---- PULL TO REFRESH ----
@@ -5777,12 +5640,11 @@ function openQuickCheckin(){
 }
 
 // ---- Hooks ----
-const _origRDForAcc = renderDashboard;
-renderDashboard = function(){
-  if(_origRDForAcc) _origRDForAcc();
+// Pipeline step (extracted from a wrapper patch; composed at EOF).
+function renderDashboardStep_RDForAcc(){
   renderContract();
   renderRestartCard();
-};
+}
 
 onReady(() => {
   const e = document.getElementById("ccEditBtn");
@@ -5917,14 +5779,9 @@ function ensureMetricTabs(){
     ensureMetricTabs();
   }));
 }
-const _origRenderDetailViewMT = renderDetailView;
-renderDetailView = function(){
-  _origRenderDetailViewMT();
-  ensureMetricTabs();
-};
 
 // ---- NUTRITION HUB WEEK STRIP (✓ for logged + within goal) ----
-function renderNutritionWeek(){
+function renderNutritionWeekBase(){
   const wk = document.getElementById("nutWeek");
   if(!wk) return;
   let html = "";
@@ -5952,11 +5809,6 @@ function renderNutritionWeek(){
   }
   wk.innerHTML = html;
 }
-const _origRNH = renderNutritionHub;
-renderNutritionHub = function(){
-  if(_origRNH) _origRNH();
-  renderNutritionWeek();
-};
 
 // ---- BIGGER WEEK STRIP for activity (per screenshot) ----
 // Hook into existing drawActivityRings to make week strip more visible
@@ -6046,9 +5898,8 @@ onReady(() => {
 });
 
 // ---- ACTIVITY WEEK STRIP — replace bars with status circles + day-click ----
-const _origDrawRingsForStrip = drawActivityRings;
-drawActivityRings = function(){
-  if(_origDrawRingsForStrip) _origDrawRingsForStrip();
+// Pipeline step (extracted from a wrapper patch; composed at EOF).
+function drawActivityRingsStep_DrawRingsForStrip(){
   // Override the bar-stack week strip with circle-status one
   const wk = document.getElementById("rings3Week");
   if(!wk) return;
@@ -6112,7 +5963,7 @@ drawActivityRings = function(){
   wk.className = "hub-week activity-week";
   wk.innerHTML = html;
   // (Old separate lift-mini-strip removed — consolidated above)
-};
+}
 
 // Lifts mini-strip — week of planned workout types
 function renderLiftMiniStrip(rootEl){
@@ -6213,16 +6064,13 @@ function openDayQuickView(dateKey, kind){
 // Legacy popup handler removed — see setHubViewDate for swap-in-place behavior below.
 
 // ---- NUTRITION WEEK STRIP — add data-date / data-kind so clicks work ----
-const _origRNW = (typeof renderNutritionWeek === "function") ? renderNutritionWeek : null;
-if(_origRNW){
-  renderNutritionWeek = function(){
-    _origRNW();
-    document.querySelectorAll("#nutWeek .nw-day").forEach((el, idx) => {
-      const d = new Date(); d.setDate(d.getDate() - (6 - idx));
-      el.dataset.date = todayKey(d);
-      el.dataset.kind = "nutrition";
-    });
-  };
+// Pipeline step (extracted from a wrapper patch; composed at EOF).
+function renderNutritionWeekStep_RNW(){
+  document.querySelectorAll("#nutWeek .nw-day").forEach((el, idx) => {
+    const d = new Date(); d.setDate(d.getDate() - (6 - idx));
+    el.dataset.date = todayKey(d);
+    el.dataset.kind = "nutrition";
+  });
 }
 
 
@@ -6303,9 +6151,8 @@ openPlanDayModal = function(wkKey, dayName){
 };
 
 // Update plan day rendering to show planned exercises preview
-const _origRenderPlan = renderPlan;
-renderPlan = function(){
-  if(_origRenderPlan) _origRenderPlan();
+// Pipeline step (extracted from a wrapper patch; composed at EOF).
+function renderPlanStep_RenderPlan(){
   // Add exercise preview to each plan-day card
   document.querySelectorAll(".plan-day").forEach(d => {
     const dayKey = d.dataset.date;
@@ -6324,10 +6171,10 @@ renderPlan = function(){
       else d.appendChild(ex);
     }
   });
-};
+}
 
 // ---- Today's Plan mini box on Fitness tab ----
-function renderPlanMini(){
+function renderPlanMiniBase(){
   const box = document.getElementById("planMini");
   if(!box) return;
   const dayNames = ["sun","mon","tue","wed","thu","fri","sat"];
@@ -6343,13 +6190,6 @@ function renderPlanMini(){
     typeEl.textContent = "No plan set for today";
     box.classList.remove("has-plan");
   }
-}
-const _origRenderFitnessForMini = (typeof renderFitness === "function") ? renderFitness : null;
-if(_origRenderFitnessForMini){
-  renderFitness = function(){
-    _origRenderFitnessForMini();
-    renderPlanMini();
-  };
 }
 
 onReady(() => {
@@ -6617,9 +6457,8 @@ function closeWorkoutSession(){
 }
 
 // ---- Wire "Start workout" button on planner day cards ----
-const _origRenderPlanForWorkoutBtn = renderPlan;
-renderPlan = function(){
-  if(_origRenderPlanForWorkoutBtn) _origRenderPlanForWorkoutBtn();
+// Pipeline step (extracted from a wrapper patch; composed at EOF).
+function renderPlanStep_RenderPlanForWorkoutBtn(){
   document.querySelectorAll(".plan-day").forEach(d => {
     const dayKey = d.dataset.date;
     const dayName = d.dataset.day;
@@ -6634,12 +6473,11 @@ renderPlan = function(){
       d.appendChild(btn);
     }
   });
-};
+}
 
 // Add "Start Today's Workout" button on planner mini box (Fitness tab)
-const _origRenderPlanMini = renderPlanMini;
-renderPlanMini = function(){
-  if(_origRenderPlanMini) _origRenderPlanMini();
+// Pipeline step (extracted from a wrapper patch; composed at EOF).
+function renderPlanMiniStep_RenderPlanMini(){
   const box = document.getElementById("planMini");
   if(!box) return;
   const dayName = ["sun","mon","tue","wed","thu","fri","sat"][new Date().getDay()];
@@ -6657,7 +6495,7 @@ renderPlanMini = function(){
       row.querySelector("#pmStartWO").textContent = `▶ Start today's workout (${planned.length} exercises)`;
     }
   }
-};
+}
 
 // =================================================================
 // HEVY-STYLE PER-EXERCISE STATS (Heaviest, 1RM, Best set vol, etc.)
@@ -6692,9 +6530,8 @@ function getExerciseStats(liftName){
 }
 
 // Hook into lift detail to add Hevy-style stats panel
-const _origOpenLiftDetail = openLiftDetail;
-openLiftDetail = function(lift){
-  _origOpenLiftDetail(lift);
+// Pipeline step (extracted from a wrapper patch; composed at EOF).
+function openLiftDetailStep_OpenLiftDetail(lift){
   const root = document.getElementById("liftsContent");
   if(!root) return;
   const stats = getExerciseStats(lift);
@@ -6716,7 +6553,7 @@ openLiftDetail = function(lift){
     </div>
   `;
   repGrid.parentNode.insertBefore(summary, repGrid.nextSibling);
-};
+}
 
 
 // =================================================================
@@ -6769,9 +6606,8 @@ onReady(() => {
 });
 
 // Hook render to show "← Today" when on a non-today date
-const _origRDForToday = renderDashboard;
-renderDashboard = function(){
-  if(_origRDForToday) _origRDForToday();
+// Pipeline step (extracted from a wrapper patch; composed at EOF).
+function renderDashboardStep_RDForToday(){
   const btn = document.getElementById("dashTodayBtn");
   if(btn){
     if(_hubViewDate !== todayKey()){
@@ -6781,7 +6617,7 @@ renderDashboard = function(){
       btn.classList.add("hidden");
     }
   }
-};
+}
 
 // =================================================================
 // BODY PART COVERAGE — accountability for hitting all muscle groups
@@ -6904,13 +6740,6 @@ function renderBodyCoverage(){
   `;
 }
 
-const _origRenderFitnessForBP = (typeof renderFitness === "function") ? renderFitness : null;
-if(_origRenderFitnessForBP){
-  renderFitness = function(){
-    _origRenderFitnessForBP();
-    renderBodyCoverage();
-  };
-}
 
 // ============================================================
 // FEATURES 2-7 — appended block
@@ -7665,14 +7494,6 @@ function saveCurrentMealAsTemplate(meal){
   }
 })();
 
-// Patch dashboard render to include adaptive card
-if(typeof renderDashboard === "function"){
-  const _origRD_AM = renderDashboard;
-  renderDashboard = function(){
-    _origRD_AM();
-    try{ renderAdaptiveCard(); }catch(e){ console.warn("adaptive card", e); }
-  };
-}
 // Anatomy heatmap is hidden for now — saved for later. Re-enable by uncommenting:
 // if(typeof renderFitness === "function"){
 //   const _origRF_AN = renderFitness;
@@ -7849,14 +7670,6 @@ function renderSmartBanners(){
   });
 }
 
-// Hook smart banners into dashboard render
-if(typeof renderDashboard === "function"){
-  const _origRD_SB = renderDashboard;
-  renderDashboard = function(){
-    _origRD_SB();
-    try{ renderSmartBanners(); }catch(e){ console.warn("smart banners", e); }
-  };
-}
 
 // ---- Browser notifications (best-effort, while app/PWA is open) ----
 let _reminderTimers = [];
@@ -7998,6 +7811,96 @@ document.addEventListener("visibilitychange", () => {
 setInterval(() => { try{ renderSmartBanners(); }catch(e){} }, 5*60*1000);
 
 // Service worker is already registered earlier in the file — reused for showNotification
+
+
+// =================================================================
+
+// PIPELINES — explicit composition (replaces the old wrapper chains).
+
+// Order preserved from the original patch application order.
+
+// =================================================================
+
+function renderSettings(){
+  renderSettingsBase();
+  renderAISetup();
+}
+
+function renderFitness(){
+  renderFitnessBase();
+  renderLiftsList();
+  renderPlanMini();
+  renderBodyCoverage();
+}
+
+function renderDashboard(){
+  renderDashboardBase();
+  drawActivityRings();
+  applyRedFlags();
+  renderHubsAll();
+  renderDashboardStep_RDForAcc();
+  renderDashboardStep_RDForToday();
+  try{ renderAdaptiveCard(); }catch(e){ console.warn("adaptive card", e); }
+  try{ renderSmartBanners(); }catch(e){ console.warn("smart banners", e); }
+}
+
+function openLiftDetail(lift){
+  openLiftDetailBase(lift);
+  openLiftDetailStep_OpenLiftDetail(lift);
+}
+
+function renderPlanMini(){
+  renderPlanMiniBase();
+  renderPlanMiniStep_RenderPlanMini();
+}
+
+function renderPlan(){
+  renderPlanBase();
+  renderPlanStep_RenderPlan();
+  renderPlanStep_RenderPlanForWorkoutBtn();
+}
+
+function renderNutritionWeek(){
+  renderNutritionWeekBase();
+  renderNutritionWeekStep_RNW();
+}
+
+function drawActivityRings(){
+  drawActivityRingsBase();
+  drawActivityRingsStep_DrawRingsForStrip();
+}
+
+function renderNutritionHub(){
+  renderNutritionHubBase();
+  renderNutritionWeek();
+}
+
+function renderDetailView(){
+  renderDetailViewBase();
+  ensureMetricTabs();
+}
+
+function renderHubsAll(){
+  renderHubsAllBase();
+  renderHubsAllStep_RenderHubsAll();
+}
+
+function go(tab){
+  goBase(tab);
+  goStep_GoForTrends(tab);
+  goStep_GoForPlan(tab);
+}
+
+function renderTrends(){
+  renderTrendsBase();
+  renderTrendsStep_RenderTrendsForSym();
+}
+
+function renderNutrition(){
+  renderNutritionBase();
+  renderNutritionStep_RenderNutritionForFlags();
+  renderDetail();
+}
 
 // ---------- SINGLE INIT ----------
 document.addEventListener("DOMContentLoaded", () => {

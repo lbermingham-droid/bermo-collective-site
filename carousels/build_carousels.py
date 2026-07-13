@@ -443,7 +443,7 @@ SCANSUM = """<div class="ui card-d scansum">
 BRIEF = """<div class="ui card-d brief">
   <div class="uihead"><span class="t">Shadow &middot; Monday brief</span><span class="utag cy">Live</span></div>
   <div class="brief-msg"><p>Good morning. Three things need you today, everything else is handled.</p></div>
-  <div class="brief-item"><span class="bx on">&#10003;</span><p>Reply to the Hilton intro, warm from Thursday</p></div>
+  <div class="brief-item"><span class="bx on">&#10003;</span><p>Reply to the warm intro from Thursday</p></div>
   <div class="brief-item"><span class="bx"></span><p>Approve the new homepage copy before it ships</p></div>
   <div class="brief-item"><span class="bx"></span><p>Two vetted candidates ready for your review</p></div>
   <div class="brief-input">Ask Shadow anything<span class="send">&#8594;</span></div>
@@ -500,7 +500,7 @@ CRM = """<div class="ui card-d crm">
   <div class="uihead"><span class="t">Pipeline</span><span class="utag cy">Synced</span></div>
   <div class="crm-cols">
     <div class="crm-col"><div class="ch"><span>Leads</span><span>2</span></div>
-      <div class="crm-card"><div class="cc1">Harbor Group</div><div class="cc2">Intro call Friday</div><div class="ccbar"><span class="ccav">LB</span></div></div>
+      <div class="crm-card"><div class="cc1">Harborlight Co</div><div class="cc2">Intro call Friday</div><div class="ccbar"><span class="ccav">LB</span></div></div>
       <div class="crm-card"><div class="cc1">Northline</div><div class="cc2">Warm referral</div><div class="ccbar"><span class="ccav">LB</span></div></div>
     </div>
     <div class="crm-col"><div class="ch"><span>In motion</span><span>1</span></div>
@@ -697,7 +697,7 @@ HERO = """
     <div class="hero-rows">
       <div class="hr1"><span class="hd" style="background:#00f5d4;"></span><p>Homepage rebuild shipped to production</p><span class="ht">Today</span></div>
       <div class="hr1"><span class="hd" style="background:#ffb020;"></span><p>Two vetted candidates ready for review</p><span class="ht">9:00</span></div>
-      <div class="hr1"><span class="hd" style="background:#ffb020;"></span><p>Follow up queued for the Hilton intro</p><span class="ht">11:30</span></div>
+      <div class="hr1"><span class="hd" style="background:#ffb020;"></span><p>Follow up queued for Thursday's warm intro</p><span class="ht">11:30</span></div>
       <div class="hr1"><span class="hd" style="background:#00f5d4;"></span><p>Gap Scan report sent to a new founder</p><span class="ht">Done</span></div>
     </div>
   </div>

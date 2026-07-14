@@ -16,7 +16,7 @@ body{background:#141414;font-family:'Inter',sans-serif;display:flex;flex-directi
 .pagehead{color:#888;font:500 14px/1.5 'Inter',sans-serif;text-align:center;max-width:640px;}
 .pagehead strong{color:#fff;}
 .slide{width:1080px;height:1350px;position:relative;overflow:hidden;flex-shrink:0;display:flex;flex-direction:column;padding:150px 80px;}
-.slide.cover{padding-left:120px;padding-right:120px;}
+.slide.cover{padding-left:100px;padding-right:100px;}
 .slide.light{background-color:var(--off);background-image:radial-gradient(rgba(10,10,10,0.13) 1.6px, transparent 1.6px);background-size:26px 26px;color:var(--ink);}
 .slide.mint{background:linear-gradient(180deg,#f2fffc 0%,#c9fbf1 38%,#5deed3 78%,#0ee2c2 100%);color:var(--ink);}
 .slide.mint::before{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(10,10,10,0.12) 1.6px, transparent 1.6px);background-size:26px 26px;pointer-events:none;}
@@ -24,7 +24,7 @@ body{background:#141414;font-family:'Inter',sans-serif;display:flex;flex-directi
 .slide>*{position:relative;z-index:2;}
 /* header */
 .bar{position:absolute;top:64px;left:80px;right:80px;display:flex;justify-content:space-between;align-items:center;z-index:3;}
-.cover .bar{left:120px;right:120px;}
+.cover .bar{left:100px;right:100px;}
 .wordmark{font:900 34px 'Montserrat',sans-serif;letter-spacing:1px;color:var(--ink);}
 .dark .wordmark{color:var(--off);}
 /* footer nav */
@@ -33,7 +33,7 @@ body{background:#141414;font-family:'Inter',sans-serif;display:flex;flex-directi
 .pager{position:absolute;bottom:70px;right:80px;font:700 17px 'Barlow Condensed',sans-serif;letter-spacing:3px;color:var(--ink);z-index:3;}
 .dark .pager{color:var(--off);}
 /* content area: centered, fills the canvas */
-.content{flex:1;display:flex;flex-direction:column;justify-content:flex-start;padding-top:72px;align-items:center;text-align:center;gap:46px;width:100%;}
+.content{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:46px;width:100%;}
 /* type */
 .kicker{font:700 22px 'Barlow Condensed',sans-serif;letter-spacing:7px;text-transform:uppercase;color:var(--ink);}
 .dark .kicker{color:var(--cyan);}
@@ -330,6 +330,27 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .rc-row .rcv{font:900 34px 'Inter Tight',sans-serif;color:var(--cyan);width:190px;flex-shrink:0;text-align:left;}
 .rc-row p{font:500 21px 'Inter',sans-serif;color:#e6e6e6;flex:1;text-align:left;}
 .rc-row .rck{color:var(--cyan);font-size:24px;}
+/* shadow chat hero: shadow responding */
+.sc{padding:34px;}
+.sc-msg{max-width:78%;border-radius:16px 16px 4px 16px;background:#242424;padding:18px 22px;margin-left:auto;margin-bottom:14px;}
+.sc-msg p{font:600 21px/1.4 'Inter',sans-serif;color:#fff;text-align:left;}
+.sc-reply{max-width:88%;border-radius:16px 16px 16px 4px;background:#161616;border:1px solid rgba(0,245,212,0.4);padding:20px 24px;text-align:left;}
+.sc-reply .sh{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.sc-reply .sh .si{width:30px;height:30px;border-radius:9px;background:var(--cyan);color:var(--ink);display:flex;align-items:center;justify-content:center;font:800 15px 'Inter Tight',sans-serif;}
+.sc-reply .sh b{font:800 19px 'Inter Tight',sans-serif;color:var(--cyan);}
+.sc-reply p{font:500 21px/1.45 'Inter',sans-serif;color:#f0f0f0;}
+.sc-acts{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
+/* money flow */
+.mf{padding:36px 38px;}
+.mf-rows{margin-bottom:6px;}
+.mf-row{display:flex;align-items:center;gap:16px;border-bottom:1px solid #ececea;padding:16px 2px;}
+.mf-row:last-child{border-bottom:none;}
+.mf-row .mv{font:900 40px 'Inter Tight',sans-serif;color:var(--ink);width:170px;text-align:left;flex-shrink:0;}
+.mf-row p{font:600 20px 'Inter',sans-serif;color:var(--ink);flex:1;text-align:left;}
+.mf-flow{display:flex;align-items:center;gap:12px;background:#0a0a0a;border-radius:14px;padding:18px 22px;margin-top:18px;}
+.mf-step{font:800 20px 'Inter Tight',sans-serif;color:#fff;background:#242424;border-radius:9px;padding:12px 18px;}
+.mf-step.on{background:var(--cyan);color:var(--ink);}
+.mf-arr{color:var(--cyan);font-size:22px;font-weight:800;}
 /* growth list hero: the team that handled it before you added it */
 .gl{padding:34px;}
 .gl-team{display:flex;align-items:center;}
@@ -352,8 +373,7 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .pm{padding:36px;}
 .pm-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .pm-box{display:flex;align-items:center;gap:14px;background:#f6f6f2;border:1px solid rgba(10,10,10,0.07);border-radius:12px;padding:16px 18px;}
-.pm-box.first{border:2px solid var(--cyan);background:#fff;}
-.pm-box .pn{font:900 17px 'Barlow Condensed',sans-serif;color:var(--ink);width:32px;flex-shrink:0;}
+.pm-box .pi2{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font:900 17px 'Barlow Condensed',sans-serif;flex-shrink:0;}
 .pm-box p{font:700 20px 'Inter Tight',sans-serif;color:var(--ink);flex:1;text-align:left;}
 /* case study card */
 .case{padding:38px 40px;position:relative;}
@@ -423,20 +443,26 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 </style></head><body>
 <div class="pagehead"><strong>BERMO. Carousel · Post 1 · Who is BERMO.?</strong><br>6 slides · 1080&times;1350 · mint</div>
 <div class="slide mint cover"><div class="bar"><div class="wordmark">BERMO.</div></div><div class="content">
-     <div class="kicker">The Growth Store for Founder Led Companies</div>
-     <h1>Who is BERMO.?</h1>
-     <p class="body">Imagine a team that knew exactly what your growth needed next, and had it handled before you even added it to your list.</p>
-     <div class="ui card-d gl">
-  <div class="uihead"><span class="t" style="color:#fff;">Your growth list &middot; run by BERMO.</span>
-    <span class="gl-team"><span class="ga" style="background:#00b894;color:#0a0a0a;">LB</span><span class="ga" style="background:#2c2c2c;">WD</span><span class="ga" style="background:#00f5d4;color:#0a0a0a;">AE</span><span class="ga" style="background:#2c2c2c;">RC</span></span></div>
-  <div class="gl-row"><span class="gchk">&#10003;</span><p>Rewrite the homepage message for buyers</p><span class="utag cy">Done before Monday</span></div>
-  <div class="gl-row"><span class="gchk">&#10003;</span><p>Fix the follow up flow in the CRM</p><span class="utag cy">Done Tuesday</span></div>
-  <div class="gl-row"><span class="gchk off">&#8635;</span><p>Shortlist your AI automation engineer</p><span class="utag am">In motion</span></div>
-  <div class="gl-add"><span class="gc"></span><p>Add something to the list</p><span class="utag cy">Already handled</span></div>
+     <div class="kicker">Who is BERMO.?</div>
+     <h1 style="font-size:72px;">Imagine a team that knew what your growth needed next, and had it handled before you even added it to your list.</h1>
+     <div class="ui card-d sc">
+  <div class="sc-msg"><p>Can we add the homepage rewrite to this week's list?</p></div>
+  <div class="sc-reply">
+    <div class="sh"><span class="si">S</span><b>Shadow.</b></div>
+    <p>Already done, it shipped yesterday, and your follow ups are queued. Your AI engineer shortlist is next, two vetted candidates are ready for you.</p>
+    <div class="sc-acts"><span class="utag cy">Homepage shipped</span><span class="utag cy">Follow ups queued</span><span class="utag am">Shortlist in motion</span></div>
+  </div>
 </div></div><div class="next">&#8594;</div><div class="pager">1 / 6</div></div>
 <div class="slide mint mid"><div class="bar"><div class="wordmark">BERMO.</div></div><div class="content">
      <h2>You start your day with $20K to $100K+ in revenue saved, reallocated into the moves that actually shift the needle.</h2>
-     <p class="body">Our Gap Scan tells us what to do next, and BERMO. quietly gets it done.</p></div><div class="next">&#8594;</div><div class="pager">2 / 6</div></div>
+     <div class="ui card-w mf">
+  <div class="uihead"><span class="t">Revenue saved, then put to work</span><span class="utag cy">Real clients</span></div>
+  <div class="mf-rows">
+    <div class="mf-row"><span class="mv">$25K</span><p>saved for a hospitality SaaS startup in week one</p></div>
+    <div class="mf-row"><span class="mv">$130K</span><p>saved for an AI startup in month one</p></div>
+  </div>
+  <div class="mf-flow"><span class="mf-step on">Gap Scan</span><span class="mf-arr">&#8594;</span><span class="mf-step">Reallocated</span><span class="mf-arr">&#8594;</span><span class="mf-step on">Up 50%+</span></div>
+</div></div><div class="next">&#8594;</div><div class="pager">2 / 6</div></div>
 <div class="slide mint mid"><div class="bar"><div class="wordmark">BERMO.</div></div><div class="content">
      <h2>Our companies see results in under a month, and this is how we do it.</h2>
      <div class="ui card-d sg">
@@ -455,14 +481,14 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
      <div class="ui card-w pm">
   <div class="uihead"><span class="t">What matters most, first</span><span class="utag cy">In order</span></div>
   <div class="pm-grid">
-    <div class="pm-box first"><span class="pn">01</span><p>Messaging</p><span class="utag cy">First</span></div>
-    <div class="pm-box first"><span class="pn">02</span><p>Website UX and UI</p><span class="utag cy">First</span></div>
-    <div class="pm-box"><span class="pn">03</span><p>AI discovery</p></div>
-    <div class="pm-box"><span class="pn">04</span><p>Brand</p></div>
-    <div class="pm-box"><span class="pn">05</span><p>AI workflows</p></div>
-    <div class="pm-box"><span class="pn">06</span><p>Social</p></div>
-    <div class="pm-box"><span class="pn">07</span><p>Hiring</p></div>
-    <div class="pm-box"><span class="pn">08</span><p>Target market</p></div>
+    <div class="pm-box"><span class="pi2" style="background:#00f5d4;color:#0a0a0a;">01</span><p>Messaging</p></div>
+    <div class="pm-box"><span class="pi2" style="background:#ff2d7a;color:#fff;">02</span><p>Website UX and UI</p></div>
+    <div class="pm-box"><span class="pi2" style="background:#c8f500;color:#0a0a0a;">03</span><p>AI discovery</p></div>
+    <div class="pm-box"><span class="pi2" style="background:#00f5d4;color:#0a0a0a;">04</span><p>Brand</p></div>
+    <div class="pm-box"><span class="pi2" style="background:#ff2d7a;color:#fff;">05</span><p>AI workflows</p></div>
+    <div class="pm-box"><span class="pi2" style="background:#c8f500;color:#0a0a0a;">06</span><p>Social</p></div>
+    <div class="pm-box"><span class="pi2" style="background:#00f5d4;color:#0a0a0a;">07</span><p>Hiring</p></div>
+    <div class="pm-box"><span class="pi2" style="background:#ff2d7a;color:#fff;">08</span><p>Target market</p></div>
   </div>
 </div></div><div class="next">&#8594;</div><div class="pager">4 / 6</div></div>
 <div class="slide mint mid"><div class="bar"><div class="wordmark">BERMO.</div></div><div class="content">

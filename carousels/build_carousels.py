@@ -12,7 +12,7 @@ CSS = FONTS + """
 body{background:#141414;font-family:'Inter',sans-serif;display:flex;flex-direction:column;align-items:center;gap:48px;padding:48px 0;}
 .pagehead{color:#888;font:500 14px/1.5 'Inter',sans-serif;text-align:center;max-width:640px;}
 .pagehead strong{color:#fff;}
-.slide{width:1080px;height:1350px;position:relative;overflow:hidden;flex-shrink:0;display:flex;flex-direction:column;padding:150px 80px;}
+.slide{width:1080px;height:1350px;position:relative;overflow:hidden;flex-shrink:0;display:flex;flex-direction:column;padding:100px 80px;}
 .slide.cover{padding-left:100px;padding-right:100px;}
 .slide.light{background-color:var(--off);background-image:radial-gradient(rgba(10,10,10,0.13) 1.6px, transparent 1.6px);background-size:26px 26px;color:var(--ink);}
 .slide.mint{background:linear-gradient(180deg,#f2fffc 0%,#c9fbf1 38%,#5deed3 78%,#0ee2c2 100%);color:var(--ink);}

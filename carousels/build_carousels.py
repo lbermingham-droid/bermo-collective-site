@@ -1087,34 +1087,73 @@ for name, html in posts.items():
 
 
 # ---------------- AD : Revenue Gap Scan, single slide (black) ----------------
+AD_CSS_EXTRA = """
+.adwin{position:relative;width:100%;border-radius:26px;padding:3px;background:linear-gradient(115deg,#ff9a3d,#ff2d7a,#00f5d4);transform:perspective(1600px) rotateX(4deg) rotate(-1.2deg);box-shadow:0 16px 30px rgba(0,0,0,0.5), 0 90px 160px -30px rgba(0,245,212,0.18);}
+.adwin-in{background:#101010;border-radius:23px;overflow:hidden;}
+.adbar{display:flex;align-items:center;gap:14px;background:#181818;padding:16px 22px;}
+.adbar .d{width:13px;height:13px;border-radius:50%;}
+.adbar .u{flex:1;background:#0c0c0c;border:1px solid #2a2a2a;border-radius:9px;padding:9px 18px;font:600 19px 'Inter',sans-serif;color:#f5f5f0;text-align:left;}
+.adbar .live{font:800 14px 'Inter',sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:var(--cyan);border:1px solid rgba(0,245,212,0.4);border-radius:100px;padding:7px 14px;}
+.adbody{display:flex;gap:30px;padding:30px 34px;align-items:center;}
+.adring{flex-shrink:0;position:relative;width:190px;height:190px;}
+.adring .rv{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.adring .rn{font:900 58px 'Inter Tight',sans-serif;color:#fff;}
+.adring .rl{font:700 15px 'Barlow Condensed',sans-serif;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;}
+.adrows{flex:1;}
+.adrow{display:flex;align-items:center;gap:14px;background:#191919;border-radius:11px;padding:14px 18px;margin-bottom:10px;}
+.adrow:last-child{margin-bottom:0;}
+.adrow .nm{font:700 22px 'Inter',sans-serif;color:#f5f5f0;flex:1;text-align:left;}
+.adrow .sc{font:800 22px 'Inter Tight',sans-serif;color:#fff;margin-right:6px;}
+.adverdict{display:flex;gap:16px;align-items:center;background:#0c0c0c;border-top:1px solid rgba(0,245,212,0.25);padding:22px 34px;}
+.adverdict .av{width:52px;height:52px;border-radius:50%;overflow:hidden;flex-shrink:0;}
+.adverdict .av img{width:100%;height:100%;display:block;}
+.adverdict p{font:600 22px/1.35 'Inter',sans-serif;color:#f5f5f0;flex:1;text-align:left;}
+.adverdict b{color:var(--cyan);}
+.adverdict .chip{background:var(--cyan);color:var(--ink);font:800 20px 'Inter Tight',sans-serif;border-radius:10px;padding:12px 18px;white-space:nowrap;}
+"""
+
 AD_SLIDE = f"""<div class="slide dark cover"><div class="orb o1"></div><div class="orb o2"></div>{header(True)}
-<div class="content" style="align-items:flex-start;text-align:left;">
-  <h1 style="font-size:76px;line-height:1.1;letter-spacing:-2px;">Your revenue has <span class="hl">gaps.</span></h1>
-  <h2 style="font-size:44px;line-height:1.25;letter-spacing:-1px;margin-top:-8px;">Shadow finds them in 2 minutes, free, with no pitch.</h2>
-  <div class="ui glowbox" style="margin-top:10px;"><div class="glowbox-in" style="background:#141414;">
-    <div class="gb-line" style="color:#f5f5f0;">Where is my revenue stalling?<span class="caret"></span></div>
-    <div class="gb-row">
-      <span class="shchip" style="background:#242424;border-color:rgba(255,255,255,0.1);color:#f5f5f0;">{MASCOT}Shadow.<span class="cv" style="color:#f5f5f0;">&#9662;</span></span>
-      <span class="gb-status">
-        <span class="pd"></span>Your Gap Scan is running</span>
+<div class="content" style="align-items:flex-start;text-align:left;gap:38px;">
+  <div>
+    <h1 style="font-size:88px;line-height:1.06;letter-spacing:-2.5px;">Your revenue has <span class="hl">gaps.</span></h1>
+    <h2 style="font-size:40px;line-height:1.25;letter-spacing:-1px;margin-top:14px;">The free Revenue Gap Scan finds them in 2 minutes.</h2>
+  </div>
+  <div class="adwin"><div class="adwin-in">
+    <div class="adbar">
+      <span class="d" style="background:#ff5f57;"></span><span class="d" style="background:#c8f500;"></span><span class="d" style="background:#00f5d4;"></span>
+      <span class="u">yourstartup.com</span>
+      <span class="live">&#9679; Scanning</span>
+    </div>
+    <div class="adbody">
+      <div class="adring">
+        <svg width="190" height="190" viewBox="0 0 190 190">
+          <circle cx="95" cy="95" r="82" fill="none" stroke="#242424" stroke-width="15"/>
+          <circle cx="95" cy="95" r="82" fill="none" stroke="#00f5d4" stroke-width="15" stroke-linecap="round" stroke-dasharray="300 515" transform="rotate(-90 95 95)"/>
+        </svg>
+        <div class="rv"><span class="rn">58</span><span class="rl">of 100</span></div>
+      </div>
+      <div class="adrows">
+        <div class="adrow"><span class="nm">Messaging</span><span class="sc">40</span><span class="utag am">Gap found</span></div>
+        <div class="adrow"><span class="nm">Website</span><span class="sc">30</span><span class="utag am">Gap found</span></div>
+        <div class="adrow"><span class="nm">AI discovery</span><span class="sc">80</span><span class="utag cy">Strength</span></div>
+      </div>
+    </div>
+    <div class="adverdict">
+      <span class="av">{MASCOT}</span>
+      <p><b>Shadow.</b> Gap found, your message is not reaching the right buyer. Fix messaging first.</p>
+      <span class="chip">$25K found week one</span>
     </div>
   </div></div>
-  <div class="ui sg-grid" style="grid-template-columns:1fr 1fr 1fr;margin-top:6px;">
-    <div class="sg-tile"><div class="sn">Website</div><div class="st"><span class="utag am">Gap found</span></div></div>
-    <div class="sg-tile"><div class="sn">Messaging</div><div class="st"><span class="utag am">Gap found</span></div></div>
-    <div class="sg-tile"><div class="sn">AI discovery</div><div class="st"><span class="utag cy">Strength</span></div></div>
+  <div style="display:flex;gap:20px;align-items:center;width:100%;">
+    <span class="cta" style="background:var(--cyan);color:var(--ink);font-size:33px;padding:28px 48px;white-space:nowrap;">Get my free Gap Scan &#8594;</span>
+    <span style="font:900 28px 'Inter Tight',sans-serif;color:var(--off);">bermoco.com &middot; Free, no pitch, just the gaps.</span>
   </div>
-  <div style="display:flex;gap:14px;align-items:center;margin-top:8px;width:100%;">
-    <span class="cta" style="background:var(--cyan);color:var(--ink);font-size:34px;padding:28px 54px;">Get my free Gap Scan &#8594;</span>
-    <span style="font:900 30px 'Inter Tight',sans-serif;color:var(--off);">bermoco.com</span>
-  </div>
-  <p style="font:700 26px 'Inter',sans-serif;color:var(--cyan);margin-top:4px;">$25K found in week one &middot; $130K in month one &middot; 98% retention.</p>
 </div></div>"""
 
 with open(os.path.join(OUT, "ad-revenue-gap-scan.html"), "w") as f:
     f.write(f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><title>BERMO. Revenue Gap Scan Ad</title>
-<style>{CSS}</style></head><body>
+<style>{CSS}{AD_CSS_EXTRA}</style></head><body>
 <div class="pagehead"><strong>Revenue Gap Scan ad</strong><br>1 slide, 1080x1350, black</div>
 {AD_SLIDE}
 </body></html>""")

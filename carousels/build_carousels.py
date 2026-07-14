@@ -19,6 +19,15 @@ body{background:#141414;font-family:'Inter',sans-serif;display:flex;flex-directi
 .slide.mint::before{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(10,10,10,0.12) 1.6px, transparent 1.6px);background-size:26px 26px;pointer-events:none;}
 .slide.dark{background-color:#0a0a0a;background-image:radial-gradient(rgba(245,245,240,0.16) 1.6px, transparent 1.6px);background-size:26px 26px;color:var(--off);}
 .slide>*{position:relative;z-index:2;}
+.orb{position:absolute;border-radius:50%;filter:blur(90px);z-index:1;pointer-events:none;}
+.o1{width:560px;height:560px;top:-160px;right:-180px;}
+.o2{width:620px;height:620px;bottom:-200px;left:-200px;}
+.mint .o1{background:rgba(255,255,255,0.55);}
+.mint .o2{background:rgba(0,170,140,0.30);}
+.light .o1{background:rgba(0,245,212,0.22);}
+.light .o2{background:rgba(255,45,122,0.10);}
+.dark .o1{background:rgba(0,245,212,0.13);}
+.dark .o2{background:rgba(255,45,122,0.10);}
 /* header */
 .bar{position:absolute;top:64px;left:80px;right:80px;display:flex;justify-content:space-between;align-items:center;z-index:3;}
 .cover .bar{left:100px;right:100px;}
@@ -48,10 +57,10 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .cta{display:inline-flex;align-items:center;gap:14px;background:var(--ink);color:var(--cyan);font:800 30px 'Inter Tight',sans-serif;padding:26px 52px;border-radius:16px;box-shadow:0 14px 40px rgba(10,10,10,0.35);}
 .dark .cta{background:var(--cyan);color:var(--ink);box-shadow:0 14px 40px rgba(0,229,196,0.25);}
 /* ================= UI components (each used ONCE across the set) ================= */
-.ui{width:100%;text-align:left;}
-.card-d{background:#0d0d0d;border:1px solid rgba(255,255,255,0.09);border-radius:28px;box-shadow:0 36px 90px rgba(10,10,10,0.30);}
+.ui{width:100%;text-align:left;transform:perspective(1600px) rotateX(2.6deg);transform-origin:50% 100%;}
+.card-d{background:#0d0d0d;border:1px solid rgba(255,255,255,0.09);border-radius:28px;box-shadow:0 10px 22px rgba(10,10,10,0.18), 0 70px 130px -30px rgba(10,10,10,0.55);}
 .dark .card-d{background:#111;border-color:rgba(255,255,255,0.13);box-shadow:0 30px 70px rgba(0,0,0,0.6);}
-.card-w{background:#fff;border:1px solid rgba(10,10,10,0.05);border-radius:28px;box-shadow:0 34px 80px rgba(10,10,10,0.14);color:var(--ink);}
+.card-w{background:#fff;border:1px solid rgba(10,10,10,0.05);border-radius:28px;color:var(--ink);box-shadow:0 10px 22px rgba(10,10,10,0.08), 0 70px 130px -30px rgba(10,10,10,0.40);}
 .dark .card-w{box-shadow:0 30px 70px rgba(0,0,0,0.55);}
 .uihead{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
 .uihead .t{font:800 24px 'Inter Tight',sans-serif;}
@@ -270,7 +279,8 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .slide.mid h2{font-size:46px;line-height:1.3;letter-spacing:-1px;}
 .slide.mid .body{font-size:46px;line-height:1.35;max-width:920px;}
 /* mint posts: one size, one weight, left aligned outside UI on non-cover slides */
-.mint:not(.cover) .content{align-items:flex-start;text-align:left;}
+.mint .content{align-items:flex-start;text-align:left;}
+.ombre{background:linear-gradient(92deg,#ff9a3d 0%,#ff2d7a 42%,#00b894 100%);-webkit-background-clip:text;background-clip:text;color:transparent;}
 .mint:not(.cover) h2{font:900 58px/1.22 'Inter Tight',sans-serif;letter-spacing:-1.5px;}
 .mint:not(.cover) .body{font:900 58px/1.22 'Inter Tight',sans-serif;letter-spacing:-1.5px;color:var(--ink);max-width:920px;}
 /* hero composite (post 1 cover) */
@@ -328,7 +338,7 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .rc-row p{font:500 21px 'Inter',sans-serif;color:#e6e6e6;flex:1;text-align:left;}
 .rc-row .rck{color:var(--cyan);font-size:24px;}
 /* clickup-style cover: glow input box + mascot */
-.glowbox{position:relative;border-radius:30px;padding:3px;background:linear-gradient(90deg,#ff9a3d,#ff2d7a,#00f5d4);box-shadow:0 34px 90px rgba(10,10,10,0.22);width:100%;}
+.glowbox{position:relative;border-radius:30px;padding:3px;background:linear-gradient(90deg,#ff9a3d,#ff2d7a,#00f5d4);width:100%;box-shadow:0 12px 26px rgba(10,10,10,0.14), 0 80px 140px -30px rgba(10,10,10,0.45);}
 .glowbox-in{background:#fff;border-radius:27px;padding:34px 38px 30px;text-align:left;}
 .gb-line{font:600 31px 'Inter',sans-serif;color:var(--ink);}
 .gb-line .caret{display:inline-block;width:3px;height:34px;background:var(--cyan);vertical-align:middle;margin:0 3px;}
@@ -465,7 +475,7 @@ def slide(bg, body, idx, total, cover=False):
     pager = f'<div class="pager">{idx} / {total}</div>'
     cov = ' cover' if cover else ''
     mid = ' mid' if (not cover and idx < total) else ''
-    return (f'<div class="slide {bg}{cov}{mid}">{header(cover)}'
+    return (f'<div class="slide {bg}{cov}{mid}"><div class="orb o1"></div><div class="orb o2"></div>{header(cover)}'
             f'<div class="content">{body}</div>{nxt}{pager}</div>')
 
 # ============ UI components, each used exactly once across all six posts ============
@@ -911,8 +921,7 @@ posts["post-1-who-is-bermo.html"] = page(
  "6 slides · 1080&times;1350 · mint",
  [
   slide("mint", f"""
-     <h1 style="font-size:64px;line-height:1.18;letter-spacing:-1.5px;">Who is BERMO.?</h1>
-     <h2 style="font-size:64px;line-height:1.18;letter-spacing:-1.5px;margin-top:-14px;">Imagine a team that knew what your growth needed next, and had it handled before you even added it to your list.</h2>
+     <h1 style="font-size:63px;line-height:1.2;letter-spacing:-1.5px;"><span class="ombre">Who is BERMO.?</span> Imagine a team that knew what your growth needed next, and had it handled before you even added it to your list.</h1>
      <div style="height:14px;"></div>
      {GLOWBOX}""", 1, 6, cover=True),
   slide("mint", f"""

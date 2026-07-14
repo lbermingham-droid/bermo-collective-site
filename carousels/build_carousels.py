@@ -280,7 +280,7 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .slide.mid .body{font-size:46px;line-height:1.35;max-width:920px;}
 /* mint posts: one size, one weight, left aligned outside UI on non-cover slides */
 .mint .content{align-items:flex-start;text-align:left;}
-.ombre{background:linear-gradient(92deg,#ff9a3d 0%,#ff2d7a 42%,#00b894 100%);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.ombre{background:linear-gradient(92deg,#ff9a3d 0%,#ff2d7a 75%,#ff2d7a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;}
 .mint:not(.cover) h2{font:900 58px/1.22 'Inter Tight',sans-serif;letter-spacing:-1.5px;}
 .mint:not(.cover) .body{font:900 58px/1.22 'Inter Tight',sans-serif;letter-spacing:-1.5px;color:var(--ink);max-width:920px;}
 /* hero composite (post 1 cover) */
@@ -1084,3 +1084,38 @@ for name, html in posts.items():
     with open(os.path.join(OUT, name), "w") as f:
         f.write(html)
     print("wrote", name)
+
+
+# ---------------- AD : Revenue Gap Scan, single slide (black) ----------------
+AD_SLIDE = f"""<div class="slide dark cover"><div class="orb o1"></div><div class="orb o2"></div>{header(True)}
+<div class="content" style="align-items:flex-start;text-align:left;">
+  <h1 style="font-size:76px;line-height:1.1;letter-spacing:-2px;">Your revenue has <span class="hl">gaps.</span></h1>
+  <h2 style="font-size:44px;line-height:1.25;letter-spacing:-1px;margin-top:-8px;">Shadow finds them in 2 minutes, free, with no pitch.</h2>
+  <div class="ui glowbox" style="margin-top:10px;"><div class="glowbox-in" style="background:#141414;">
+    <div class="gb-line" style="color:#f5f5f0;">Where is my revenue stalling?<span class="caret"></span></div>
+    <div class="gb-row">
+      <span class="shchip" style="background:#242424;border-color:rgba(255,255,255,0.1);color:#f5f5f0;">{MASCOT}Shadow.<span class="cv" style="color:#f5f5f0;">&#9662;</span></span>
+      <span class="gb-status">
+        <span class="pd"></span>Your Gap Scan is running</span>
+    </div>
+  </div></div>
+  <div class="ui sg-grid" style="grid-template-columns:1fr 1fr 1fr;margin-top:6px;">
+    <div class="sg-tile"><div class="sn">Website</div><div class="st"><span class="utag am">Gap found</span></div></div>
+    <div class="sg-tile"><div class="sn">Messaging</div><div class="st"><span class="utag am">Gap found</span></div></div>
+    <div class="sg-tile"><div class="sn">AI discovery</div><div class="st"><span class="utag cy">Strength</span></div></div>
+  </div>
+  <div style="display:flex;gap:14px;align-items:center;margin-top:8px;width:100%;">
+    <span class="cta" style="background:var(--cyan);color:var(--ink);font-size:34px;padding:28px 54px;">Get my free Gap Scan &#8594;</span>
+    <span style="font:900 30px 'Inter Tight',sans-serif;color:var(--off);">bermoco.com</span>
+  </div>
+  <p style="font:700 26px 'Inter',sans-serif;color:var(--cyan);margin-top:4px;">$25K found in week one &middot; $130K in month one &middot; 98% retention.</p>
+</div></div>"""
+
+with open(os.path.join(OUT, "ad-revenue-gap-scan.html"), "w") as f:
+    f.write(f"""<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>BERMO. Revenue Gap Scan Ad</title>
+<style>{CSS}</style></head><body>
+<div class="pagehead"><strong>Revenue Gap Scan ad</strong><br>1 slide, 1080x1350, black</div>
+{AD_SLIDE}
+</body></html>""")
+print("wrote ad-revenue-gap-scan.html")

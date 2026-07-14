@@ -327,6 +327,40 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .rc-row .rcv{font:900 34px 'Inter Tight',sans-serif;color:var(--cyan);width:190px;flex-shrink:0;text-align:left;}
 .rc-row p{font:500 21px 'Inter',sans-serif;color:#e6e6e6;flex:1;text-align:left;}
 .rc-row .rck{color:var(--cyan);font-size:24px;}
+/* growth list hero: the team that handled it before you added it */
+.gl{padding:34px;}
+.gl-team{display:flex;align-items:center;}
+.gl-team .ga{width:38px;height:38px;border-radius:50%;border:3px solid #0d0d0d;font:700 14px 'Inter',sans-serif;display:flex;align-items:center;justify-content:center;color:#fff;margin-left:-10px;}
+.gl-team .ga:first-child{margin-left:0;}
+.gl-row{display:flex;align-items:center;gap:16px;background:#161616;border-radius:12px;padding:17px 20px;margin-bottom:11px;}
+.gl-row .gchk{width:30px;height:30px;border-radius:9px;background:var(--cyan);color:var(--ink);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;flex-shrink:0;}
+.gl-row .gchk.off{background:#242424;color:#ffb020;}
+.gl-row p{font:600 21px 'Inter',sans-serif;color:#f0f0f0;flex:1;text-align:left;}
+.gl-add{display:flex;align-items:center;gap:14px;background:#1c1c1c;border:1px solid #2c2c2c;border-radius:12px;padding:16px 20px;margin-top:16px;}
+.gl-add .gc{width:2px;height:24px;background:var(--cyan);}
+.gl-add p{font:500 20px 'Inter',sans-serif;color:#e8e8e8;flex:1;text-align:left;}
+/* scan grid: search bar + 3x2 status tiles */
+.sg{padding:38px;}
+.sg-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:26px;}
+.sg-tile{background:#fff;border-radius:16px;padding:24px 18px;text-align:center;}
+.sg-tile .sn{font:800 23px 'Inter Tight',sans-serif;color:var(--ink);}
+.sg-tile .st{margin-top:12px;}
+/* priority map: organize what matters first */
+.pm{padding:36px;}
+.pm-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.pm-box{display:flex;align-items:center;gap:14px;background:#f6f6f2;border:1px solid rgba(10,10,10,0.07);border-radius:12px;padding:16px 18px;}
+.pm-box.first{border:2px solid var(--cyan);background:#fff;}
+.pm-box .pn{font:900 17px 'Barlow Condensed',sans-serif;color:var(--ink);width:32px;flex-shrink:0;}
+.pm-box p{font:700 20px 'Inter Tight',sans-serif;color:var(--ink);flex:1;text-align:left;}
+/* case study card */
+.case{padding:38px 40px;position:relative;}
+.case-big{font:900 54px 'Inter Tight',sans-serif;letter-spacing:-1px;color:var(--ink);}
+.case-big .cv{background:var(--cyan);padding:0 12px;}
+.case-line{font:600 22px/1.45 'Inter',sans-serif;color:var(--ink);margin-top:12px;text-align:left;}
+.case-svc{border-top:1px solid #ececea;margin-top:22px;padding-top:18px;font:600 19px/1.6 'Inter',sans-serif;color:var(--ink);text-align:left;}
+.case-done{margin-top:20px;background:var(--ink);border-radius:12px;padding:16px 20px;display:flex;align-items:center;gap:12px;}
+.case-done .cd{width:28px;height:28px;border-radius:8px;background:var(--cyan);color:var(--ink);display:flex;align-items:center;justify-content:center;font-weight:800;}
+.case-done p{font:700 20px 'Inter',sans-serif;color:#fff;flex:1;text-align:left;}
 /* growth stack cards (replica of bermoco.com) */
 .stack{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
 .stk{background:#fff;border:1px solid rgba(10,10,10,0.06);border-radius:20px;padding:38px 30px;box-shadow:0 18px 44px rgba(10,10,10,0.10);text-align:left;display:flex;flex-direction:column;}
@@ -633,6 +667,49 @@ REPORT = """<div class="ui card-d report">
   <div class="rrow"><div class="ri">1</div><p>The first fix, and why it pays back fastest</p></div>
 </div>"""
 
+GROWTHLIST = """<div class="ui card-d gl">
+  <div class="uihead"><span class="t" style="color:#fff;">Your growth list &middot; run by BERMO.</span>
+    <span class="gl-team"><span class="ga" style="background:#00b894;color:#0a0a0a;">LB</span><span class="ga" style="background:#2c2c2c;">WD</span><span class="ga" style="background:#00f5d4;color:#0a0a0a;">AE</span><span class="ga" style="background:#2c2c2c;">RC</span></span></div>
+  <div class="gl-row"><span class="gchk">&#10003;</span><p>Rewrite the homepage message for buyers</p><span class="utag cy">Done before Monday</span></div>
+  <div class="gl-row"><span class="gchk">&#10003;</span><p>Fix the follow up flow in the CRM</p><span class="utag cy">Done Tuesday</span></div>
+  <div class="gl-row"><span class="gchk off">&#8635;</span><p>Shortlist your AI automation engineer</p><span class="utag am">In motion</span></div>
+  <div class="gl-add"><span class="gc"></span><p>Add something to the list</p><span class="utag cy">Already handled</span></div>
+</div>"""
+
+SCANGRID = """<div class="ui card-d sg">
+  <div class="path-q"><div class="path-qi"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00f5d4" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg>Where should we start?</div></div>
+  <div class="sg-grid">
+    <div class="sg-tile"><div class="sn">Website</div><div class="st"><span class="utag am">Gap found</span></div></div>
+    <div class="sg-tile"><div class="sn">Messaging</div><div class="st"><span class="utag am">Gap found</span></div></div>
+    <div class="sg-tile"><div class="sn">AI discovery</div><div class="st"><span class="utag cy">Strength</span></div></div>
+    <div class="sg-tile"><div class="sn">CRM + follow up</div><div class="st"><span class="utag gr">Scanning</span></div></div>
+    <div class="sg-tile"><div class="sn">Social</div><div class="st"><span class="utag gr">Scanning</span></div></div>
+    <div class="sg-tile"><div class="sn">Hiring</div><div class="st"><span class="utag cy">Strength</span></div></div>
+  </div>
+</div>"""
+
+PRIORITYMAP = """<div class="ui card-w pm">
+  <div class="uihead"><span class="t">What matters most, first</span><span class="utag cy">In order</span></div>
+  <div class="pm-grid">
+    <div class="pm-box first"><span class="pn">01</span><p>Messaging</p><span class="utag cy">First</span></div>
+    <div class="pm-box first"><span class="pn">02</span><p>Website UX and UI</p><span class="utag cy">First</span></div>
+    <div class="pm-box"><span class="pn">03</span><p>AI discovery</p></div>
+    <div class="pm-box"><span class="pn">04</span><p>Brand</p></div>
+    <div class="pm-box"><span class="pn">05</span><p>AI workflows</p></div>
+    <div class="pm-box"><span class="pn">06</span><p>Social</p></div>
+    <div class="pm-box"><span class="pn">07</span><p>Hiring</p></div>
+    <div class="pm-box"><span class="pn">08</span><p>Target market</p></div>
+  </div>
+</div>"""
+
+CASECARD = """<div class="ui card-w case">
+  <div class="uihead"><span class="t">Hospitality SaaS startup</span><span class="utag cy">Week 1 result</span></div>
+  <div class="case-big">$25K <span class="cv">saved</span></div>
+  <div class="case-line">Reallocated to the work that actually grows revenue, then up 50%+ in discovery, listed in AI search, found and cited, with a bigger client pipeline, all in under 2 months.</div>
+  <div class="case-svc">Website UI and UX &middot; Branding &middot; SEO, GEO and AEO &middot; Messaging targeted to buyers &middot; Full company revenue gap scan &middot; Training new hires to take over</div>
+  <div class="case-done"><span class="cd">&#10003;</span><p>Project complete, and the company remains part of BERMO.'s referral market.</p></div>
+</div>"""
+
 STACK = """<div class="ui stack">
   <div class="stk"><div class="ski" style="background:var(--cyan);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg></div>
     <h4>Get found</h4><div class="sd">Be discovered and chosen by the buyers already looking for you.</div>
@@ -768,25 +845,25 @@ posts["post-1-who-is-bermo.html"] = page(
   slide("mint", f"""
      <div class="kicker">The Growth Store for Founder Led Companies</div>
      <h1>Who is BERMO.?</h1>
-     {HERO}""", 1, 6, cover=True),
+     <p class="body">Imagine a team that knew exactly what your growth needed next, and had it handled before you even added it to your list.</p>
+     {GROWTHLIST}""", 1, 6, cover=True),
   slide("mint", """
-     <h2>We help founder led companies grow revenue, all under one roof.</h2>
-     <p class="body">BERMO. is your one stop shop for all of your growth needs, whether that is the solution you already know you need, or us finding what is stalling growth before you spend on something that was never the gap.</p>
-     <p class="body">One partner, with every piece talking to each other.</p>""", 2, 6),
+     <h2>You start your day with $20K to $100K+ in revenue saved, reallocated into the moves that actually shift the needle.</h2>
+     <p class="body">Our Gap Scan tells us what to do next, and BERMO. quietly gets it done.</p>""", 2, 6),
   slide("mint", f"""
-     <h2>Here is everything we offer, and there are three ways in.</h2>
-     {STACK}""", 3, 6),
+     <h2>Our companies see results in under a month, and this is how we do it.</h2>
+     {SCANGRID}""", 3, 6),
   slide("mint", f"""
-     <h2>Growth can stall anywhere in the business, and it is rarely where the noise is.</h2>
-     <p class="body">It could be your website, brand, messaging, social, AI workflows, CRM, hiring, or even your target market, so we organize what matters most first.</p>
-     {AREAS}""", 4, 6),
+     <h2>When growth stalls it is often not the loudest noise, and it can be hard to spot when you are too close to see it.</h2>
+     {PRIORITYMAP}""", 4, 6),
   slide("mint", f"""
      <h2>We find the gap, we map the fix, and you see the ROI.</h2>
-     {SAVE}""", 5, 6),
+     {CASECARD}""", 5, 6),
   slide("mint", f"""
      <h2>The Gap Scan comes first, and the right next move follows.</h2>
      {PATH}
-     {CTA_SCAN}""", 6, 6),
+     {CTA_SCAN}
+     <p class="body"><b>bermoco.com</b> &middot; Follow @bermo.co and share this with a founder who needs it.</p>""", 6, 6),
  ])
 
 # ---------------- POST 2 : Why do founders use BERMO.? (offwhite) ----------------

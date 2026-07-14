@@ -897,7 +897,7 @@ posts["post-1-who-is-bermo.html"] = page(
      <h2>We find the gap, we map the fix, and you see the ROI.</h2>
      {CASECARD}""", 5, 6),
   slide("mint", f"""
-     <h2>The Gap Scan comes first, and the right next move follows.</h2>
+     <h2>Are you ready to meet the team you just imagined?</h2>
      {PATH}
      {CTA_SCAN}
      <p class="body"><b>bermoco.com</b> &middot; Follow @bermo.co and share this with a founder who needs it.</p>""", 6, 6),

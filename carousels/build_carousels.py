@@ -367,17 +367,17 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .req-match .ri2{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font:800 18px 'Inter Tight',sans-serif;flex-shrink:0;}
 .req-match p{font:600 21px 'Inter',sans-serif;color:#f5f5f0;flex:1;text-align:left;}
 /* training list */
-.trn{padding:36px;}
-.trn-row{display:flex;align-items:center;gap:18px;background:#f6f6f2;border:1px solid rgba(10,10,10,0.06);border-radius:14px;padding:19px 22px;margin-bottom:12px;}
+.trn{padding:52px;}
+.trn-row{display:flex;align-items:center;gap:26px;background:#f6f6f2;border:1px solid rgba(10,10,10,0.06);border-radius:18px;padding:34px 34px;margin-bottom:22px;}
 .trn-row:last-child{margin-bottom:0;}
-.trn-row .ti{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0;}
-.trn-row p{font:700 23px 'Inter Tight',sans-serif;color:var(--ink);flex:1;text-align:left;}
-.trn-row span{font:600 18px 'Inter',sans-serif;color:var(--ink);}
+.trn-row .ti{width:68px;height:68px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:30px;flex-shrink:0;}
+.trn-row p{font:700 33px 'Inter Tight',sans-serif;color:var(--ink);flex:1;text-align:left;}
+.trn-row span{font:600 25px 'Inter',sans-serif;color:var(--ink);}
 /* engagement options */
-.opt{display:flex;gap:20px;width:100%;}
-.opt .obox{flex:1;border-radius:18px;padding:32px 26px;text-align:left;box-shadow:0 12px 24px rgba(10,10,10,0.08), 0 50px 100px -30px rgba(10,10,10,0.35);}
-.opt .obox h5{font:800 28px 'Inter Tight',sans-serif;}
-.opt .obox p{font:500 19px/1.45 'Inter',sans-serif;margin-top:8px;}
+.opt{display:flex;flex-direction:column;gap:26px;width:100%;}
+.opt .obox{border-radius:18px;padding:40px 44px;text-align:left;box-shadow:0 12px 24px rgba(10,10,10,0.08), 0 50px 100px -30px rgba(10,10,10,0.35);}
+.opt .obox h5{font:800 36px 'Inter Tight',sans-serif;}
+.opt .obox p{font:500 26px/1.45 'Inter',sans-serif;margin-top:10px;}
 /* multi line growth chart */
 .mlc{padding:36px 40px;}
 .mlc-legend{display:flex;flex-wrap:wrap;gap:18px;margin-top:16px;}

@@ -39,7 +39,7 @@ body{background:#141414;font-family:'Inter',sans-serif;display:flex;flex-directi
 .pager{position:absolute;bottom:70px;right:80px;font:700 17px 'Barlow Condensed',sans-serif;letter-spacing:3px;color:var(--ink);z-index:3;}
 .dark .pager{color:var(--off);}
 /* content area: centered, fills the canvas */
-.content{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;text-align:left;gap:46px;width:100%;}
+.content{flex:1;display:flex;flex-direction:column;justify-content:flex-start;padding-top:96px;align-items:flex-start;text-align:left;gap:44px;width:100%;}
 /* type */
 .kicker{font:700 22px 'Barlow Condensed',sans-serif;letter-spacing:7px;text-transform:uppercase;color:var(--ink);}
 .dark .kicker{color:var(--cyan);}
@@ -791,12 +791,12 @@ METHODTRACK = f"""<div class="ui card-d mtk">
 </div>"""
 
 STEPPER2 = """<div class="ui st2">
-  <div class="sbox" style="border-color:#00f5d4;"><span class="sn2" style="background:#00f5d4;color:#0a0a0a;">1</span><div class="t1">Scan</div><div class="t2">The free Gap Scan reads your business like a buyer</div></div>
-  <div class="sbox" style="border-color:#ff2d7a;"><span class="sn2" style="background:#ff2d7a;color:#fff;">2</span><div class="t1">Blueprint</div><div class="t2">A clear plan, in the order that pays back fastest</div></div>
-  <div class="sbox" style="border-color:#c8f500;"><span class="sn2" style="background:#c8f500;color:#0a0a0a;">3</span><div class="t1">Build</div><div class="t2">We do the work with you, one right move at a time</div></div>
+  <div class="sbox" style="border-color:#00f5d4;"><span class="sn2" style="background:#00f5d4;color:#0a0a0a;">01</span><div class="t1">Gap Scan</div><div class="t2">Not sure what to do next? See where revenue is stalling</div></div>
+  <div class="sbox" style="border-color:#ff2d7a;"><span class="sn2" style="background:#ff2d7a;color:#fff;">02</span><div class="t1">Vetted experts</div><div class="t2">You already know what you need, we bring the team</div></div>
+  <div class="sbox" style="border-color:#c8f500;"><span class="sn2" style="background:#c8f500;color:#0a0a0a;">03</span><div class="t1">Team training</div><div class="t2">We train your team to take over and keep it running</div></div>
 </div>"""
 
-REALSCAN = """<div class="ui rpt" style="margin-bottom:-330px;">
+REALSCAN = """<div class="ui rpt" style="width:118%;margin-top:196px;margin-bottom:-300px;">
   <div class="rpt-hero"><span class="badge">AUDIT REPORT</span>
     <h3>Gap Scan</h3>
     <div class="rpt-meta">
@@ -1148,18 +1148,18 @@ posts["post-4-how-bermo-does-it.html"] = page(
   slide("light", f"""
      <div class="kicker">The BERMO. Method</div>
      <h1>How does BERMO. <span class="hl">do it?</span></h1>
-     <p class="body">BERMO. reads your business the way a buyer does, shows you exactly what is stalling growth, then executes.</p>
+     <h2 style="font-size:46px;line-height:1.3;letter-spacing:-1px;font-weight:900;">BERMO. reads your business the way a buyer does, shows you exactly what is stalling growth, then executes.</h2>
      {STEPPER2}""", 1, 6, cover=True),
   slide("light", f"""
-     <h2>Step 1. Not sure what to <span class="hl">do next?</span></h2>
+     <h2>Option 1. Not sure what to <span class="hl">do next?</span></h2>
      <p class="body">The Gap Scan shows where revenue is stalling, which expenses can be cut, and the priority next moves that actually provide an ROI.</p>
      {REALSCAN}""", 2, 6),
   slide("light", f"""
-     <h2>Step 2. You already know what <span class="hl">you need.</span></h2>
+     <h2>Option 2. You already know what <span class="hl">you need.</span></h2>
      <p class="body">We have a vetted team of experts who come in and get real results, for less than the price of a full time hire.</p>
      {REQUEST}""", 3, 6),
   slide("light", f"""
-     <h2>Step 3. We train your team to take over, in 1/4 of the time it <span class="hl">took before.</span></h2>
+     <h2>Option 3. We train your team to take over, in 1/4 of the time it <span class="hl">took before.</span></h2>
      {TRAINLIST}""", 4, 6),
   slide("light", f"""
      <h2>Customize what you want, the way <span class="hl">you want.</span></h2>

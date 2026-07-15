@@ -39,7 +39,7 @@ body{background:#141414;font-family:'Inter',sans-serif;display:flex;flex-directi
 .pager{position:absolute;bottom:70px;right:80px;font:700 17px 'Barlow Condensed',sans-serif;letter-spacing:3px;color:var(--ink);z-index:3;}
 .dark .pager{color:var(--off);}
 /* content area: centered, fills the canvas */
-.content{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:46px;width:100%;}
+.content{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;text-align:left;gap:46px;width:100%;}
 /* type */
 .kicker{font:700 22px 'Barlow Condensed',sans-serif;letter-spacing:7px;text-transform:uppercase;color:var(--ink);}
 .dark .kicker{color:var(--cyan);}
@@ -281,7 +281,6 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .slide.mid h2{font-size:46px;line-height:1.3;letter-spacing:-1px;}
 .slide.mid .body{font-size:46px;line-height:1.35;max-width:920px;}
 /* mint posts: one size, one weight, left aligned outside UI on non-cover slides */
-.mint .content{align-items:flex-start;text-align:left;}
 .ombre{background:linear-gradient(92deg,#ff9a3d 0%,#ff2d7a 75%,#ff2d7a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;}
 .mint:not(.cover) h2{font:900 58px/1.22 'Inter Tight',sans-serif;letter-spacing:-1.5px;}
 .mint:not(.cover) .body{font:900 58px/1.22 'Inter Tight',sans-serif;letter-spacing:-1.5px;color:var(--ink);max-width:920px;}
@@ -339,6 +338,51 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .rc-row .rcv{font:900 34px 'Inter Tight',sans-serif;color:var(--cyan);width:190px;flex-shrink:0;text-align:left;}
 .rc-row p{font:500 21px 'Inter',sans-serif;color:#e6e6e6;flex:1;text-align:left;}
 .rc-row .rck{color:var(--cyan);font-size:24px;}
+/* colored stepper v2 */
+.st2{display:flex;gap:20px;width:100%;}
+.st2 .sbox{flex:1;background:#fff;border-radius:18px;padding:30px 26px;box-shadow:0 12px 24px rgba(10,10,10,0.08), 0 50px 100px -30px rgba(10,10,10,0.35);text-align:left;border-top:6px solid;}
+.st2 .sn2{width:48px;height:48px;border-radius:13px;font:800 22px 'Inter Tight',sans-serif;display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+.st2 .t1{font:800 28px 'Inter Tight',sans-serif;color:var(--ink);}
+.st2 .t2{font:500 19px/1.45 'Inter',sans-serif;color:var(--ink);margin-top:8px;}
+/* real gap scan report, bleeding off the slide */
+.rpt{width:100%;background:#fff;border-radius:22px 22px 0 0;box-shadow:0 12px 24px rgba(10,10,10,0.10), 0 60px 120px -30px rgba(10,10,10,0.4);overflow:hidden;text-align:left;}
+.rpt-hero{background:#0d0d0d;padding:30px 34px;position:relative;}
+.rpt-hero .badge{position:absolute;top:26px;right:30px;background:var(--cyan);color:var(--ink);font:800 13px 'Barlow Condensed',sans-serif;letter-spacing:2px;padding:8px 14px;}
+.rpt-hero h3{font:900 52px 'Inter Tight',sans-serif;color:#fff;letter-spacing:-1px;}
+.rpt-meta{display:flex;gap:40px;margin-top:18px;}
+.rpt-meta div b{font:700 13px 'Barlow Condensed',sans-serif;letter-spacing:2px;color:var(--cyan);display:block;text-transform:uppercase;}
+.rpt-meta div span{font:600 18px 'Inter',sans-serif;color:#f5f5f0;}
+.rpt-body{padding:28px 34px;}
+.rpt-body h4{font:800 26px 'Inter Tight',sans-serif;color:var(--ink);margin-bottom:18px;}
+.rpt-row{display:flex;align-items:center;gap:16px;margin-bottom:14px;}
+.rpt-row .rl{width:280px;font:700 19px 'Inter',sans-serif;color:var(--ink);flex-shrink:0;}
+.rpt-row .rb{flex:1;height:16px;border-radius:4px;background:#ececea;overflow:hidden;}
+.rpt-row .rb i{display:block;height:100%;background:var(--cyan);}
+.rpt-row .rr{font:700 13px 'Barlow Condensed',sans-serif;letter-spacing:1.5px;color:var(--ink);width:210px;text-transform:uppercase;}
+/* request to team match */
+.req{padding:34px;}
+.req-bub{max-width:86%;background:#161616;border:1px solid rgba(0,245,212,0.3);border-radius:16px 16px 16px 4px;padding:22px 26px;margin-bottom:20px;}
+.req-bub p{font:600 22px/1.45 'Inter',sans-serif;color:#f5f5f0;text-align:left;}
+.req-match{display:flex;align-items:center;gap:14px;background:#191919;border-radius:12px;padding:15px 18px;margin-bottom:10px;}
+.req-match .ri2{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font:800 18px 'Inter Tight',sans-serif;flex-shrink:0;}
+.req-match p{font:600 21px 'Inter',sans-serif;color:#f5f5f0;flex:1;text-align:left;}
+/* training list */
+.trn{padding:36px;}
+.trn-row{display:flex;align-items:center;gap:18px;background:#f6f6f2;border:1px solid rgba(10,10,10,0.06);border-radius:14px;padding:19px 22px;margin-bottom:12px;}
+.trn-row:last-child{margin-bottom:0;}
+.trn-row .ti{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0;}
+.trn-row p{font:700 23px 'Inter Tight',sans-serif;color:var(--ink);flex:1;text-align:left;}
+.trn-row span{font:600 18px 'Inter',sans-serif;color:var(--ink);}
+/* engagement options */
+.opt{display:flex;gap:20px;width:100%;}
+.opt .obox{flex:1;border-radius:18px;padding:32px 26px;text-align:left;box-shadow:0 12px 24px rgba(10,10,10,0.08), 0 50px 100px -30px rgba(10,10,10,0.35);}
+.opt .obox h5{font:800 28px 'Inter Tight',sans-serif;}
+.opt .obox p{font:500 19px/1.45 'Inter',sans-serif;margin-top:8px;}
+/* multi line growth chart */
+.mlc{padding:36px 40px;}
+.mlc-legend{display:flex;flex-wrap:wrap;gap:18px;margin-top:16px;}
+.mlc-legend span{display:inline-flex;align-items:center;gap:9px;font:700 19px 'Inter',sans-serif;color:var(--ink);}
+.mlc-legend i{width:26px;height:7px;border-radius:4px;display:inline-block;}
 /* method tracker (post 4 hero) */
 .mtk{padding:34px;}
 .mtk-row{display:flex;align-items:center;gap:18px;background:#161616;border-radius:13px;padding:19px 22px;margin-bottom:12px;}
@@ -496,7 +540,7 @@ def slide(bg, body, idx, total, cover=False):
     pager = f'<div class="pager">{idx} / {total}</div>'
     cov = ' cover' if cover else ''
     mid = ' mid' if (not cover and idx < total) else ''
-    return (f'<div class="slide {bg}{cov}{mid}"><div class="orb o1"></div><div class="orb o2"></div>{header(cover)}'
+    return (f'<div class="slide {bg}{cov}{mid}">{header(cover)}'
             f'<div class="content">{body}</div>{nxt}{pager}</div>')
 
 # ============ UI components, each used exactly once across all six posts ============
@@ -745,6 +789,74 @@ METHODTRACK = f"""<div class="ui card-d mtk">
   <div class="mtk-row"><span class="n doing">3</span><div class="t"><b>Build</b><span>Homepage rebuild shipping this week</span></div><span class="mtk-bar"><i style="width:62%;"></i></span></div>
   <div class="mtk-foot"><span class="av">{MASCOT}</span><p><b>Shadow.</b> Everything is on track, and your follow ups are already queued.</p><span class="chip">$25K saved week one</span></div>
 </div>"""
+
+STEPPER2 = """<div class="ui st2">
+  <div class="sbox" style="border-color:#00f5d4;"><span class="sn2" style="background:#00f5d4;color:#0a0a0a;">1</span><div class="t1">Scan</div><div class="t2">The free Gap Scan reads your business like a buyer</div></div>
+  <div class="sbox" style="border-color:#ff2d7a;"><span class="sn2" style="background:#ff2d7a;color:#fff;">2</span><div class="t1">Blueprint</div><div class="t2">A clear plan, in the order that pays back fastest</div></div>
+  <div class="sbox" style="border-color:#c8f500;"><span class="sn2" style="background:#c8f500;color:#0a0a0a;">3</span><div class="t1">Build</div><div class="t2">We do the work with you, one right move at a time</div></div>
+</div>"""
+
+REALSCAN = """<div class="ui rpt" style="margin-bottom:-330px;">
+  <div class="rpt-hero"><span class="badge">AUDIT REPORT</span>
+    <h3>Gap Scan</h3>
+    <div class="rpt-meta">
+      <div><b>Prepared for</b><span>yourstartup.com</span></div>
+      <div><b>Date</b><span>July 2026</span></div>
+      <div><b>Prepared by</b><span>Lexi Bermingham, BERMO.</span></div>
+    </div>
+  </div>
+  <div class="rpt-body">
+    <h4>Where the return is, ranked by ROI opportunity</h4>
+    <div class="rpt-row"><span class="rl">Getting found, AI and search</span><span class="rb"><i style="width:88%;"></i></span><span class="rr">7 opportunities &middot; highest return</span></div>
+    <div class="rpt-row"><span class="rl">Technology and AI workflows</span><span class="rb"><i style="width:74%;"></i></span><span class="rr">6 opportunities &middot; high return</span></div>
+    <div class="rpt-row"><span class="rl">Standing out in a crowded market</span><span class="rb"><i style="width:62%;"></i></span><span class="rr">5 opportunities &middot; high return</span></div>
+    <div class="rpt-row"><span class="rl">Converting the buyer</span><span class="rb"><i style="width:50%;"></i></span><span class="rr">4 opportunities &middot; medium return</span></div>
+    <div class="rpt-row"><span class="rl">Social media presence</span><span class="rb"><i style="width:38%;"></i></span><span class="rr">3 opportunities &middot; medium return</span></div>
+  </div>
+</div>"""
+
+REQUEST = f"""<div class="ui card-d req">
+  <div class="uihead"><span class="t" style="color:#fff;">Your request</span><span class="utag cy">Team matched</span></div>
+  <div class="req-bub"><p>I need my website redone, and I want us showing up in AI, with what our buyers actually want to hear.</p></div>
+  <div class="req-match"><span class="ri2" style="background:#00f5d4;color:#0a0a0a;">W</span><p>Web designer, site rebuilt to convert</p><span class="utag cy">Assigned</span></div>
+  <div class="req-match"><span class="ri2" style="background:#ff2d7a;color:#fff;">A</span><p>AI discovery expert, found and cited in AI search</p><span class="utag cy">Assigned</span></div>
+  <div class="req-match"><span class="ri2" style="background:#c8f500;color:#0a0a0a;">M</span><p>Messaging strategist, written in your buyer's words</p><span class="utag cy">Assigned</span></div>
+</div>"""
+
+TRAINLIST = """<div class="ui card-w trn">
+  <div class="uihead"><span class="t">What your team walks away with</span><span class="utag cy">Yours to keep</span></div>
+  <div class="trn-row"><span class="ti" style="background:#00f5d4;color:#0a0a0a;">&#9654;</span><p>Social media templates in your brand</p><span>Ready to post</span></div>
+  <div class="trn-row"><span class="ti" style="background:#ff2d7a;color:#fff;">&#9740;</span><p>Keeping AI discovery up to date</p><span>Monthly checklist</span></div>
+  <div class="trn-row"><span class="ti" style="background:#c8f500;color:#0a0a0a;">&#9881;</span><p>AI workflows your team runs solo</p><span>Step by step</span></div>
+</div>"""
+
+OPTIONS = """<div class="ui opt">
+  <div class="obox" style="background:#0a0a0a;"><h5 style="color:#00f5d4;">Phases</h5><p style="color:#f5f5f0;">Start with the first fix, then build from there</p></div>
+  <div class="obox" style="background:#fff;"><h5 style="color:#0a0a0a;">Projects</h5><p style="color:#0a0a0a;">One outcome, one team, one timeline</p></div>
+  <div class="obox" style="background:#0a0a0a;"><h5 style="color:#ff2d7a;">Full time hire</h5><p style="color:#f5f5f0;">We recruit and place them, and they stay</p></div>
+</div>"""
+
+MULTICHART = """<div class="ui card-w mlc">
+  <div class="uihead"><span class="t">Real client &middot; your revenue</span><span class="utag cy">After the fix</span></div>
+  <svg width="100%" height="230" viewBox="0 0 840 230" preserveAspectRatio="none">
+    <line x1="0" y1="60" x2="840" y2="60" stroke="#ececea" stroke-width="2"/>
+    <line x1="0" y1="120" x2="840" y2="120" stroke="#ececea" stroke-width="2"/>
+    <line x1="0" y1="180" x2="840" y2="180" stroke="#ececea" stroke-width="2"/>
+    <path d="M10 200 C 200 190, 380 150, 830 30" fill="none" stroke="#00f5d4" stroke-width="7" stroke-linecap="round"/>
+    <path d="M10 205 C 220 200, 420 165, 830 60" fill="none" stroke="#ff2d7a" stroke-width="6" stroke-linecap="round"/>
+    <path d="M10 210 C 240 205, 450 180, 830 95" fill="none" stroke="#c8f500" stroke-width="6" stroke-linecap="round"/>
+    <path d="M10 215 C 260 212, 480 195, 830 125" fill="none" stroke="#0a0a0a" stroke-width="5" stroke-linecap="round"/>
+    <path d="M10 218 C 280 216, 500 205, 830 150" fill="none" stroke="#00b894" stroke-width="5" stroke-linecap="round"/>
+  </svg>
+  <div class="mlc-legend">
+    <span><i style="background:#00f5d4;"></i>Increased revenue</span>
+    <span><i style="background:#ff2d7a;"></i>Increased traffic</span>
+    <span><i style="background:#c8f500;"></i>Buyer awareness</span>
+    <span><i style="background:#0a0a0a;"></i>AI visibility</span>
+    <span><i style="background:#00b894;"></i>Increased clients</span>
+  </div>
+</div>"""
+
 
 GLOWBOX = f"""<div class="ui glowbox">
   <div class="glowbox-in">
@@ -997,7 +1109,7 @@ posts["post-2-why-founders-use-bermo.html"] = page(
      <h2>Stop paying for the loudest symptom, and start investing in what <span class="hl">drives growth.</span></h2>
      {TILES}
      {CTA_SCAN}
-     <p class="body">It is free, with no pitch, just the gaps, at bermoco.com.</p>""", 5, 5),
+     <p class="body">The free Gap Scan is waiting at bermoco.com.</p>""", 5, 5),
  ])
 
 # ---------------- POST 3 : What does BERMO. actually help with? (dark) ----------------
@@ -1028,33 +1140,36 @@ posts["post-3-what-bermo-helps-with.html"] = page(
      <div><span class="cta">Shop your growth stack &#8594;</span></div>""", 5, 5),
  ])
 
-# ---------------- POST 4 : How does BERMO. do it? (offwhite) ----------------
+# ---------------- POST 4 : How does BERMO. do it? (offwhite, 6 slides) ----------------
 posts["post-4-how-bermo-does-it.html"] = page(
  "BERMO. Carousel · Post 4 · How does BERMO. do it?",
- "5 slides · 1080&times;1350 · offwhite",
+ "6 slides · 1080&times;1350 · offwhite",
  [
   slide("light", f"""
-     <h1 style="font-size:76px;line-height:1.1;letter-spacing:-2px;">How does BERMO. <span class="hl">do it?</span></h1>
-     <h2 style="font-size:42px;line-height:1.25;letter-spacing:-1px;margin-top:-4px;">Three steps, one team, and revenue you can see moving.</h2>
-     {METHODTRACK}""", 1, 5, cover=True),
+     <div class="kicker">The BERMO. Method</div>
+     <h1>How does BERMO. <span class="hl">do it?</span></h1>
+     <p class="body">BERMO. reads your business the way a buyer does, shows you exactly what is stalling growth, then executes.</p>
+     {STEPPER2}""", 1, 6, cover=True),
   slide("light", f"""
-     <h2>Step one is the free <span class="hl">Gap Scan.</span></h2>
-     <p class="body">BERMO. reads your business the way a buyer does, then shows you exactly what is stalling growth, free, with no pitch, just the gaps.</p>
-     {SCAN}""", 2, 5),
+     <h2>Step 1. Not sure what to <span class="hl">do next?</span></h2>
+     <p class="body">The Gap Scan shows where revenue is stalling, which expenses can be cut, and the priority next moves that actually provide an ROI.</p>
+     {REALSCAN}""", 2, 6),
   slide("light", f"""
-     <h2>Step two is a blueprint you can <span class="hl">actually use.</span></h2>
-     <p class="body">The scan becomes a clear plan that shows what to fix, what to skip, and which order pays you back fastest.</p>
-     {BOARD}""", 3, 5),
-  slide("light", """
-     <h2>Step three is the right work, done in the <span class="hl">right order.</span></h2>
-     <p class="body">Whether it is brand, website, AI workflows and automation, content, hiring or training, we do the work with you, one right move at a time.</p>
-     <p class="body"><b>No guessing, no busywork, just the next right move.</b></p>""", 4, 5),
+     <h2>Step 2. You already know what <span class="hl">you need.</span></h2>
+     <p class="body">We have a vetted team of experts who come in and get real results, for less than the price of a full time hire.</p>
+     {REQUEST}""", 3, 6),
   slide("light", f"""
-     <h2>Stop guessing, spend smarter, and <span class="hl">move faster.</span></h2>
-     {CHART}
-     <p class="body"><b>$25K saved in week one, $130K in month one, and 98% of placements stay.</b></p>
+     <h2>Step 3. We train your team to take over, in 1/4 of the time it <span class="hl">took before.</span></h2>
+     {TRAINLIST}""", 4, 6),
+  slide("light", f"""
+     <h2>Customize what you want, the way <span class="hl">you want.</span></h2>
+     <p class="body">Run it in phases, run it as projects, or have us hire someone full time when you are ready.</p>
+     {OPTIONS}""", 5, 6),
+  slide("light", f"""
+     <h2>The cost of waiting is greater than the investment in the <span class="hl">right decision.</span></h2>
+     {MULTICHART}
      {CTA_SCAN}
-     <p class="body">It all starts with the free Gap Scan at bermoco.com.</p>""", 5, 5),
+     <p class="body">It all starts with the free Gap Scan at bermoco.com.</p>""", 6, 6),
  ])
 
 # ---------------- POST 5 : What makes BERMO. different? (mint) ----------------
@@ -1107,7 +1222,7 @@ posts["post-6-not-in-the-room.html"] = page(
      <h2>Growth gets easier when your business says the <span class="hl">right thing.</span></h2>
      {REPORT}
      {CTA_SCAN}
-     <p class="body">It is free, with no pitch, just the gaps, at bermoco.com.</p>""", 5, 5),
+     <p class="body">The free Gap Scan is waiting at bermoco.com.</p>""", 5, 5),
  ])
 
 for name, html in posts.items():
@@ -1142,7 +1257,7 @@ AD_CSS_EXTRA = """
 .adverdict .chip{background:var(--cyan);color:var(--ink);font:800 20px 'Inter Tight',sans-serif;border-radius:10px;padding:12px 18px;white-space:nowrap;}
 """
 
-AD_SLIDE = f"""<div class="slide dark cover"><div class="orb o1"></div><div class="orb o2"></div>{header(True)}
+AD_SLIDE = f"""<div class="slide dark cover">{header(True)}
 <div class="content" style="align-items:flex-start;text-align:left;gap:38px;">
   <div>
     <h1 style="font-size:88px;line-height:1.06;letter-spacing:-2.5px;">Your revenue has <span class="hl">gaps.</span></h1>
@@ -1176,7 +1291,7 @@ AD_SLIDE = f"""<div class="slide dark cover"><div class="orb o1"></div><div clas
   </div></div>
   <div style="display:flex;gap:20px;align-items:center;width:100%;">
     <span class="cta" style="background:var(--cyan);color:var(--ink);font-size:33px;padding:28px 48px;white-space:nowrap;">Get my free Gap Scan &#8594;</span>
-    <span style="font:900 28px 'Inter Tight',sans-serif;color:var(--off);">bermoco.com &middot; Free, no pitch, just the gaps.</span>
+    <span style="font:900 28px 'Inter Tight',sans-serif;color:var(--off);">bermoco.com &middot; </span>
   </div>
 </div></div>"""
 

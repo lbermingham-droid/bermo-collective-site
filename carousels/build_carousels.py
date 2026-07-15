@@ -221,7 +221,9 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 /* revenue chart */
 .chart{padding:40px;}
 .chart .cx{display:flex;justify-content:space-between;margin-top:14px;}
-.chart .cx span{font:600 16px 'Inter',sans-serif;color:rgba(10,10,10,0.45);}
+.chart .cx span{font:600 16px 'Inter',sans-serif;color:var(--ink);}
+.chart .bignum{font:900 96px 'Inter Tight',sans-serif;letter-spacing:-3px;color:var(--ink);line-height:1;}
+.chart .bignum small{font:800 30px 'Inter Tight',sans-serif;color:#00b894;display:block;letter-spacing:0;margin-top:4px;}
 /* team roster */
 .team{padding:36px;}
 .trow{display:flex;align-items:center;gap:18px;background:#f6f6f2;border:1px solid rgba(10,10,10,0.05);border-radius:14px;padding:17px 20px;margin-bottom:12px;}
@@ -337,6 +339,25 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .rc-row .rcv{font:900 34px 'Inter Tight',sans-serif;color:var(--cyan);width:190px;flex-shrink:0;text-align:left;}
 .rc-row p{font:500 21px 'Inter',sans-serif;color:#e6e6e6;flex:1;text-align:left;}
 .rc-row .rck{color:var(--cyan);font-size:24px;}
+/* method tracker (post 4 hero) */
+.mtk{padding:34px;}
+.mtk-row{display:flex;align-items:center;gap:18px;background:#161616;border-radius:13px;padding:19px 22px;margin-bottom:12px;}
+.mtk-row:last-child{margin-bottom:0;}
+.mtk-row .n{width:44px;height:44px;border-radius:12px;font:800 21px 'Inter Tight',sans-serif;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.mtk-row .n.done{background:var(--cyan);color:var(--ink);}
+.mtk-row .n.doing{background:#ff2d7a;color:#fff;}
+.mtk-row .n.next{background:#242424;color:#f5f5f0;}
+.mtk-row .t{flex:1;text-align:left;}
+.mtk-row .t b{font:800 24px 'Inter Tight',sans-serif;color:#fff;display:block;}
+.mtk-row .t span{font:500 18px 'Inter',sans-serif;color:#cfcfcf;}
+.mtk-bar{width:170px;height:12px;border-radius:6px;background:#242424;overflow:hidden;flex-shrink:0;}
+.mtk-bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#00c9ab,#00f5d4);}
+.mtk-foot{display:flex;align-items:center;gap:14px;border-top:1px solid rgba(0,245,212,0.25);margin-top:20px;padding-top:20px;}
+.mtk-foot .av{width:46px;height:46px;border-radius:50%;overflow:hidden;flex-shrink:0;}
+.mtk-foot .av img{width:100%;height:100%;display:block;}
+.mtk-foot p{font:600 20px 'Inter',sans-serif;color:#f0f0f0;flex:1;text-align:left;}
+.mtk-foot b{color:var(--cyan);}
+.mtk-foot .chip{background:var(--cyan);color:var(--ink);font:800 19px 'Inter Tight',sans-serif;border-radius:10px;padding:11px 16px;white-space:nowrap;}
 /* clickup-style cover: glow input box + mascot */
 .glowbox{position:relative;border-radius:30px;padding:3px;background:linear-gradient(90deg,#ff9a3d,#ff2d7a,#00f5d4);width:100%;box-shadow:0 12px 26px rgba(10,10,10,0.14), 0 80px 140px -30px rgba(10,10,10,0.45);}
 .glowbox-in{background:#fff;border-radius:27px;padding:34px 38px 30px;text-align:left;}
@@ -543,7 +564,7 @@ PLAN = """<div class="ui card-d plan">
   <div class="uihead"><span class="t">Your growth blueprint</span><span class="utag cy">In order</span></div>
   <div class="step"><span class="num">1</span><span class="st">Messaging</span><span class="ss">fix what buyers hear first</span><span class="chk">&#10003;</span></div>
   <div class="step"><span class="num">2</span><span class="st">Website</span><span class="ss">turn visits into conversations</span><span class="chk">&#10003;</span></div>
-  <div class="step"><span class="num off">3</span><span class="st">AI + CRM</span><span class="ss">follow up without the busywork</span></div>
+  <div class="step"><span class="num off">3</span><span class="st">AI workflows + automation</span><span class="ss">follow up without the busywork</span></div>
   <div class="step"><span class="num off">4</span><span class="st">Content</span><span class="ss">stay visible in your voice</span></div>
   <div class="step"><span class="num off">5</span><span class="st">Hiring</span><span class="ss">add people when the work is ready</span></div>
 </div>"""
@@ -600,6 +621,14 @@ HIRE = """<div class="ui card-w hire">
   <div class="cand"><div class="cav">DR</div><div class="cm"><div class="cn">D. Reyes</div><div class="cr">Data and AI automation, 8 yrs</div></div><span class="match">91%</span><span class="utag gr">Shortlisted</span></div>
 </div>"""
 
+METHODTRACK = f"""<div class="ui card-d mtk">
+  <div class="uihead"><span class="t" style="color:#fff;">The BERMO. Method &middot; yourstartup.com</span><span class="utag cy">Week 4 of 8</span></div>
+  <div class="mtk-row"><span class="n done">&#10003;</span><div class="t"><b>Scan</b><span>Gap found, messaging is not reaching the right buyer</span></div><span class="mtk-bar"><i style="width:100%;"></i></span></div>
+  <div class="mtk-row"><span class="n done">&#10003;</span><div class="t"><b>Blueprint</b><span>6 week plan delivered, yours to keep</span></div><span class="mtk-bar"><i style="width:100%;"></i></span></div>
+  <div class="mtk-row"><span class="n doing">3</span><div class="t"><b>Build</b><span>Homepage rebuild shipping this week</span></div><span class="mtk-bar"><i style="width:62%;"></i></span></div>
+  <div class="mtk-foot"><span class="av">{MASCOT}</span><p><b>Shadow.</b> Everything is on track, and your follow ups are already queued.</p><span class="chip">$25K saved week one</span></div>
+</div>"""
+
 STEPPER = """<div class="ui stepper">
   <div class="sstep"><div class="sn">1</div><div class="st1">Scan</div><div class="st2">The free Gap Scan reads your business like a buyer</div></div>
   <span class="sarr">&#8594;</span>
@@ -625,12 +654,12 @@ BOARD = """<div class="ui card-d board">
   <div class="brow h"><span></span><span>Fix</span><span>Owner</span><span>Week</span></div>
   <div class="brow"><span class="bn">1</span><span class="bt">Messaging rewrite</span><span class="bw">BERMO. + you</span><span class="bw">Week 1</span></div>
   <div class="brow"><span class="bn">2</span><span class="bt">Homepage rebuild</span><span class="bw">BERMO.</span><span class="bw">Week 2</span></div>
-  <div class="brow"><span class="bn off">3</span><span class="bt">CRM follow up flows</span><span class="bw">BERMO.</span><span class="bw">Week 3</span></div>
+  <div class="brow"><span class="bn off">3</span><span class="bt">AI workflow + automation build</span><span class="bw">BERMO.</span><span class="bw">Week 3</span></div>
   <div class="brow"><span class="bn off">4</span><span class="bt">Weekly founder content</span><span class="bw">You, guided</span><span class="bw">Week 4</span></div>
 </div>"""
 
 CHART = """<div class="ui card-w chart">
-  <div class="uihead"><span class="t">Revenue after the fix</span><span class="utag cy">Up 50%+ in under 2 months</span></div>
+  <div class="uihead" style="align-items:flex-start;"><span class="bignum">+50%<small>revenue in under 2 months</small></span><span class="utag cy">Real client</span></div>
   <svg width="100%" height="220" viewBox="0 0 840 220" preserveAspectRatio="none">
     <line x1="0" y1="55" x2="840" y2="55" stroke="#ececea" stroke-width="2"/>
     <line x1="0" y1="110" x2="840" y2="110" stroke="#ececea" stroke-width="2"/>
@@ -883,7 +912,7 @@ WORKBOARD = """<div class="ui card-d wb">
   <div class="wb-cols"><span>Work</span><span>Owner</span><span>Status</span><span>Timeline</span></div>
   <div class="wb-row c1"><span class="wt">Messaging rewrite</span><span class="wav">LB</span><span class="wst done">Shipped</span><span class="wtl"><i style="width:100%;"></i></span></div>
   <div class="wb-row c2"><span class="wt">Homepage rebuild</span><span class="wav">WD</span><span class="wst doing">In motion</span><span class="wtl"><i style="width:64%;"></i></span></div>
-  <div class="wb-row c2"><span class="wt">CRM follow up flows</span><span class="wav">AE</span><span class="wst doing">In motion</span><span class="wtl"><i style="width:38%;"></i></span></div>
+  <div class="wb-row c2"><span class="wt">AI workflow automation</span><span class="wav">AE</span><span class="wst doing">In motion</span><span class="wtl"><i style="width:38%;"></i></span></div>
   <div class="wb-row"><span class="wt">Vetted hiring shortlist</span><span class="wav">RC</span><span class="wst q">Queued</span><span class="wtl"><i style="width:12%;"></i></span></div>
 </div>"""
 
@@ -990,7 +1019,7 @@ posts["post-3-what-bermo-helps-with.html"] = page(
      {CE}""", 3, 5),
   slide("dark", f"""
      <h2>Run smoother <span class="hl">behind the scenes.</span></h2>
-     <p class="body">We set up systems, CRM, AI workflows and training, so follow ups happen, data stays in one place, and nothing slips.</p>
+     <p class="body">We set up systems, AI workflows and automation, and training, so follow ups happen, data stays in one place, and nothing slips.</p>
      {CRM}""", 4, 5),
   slide("dark", f"""
      <h2>And when you need people, we bring <span class="hl">the right help.</span></h2>
@@ -1005,9 +1034,9 @@ posts["post-4-how-bermo-does-it.html"] = page(
  "5 slides · 1080&times;1350 · offwhite",
  [
   slide("light", f"""
-     <div class="kicker">The BERMO. Method</div>
-     <h1>How does BERMO. <span class="hl">do it?</span></h1>
-     {STEPPER}""", 1, 5, cover=True),
+     <h1 style="font-size:76px;line-height:1.1;letter-spacing:-2px;">How does BERMO. <span class="hl">do it?</span></h1>
+     <h2 style="font-size:42px;line-height:1.25;letter-spacing:-1px;margin-top:-4px;">Three steps, one team, and revenue you can see moving.</h2>
+     {METHODTRACK}""", 1, 5, cover=True),
   slide("light", f"""
      <h2>Step one is the free <span class="hl">Gap Scan.</span></h2>
      <p class="body">BERMO. reads your business the way a buyer does, then shows you exactly what is stalling growth, free, with no pitch, just the gaps.</p>
@@ -1018,13 +1047,14 @@ posts["post-4-how-bermo-does-it.html"] = page(
      {BOARD}""", 3, 5),
   slide("light", """
      <h2>Step three is the right work, done in the <span class="hl">right order.</span></h2>
-     <p class="body">Whether it is brand, website, AI, CRM, content, hiring or training, we do the work with you, one right move at a time.</p>
+     <p class="body">Whether it is brand, website, AI workflows and automation, content, hiring or training, we do the work with you, one right move at a time.</p>
      <p class="body"><b>No guessing, no busywork, just the next right move.</b></p>""", 4, 5),
   slide("light", f"""
      <h2>Stop guessing, spend smarter, and <span class="hl">move faster.</span></h2>
      {CHART}
+     <p class="body"><b>$25K saved in week one, $130K in month one, and 98% of placements stay.</b></p>
      {CTA_SCAN}
-     <p class="body">It all starts at bermoco.com.</p>""", 5, 5),
+     <p class="body">It all starts with the free Gap Scan at bermoco.com.</p>""", 5, 5),
  ])
 
 # ---------------- POST 5 : What makes BERMO. different? (mint) ----------------

@@ -224,7 +224,9 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 /* revenue chart */
 .chart{padding:40px;}
 .chart .cx{display:flex;justify-content:space-between;margin-top:14px;}
-.chart .cx span{font:600 16px 'Inter',sans-serif;color:rgba(10,10,10,0.45);}
+.chart .cx span{font:600 16px 'Inter',sans-serif;color:var(--ink);}
+.chart .bignum{font:900 96px 'Inter Tight',sans-serif;letter-spacing:-3px;color:var(--ink);line-height:1;}
+.chart .bignum small{font:800 30px 'Inter Tight',sans-serif;color:#00b894;display:block;letter-spacing:0;margin-top:4px;}
 /* team roster */
 .team{padding:36px;}
 .trow{display:flex;align-items:center;gap:18px;background:#f6f6f2;border:1px solid rgba(10,10,10,0.05);border-radius:14px;padding:17px 20px;margin-bottom:12px;}
@@ -340,6 +342,25 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .rc-row .rcv{font:900 34px 'Inter Tight',sans-serif;color:var(--cyan);width:190px;flex-shrink:0;text-align:left;}
 .rc-row p{font:500 21px 'Inter',sans-serif;color:#e6e6e6;flex:1;text-align:left;}
 .rc-row .rck{color:var(--cyan);font-size:24px;}
+/* method tracker (post 4 hero) */
+.mtk{padding:34px;}
+.mtk-row{display:flex;align-items:center;gap:18px;background:#161616;border-radius:13px;padding:19px 22px;margin-bottom:12px;}
+.mtk-row:last-child{margin-bottom:0;}
+.mtk-row .n{width:44px;height:44px;border-radius:12px;font:800 21px 'Inter Tight',sans-serif;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.mtk-row .n.done{background:var(--cyan);color:var(--ink);}
+.mtk-row .n.doing{background:#ff2d7a;color:#fff;}
+.mtk-row .n.next{background:#242424;color:#f5f5f0;}
+.mtk-row .t{flex:1;text-align:left;}
+.mtk-row .t b{font:800 24px 'Inter Tight',sans-serif;color:#fff;display:block;}
+.mtk-row .t span{font:500 18px 'Inter',sans-serif;color:#cfcfcf;}
+.mtk-bar{width:170px;height:12px;border-radius:6px;background:#242424;overflow:hidden;flex-shrink:0;}
+.mtk-bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#00c9ab,#00f5d4);}
+.mtk-foot{display:flex;align-items:center;gap:14px;border-top:1px solid rgba(0,245,212,0.25);margin-top:20px;padding-top:20px;}
+.mtk-foot .av{width:46px;height:46px;border-radius:50%;overflow:hidden;flex-shrink:0;}
+.mtk-foot .av img{width:100%;height:100%;display:block;}
+.mtk-foot p{font:600 20px 'Inter',sans-serif;color:#f0f0f0;flex:1;text-align:left;}
+.mtk-foot b{color:var(--cyan);}
+.mtk-foot .chip{background:var(--cyan);color:var(--ink);font:800 19px 'Inter Tight',sans-serif;border-radius:10px;padding:11px 16px;white-space:nowrap;}
 /* clickup-style cover: glow input box + mascot */
 .glowbox{position:relative;border-radius:30px;padding:3px;background:linear-gradient(90deg,#ff9a3d,#ff2d7a,#00f5d4);width:100%;box-shadow:0 12px 26px rgba(10,10,10,0.14), 0 80px 140px -30px rgba(10,10,10,0.45);}
 .glowbox-in{background:#fff;border-radius:27px;padding:34px 38px 30px;text-align:left;}
@@ -501,7 +522,7 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
   <div class="uihead"><span class="t">Your growth blueprint</span><span class="utag cy">In order</span></div>
   <div class="step"><span class="num">1</span><span class="st">Messaging</span><span class="ss">fix what buyers hear first</span><span class="chk">&#10003;</span></div>
   <div class="step"><span class="num">2</span><span class="st">Website</span><span class="ss">turn visits into conversations</span><span class="chk">&#10003;</span></div>
-  <div class="step"><span class="num off">3</span><span class="st">AI + CRM</span><span class="ss">follow up without the busywork</span></div>
+  <div class="step"><span class="num off">3</span><span class="st">AI workflows + automation</span><span class="ss">follow up without the busywork</span></div>
   <div class="step"><span class="num off">4</span><span class="st">Content</span><span class="ss">stay visible in your voice</span></div>
   <div class="step"><span class="num off">5</span><span class="st">Hiring</span><span class="ss">add people when the work is ready</span></div>
 </div></div><div class="next">&#8594;</div><div class="pager">4 / 5</div></div>

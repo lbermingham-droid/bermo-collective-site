@@ -796,7 +796,7 @@ STEPPER2 = """<div class="ui st2">
   <div class="sbox" style="border-color:#c8f500;"><span class="sn2" style="background:#c8f500;color:#0a0a0a;">03</span><div class="t1">Team training</div><div class="t2">We train your team to take over and keep it running</div></div>
 </div>"""
 
-REALSCAN = """<div class="ui rpt" style="width:118%;margin-top:196px;margin-bottom:-300px;">
+REALSCAN = """<div class="ui rpt" style="width:118%;margin-top:296px;margin-bottom:-300px;">
   <div class="rpt-hero"><span class="badge">AUDIT REPORT</span>
     <h3>Gap Scan</h3>
     <div class="rpt-meta">
@@ -1291,7 +1291,7 @@ AD_SLIDE = f"""<div class="slide dark cover">{header(True)}
   </div></div>
   <div style="display:flex;gap:20px;align-items:center;width:100%;">
     <span class="cta" style="background:var(--cyan);color:var(--ink);font-size:33px;padding:28px 48px;white-space:nowrap;">Get my free Gap Scan &#8594;</span>
-    <span style="font:900 28px 'Inter Tight',sans-serif;color:var(--off);">bermoco.com &middot; </span>
+    <span style="font:900 28px 'Inter Tight',sans-serif;color:var(--off);">bermoco.com</span>
   </div>
 </div></div>"""
 

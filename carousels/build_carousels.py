@@ -118,16 +118,16 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .area .abar{height:9px;border-radius:5px;background:#ececea;margin-top:14px;overflow:hidden;}
 .area .abar i{display:block;height:100%;border-radius:5px;}
 /* scan summary ring */
-.scansum{padding:40px;display:flex;gap:36px;align-items:center;}
+.scansum{padding:56px 48px;display:flex;gap:44px;align-items:center;margin-top:20px;}
 .ringwrap{flex-shrink:0;position:relative;width:210px;height:210px;}
 .ringwrap .rv{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;}
 .ringwrap .rv .rn{font:900 56px 'Inter Tight',sans-serif;}
 .ringwrap .rv .rl{font:600 16px 'Inter',sans-serif;color:#9a9a9a;letter-spacing:1px;text-transform:uppercase;}
 .sumrows{flex:1;}
-.sumrow{display:flex;align-items:center;gap:16px;background:#161616;border-radius:12px;padding:17px 20px;margin-bottom:12px;}
+.sumrow{display:flex;align-items:center;gap:18px;background:#161616;border-radius:14px;padding:26px 26px;margin-bottom:16px;}
 .sumrow:last-child{margin-bottom:0;}
-.sumrow .sl{font:600 15px 'Barlow Condensed',sans-serif;letter-spacing:2px;text-transform:uppercase;color:#8a8a8a;width:110px;flex-shrink:0;text-align:left;}
-.sumrow .sn{font:700 22px 'Inter',sans-serif;color:#f0f0f0;flex:1;text-align:left;}
+.sumrow .sl{font:600 18px 'Barlow Condensed',sans-serif;letter-spacing:2px;text-transform:uppercase;color:#8a8a8a;width:120px;flex-shrink:0;text-align:left;}
+.sumrow .sn{font:700 27px 'Inter',sans-serif;color:#f0f0f0;flex:1;text-align:left;}
 /* shadow brief chat */
 .brief{padding:36px;}
 .brief-msg{background:#161616;border-radius:14px;padding:22px 24px;margin-bottom:14px;text-align:left;}
@@ -138,6 +138,25 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .brief-item p{font:500 20px 'Inter',sans-serif;color:#dedede;text-align:left;flex:1;}
 .brief-input{margin-top:20px;background:#1c1c1c;border:1px solid #2c2c2c;border-radius:100px;padding:15px 24px;font:500 19px 'Inter',sans-serif;color:#8a8a8a;display:flex;justify-content:space-between;align-items:center;}
 .brief-input .send{width:34px;height:34px;border-radius:50%;background:var(--cyan);color:var(--ink);display:flex;align-items:center;justify-content:center;font-weight:800;}
+/* why board (post 2 cover) */
+.whyb{padding:40px;}
+.whyb-row{display:flex;align-items:center;gap:24px;background:#f6f6f2;border:1px solid rgba(10,10,10,0.06);border-radius:18px;padding:26px 28px;margin-bottom:16px;}
+.whyb-row:last-child{margin-bottom:0;}
+.whyb-row .wi{width:60px;height:60px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.whyb-row .wm2{flex:1;text-align:left;}
+.whyb-row .wt{font:800 27px 'Inter Tight',sans-serif;color:var(--ink);}
+.whyb-row .wd{font:500 19px/1.35 'Inter',sans-serif;color:rgba(10,10,10,0.6);margin-top:4px;}
+/* intro call card (post 2, a real person) */
+.call{padding:48px;}
+.call-person{display:flex;align-items:center;gap:22px;background:#f6f6f2;border:1px solid rgba(10,10,10,0.06);border-radius:16px;padding:26px 28px;}
+.call-person .cav{width:68px;height:68px;border-radius:50%;background:var(--ink);color:var(--cyan);font:800 26px 'Inter Tight',sans-serif;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.call-person .cm{flex:1;text-align:left;}
+.call-person .cn{font:800 27px 'Inter Tight',sans-serif;color:var(--ink);}
+.call-person .cs{font:500 20px 'Inter',sans-serif;color:rgba(10,10,10,0.6);margin-top:4px;}
+.call-slots{display:flex;gap:16px;margin-top:24px;}
+.call-slot{flex:1;border:2px solid rgba(10,10,10,0.14);border-radius:12px;padding:20px 10px;font:700 22px 'Inter Tight',sans-serif;color:var(--ink);text-align:center;}
+.call-slot.on{background:var(--ink);color:var(--cyan);border-color:var(--ink);}
+.call-book{margin-top:24px;background:var(--cyan);color:var(--ink);font:800 25px 'Inter Tight',sans-serif;border-radius:12px;padding:22px;text-align:center;}
 /* funnel */
 .funnel{padding:52px;}
 .frow{display:flex;align-items:center;gap:22px;margin-bottom:26px;}
@@ -430,14 +449,14 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .sc-reply p{font:500 21px/1.45 'Inter',sans-serif;color:#f0f0f0;}
 .sc-acts{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
 /* money flow */
-.mf{padding:36px 38px;}
-.mf-rows{margin-bottom:6px;}
-.mf-row{display:flex;align-items:center;gap:16px;border-bottom:1px solid #ececea;padding:16px 2px;}
+.mf{padding:52px;}
+.mf-rows{margin-bottom:10px;}
+.mf-row{display:flex;align-items:center;gap:20px;border-bottom:1px solid #ececea;padding:26px 2px;}
 .mf-row:last-child{border-bottom:none;}
-.mf-row .mv{font:900 40px 'Inter Tight',sans-serif;color:var(--ink);width:170px;text-align:left;flex-shrink:0;}
-.mf-row p{font:600 20px 'Inter',sans-serif;color:var(--ink);flex:1;text-align:left;}
-.mf-flow{display:flex;align-items:center;gap:12px;background:#0a0a0a;border-radius:14px;padding:18px 22px;margin-top:18px;}
-.mf-step{font:800 20px 'Inter Tight',sans-serif;color:#fff;background:#242424;border-radius:9px;padding:12px 18px;}
+.mf-row .mv{font:900 54px 'Inter Tight',sans-serif;color:var(--ink);width:220px;text-align:left;flex-shrink:0;}
+.mf-row p{font:600 26px 'Inter',sans-serif;color:var(--ink);flex:1;text-align:left;}
+.mf-flow{display:flex;align-items:center;gap:16px;background:#0a0a0a;border-radius:16px;padding:24px 28px;margin-top:26px;}
+.mf-step{font:800 25px 'Inter Tight',sans-serif;color:#fff;background:#242424;border-radius:10px;padding:16px 24px;}
 .mf-step.on{background:var(--cyan);color:var(--ink);}
 .mf-arr{color:var(--cyan);font-size:22px;font-weight:800;}
 /* growth list hero: the team that handled it before you added it */
@@ -585,6 +604,40 @@ SCANSUM = """<div class="ui card-d scansum">
     <div class="sumrow"><span class="sl">Then</span><span class="sn">Website</span><span class="utag am">Gap</span></div>
     <div class="sumrow"><span class="sl">Keep</span><span class="sn">AI discovery</span><span class="utag cy">Strength</span></div>
   </div>
+</div>"""
+
+WHYBOARD = """<div class="ui card-w whyb">
+  <div class="uihead"><span class="t">Three reasons founders stay</span><span class="utag cy">Real client work</span></div>
+  <div class="whyb-row">
+    <span class="wi" style="background:var(--cyan);"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,17 9,11 13,15 21,7"/><polyline points="15,7 21,7 21,13"/></svg></span>
+    <span class="wm2"><span class="wt">Real results</span><div class="wd">Revenue saved and grown in the first month</div></span>
+    <span class="utag cy">Up 50%+</span>
+  </div>
+  <div class="whyb-row">
+    <span class="wi" style="background:#ff2d7a;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg></span>
+    <span class="wm2"><span class="wt">The free Gap Scan</span><div class="wd">See what is stalling revenue in 2 minutes</div></span>
+    <span class="utag am">Free</span>
+  </div>
+  <div class="whyb-row">
+    <span class="wi" style="background:#c8f500;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4.5"/><path d="M4 20c1.8-3.6 4.6-5.4 8-5.4s6.2 1.8 8 5.4"/></svg></span>
+    <span class="wm2"><span class="wt">A real person to talk to</span><div class="wd">The right people by your side at the right time</div></span>
+    <span class="utag cy">On call</span>
+  </div>
+</div>"""
+
+CALLCARD = """<div class="ui card-w call">
+  <div class="uihead"><span class="t">Intro call &middot; 20 minutes</span><span class="utag cy">This week</span></div>
+  <div class="call-person">
+    <span class="cav">LB</span>
+    <span class="cm"><div class="cn">Lexi Bermingham</div><div class="cs">Founder, BERMO. &middot; has your Gap Scan open</div></span>
+    <span class="utag cy">Real person</span>
+  </div>
+  <div class="call-slots">
+    <div class="call-slot">Thu &middot; 2:00 pm</div>
+    <div class="call-slot on">Fri &middot; 9:30 am</div>
+    <div class="call-slot">Mon &middot; 10:00 am</div>
+  </div>
+  <div class="call-book">Book the intro call &#8594;</div>
 </div>"""
 
 BRIEF = """<div class="ui card-d brief">
@@ -1092,19 +1145,19 @@ posts["post-2-why-founders-use-bermo.html"] = page(
   slide("light", f"""
      <div class="kicker">For Founder Led Companies</div>
      <h1>Why do founders use <span class="hl">BERMO.</span>?</h1>
-     {BRIEF}""", 1, 5, cover=True),
-  slide("light", """
-     <h2>When you are too close to the brand, it can be hard to see what is <span class="hl">right in front of you.</span></h2>
-     <p class="body" style="margin-top:110px;">It can be hard to see what is truly stalling growth and what the next step should be, because you are closing deals, running the team, and putting out fires all at once.</p>
-     <p class="body" style="margin-top:110px;"><b>Every founder we work with knows this feeling.</b></p>""", 2, 5),
+     {WHYBOARD}""", 1, 5, cover=True),
   slide("light", f"""
-     <h2>The bottleneck hides in <span class="hl">plain sight.</span></h2>
-     <p class="body">It might be messaging, your website, the systems behind the scenes, your target market, or hires that need training, and it is rarely the loudest one.</p>
-     {FUNNEL}""", 3, 5),
+     <h2>Reason 1. The results come <span class="hl">first.</span></h2>
+     <p class="body">Our clients see actual revenue saved and grown within the first month.</p>
+     {MONEYFLOW}""", 2, 5),
   slide("light", f"""
-     <h2>BERMO. finds the gap and puts the work <span class="hl">in the right order.</span></h2>
-     <p class="body">So your money goes where it will actually grow revenue, not where the noise is loudest.</p>
-     {PLAN}""", 4, 5),
+     <h2>Reason 2. The free <span class="hl">Gap Scan.</span></h2>
+     <p class="body">It reads your business the way a buyer does, shows you exactly what is stalling growth, and ranks the first fix by what pays back fastest.</p>
+     {SCANSUM}""", 3, 5),
+  slide("light", f"""
+     <h2>Reason 3. A real person <span class="hl">to talk to.</span></h2>
+     <p class="body">You finally see the real path forward, with the right people by your side at the right time.</p>
+     {CALLCARD}""", 4, 5),
   slide("light", f"""
      <h2>Stop paying for the loudest symptom, and start investing in what <span class="hl">drives growth.</span></h2>
      {TILES}

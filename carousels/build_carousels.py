@@ -98,11 +98,11 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .spark{position:absolute;top:40px;right:40px;text-align:right;}
 .spark .badge{background:var(--ink);color:var(--cyan);font:800 20px 'Inter Tight',sans-serif;border-radius:100px;padding:8px 18px;display:inline-block;margin-bottom:10px;}
 /* stat tiles */
-.tiles{display:flex;gap:22px;}
-.tile{flex:1;border-radius:20px;padding:34px 26px;text-align:center;background:#fff;border:1px solid rgba(10,10,10,0.06);box-shadow:0 18px 44px rgba(10,10,10,0.10);}
-.tile .n{font:900 46px 'Inter Tight',sans-serif;letter-spacing:-1px;color:var(--ink);}
+.tiles{display:flex;gap:26px;}
+.tile{flex:1;border-radius:22px;padding:50px 30px;text-align:center;background:#fff;border:1px solid rgba(10,10,10,0.06);box-shadow:0 18px 44px rgba(10,10,10,0.10);}
+.tile .n{font:900 58px 'Inter Tight',sans-serif;letter-spacing:-1px;color:var(--ink);}
 .tile .n span{color:#00c9ab;}
-.tile .d{font:500 19px/1.35 'Inter',sans-serif;color:rgba(10,10,10,0.6);margin-top:10px;}
+.tile .d{font:500 23px/1.4 'Inter',sans-serif;color:rgba(10,10,10,0.6);margin-top:14px;}
 /* store grid */
 .store{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
 .prod{background:#fff;border-radius:18px;padding:28px 24px;box-shadow:0 16px 40px rgba(10,10,10,0.10);border:1px solid rgba(10,10,10,0.06);position:relative;text-align:left;}
@@ -139,13 +139,13 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .brief-input{margin-top:20px;background:#1c1c1c;border:1px solid #2c2c2c;border-radius:100px;padding:15px 24px;font:500 19px 'Inter',sans-serif;color:#8a8a8a;display:flex;justify-content:space-between;align-items:center;}
 .brief-input .send{width:34px;height:34px;border-radius:50%;background:var(--cyan);color:var(--ink);display:flex;align-items:center;justify-content:center;font-weight:800;}
 /* funnel */
-.funnel{padding:40px;}
-.frow{display:flex;align-items:center;gap:18px;margin-bottom:16px;}
+.funnel{padding:52px;}
+.frow{display:flex;align-items:center;gap:22px;margin-bottom:26px;}
 .frow:last-child{margin-bottom:0;}
-.frow .fl{width:210px;font:600 21px 'Inter',sans-serif;color:rgba(10,10,10,0.7);text-align:left;flex-shrink:0;}
-.frow .fbar{flex:1;height:44px;border-radius:10px;background:#f0f0ec;overflow:hidden;position:relative;}
-.frow .fbar i{position:absolute;inset:0 auto 0 0;border-radius:10px;background:var(--ink);}
-.frow .fv{width:80px;font:800 22px 'Inter Tight',sans-serif;text-align:right;flex-shrink:0;color:var(--ink);}
+.frow .fl{width:250px;font:600 25px 'Inter',sans-serif;color:rgba(10,10,10,0.7);text-align:left;flex-shrink:0;}
+.frow .fbar{flex:1;height:58px;border-radius:12px;background:#f0f0ec;overflow:hidden;position:relative;}
+.frow .fbar i{position:absolute;inset:0 auto 0 0;border-radius:12px;background:var(--ink);}
+.frow .fv{width:95px;font:800 27px 'Inter Tight',sans-serif;text-align:right;flex-shrink:0;color:var(--ink);}
 /* plan checklist */
 .plan{padding:40px;}
 .step{display:flex;align-items:center;gap:18px;background:#161616;border-radius:12px;padding:18px 20px;margin-bottom:12px;}
@@ -265,10 +265,10 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .brw-bar .bdots{display:flex;gap:7px;}
 .brw-bar .bdots i{width:12px;height:12px;border-radius:50%;background:#cfcfca;display:block;}
 .brw-bar .burl{flex:1;background:#fff;border-radius:8px;padding:9px 16px;font:500 17px 'Inter',sans-serif;color:#777;text-align:left;}
-.brw-page{padding:34px 30px 30px;text-align:left;}
-.brw-page .bh{font:900 38px 'Inter Tight',sans-serif;color:var(--ink);letter-spacing:-1px;}
-.brw-page .bp{font:500 20px/1.45 'Inter',sans-serif;color:rgba(10,10,10,0.6);margin-top:10px;max-width:520px;}
-.brw-note{display:flex;align-items:center;gap:12px;margin-top:16px;font:600 19px 'Inter',sans-serif;}
+.brw-page{padding:46px 40px 42px;text-align:left;}
+.brw-page .bh{font:900 48px 'Inter Tight',sans-serif;color:var(--ink);letter-spacing:-1px;}
+.brw-page .bp{font:500 24px/1.5 'Inter',sans-serif;color:rgba(10,10,10,0.6);margin-top:12px;max-width:640px;}
+.brw-note{display:flex;align-items:center;gap:14px;margin-top:24px;font:600 23px 'Inter',sans-serif;}
 .brw-note .ok{color:#00a58c;}
 .brw-note .warn{color:#e0246d;}
 /* report contents */
@@ -715,23 +715,23 @@ TEAM = """<div class="ui card-w team">
   <div class="trow"><div class="tav" style="background:#2c2c2c;">RC</div><div class="tm"><div class="tn">Recruiter</div><div class="tr">Vetted permanent hires</div></div><span class="utag gr">On call</span></div>
 </div>"""
 
-CMP = """<div class="ui" style="display:flex;gap:22px;">
-  <div class="card-w" style="flex:1;padding:34px 28px;text-align:left;">
-    <div style="font:700 17px 'Barlow Condensed',sans-serif;letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;color:rgba(10,10,10,0.5);">The usual way</div>
-    <div style="font:900 38px 'Inter Tight',sans-serif;letter-spacing:-1px;">Ten tools, five vendors</div>
-    <ul style="list-style:none;margin-top:18px;">
-      <li style="font:500 20px/1.45 'Inter',sans-serif;color:rgba(10,10,10,0.65);padding:7px 0;">&#8594;&nbsp; Everyone sells their own lane</li>
-      <li style="font:500 20px/1.45 'Inter',sans-serif;color:rgba(10,10,10,0.65);padding:7px 0;">&#8594;&nbsp; No one owns the order</li>
-      <li style="font:500 20px/1.45 'Inter',sans-serif;color:rgba(10,10,10,0.65);padding:7px 0;">&#8594;&nbsp; Budget chases the loudest symptom</li>
+CMP = """<div class="ui" style="display:flex;gap:26px;margin-top:30px;">
+  <div class="card-w" style="flex:1;padding:52px 44px;text-align:left;">
+    <div style="font:700 21px 'Barlow Condensed',sans-serif;letter-spacing:3px;text-transform:uppercase;margin-bottom:18px;color:rgba(10,10,10,0.5);">The usual way</div>
+    <div style="font:900 48px 'Inter Tight',sans-serif;letter-spacing:-1px;">Ten tools, five vendors</div>
+    <ul style="list-style:none;margin-top:26px;">
+      <li style="font:500 26px/1.5 'Inter',sans-serif;color:rgba(10,10,10,0.65);padding:13px 0;">&#8594;&nbsp; Everyone sells their own lane</li>
+      <li style="font:500 26px/1.5 'Inter',sans-serif;color:rgba(10,10,10,0.65);padding:13px 0;">&#8594;&nbsp; No one owns the order</li>
+      <li style="font:500 26px/1.5 'Inter',sans-serif;color:rgba(10,10,10,0.65);padding:13px 0;">&#8594;&nbsp; Budget chases the loudest symptom</li>
     </ul>
   </div>
-  <div class="card-d" style="flex:1;padding:34px 28px;text-align:left;">
-    <div style="font:700 17px 'Barlow Condensed',sans-serif;letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;color:#00f5d4;">BERMO.</div>
-    <div style="font:900 38px 'Inter Tight',sans-serif;letter-spacing:-1px;color:#fff;">One team, one plan</div>
-    <ul style="list-style:none;margin-top:18px;">
-      <li style="font:500 20px/1.45 'Inter',sans-serif;color:rgba(255,255,255,0.8);padding:7px 0;"><span style="color:#00f5d4;">&#8594;</span>&nbsp; The gap decides the order</li>
-      <li style="font:500 20px/1.45 'Inter',sans-serif;color:rgba(255,255,255,0.8);padding:7px 0;"><span style="color:#00f5d4;">&#8594;</span>&nbsp; 5 day specialist deploy</li>
-      <li style="font:500 20px/1.45 'Inter',sans-serif;color:rgba(255,255,255,0.8);padding:7px 0;"><span style="color:#00f5d4;">&#8594;</span>&nbsp; Scales up or down with you</li>
+  <div class="card-d" style="flex:1;padding:52px 44px;text-align:left;">
+    <div style="font:700 21px 'Barlow Condensed',sans-serif;letter-spacing:3px;text-transform:uppercase;margin-bottom:18px;color:#00f5d4;">BERMO.</div>
+    <div style="font:900 48px 'Inter Tight',sans-serif;letter-spacing:-1px;color:#fff;">One team, one plan</div>
+    <ul style="list-style:none;margin-top:26px;">
+      <li style="font:500 26px/1.5 'Inter',sans-serif;color:rgba(255,255,255,0.8);padding:13px 0;"><span style="color:#00f5d4;">&#8594;</span>&nbsp; The gap decides the order</li>
+      <li style="font:500 26px/1.5 'Inter',sans-serif;color:rgba(255,255,255,0.8);padding:13px 0;"><span style="color:#00f5d4;">&#8594;</span>&nbsp; 5 day specialist deploy</li>
+      <li style="font:500 26px/1.5 'Inter',sans-serif;color:rgba(255,255,255,0.8);padding:13px 0;"><span style="color:#00f5d4;">&#8594;</span>&nbsp; Scales up or down with you</li>
     </ul>
   </div>
 </div>"""
@@ -1095,8 +1095,8 @@ posts["post-2-why-founders-use-bermo.html"] = page(
      {BRIEF}""", 1, 5, cover=True),
   slide("light", """
      <h2>When you are too close to the brand, it can be hard to see what is <span class="hl">right in front of you.</span></h2>
-     <p class="body">It can be hard to see what is truly stalling growth and what the next step should be, because you are closing deals, running the team, and putting out fires all at once.</p>
-     <p class="body"><b>Every founder we work with knows this feeling.</b></p>""", 2, 5),
+     <p class="body" style="margin-top:110px;">It can be hard to see what is truly stalling growth and what the next step should be, because you are closing deals, running the team, and putting out fires all at once.</p>
+     <p class="body" style="margin-top:110px;"><b>Every founder we work with knows this feeling.</b></p>""", 2, 5),
   slide("light", f"""
      <h2>The bottleneck hides in <span class="hl">plain sight.</span></h2>
      <p class="body">It might be messaging, your website, the systems behind the scenes, your target market, or hires that need training, and it is rarely the loudest one.</p>
@@ -1212,8 +1212,8 @@ posts["post-6-not-in-the-room.html"] = page(
      {MAIL}""", 2, 5),
   slide("dark", """
      <h2>When those pieces do not line up, buyers <span class="hl">feel it fast.</span></h2>
-     <p class="body">The website says one thing, the pitch says another, and the follow up goes quiet, so each piece looks fine on its own while together they cost you the deal.</p>
-     <p class="body"><b>Buyers rarely tell you, they just move on.</b></p>""", 3, 5),
+     <p class="body" style="margin-top:150px;">The website says one thing, the pitch says another, and the follow up goes quiet, so each piece looks fine on its own while together they cost you the deal.</p>
+     <p class="body" style="margin-top:150px;"><b>Buyers rarely tell you, they just move on.</b></p>""", 3, 5),
   slide("dark", f"""
      <h2>BERMO. shows you what buyers <span class="hl">actually see.</span></h2>
      <p class="body">What is coming across, what is getting missed, and what needs to change first.</p>

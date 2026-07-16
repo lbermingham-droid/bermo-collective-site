@@ -667,9 +667,9 @@ PLAN = """<div class="ui card-d plan">
 </div>"""
 
 TILES = """<div class="ui tiles">
+  <div class="tile"><div class="n">71<span>%</span></div><div class="d">more clicks from Google after launch</div></div>
+  <div class="tile"><div class="n">0</div><div class="d">downtime or broken links on a full site rebuild</div></div>
   <div class="tile"><div class="n">$130K</div><div class="d">saved for an AI startup founder in month one</div></div>
-  <div class="tile"><div class="n">98<span>%</span></div><div class="d">permanent placement retention</div></div>
-  <div class="tile"><div class="n">5<span>-day</span></div><div class="d">specialist deploy, not weeks</div></div>
 </div>"""
 
 SHOP = """<div class="ui card-d shop">
@@ -1159,7 +1159,7 @@ posts["post-2-why-founders-use-bermo.html"] = page(
      <p class="body">You finally see the real path forward, with the right people by your side at the right time.</p>
      {CALLCARD}""", 4, 5),
   slide("light", f"""
-     <h2>Stop paying for the loudest symptom, and start investing in what <span class="hl">drives growth.</span></h2>
+     <h2>After launch, Google sent one client 71% more clicks, and AI assistants started sending traffic for the <span class="hl">first time.</span></h2>
      {TILES}
      {CTA_SCAN}
      <p class="body">The free Gap Scan is waiting at bermoco.com.</p>""", 5, 5),

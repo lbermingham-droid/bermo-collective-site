@@ -365,19 +365,19 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .st2 .t2{font:500 19px/1.45 'Inter',sans-serif;color:var(--ink);margin-top:8px;}
 /* real gap scan report, bleeding off the slide */
 .rpt{width:100%;background:#fff;border-radius:22px 22px 0 0;box-shadow:0 12px 24px rgba(10,10,10,0.10), 0 60px 120px -30px rgba(10,10,10,0.4);overflow:hidden;text-align:left;}
-.rpt-hero{background:#0d0d0d;padding:30px 34px;position:relative;}
-.rpt-hero .badge{position:absolute;top:26px;right:30px;background:var(--cyan);color:var(--ink);font:800 13px 'Barlow Condensed',sans-serif;letter-spacing:2px;padding:8px 14px;}
-.rpt-hero h3{font:900 52px 'Inter Tight',sans-serif;color:#fff;letter-spacing:-1px;}
-.rpt-meta{display:flex;gap:40px;margin-top:18px;}
-.rpt-meta div b{font:700 13px 'Barlow Condensed',sans-serif;letter-spacing:2px;color:var(--cyan);display:block;text-transform:uppercase;}
-.rpt-meta div span{font:600 18px 'Inter',sans-serif;color:#f5f5f0;}
-.rpt-body{padding:28px 34px;}
-.rpt-body h4{font:800 26px 'Inter Tight',sans-serif;color:var(--ink);margin-bottom:18px;}
-.rpt-row{display:flex;align-items:center;gap:16px;margin-bottom:14px;}
-.rpt-row .rl{width:280px;font:700 19px 'Inter',sans-serif;color:var(--ink);flex-shrink:0;}
-.rpt-row .rb{flex:1;height:16px;border-radius:4px;background:#ececea;overflow:hidden;}
+.rpt-hero{background:#0d0d0d;padding:42px 44px;position:relative;}
+.rpt-hero .badge{position:absolute;top:34px;right:38px;background:var(--cyan);color:var(--ink);font:800 16px 'Barlow Condensed',sans-serif;letter-spacing:2px;padding:10px 18px;}
+.rpt-hero h3{font:900 66px 'Inter Tight',sans-serif;color:#fff;letter-spacing:-1px;}
+.rpt-meta{display:flex;gap:52px;margin-top:24px;}
+.rpt-meta div b{font:700 16px 'Barlow Condensed',sans-serif;letter-spacing:2px;color:var(--cyan);display:block;text-transform:uppercase;}
+.rpt-meta div span{font:600 23px 'Inter',sans-serif;color:#f5f5f0;}
+.rpt-body{padding:44px 44px 60px;}
+.rpt-body h4{font:800 33px 'Inter Tight',sans-serif;color:var(--ink);margin-bottom:26px;}
+.rpt-row{display:flex;align-items:center;gap:20px;margin-bottom:34px;}
+.rpt-row .rl{width:360px;font:700 24px 'Inter',sans-serif;color:var(--ink);flex-shrink:0;}
+.rpt-row .rb{flex:1;height:21px;border-radius:5px;background:#ececea;overflow:hidden;}
 .rpt-row .rb i{display:block;height:100%;background:var(--cyan);}
-.rpt-row .rr{font:700 13px 'Barlow Condensed',sans-serif;letter-spacing:1.5px;color:var(--ink);width:210px;text-transform:uppercase;}
+.rpt-row .rr{font:700 16px 'Barlow Condensed',sans-serif;letter-spacing:1.5px;color:var(--ink);width:260px;text-transform:uppercase;}
 /* request to team match */
 .req{padding:34px;}
 .req-bub{max-width:86%;background:#161616;border:1px solid rgba(0,245,212,0.3);border-radius:16px 16px 16px 4px;padding:22px 26px;margin-bottom:20px;}
@@ -849,7 +849,7 @@ STEPPER2 = """<div class="ui st2">
   <div class="sbox" style="border-color:#c8f500;"><span class="sn2" style="background:#c8f500;color:#0a0a0a;">03</span><div class="t1">Team training</div><div class="t2">We train your team to take over and keep it running</div></div>
 </div>"""
 
-REALSCAN = """<div class="ui rpt" style="width:118%;margin-top:296px;margin-bottom:-300px;">
+REALSCAN = """<div class="ui rpt" style="width:118%;margin-top:36px;margin-bottom:-420px;">
   <div class="rpt-hero"><span class="badge">AUDIT REPORT</span>
     <h3>Gap Scan</h3>
     <div class="rpt-meta">
@@ -860,7 +860,7 @@ REALSCAN = """<div class="ui rpt" style="width:118%;margin-top:296px;margin-bott
   </div>
   <div class="rpt-body">
     <h4>Where the return is, ranked by ROI opportunity</h4>
-    <div class="rpt-row"><span class="rl">Getting found, AI and search</span><span class="rb"><i style="width:88%;"></i></span><span class="rr">7 opportunities &middot; highest return</span></div>
+    <div class="rpt-row"><span class="rl">Messaging and getting found</span><span class="rb"><i style="width:88%;"></i></span><span class="rr">7 opportunities &middot; highest return</span></div>
     <div class="rpt-row"><span class="rl">Technology and AI workflows</span><span class="rb"><i style="width:74%;"></i></span><span class="rr">6 opportunities &middot; high return</span></div>
     <div class="rpt-row"><span class="rl">Standing out in a crowded market</span><span class="rb"><i style="width:62%;"></i></span><span class="rr">5 opportunities &middot; high return</span></div>
     <div class="rpt-row"><span class="rl">Converting the buyer</span><span class="rb"><i style="width:50%;"></i></span><span class="rr">4 opportunities &middot; medium return</span></div>

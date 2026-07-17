@@ -1233,7 +1233,7 @@ posts["post-4-how-bermo-does-it.html"] = page(
      <p class="body">We have a vetted team of experts who come in and get real results, for less than the price of a full time hire.</p>
      {REQUEST}""", 3, 6),
   slide("light", f"""
-     <h2>Option 3. We train your team to take over, in 1/4 of the time it <span class="hl">took before.</span></h2>
+     <h2>Option 3. We train your team to take over in 1/4 of the time it <span class="hl">took before.</span></h2>
      {TRAINLIST}""", 4, 6),
   slide("light", f"""
      <h2>Customize what you want, the way <span class="hl">you want.</span></h2>

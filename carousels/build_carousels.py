@@ -631,7 +631,7 @@ WHYBOARD = """<div class="ui card-w whyb">
   <div class="uihead"><span class="t">Three reasons founders stay</span><span class="utag cy">Real client work</span></div>
   <div class="whyb-row">
     <span class="wi" style="background:var(--cyan);"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,17 9,11 13,15 21,7"/><polyline points="15,7 21,7 21,13"/></svg></span>
-    <span class="wm2"><span class="wt">Real results</span><div class="wd">$130K saved revenue, up 50%+ traffic, visible on AI after launch</div></span>
+    <span class="wm2"><span class="wt">Real results</span><div class="wd">$130K saved revenue, up 50%+ traffic, visible on AI within 4 weeks</div></span>
     <span class="utag cy">Verified</span>
   </div>
   <div class="whyb-row">

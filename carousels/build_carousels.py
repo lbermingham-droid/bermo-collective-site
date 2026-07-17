@@ -380,12 +380,16 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .rpt-meta div b{font:700 16px 'Barlow Condensed',sans-serif;letter-spacing:2px;color:var(--cyan);display:block;text-transform:uppercase;}
 .rpt-meta div span{font:600 23px 'Inter',sans-serif;color:#f5f5f0;}
 .rpt-body{padding:44px 44px 60px;}
-.rpt-body h4{font:800 33px 'Inter Tight',sans-serif;color:var(--ink);margin-bottom:26px;}
-.rpt-row{display:flex;align-items:center;gap:20px;margin-bottom:34px;}
-.rpt-row .rl{width:360px;font:700 24px 'Inter',sans-serif;color:var(--ink);flex-shrink:0;}
-.rpt-row .rb{flex:1;height:21px;border-radius:5px;background:#ececea;overflow:hidden;}
-.rpt-row .rb i{display:block;height:100%;background:var(--cyan);}
-.rpt-row .rr{font:700 16px 'Barlow Condensed',sans-serif;letter-spacing:1.5px;color:var(--ink);width:260px;text-transform:uppercase;}
+.rpt-eyebrow{font:700 17px 'Barlow Condensed',sans-serif;letter-spacing:2.5px;text-transform:uppercase;color:#e0246d;margin-bottom:12px;}
+.rpt-body h4{font:800 33px 'Inter Tight',sans-serif;color:var(--ink);margin-bottom:26px;letter-spacing:-0.5px;}
+.rpt-frow{display:flex;align-items:flex-start;gap:22px;border-bottom:1px solid #ececea;padding:24px 2px;}
+.rpt-frow:last-of-type{border-bottom:none;}
+.rpt-flag{font:800 15px 'Barlow Condensed',sans-serif;letter-spacing:1.5px;padding:9px 0;width:104px;text-align:center;text-transform:uppercase;flex-shrink:0;margin-top:2px;}
+.rpt-fa{font:800 24px 'Inter Tight',sans-serif;color:var(--ink);width:290px;flex-shrink:0;text-align:left;}
+.rpt-ff{font:500 20px/1.45 'Inter',sans-serif;color:rgba(10,10,10,0.65);flex:1;text-align:left;}
+.rpt-close{background:#0a0a0a;padding:28px 32px;margin-top:26px;text-align:left;}
+.rpt-close b{font:800 16px 'Barlow Condensed',sans-serif;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);display:block;margin-bottom:8px;}
+.rpt-close p{font:600 21px/1.45 'Inter',sans-serif;color:#f5f5f0;}
 /* request to team match */
 .req{padding:34px;}
 .req-bub{max-width:86%;background:#161616;border:1px solid rgba(0,245,212,0.3);border-radius:16px 16px 16px 4px;padding:22px 26px;margin-bottom:20px;}
@@ -627,8 +631,8 @@ WHYBOARD = """<div class="ui card-w whyb">
   <div class="uihead"><span class="t">Three reasons founders stay</span><span class="utag cy">Real client work</span></div>
   <div class="whyb-row">
     <span class="wi" style="background:var(--cyan);"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,17 9,11 13,15 21,7"/><polyline points="15,7 21,7 21,13"/></svg></span>
-    <span class="wm2"><span class="wt">Real results</span><div class="wd">Revenue saved and grown in the first month</div></span>
-    <span class="utag cy">71% more clicks</span>
+    <span class="wm2"><span class="wt">Real results</span><div class="wd">$130K saved revenue, up 50% more traffic, visible on AI within 4 weeks</div></span>
+    <span class="utag cy">Verified</span>
   </div>
   <div class="whyb-row">
     <span class="wi" style="background:#ff2d7a;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg></span>
@@ -866,7 +870,7 @@ STEPPER2 = """<div class="ui st2">
   <div class="sbox" style="border-color:#c8f500;"><span class="sn2" style="background:#c8f500;color:#0a0a0a;">03</span><div class="t1">Team training</div><div class="t2">We train your team to take over and keep it running</div></div>
 </div>"""
 
-REALSCAN = """<div class="ui rpt" style="width:118%;margin-top:36px;margin-bottom:-420px;">
+REALSCAN = """<div class="ui rpt" style="width:118%;margin-top:36px;margin-bottom:-560px;">
   <div class="rpt-hero"><span class="badge">AUDIT REPORT</span>
     <h3>Gap Scan</h3>
     <div class="rpt-meta">
@@ -876,12 +880,12 @@ REALSCAN = """<div class="ui rpt" style="width:118%;margin-top:36px;margin-botto
     </div>
   </div>
   <div class="rpt-body">
-    <h4>Where the return is, ranked by ROI opportunity</h4>
-    <div class="rpt-row"><span class="rl">Messaging and getting found</span><span class="rb"><i style="width:88%;"></i></span><span class="rr">7 opportunities &middot; highest return</span></div>
-    <div class="rpt-row"><span class="rl">Technology and AI workflows</span><span class="rb"><i style="width:74%;"></i></span><span class="rr">6 opportunities &middot; high return</span></div>
-    <div class="rpt-row"><span class="rl">Standing out in a crowded market</span><span class="rb"><i style="width:62%;"></i></span><span class="rr">5 opportunities &middot; high return</span></div>
-    <div class="rpt-row"><span class="rl">Converting the buyer</span><span class="rb"><i style="width:50%;"></i></span><span class="rr">4 opportunities &middot; medium return</span></div>
-    <div class="rpt-row"><span class="rl">Social media presence</span><span class="rb"><i style="width:38%;"></i></span><span class="rr">3 opportunities &middot; medium return</span></div>
+    <div class="rpt-eyebrow">Where you stand &middot; 01 &middot; Top priority</div>
+    <h4>AI and Google visibility: being in the answer when a buyer needs you</h4>
+    <div class="rpt-frow"><span class="rpt-flag" style="background:#00f5d4;color:#0a0a0a;">Strong</span><span class="rpt-fa">Track record and proof</span><span class="rpt-ff">A rare depth of real proof, exactly the credibility buyers and AI tools reward, once it is made findable.</span></div>
+    <div class="rpt-frow"><span class="rpt-flag" style="background:#0a0a0a;color:#00f5d4;">High-ROI</span><span class="rpt-fa">AI answer visibility</span><span class="rpt-ff">Ask an AI assistant for your category and the national giants surface first, and nothing guarantees you surface over them.</span></div>
+    <div class="rpt-frow"><span class="rpt-flag" style="background:#c8f500;color:#0a0a0a;">Quick fix</span><span class="rpt-fa">Structured markup</span><span class="rpt-ff">The site is missing the markup that tells Google and AI tools what you do and where, so you are pulled into the right answers.</span></div>
+    <div class="rpt-close"><b>How BERMO. closes it</b><p>BERMO. gets you into the AI and search answers with the right markup and specialty plus market pages, so your track record shows up the moment a buyer is looking.</p></div>
   </div>
 </div>"""
 

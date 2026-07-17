@@ -631,7 +631,7 @@ WHYBOARD = """<div class="ui card-w whyb">
   <div class="uihead"><span class="t">Three reasons founders stay</span><span class="utag cy">Real client work</span></div>
   <div class="whyb-row">
     <span class="wi" style="background:var(--cyan);"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,17 9,11 13,15 21,7"/><polyline points="15,7 21,7 21,13"/></svg></span>
-    <span class="wm2"><span class="wt">Real results</span><div class="wd">$130K saved revenue, up 50% more traffic, visible on AI within 4 weeks</div></span>
+    <span class="wm2"><span class="wt">Real results</span><div class="wd">$130K saved revenue, up 50%+ traffic, visible on AI after launch</div></span>
     <span class="utag cy">Verified</span>
   </div>
   <div class="whyb-row">
@@ -880,12 +880,12 @@ REALSCAN = """<div class="ui rpt" style="width:118%;margin-top:36px;margin-botto
     </div>
   </div>
   <div class="rpt-body">
-    <div class="rpt-eyebrow">Where you stand &middot; 01 &middot; Top priority</div>
-    <h4>AI and Google visibility: being in the answer when a buyer needs you</h4>
-    <div class="rpt-frow"><span class="rpt-flag" style="background:#00f5d4;color:#0a0a0a;">Strong</span><span class="rpt-fa">Track record and proof</span><span class="rpt-ff">A rare depth of real proof, exactly the credibility buyers and AI tools reward, once it is made findable.</span></div>
-    <div class="rpt-frow"><span class="rpt-flag" style="background:#0a0a0a;color:#00f5d4;">High-ROI</span><span class="rpt-fa">AI answer visibility</span><span class="rpt-ff">Ask an AI assistant for your category and the national giants surface first, and nothing guarantees you surface over them.</span></div>
-    <div class="rpt-frow"><span class="rpt-flag" style="background:#c8f500;color:#0a0a0a;">Quick fix</span><span class="rpt-fa">Structured markup</span><span class="rpt-ff">The site is missing the markup that tells Google and AI tools what you do and where, so you are pulled into the right answers.</span></div>
-    <div class="rpt-close"><b>How BERMO. closes it</b><p>BERMO. gets you into the AI and search answers with the right markup and specialty plus market pages, so your track record shows up the moment a buyer is looking.</p></div>
+    <div class="rpt-eyebrow">Where you stand &middot; 6 areas reviewed</div>
+    <h4>Read the way a buyer, a search engine, and an AI assistant see you</h4>
+    <div class="rpt-frow"><span class="rpt-flag" style="background:#ff2d7a;color:#fff;">Priority</span><span class="rpt-fa">One clean pipeline view</span><span class="rpt-ff">Deals, pipeline, and follow ups live across email and notes, which is exactly where speed dies.</span></div>
+    <div class="rpt-frow"><span class="rpt-flag" style="background:#0a0a0a;color:#00f5d4;">High-ROI</span><span class="rpt-fa">Buyer language positioning</span><span class="rpt-ff">The site leads with what you do, more than the outcome your buyer is measured on.</span></div>
+    <div class="rpt-frow"><span class="rpt-flag" style="background:#0a0a0a;color:#00f5d4;">High-ROI</span><span class="rpt-fa">AI answer visibility</span><span class="rpt-ff">Ask an AI assistant for your category and the giants surface first, and nothing guarantees you surface over them.</span></div>
+    <div class="rpt-frow"><span class="rpt-flag" style="background:#f5f5f0;color:#0a0a0a;border:2px solid #0a0a0a;">Strategic</span><span class="rpt-fa">Proof by specialty</span><span class="rpt-ff">Proof is shown at the company level rather than tied to the specific work each buyer cares about.</span></div>
   </div>
 </div>"""
 

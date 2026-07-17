@@ -141,6 +141,14 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .brief-item p{font:500 20px 'Inter',sans-serif;color:#dedede;text-align:left;flex:1;}
 .brief-input{margin-top:20px;background:#1c1c1c;border:1px solid #2c2c2c;border-radius:100px;padding:15px 24px;font:500 19px 'Inter',sans-serif;color:#8a8a8a;display:flex;justify-content:space-between;align-items:center;}
 .brief-input .send{width:34px;height:34px;border-radius:50%;background:var(--cyan);color:var(--ink);display:flex;align-items:center;justify-content:center;font-weight:800;}
+/* gap scan flag rows (post 2, replicates the real report's flag system) */
+.sflags{padding:44px 48px;}
+.sf-row{display:flex;align-items:center;gap:22px;border-bottom:1px solid #ececea;padding:26px 2px;}
+.sf-row:last-child{border-bottom:none;}
+.sf-flag{font:800 16px 'Barlow Condensed',sans-serif;letter-spacing:1.5px;padding:10px 0;width:118px;text-align:center;text-transform:uppercase;flex-shrink:0;}
+.sf-area{font:800 26px 'Inter Tight',sans-serif;color:var(--ink);width:300px;flex-shrink:0;text-align:left;}
+.sf-why{font:500 20px/1.4 'Inter',sans-serif;color:rgba(10,10,10,0.65);flex:1;text-align:left;}
+.sf-note{margin-top:22px;font:600 19px 'Inter',sans-serif;color:var(--ink);text-align:left;}
 /* why board (post 2 cover) */
 .whyb{padding:40px;}
 .whyb-row{display:flex;align-items:center;gap:24px;background:#f6f6f2;border:1px solid rgba(10,10,10,0.06);border-radius:18px;padding:26px 28px;margin-bottom:16px;}
@@ -561,12 +569,12 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
   <div class="whyb-row">
     <span class="wi" style="background:var(--cyan);"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,17 9,11 13,15 21,7"/><polyline points="15,7 21,7 21,13"/></svg></span>
     <span class="wm2"><span class="wt">Real results</span><div class="wd">Revenue saved and grown in the first month</div></span>
-    <span class="utag cy">Up 50%+</span>
+    <span class="utag cy">71% more clicks</span>
   </div>
   <div class="whyb-row">
     <span class="wi" style="background:#ff2d7a;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg></span>
     <span class="wm2"><span class="wt">The free Gap Scan</span><div class="wd">See what is stalling revenue in 2 minutes</div></span>
-    <span class="utag am">Free</span>
+    <span class="utag am">28 opportunities</span>
   </div>
   <div class="whyb-row">
     <span class="wi" style="background:#c8f500;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4.5"/><path d="M4 20c1.8-3.6 4.6-5.4 8-5.4s6.2 1.8 8 5.4"/></svg></span>
@@ -588,19 +596,13 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 <div class="slide light mid"><div class="bar"><div class="wordmark">BERMO.</div></div><div class="content">
      <h2>Reason 2. The free <span class="hl">Gap Scan.</span></h2>
      <p class="body">It reads your business the way a buyer does, shows you exactly what is stalling growth, and ranks the first fix by what pays back fastest.</p>
-     <div class="ui card-d scansum">
-  <div class="ringwrap">
-    <svg width="210" height="210" viewBox="0 0 210 210">
-      <circle cx="105" cy="105" r="92" fill="none" stroke="#242424" stroke-width="16"/>
-      <circle cx="105" cy="105" r="92" fill="none" stroke="#00f5d4" stroke-width="16" stroke-linecap="round" stroke-dasharray="335 578" transform="rotate(-90 105 105)"/>
-    </svg>
-    <div class="rv"><span class="rn">58</span><span class="rl">of 100</span></div>
-  </div>
-  <div class="sumrows">
-    <div class="sumrow"><span class="sl">Fix first</span><span class="sn">Messaging</span><span class="utag am">Gap</span></div>
-    <div class="sumrow"><span class="sl">Then</span><span class="sn">Website</span><span class="utag am">Gap</span></div>
-    <div class="sumrow"><span class="sl">Keep</span><span class="sn">AI discovery</span><span class="utag cy">Strength</span></div>
-  </div>
+     <div class="ui card-w sflags">
+  <div class="uihead"><span class="t">Your Gap Scan &middot; ranked by expected return</span><span class="utag cy">28 untapped opportunities</span></div>
+  <div class="sf-row"><span class="sf-flag" style="background:#0a0a0a;color:#00f5d4;">High-ROI</span><span class="sf-area">AI answer visibility</span><span class="sf-why">69% of buyers pick a different vendor after an AI answer.</span></div>
+  <div class="sf-row"><span class="sf-flag" style="background:#c8f500;color:#0a0a0a;">Quick fix</span><span class="sf-area">Structured markup</span><span class="sf-why">A fast add that pulls you into the right answers, days not weeks.</span></div>
+  <div class="sf-row"><span class="sf-flag" style="background:#ff2d7a;color:#fff;">Priority</span><span class="sf-area">Buyer language messaging</span><span class="sf-why">Framing around the buyer's own metrics makes the case land.</span></div>
+  <div class="sf-row"><span class="sf-flag" style="background:#00f5d4;color:#0a0a0a;">Strong</span><span class="sf-area">Track record and proof</span><span class="sf-why">Real credibility buyers reward, once it is made visible.</span></div>
+  <div class="sf-note">Every flag marks the kind of move it is, ranked by expected return.</div>
 </div></div><div class="next">&#8594;</div><div class="pager">3 / 5</div></div>
 <div class="slide light mid"><div class="bar"><div class="wordmark">BERMO.</div></div><div class="content">
      <h2>Reason 3. A real person <span class="hl">to talk to.</span></h2>

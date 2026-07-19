@@ -1399,9 +1399,8 @@ MHM_CSS = """
 MHM_SLIDE = f"""<div class="slide mint cover" style="padding-left:100px;padding-right:100px;">
   {header(cover=True)}
   <div class="content" style="align-items:flex-start;text-align:left;gap:36px;">
-    <div class="kicker">On The Mic This Week</div>
     <h1 style="font-size:74px;">The Money Hungry Mama &times; BERMO.</h1>
-    <h2 style="font:900 46px/1.24 'Inter Tight',sans-serif;">New episode with Lexi Bermingham, Founder of BERMO., is on the way.</h2>
+    <h2 style="font:900 50px/1.28 'Inter Tight',sans-serif;">Your entire growth team. Under one roof.</h2>
     <div class="ui rec">
       <div class="rec-head"><span class="rec-dot"></span><span class="rec-title">The Money Hungry Mama Podcast</span><span class="rec-time">REC &middot; 24:13</span></div>
       <div class="rec-tiles">

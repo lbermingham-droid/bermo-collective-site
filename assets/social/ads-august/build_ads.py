@@ -43,8 +43,8 @@ EXTRA = """
 .freebadge{background:#c8f500;color:#0a0a0a;font:800 21px 'Inter Tight',sans-serif;padding:14px 22px;border-radius:12px;white-space:nowrap;}
 .statchip{position:absolute;background:#c8f500;color:#0a0a0a;font:800 22px/1.3 'Inter Tight',sans-serif;
   padding:15px 24px;border-radius:12px;box-shadow:0 16px 36px rgba(120,150,0,0.35);transform:rotate(-1.5deg);z-index:5;max-width:700px;}
-.cta2{display:inline-flex;align-items:center;gap:12px;background:linear-gradient(92deg,#ff9a3d,#ff2d7a);color:#fff;
-  font:800 29px 'Inter Tight',sans-serif;padding:23px 44px;border-radius:100px;box-shadow:0 18px 40px rgba(255,45,122,0.30);white-space:nowrap;}
+.cta2{display:inline-block;font:900 31px 'Inter Tight',sans-serif;letter-spacing:-0.6px;white-space:nowrap;
+  background:linear-gradient(92deg,#f57300 0%,#ff2d7a 75%);-webkit-background-clip:text;background-clip:text;color:transparent;}
 .gpt-note{font:500 17px 'Inter',sans-serif;color:#a5a5a5;text-align:center;padding:0 32px 64px;margin-top:-8px;}
 .pgrid .vb{position:absolute;top:10px;right:12px;color:#fff;font:800 21px 'Inter Tight',sans-serif;text-shadow:0 2px 10px rgba(0,0,0,0.5);}
 /* --- google docs --- */

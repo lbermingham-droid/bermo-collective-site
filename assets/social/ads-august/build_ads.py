@@ -271,7 +271,7 @@ ADS["ad-hours-slow-reply.html"] = ad(
 ADS["ad-window-last-post-april.html"] = ad(
   "BERMO. ad · WINDOW · last post April", "1 slide, 1080x1350, mint · comment keyword WINDOW",
   'Hiring a <span class="ombre">social media manager?</span>',
-  '<span class="pain">Buyers check you out before they call.</span>We plan, write, and post every week on Instagram and LinkedIn, in your voice.',
+  '<span class="pain">Buyers find you on social media and in AI search, like ChatGPT and Google.</span>We make sure yours brings in the right customers. Planned, written, and posted every week, in your voice.',
   f"""<div class="phones">
       <div class="phone"><div class="screen">
         <div class="ph-bar">{icon('ig',26,'#111111')}<span class="pu">yourbusiness</span><span class="ph-dots">&#8942;</span></div>
@@ -303,7 +303,7 @@ ADS["ad-window-last-post-april.html"] = ad(
 ADS["ad-grow-marketing-plan.html"] = ad(
   "BERMO. ad · GROW · the marketing plan nobody opened", "1 slide, 1080x1350, mint · comment keyword GROW",
   'Hiring <span class="ombre">marketing help?</span>',
-  '<span class="pain">Marketing feels like guessing.</span>Message, target market, website, social. One plan, and we actually do it with you.',
+  '<span class="pain">Marketing shouldn&rsquo;t feel like guessing.</span>Messaging, your target market, social media, your website. We help you grow your market into actual sales.',
   f"""<div class="doc-head"><span class="doc-icon"></span><div><div class="doc-title">Marketing plan 2026</div><div class="doc-sub">Last edit was 7 months ago</div></div><span class="doc-share">Share</span></div>
     <div class="doc-menu"><span>File</span><span>Edit</span><span>View</span><span>Insert</span><span>Format</span><span>Tools</span></div>
     <div class="doc-wrap">

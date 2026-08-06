@@ -163,8 +163,9 @@ EXTRA = """
 .ph-bar .ph-dots{margin-left:auto;color:#111;font:800 22px 'Inter',sans-serif;letter-spacing:2px;}
 .ph-bar .ph-search{flex:1;background:#eef3f8;border-radius:8px;font:500 18px 'Inter',sans-serif;color:#666;padding:8px 14px;}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:3px;}
-.pgrid i{position:relative;display:block;height:128px;}
-.pgrid i b{position:absolute;left:10px;bottom:10px;height:10px;width:70%;border-radius:6px;background:rgba(255,255,255,0.85);}
+.pgrid i{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:128px;}
+.pgrid .ts{font:900 30px 'Inter Tight',sans-serif;color:#0a0a0a;letter-spacing:-0.5px;}
+.pgrid .tl{font:700 14px 'Inter',sans-serif;color:rgba(10,10,10,0.62);}
 .pgrid .g1{background:linear-gradient(135deg,#ffd9c4,#f7a882);}
 .pgrid .g2{background:linear-gradient(135deg,#cfe0fb,#9dbcf0);}
 .pgrid .g3{background:linear-gradient(135deg,#ffd3e4,#efa3c4);}
@@ -178,7 +179,9 @@ EXTRA = """
 .lp-n{font:700 21px 'Inter',sans-serif;color:#111;}
 .lp-d{font:500 17px 'Inter',sans-serif;color:#8e8e93;}
 .lp-txt{font:500 20px/1.4 'Inter',sans-serif;color:#222;margin-bottom:12px;}
-.lp-img{height:118px;border-radius:10px;background:linear-gradient(135deg,#cfe0fb,#f7c8dd);filter:saturate(0.75);}
+.lp-img{height:126px;border-radius:10px;background:linear-gradient(135deg,#cfe0fb,#f7c8dd);filter:saturate(0.75);display:flex;align-items:center;justify-content:center;}
+.lp-img .lpc{background:#fff;border-radius:10px;padding:10px 18px;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 8px 20px rgba(10,10,10,0.12);}
+.lp-img .lpt{font:800 15px 'Inter',sans-serif;color:#0a0a0a;}
 .lp-act{display:flex;justify-content:space-between;padding:14px 6px 8px;font:600 18px 'Inter',sans-serif;color:#5f6a75;}
 """
 
@@ -225,13 +228,13 @@ ADS["ad-found-ai-answers.html"] = ad(
       </div>
     </div>
     <div class="gpt-input"><span>Message ChatGPT</span><span class="send">&#8593;</span></div>""",
-  '<span class="sticker" style="right:30px;bottom:96px;">You&rsquo;re not on this list.</span><span class="statchip" style="left:30px;bottom:-18px;">Client result: unranked &#8594; Google Top 3</span>',
+  '<span class="sticker" style="right:30px;bottom:96px;">You&rsquo;re not on this list.</span><span class="statchip" style="left:30px;bottom:-18px;">Google Top 3 rankings for high-intent buyer searches</span>',
   "Comment FOUND, I&rsquo;ll check your business &#8594;")
 
 ADS["ad-site-no-calls.html"] = ad(
   "BERMO. ad · SITE · visits but no calls", "1 slide, 1080x1350, mint · comment keyword SITE",
   'Hiring a <span class="ombre">web designer?</span>',
-  '<span class="pain">Your website gets visits. You get no calls.</span>We rebuild it so people book, call, and buy &mdash; a site built to turn visitors into qualified leads.',
+  '<span class="pain">Your website gets visits. You get no calls.</span>We rebuild it so people book, call, and buy. Built to turn visitors into qualified leads.',
   f"""<div class="br-tabs"><span class="tdots"><i style="background:#ff5f57;"></i><i style="background:#febc2e;"></i><i style="background:#28c840;"></i></span><span class="br-tab" style="display:flex;align-items:center;gap:10px;">{CHROME} Your Website</span></div>
     <div class="br-url"><span>yourbusiness.com</span></div>
     <div class="site">
@@ -244,7 +247,7 @@ ADS["ad-site-no-calls.html"] = ad(
       <span class="cap">This month</span>
       <span class="row"><span><span class="big">214</span> <span class="lbl">visits</span></span>
       <span><span class="bad">2</span> <span class="lbl">calls</span></span></span>
-    </span><span class="statchip" style="left:30px;bottom:-18px;">After our rebuild: 71% more buyers chose their site on Google</span>""",
+    </span><span class="statchip" style="left:30px;bottom:-18px;">71% more buyers chose their website from Google search</span>""",
   "Comment SITE, get the free 2-minute scan &#8594;")
 
 ADS["ad-hours-slow-reply.html"] = ad(
@@ -259,41 +262,45 @@ ADS["ad-hours-slow-reply.html"] = ad(
       <div class="mb out">So sorry for the late reply! Yes, we'd love to help&hellip;</div>
       <div class="msg-sys">&#9888;&nbsp; This lead already booked someone else</div>
     </div>""",
-  '<span class="sticker" style="right:24px;top:16px;transform:rotate(2deg);font-size:22px;padding:14px 22px;">Your AI assistant replies in 90 seconds.</span><span class="statchip" style="left:30px;bottom:-18px;">Clients get 5&ndash;10 hours back, every week</span>',
+  '<span class="sticker" style="right:24px;top:16px;transform:rotate(2deg);font-size:22px;padding:14px 22px;">Your AI assistant replies in 90 seconds.</span><span class="statchip" style="left:30px;bottom:-18px;">5 to 10 hours of manual work eliminated every week</span>',
   "Comment HOURS for a free demo &#8594;")
 
 ADS["ad-window-last-post-april.html"] = ad(
   "BERMO. ad · WINDOW · last post April", "1 slide, 1080x1350, mint · comment keyword WINDOW",
   'Hiring a <span class="ombre">social media manager?</span>',
-  '<span class="pain">Buyers check you out before they call.</span>We plan, write, and post every week &mdash; Instagram and LinkedIn, in your voice.',
+  '<span class="pain">Buyers check you out before they call.</span>We plan, write, and post every week on Instagram and LinkedIn, in your voice.',
   f"""<div class="phones">
       <div class="phone"><div class="screen">
         <div class="ph-bar">{icon('ig',26,'#111111')}<span class="pu">yourbusiness</span><span class="ph-dots">&#8942;</span></div>
         <div class="ig-warn" style="font-size:19px;padding:11px;">&#9888;&nbsp; Last post &middot; 4 months ago</div>
         <div class="pgrid">
-          <i class="g1"><b></b></i><i class="g2"><b style="width:56%;"></b><span class="vb">&#9654; 28K</span></i><i class="g3"><b style="width:44%;"></b></i>
-          <i class="g4"><b style="width:60%;"></b></i><i class="g5"><b></b></i><i class="g6"><b style="width:50%;"></b></i>
+          <i class="g1"><span class="ts">$125K</span><span class="tl">found for a client</span></i>
+          <i class="g2"><svg width="72" height="72" viewBox="0 0 72 72"><circle cx="36" cy="36" r="27" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="11"/><circle cx="36" cy="36" r="27" fill="none" stroke="#0a0a0a" stroke-width="11" stroke-linecap="round" stroke-dasharray="127 170" transform="rotate(-90 36 36)"/></svg><span class="tl">75% booked out</span></i>
+          <i class="g3"><span class="ts">Top 3</span><span class="tl">on Google</span></i>
+          <i class="g4"><svg width="82" height="58" viewBox="0 0 82 58"><rect x="4" y="36" width="14" height="20" rx="3" fill="rgba(10,10,10,0.35)"/><rect x="24" y="26" width="14" height="30" rx="3" fill="rgba(10,10,10,0.55)"/><rect x="44" y="14" width="14" height="42" rx="3" fill="rgba(10,10,10,0.8)"/><rect x="64" y="4" width="14" height="52" rx="3" fill="#0a0a0a"/></svg></i>
+          <i class="g5"><span class="ts">&#9654; 28K</span><span class="tl">views in 24 hours</span></i>
+          <i class="g6"><svg width="82" height="52" viewBox="0 0 82 52"><path d="M4 46 C 22 44, 34 32, 46 22 S 68 8, 78 4" fill="none" stroke="#0a0a0a" stroke-width="5" stroke-linecap="round"/><circle cx="78" cy="4" r="6" fill="#0a0a0a"/></svg></i>
         </div>
       </div></div>
       <div class="phone"><div class="screen">
         <div class="ph-bar">{icon('li',26,'#0A66C2')}<span class="ph-search">Search</span><span class="ph-dots">&#8942;</span></div>
+        <div class="ig-warn" style="font-size:19px;padding:11px;">&#9888;&nbsp; Nothing since March</div>
         <div class="li-post">
           <div class="lp-head"><span class="lp-av">YB</span><div><div class="lp-n">Your Business</div><div class="lp-d">Posted &middot; March 12</div></div></div>
           <p class="lp-txt">Excited to share what we've been working on this spring&hellip;</p>
-          <div class="lp-img"></div>
+          <div class="lp-img"><span class="lpc"><svg width="120" height="64" viewBox="0 0 120 64"><rect x="6" y="42" width="20" height="20" rx="4" fill="rgba(10,10,10,0.3)"/><rect x="34" y="30" width="20" height="32" rx="4" fill="rgba(10,10,10,0.5)"/><rect x="62" y="18" width="20" height="44" rx="4" fill="rgba(10,10,10,0.75)"/><rect x="90" y="4" width="20" height="58" rx="4" fill="#0a0a0a"/></svg><span class="lpt">28K+ views in 24 hours</span></span></div>
           <div class="lp-act"><span>&#128077; Like</span><span>&#128172; Comment</span><span>&#8631; Repost</span></div>
         </div>
-        <div class="ig-warn" style="font-size:19px;padding:11px;border-bottom:0;">&#9888;&nbsp; Nothing since March</div>
       </div></div>
     </div>""",
-  '<span class="statchip" style="left:30px;bottom:-18px;">28K views in 24 hours &mdash; from 34 followers</span>',
+  '<span class="statchip" style="left:30px;bottom:-18px;">28K+ views in 24 hours from an account with 34 followers</span>',
   "Comment WINDOW, get the free plan &#8594;")
 
 
 ADS["ad-grow-marketing-plan.html"] = ad(
   "BERMO. ad · GROW · the marketing plan nobody opened", "1 slide, 1080x1350, mint · comment keyword GROW",
   'Hiring <span class="ombre">marketing help?</span>',
-  '<span class="pain">Marketing feels like guessing.</span>Message, target market, website, social &mdash; we build one plan, then actually do it with you.',
+  '<span class="pain">Marketing feels like guessing.</span>Message, target market, website, social. One plan, and we actually do it with you.',
   f"""<div class="doc-head"><span class="doc-icon"></span><div><div class="doc-title">Marketing plan 2026</div><div class="doc-sub">Last edit was 7 months ago</div></div><span class="doc-share">Share</span></div>
     <div class="doc-menu"><span>File</span><span>Edit</span><span>View</span><span>Insert</span><span>Format</span><span>Tools</span></div>
     <div class="doc-wrap">
@@ -306,7 +313,7 @@ ADS["ad-grow-marketing-plan.html"] = ad(
       </div>
       <div class="doc-cmt">
         <div class="ch"><span class="cav">B.</span><span class="cn">BERMO.</span></div>
-        <p>We find an average of <b>$125K in revenue opportunities</b> hiding in plans like this.</p>
+        <p><b>$125K in revenue opportunities identified</b> in plans exactly like this one.</p>
         <span class="rep">Reply</span>
       </div>
     </div>""",
@@ -316,14 +323,14 @@ ADS["ad-grow-marketing-plan.html"] = ad(
 ADS["ad-proof-receipt.html"] = ad(
   "BERMO. ad · PROOF · the receipts", "1 slide, 1080x1350, mint · comment keyword PROOF",
   'Proof, <span class="ombre">not promises.</span>',
-  '<span class="pain">Everyone says they&rsquo;re the best.</span>Here&rsquo;s what actually happened for BERMO. clients &mdash; scan it in three seconds.',
+  '<span class="pain">Everyone says they&rsquo;re the best.</span>Here&rsquo;s what actually happened for BERMO. clients. Scan it in three seconds.',
   f"""<div class="rcpt" style="box-shadow:none;">
       <div class="rh"><div class="rw">BERMO.</div><div class="rl">Client results &middot; receipt</div></div>
       <div class="rcpt-item"><span class="k">Revenue opportunities identified</span><span class="dots2"></span><span class="v">$125K</span></div>
       <div class="rcpt-item"><span class="k">Cost savings, first two weeks</span><span class="dots2"></span><span class="v">$25K</span></div>
       <div class="rcpt-item"><span class="k">High-intent buyer searches</span><span class="dots2"></span><span class="v">Google Top 3</span></div>
       <div class="rcpt-item"><span class="k">Views in 24h, from 34 followers</span><span class="dots2"></span><span class="v">28K+</span></div>
-      <div class="rcpt-item"><span class="k">Manual work cut, every week</span><span class="dots2"></span><span class="v">5&ndash;10 hrs</span></div>
+      <div class="rcpt-item"><span class="k">Manual work cut, every week</span><span class="dots2"></span><span class="v">5 to 10 hrs</span></div>
       <div class="barcode"></div>
       <div class="rfoot">HUMAN-LED &middot; AI-LEVERAGED &middot; BERMOCO.COM</div>
     </div>""",

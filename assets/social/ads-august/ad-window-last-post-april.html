@@ -715,8 +715,9 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .ph-bar .ph-dots{margin-left:auto;color:#111;font:800 22px 'Inter',sans-serif;letter-spacing:2px;}
 .ph-bar .ph-search{flex:1;background:#eef3f8;border-radius:8px;font:500 18px 'Inter',sans-serif;color:#666;padding:8px 14px;}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:3px;}
-.pgrid i{position:relative;display:block;height:128px;}
-.pgrid i b{position:absolute;left:10px;bottom:10px;height:10px;width:70%;border-radius:6px;background:rgba(255,255,255,0.85);}
+.pgrid i{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:128px;}
+.pgrid .ts{font:900 30px 'Inter Tight',sans-serif;color:#0a0a0a;letter-spacing:-0.5px;}
+.pgrid .tl{font:700 14px 'Inter',sans-serif;color:rgba(10,10,10,0.62);}
 .pgrid .g1{background:linear-gradient(135deg,#ffd9c4,#f7a882);}
 .pgrid .g2{background:linear-gradient(135deg,#cfe0fb,#9dbcf0);}
 .pgrid .g3{background:linear-gradient(135deg,#ffd3e4,#efa3c4);}
@@ -730,7 +731,9 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 .lp-n{font:700 21px 'Inter',sans-serif;color:#111;}
 .lp-d{font:500 17px 'Inter',sans-serif;color:#8e8e93;}
 .lp-txt{font:500 20px/1.4 'Inter',sans-serif;color:#222;margin-bottom:12px;}
-.lp-img{height:118px;border-radius:10px;background:linear-gradient(135deg,#cfe0fb,#f7c8dd);filter:saturate(0.75);}
+.lp-img{height:126px;border-radius:10px;background:linear-gradient(135deg,#cfe0fb,#f7c8dd);filter:saturate(0.75);display:flex;align-items:center;justify-content:center;}
+.lp-img .lpc{background:#fff;border-radius:10px;padding:10px 18px;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 8px 20px rgba(10,10,10,0.12);}
+.lp-img .lpt{font:800 15px 'Inter',sans-serif;color:#0a0a0a;}
 .lp-act{display:flex;justify-content:space-between;padding:14px 6px 8px;font:600 18px 'Inter',sans-serif;color:#5f6a75;}
 </style></head><body>
 <div class="pagehead"><strong>BERMO. ad · WINDOW · last post April</strong><br>1 slide, 1080x1350, mint · comment keyword WINDOW</div>
@@ -739,7 +742,7 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
 <div class="content" style="align-items:flex-start;text-align:left;gap:34px;justify-content:center;padding-top:10px;">
   <div>
     <h1 style="font-size:84px;line-height:1.04;letter-spacing:-2.5px;">Hiring a <span class="ombre">social media manager?</span></h1>
-    <p class="subline" style="margin-top:18px;"><span class="pain">Buyers check you out before they call.</span>We plan, write, and post every week &mdash; Instagram and LinkedIn, in your voice.</p>
+    <p class="subline" style="margin-top:18px;"><span class="pain">Buyers check you out before they call.</span>We plan, write, and post every week on Instagram and LinkedIn, in your voice.</p>
   </div>
   <div style="position:relative;width:100%;">
     <div class="app"><div class="phones">
@@ -747,22 +750,26 @@ h2{font:900 58px/1.12 'Inter Tight',sans-serif;letter-spacing:-1.5px;text-wrap:b
         <div class="ph-bar"><svg width="26" height="26" viewBox="0 0 24 24" style="display:block;"><path fill="#111111" d="M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.0839m.1402 21.6932c-1.17-.0509-1.8053-.2453-2.2287-.408-.5606-.216-.96-.4771-1.3819-.895-.422-.4178-.6811-.8186-.9-1.378-.1644-.4234-.3624-1.058-.4171-2.228-.0595-1.2645-.072-1.6442-.079-4.848-.007-3.2037.0053-3.583.0607-4.848.05-1.169.2456-1.805.408-2.2282.216-.5613.4762-.96.895-1.3816.4188-.4217.8184-.6814 1.3783-.9003.423-.1651 1.0575-.3614 2.227-.4171 1.2655-.06 1.6447-.072 4.848-.079 3.2033-.007 3.5835.005 4.8495.0608 1.169.0508 1.8053.2445 2.228.408.5608.216.96.4754 1.3816.895.4217.4194.6816.8176.9005 1.3787.1653.4217.3617 1.056.4169 2.2263.0602 1.2655.0739 1.645.0796 4.848.0058 3.203-.0055 3.5834-.061 4.848-.051 1.17-.245 1.8055-.408 2.2294-.216.5604-.4763.96-.8954 1.3814-.419.4215-.8181.6811-1.3783.9-.4224.1649-1.0577.3617-2.2262.4174-1.2656.0595-1.6448.072-4.8493.079-3.2045.007-3.5825-.006-4.848-.0608M16.953 5.5864A1.44 1.44 0 1 0 18.39 4.144a1.44 1.44 0 0 0-1.437 1.4424M5.8385 12.012c.0067 3.4032 2.7706 6.1557 6.173 6.1493 3.4026-.0065 6.157-2.7701 6.1506-6.1733-.0065-3.4032-2.771-6.1565-6.174-6.1498-3.403.0067-6.156 2.771-6.1496 6.1738M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077"/></svg><span class="pu">yourbusiness</span><span class="ph-dots">&#8942;</span></div>
         <div class="ig-warn" style="font-size:19px;padding:11px;">&#9888;&nbsp; Last post &middot; 4 months ago</div>
         <div class="pgrid">
-          <i class="g1"><b></b></i><i class="g2"><b style="width:56%;"></b><span class="vb">&#9654; 28K</span></i><i class="g3"><b style="width:44%;"></b></i>
-          <i class="g4"><b style="width:60%;"></b></i><i class="g5"><b></b></i><i class="g6"><b style="width:50%;"></b></i>
+          <i class="g1"><span class="ts">$125K</span><span class="tl">found for a client</span></i>
+          <i class="g2"><svg width="72" height="72" viewBox="0 0 72 72"><circle cx="36" cy="36" r="27" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="11"/><circle cx="36" cy="36" r="27" fill="none" stroke="#0a0a0a" stroke-width="11" stroke-linecap="round" stroke-dasharray="127 170" transform="rotate(-90 36 36)"/></svg><span class="tl">75% booked out</span></i>
+          <i class="g3"><span class="ts">Top 3</span><span class="tl">on Google</span></i>
+          <i class="g4"><svg width="82" height="58" viewBox="0 0 82 58"><rect x="4" y="36" width="14" height="20" rx="3" fill="rgba(10,10,10,0.35)"/><rect x="24" y="26" width="14" height="30" rx="3" fill="rgba(10,10,10,0.55)"/><rect x="44" y="14" width="14" height="42" rx="3" fill="rgba(10,10,10,0.8)"/><rect x="64" y="4" width="14" height="52" rx="3" fill="#0a0a0a"/></svg></i>
+          <i class="g5"><span class="ts">&#9654; 28K</span><span class="tl">views in 24 hours</span></i>
+          <i class="g6"><svg width="82" height="52" viewBox="0 0 82 52"><path d="M4 46 C 22 44, 34 32, 46 22 S 68 8, 78 4" fill="none" stroke="#0a0a0a" stroke-width="5" stroke-linecap="round"/><circle cx="78" cy="4" r="6" fill="#0a0a0a"/></svg></i>
         </div>
       </div></div>
       <div class="phone"><div class="screen">
         <div class="ph-bar"><svg width="26" height="26" viewBox="0 0 24 24" style="display:block;"><path fill="#0A66C2" d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg><span class="ph-search">Search</span><span class="ph-dots">&#8942;</span></div>
+        <div class="ig-warn" style="font-size:19px;padding:11px;">&#9888;&nbsp; Nothing since March</div>
         <div class="li-post">
           <div class="lp-head"><span class="lp-av">YB</span><div><div class="lp-n">Your Business</div><div class="lp-d">Posted &middot; March 12</div></div></div>
           <p class="lp-txt">Excited to share what we've been working on this spring&hellip;</p>
-          <div class="lp-img"></div>
+          <div class="lp-img"><span class="lpc"><svg width="120" height="64" viewBox="0 0 120 64"><rect x="6" y="42" width="20" height="20" rx="4" fill="rgba(10,10,10,0.3)"/><rect x="34" y="30" width="20" height="32" rx="4" fill="rgba(10,10,10,0.5)"/><rect x="62" y="18" width="20" height="44" rx="4" fill="rgba(10,10,10,0.75)"/><rect x="90" y="4" width="20" height="58" rx="4" fill="#0a0a0a"/></svg><span class="lpt">28K+ views in 24 hours</span></span></div>
           <div class="lp-act"><span>&#128077; Like</span><span>&#128172; Comment</span><span>&#8631; Repost</span></div>
         </div>
-        <div class="ig-warn" style="font-size:19px;padding:11px;border-bottom:0;">&#9888;&nbsp; Nothing since March</div>
       </div></div>
     </div></div>
-    <span class="statchip" style="left:30px;bottom:-18px;">28K views in 24 hours &mdash; from 34 followers</span>
+    <span class="statchip" style="left:30px;bottom:-18px;">28K+ views in 24 hours from an account with 34 followers</span>
   </div>
   <div style="display:flex;gap:18px;align-items:center;width:100%;">
     <span class="cta" style="font-size:27px;padding:22px 32px;white-space:nowrap;">Comment WINDOW, get the free plan &#8594;</span>

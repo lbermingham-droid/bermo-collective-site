@@ -292,7 +292,7 @@ ADS["ad-window-last-post-april.html"] = ad(
 
 ADS["ad-grow-marketing-plan.html"] = ad(
   "BERMO. ad · GROW · the marketing plan nobody opened", "1 slide, 1080x1350, mint · comment keyword GROW",
-  'Hiring a <span class="ombre">marketing agency?</span>',
+  'Hiring <span class="ombre">marketing help?</span>',
   '<span class="pain">Marketing feels like guessing.</span>Message, target market, website, social &mdash; we build one plan, then actually do it with you.',
   f"""<div class="doc-head"><span class="doc-icon"></span><div><div class="doc-title">Marketing plan 2026</div><div class="doc-sub">Last edit was 7 months ago</div></div><span class="doc-share">Share</span></div>
     <div class="doc-menu"><span>File</span><span>Edit</span><span>View</span><span>Insert</span><span>Format</span><span>Tools</span></div>

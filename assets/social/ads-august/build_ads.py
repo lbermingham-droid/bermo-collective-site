@@ -41,6 +41,41 @@ EXTRA = """
 .sticker{position:absolute;background:#ff2d7a;color:#fff;font:800 26px 'Inter Tight',sans-serif;
   padding:16px 26px;border-radius:14px;box-shadow:0 16px 36px rgba(224,36,109,0.45);transform:rotate(-3deg);z-index:5;}
 .freebadge{background:#c8f500;color:#0a0a0a;font:800 21px 'Inter Tight',sans-serif;padding:14px 22px;border-radius:12px;white-space:nowrap;}
+.statchip{position:absolute;background:#c8f500;color:#0a0a0a;font:800 22px 'Inter Tight',sans-serif;
+  padding:15px 24px;border-radius:12px;box-shadow:0 16px 36px rgba(120,150,0,0.35);transform:rotate(-1.5deg);z-index:5;}
+.pgrid .vb{position:absolute;top:10px;right:12px;color:#fff;font:800 21px 'Inter Tight',sans-serif;text-shadow:0 2px 10px rgba(0,0,0,0.5);}
+/* --- google docs --- */
+.doc-head{display:flex;align-items:center;gap:16px;padding:20px 26px 12px;}
+.doc-icon{width:40px;height:52px;border-radius:6px;background:#4285f4;position:relative;flex-shrink:0;}
+.doc-icon:before{content:'';position:absolute;left:9px;right:9px;top:14px;height:4px;background:#fff;border-radius:2px;box-shadow:0 9px 0 #fff, 0 18px 0 #fff;}
+.doc-title{font:600 26px 'Inter',sans-serif;color:#202124;}
+.doc-sub{font:500 18px 'Inter',sans-serif;color:#9a9aa0;margin-top:2px;}
+.doc-share{margin-left:auto;background:#c2e7ff;color:#001d35;font:700 19px 'Inter',sans-serif;border-radius:100px;padding:11px 26px;}
+.doc-menu{font:500 18px 'Inter',sans-serif;color:#5f6368;padding:0 26px 14px;border-bottom:1px solid #eee;display:flex;gap:22px;}
+.doc-wrap{display:flex;gap:20px;padding:26px;}
+.doc-list{flex:1.3;}
+.doc-item{font:500 24px/1.4 'Inter',sans-serif;color:#333;padding:9px 0;display:flex;gap:14px;align-items:center;}
+.doc-item .box{width:22px;height:22px;border:2.5px solid #b9b9c0;border-radius:5px;flex-shrink:0;}
+.doc-item.hl{background:#fef3c0;border-radius:6px;padding-left:8px;margin-left:-8px;}
+.doc-cmt{flex:1;background:#fff;border:1px solid #e6e6e6;border-radius:12px;padding:18px;box-shadow:0 10px 28px rgba(10,10,10,0.10);align-self:flex-start;}
+.doc-cmt .ch{display:flex;gap:10px;align-items:center;margin-bottom:8px;}
+.doc-cmt .cav{width:36px;height:36px;border-radius:50%;background:#0a0a0a;color:#00f5d4;display:flex;align-items:center;justify-content:center;font:700 15px 'Inter',sans-serif;}
+.doc-cmt .cn{font:700 19px 'Inter',sans-serif;color:#111;}
+.doc-cmt p{font:500 20px/1.4 'Inter',sans-serif;color:#333;}
+.doc-cmt p b{color:#0a0a0a;}
+.doc-cmt .rep{font:600 17px 'Inter',sans-serif;color:#4285f4;margin-top:8px;display:block;}
+/* --- receipt --- */
+.rcpt{width:640px;margin:0 auto;background:#fff;border-radius:14px;padding:38px 44px 30px;position:relative;
+  box-shadow:0 2px 0 rgba(10,10,10,0.04), 0 24px 48px -12px rgba(10,60,50,0.28), 0 60px 120px -30px rgba(10,60,50,0.35);}
+.rcpt .rh{text-align:center;border-bottom:2px dashed #e0e0e0;padding-bottom:18px;margin-bottom:10px;}
+.rcpt .rh .rw{font:900 30px 'Montserrat',sans-serif;color:#0a0a0a;letter-spacing:1px;}
+.rcpt .rh .rl{font:700 16px 'Inter',sans-serif;color:#9a9aa0;letter-spacing:3px;text-transform:uppercase;margin-top:6px;}
+.rcpt-item{display:flex;align-items:baseline;gap:10px;padding:13px 0;}
+.rcpt-item .k{font:600 23px 'Inter',sans-serif;color:#333;white-space:nowrap;}
+.rcpt-item .dots2{flex:1;border-bottom:3px dotted #d8d8de;transform:translateY(-5px);}
+.rcpt-item .v{font:900 26px 'Inter Tight',sans-serif;color:#0a0a0a;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.rcpt .barcode{height:44px;margin-top:16px;background:repeating-linear-gradient(90deg,#111 0 3px,transparent 3px 6px,#111 6px 8px,transparent 8px 13px,#111 13px 15px,transparent 15px 19px);}
+.rcpt .rfoot{font:700 18px 'Inter',sans-serif;color:#9a9aa0;text-align:center;margin-top:10px;letter-spacing:2px;}
 .subline{font:600 34px/1.35 'Inter',sans-serif;color:rgba(10,10,10,0.78);max-width:900px;letter-spacing:-0.5px;}
 .subline b{color:#0a0a0a;}
 .subline .pain{display:block;font-weight:800;color:#0a0a0a;font-size:38px;letter-spacing:-1px;margin-bottom:10px;}
@@ -177,7 +212,7 @@ ADS = {}
 
 ADS["ad-found-ai-answers.html"] = ad(
   "BERMO. ad · FOUND · customers can't find you", "1 slide, 1080x1350, mint · comment keyword FOUND",
-  'Hiring <span class="ombre">marketing help?</span>',
+  'Hiring an <span class="ombre">SEO expert?</span>',
   '<span class="pain">Customers can&rsquo;t find you online.</span>They hire whoever shows up, on Google and now on ChatGPT. We make sure that&rsquo;s you.',
   f"""<div class="gpt-head"><span class="dots"><i></i><i></i><i></i></span><span class="t" style="display:flex;align-items:center;gap:10px;">{icon('gpt',26,'#0d0d0d')} ChatGPT <span>&#8964;</span></span></div>
     <div class="gpt-body">
@@ -190,18 +225,18 @@ ADS["ad-found-ai-answers.html"] = ad(
       </div>
     </div>
     <div class="gpt-input"><span>Message ChatGPT</span><span class="send">&#8593;</span></div>""",
-  '<span class="sticker" style="right:30px;bottom:96px;">You&rsquo;re not on this list.</span>',
+  '<span class="sticker" style="right:30px;bottom:96px;">You&rsquo;re not on this list.</span><span class="statchip" style="left:30px;bottom:-18px;">Client result: unranked &#8594; Google Top 3</span>',
   "Comment FOUND, I&rsquo;ll check your business &#8594;")
 
 ADS["ad-site-no-calls.html"] = ad(
   "BERMO. ad · SITE · visits but no calls", "1 slide, 1080x1350, mint · comment keyword SITE",
   'Hiring a <span class="ombre">web designer?</span>',
-  '<span class="pain">Your website gets visits. You get no calls.</span>We rebuild it so people book, call, and buy. One rebuild brought 71% more Google clicks.',
+  '<span class="pain">Your website gets visits. You get no calls.</span>We rebuild it so people book, call, and buy &mdash; a site built to turn visitors into qualified leads.',
   f"""<div class="br-tabs"><span class="tdots"><i style="background:#ff5f57;"></i><i style="background:#febc2e;"></i><i style="background:#28c840;"></i></span><span class="br-tab" style="display:flex;align-items:center;gap:10px;">{CHROME} Your Website</span></div>
     <div class="br-url"><span>yourbusiness.com</span></div>
     <div class="site">
       <div class="site-nav"><span class="logo"></span><span>Home</span><span>About</span><span>Services</span><span>Contact</span></div>
-      <h3>Welcome to Harborview Services.</h3>
+      <h3>Welcome to T&amp;M Co.</h3>
       <p style="font:500 22px Inter,sans-serif;color:#9a9aa0;margin-top:14px;">Proudly serving our customers since 2015.</p><div class="l1" style="margin-top:20px;"></div>
       <span class="btn">Learn More</span>
     </div>""",
@@ -209,7 +244,7 @@ ADS["ad-site-no-calls.html"] = ad(
       <span class="cap">This month</span>
       <span class="row"><span><span class="big">214</span> <span class="lbl">visits</span></span>
       <span><span class="bad">2</span> <span class="lbl">calls</span></span></span>
-    </span>""",
+    </span><span class="statchip" style="left:30px;bottom:-18px;">After our rebuild: 71% more buyers chose their site on Google</span>""",
   "Comment SITE, get the free 2-minute scan &#8594;")
 
 ADS["ad-hours-slow-reply.html"] = ad(
@@ -224,7 +259,7 @@ ADS["ad-hours-slow-reply.html"] = ad(
       <div class="mb out">So sorry for the late reply! Yes, we'd love to help&hellip;</div>
       <div class="msg-sys">&#9888;&nbsp; This lead already booked someone else</div>
     </div>""",
-  '<span class="sticker" style="right:56px;bottom:-20px;transform:rotate(-2deg);font-size:24px;">Your AI assistant replies in 90 seconds.</span>',
+  '<span class="sticker" style="right:24px;top:16px;transform:rotate(2deg);font-size:22px;padding:14px 22px;">Your AI assistant replies in 90 seconds.</span><span class="statchip" style="left:30px;bottom:-18px;">Clients get 5&ndash;10 hours back, every week</span>',
   "Comment HOURS for a free demo &#8594;")
 
 ADS["ad-window-last-post-april.html"] = ad(
@@ -236,7 +271,7 @@ ADS["ad-window-last-post-april.html"] = ad(
         <div class="ph-bar">{icon('ig',26,'#111111')}<span class="pu">yourbusiness</span><span class="ph-dots">&#8942;</span></div>
         <div class="ig-warn" style="font-size:19px;padding:11px;">&#9888;&nbsp; Last post &middot; 4 months ago</div>
         <div class="pgrid">
-          <i class="g1"><b></b></i><i class="g2"><b style="width:56%;"></b></i><i class="g3"><b style="width:44%;"></b></i>
+          <i class="g1"><b></b></i><i class="g2"><b style="width:56%;"></b><span class="vb">&#9654; 28K</span></i><i class="g3"><b style="width:44%;"></b></i>
           <i class="g4"><b style="width:60%;"></b></i><i class="g5"><b></b></i><i class="g6"><b style="width:50%;"></b></i>
         </div>
       </div></div>
@@ -251,8 +286,49 @@ ADS["ad-window-last-post-april.html"] = ad(
         <div class="ig-warn" style="font-size:19px;padding:11px;border-bottom:0;">&#9888;&nbsp; Nothing since March</div>
       </div></div>
     </div>""",
-  "",
+  '<span class="statchip" style="left:30px;bottom:-18px;">28K views in 24 hours &mdash; from 34 followers</span>',
   "Comment WINDOW, get the free plan &#8594;")
+
+
+ADS["ad-grow-marketing-plan.html"] = ad(
+  "BERMO. ad · GROW · the marketing plan nobody opened", "1 slide, 1080x1350, mint · comment keyword GROW",
+  'Hiring a <span class="ombre">marketing agency?</span>',
+  '<span class="pain">Marketing feels like guessing.</span>Message, target market, website, social &mdash; we build one plan, then actually do it with you.',
+  f"""<div class="doc-head"><span class="doc-icon"></span><div><div class="doc-title">Marketing plan 2026</div><div class="doc-sub">Last edit was 7 months ago</div></div><span class="doc-share">Share</span></div>
+    <div class="doc-menu"><span>File</span><span>Edit</span><span>View</span><span>Insert</span><span>Format</span><span>Tools</span></div>
+    <div class="doc-wrap">
+      <div class="doc-list">
+        <div class="doc-item"><span class="box"></span>Figure out our message</div>
+        <div class="doc-item"><span class="box"></span>Pick a target market</div>
+        <div class="doc-item hl"><span class="box"></span>Fix the website</div>
+        <div class="doc-item"><span class="box"></span>Post on social every week</div>
+        <div class="doc-item"><span class="box"></span>Actual strategy??</div>
+      </div>
+      <div class="doc-cmt">
+        <div class="ch"><span class="cav">B.</span><span class="cn">BERMO.</span></div>
+        <p>We find an average of <b>$125K in revenue opportunities</b> hiding in plans like this.</p>
+        <span class="rep">Reply</span>
+      </div>
+    </div>""",
+  '<span class="sticker" style="right:40px;bottom:-20px;transform:rotate(-2deg);">Sound familiar?</span>',
+  "Comment GROW, get the free Gap Scan &#8594;")
+
+ADS["ad-proof-receipt.html"] = ad(
+  "BERMO. ad · PROOF · the receipts", "1 slide, 1080x1350, mint · comment keyword PROOF",
+  'Proof, <span class="ombre">not promises.</span>',
+  '<span class="pain">Everyone says they&rsquo;re the best.</span>Here&rsquo;s what actually happened for BERMO. clients &mdash; scan it in three seconds.',
+  f"""<div class="rcpt" style="box-shadow:none;">
+      <div class="rh"><div class="rw">BERMO.</div><div class="rl">Client results &middot; receipt</div></div>
+      <div class="rcpt-item"><span class="k">Revenue opportunities identified</span><span class="dots2"></span><span class="v">$125K</span></div>
+      <div class="rcpt-item"><span class="k">Cost savings, first two weeks</span><span class="dots2"></span><span class="v">$25K</span></div>
+      <div class="rcpt-item"><span class="k">High-intent buyer searches</span><span class="dots2"></span><span class="v">Google Top 3</span></div>
+      <div class="rcpt-item"><span class="k">Views in 24h, from 34 followers</span><span class="dots2"></span><span class="v">28K+</span></div>
+      <div class="rcpt-item"><span class="k">Manual work cut, every week</span><span class="dots2"></span><span class="v">5&ndash;10 hrs</span></div>
+      <div class="barcode"></div>
+      <div class="rfoot">HUMAN-LED &middot; AI-LEVERAGED &middot; BERMOCO.COM</div>
+    </div>""",
+  "",
+  "Comment PROOF, get the free Gap Scan &#8594;")
 
 for name, html in ADS.items():
     with open(os.path.join(HERE, name), "w") as f:

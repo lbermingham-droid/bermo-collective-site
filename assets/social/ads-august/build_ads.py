@@ -41,8 +41,11 @@ EXTRA = """
 .sticker{position:absolute;background:#ff2d7a;color:#fff;font:800 26px 'Inter Tight',sans-serif;
   padding:16px 26px;border-radius:14px;box-shadow:0 16px 36px rgba(224,36,109,0.45);transform:rotate(-3deg);z-index:5;}
 .freebadge{background:#c8f500;color:#0a0a0a;font:800 21px 'Inter Tight',sans-serif;padding:14px 22px;border-radius:12px;white-space:nowrap;}
-.statchip{position:absolute;background:#c8f500;color:#0a0a0a;font:800 22px 'Inter Tight',sans-serif;
-  padding:15px 24px;border-radius:12px;box-shadow:0 16px 36px rgba(120,150,0,0.35);transform:rotate(-1.5deg);z-index:5;}
+.statchip{position:absolute;background:#c8f500;color:#0a0a0a;font:800 22px/1.3 'Inter Tight',sans-serif;
+  padding:15px 24px;border-radius:12px;box-shadow:0 16px 36px rgba(120,150,0,0.35);transform:rotate(-1.5deg);z-index:5;max-width:700px;}
+.cta2{display:inline-flex;align-items:center;gap:12px;background:linear-gradient(92deg,#ff9a3d,#ff2d7a);color:#fff;
+  font:800 29px 'Inter Tight',sans-serif;padding:23px 44px;border-radius:100px;box-shadow:0 18px 40px rgba(255,45,122,0.30);white-space:nowrap;}
+.gpt-note{font:500 17px 'Inter',sans-serif;color:#a5a5a5;text-align:center;padding:0 32px 64px;margin-top:-8px;}
 .pgrid .vb{position:absolute;top:10px;right:12px;color:#fff;font:800 21px 'Inter Tight',sans-serif;text-shadow:0 2px 10px rgba(0,0,0,0.5);}
 /* --- google docs --- */
 .doc-head{display:flex;align-items:center;gap:16px;padding:20px 26px 12px;}
@@ -185,7 +188,7 @@ EXTRA = """
 .lp-act{display:flex;justify-content:space-between;padding:14px 6px 8px;font:600 18px 'Inter',sans-serif;color:#5f6a75;}
 """
 
-def ad(name, note, h1, sub, card, sticker, cta):
+def ad(name, note, h1, sub, card, sticker, cta, h1size=78):
     return f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><title>{name}</title>
 <style>{FONTS}
@@ -196,7 +199,7 @@ def ad(name, note, h1, sub, card, sticker, cta):
 <div class="bar"><div class="wordmark">BERMO.</div><span class="cover-shadow-tr">{MASCOT}Shadow.</span></div>
 <div class="content" style="align-items:flex-start;text-align:left;gap:34px;justify-content:center;padding-top:10px;">
   <div>
-    <h1 style="font-size:84px;line-height:1.04;letter-spacing:-2.5px;">{h1}</h1>
+    <h1 style="font-size:{h1size}px;line-height:1.06;letter-spacing:-2px;">{h1}</h1>
     <p class="subline" style="margin-top:18px;">{sub}</p>
   </div>
   <div style="position:relative;width:100%;">
@@ -204,8 +207,7 @@ def ad(name, note, h1, sub, card, sticker, cta):
     {sticker}
   </div>
   <div style="display:flex;gap:18px;align-items:center;width:100%;">
-    <span class="cta" style="font-size:27px;padding:22px 32px;white-space:nowrap;">{cta}</span>
-    <span class="freebadge">FREE</span>
+    <span class="cta2">{cta}</span>
     <span style="font:900 24px 'Inter Tight',sans-serif;color:var(--ink);margin-left:auto;">bermoco.com</span>
   </div>
 </div></div>
@@ -216,7 +218,7 @@ ADS = {}
 ADS["ad-found-ai-answers.html"] = ad(
   "BERMO. ad · FOUND · customers can't find you", "1 slide, 1080x1350, mint · comment keyword FOUND",
   'Hiring an <span class="ombre">SEO expert?</span>',
-  '<span class="pain">Customers can&rsquo;t find you online.</span>They hire whoever shows up, on Google and now on ChatGPT. We make sure that&rsquo;s you.',
+  '<span class="pain">Customers can&rsquo;t find you online.</span>They hire whoever shows up, on Google and now on ChatGPT (GEO). We make sure that&rsquo;s you.',
   f"""<div class="gpt-head"><span class="dots"><i></i><i></i><i></i></span><span class="t" style="display:flex;align-items:center;gap:10px;">{icon('gpt',26,'#0d0d0d')} ChatGPT <span>&#8964;</span></span></div>
     <div class="gpt-body">
       <div class="gpt-user"><p>Need help getting my sales up. Who should I hire?</p></div>
@@ -227,9 +229,10 @@ ADS["ad-found-ai-answers.html"] = ad(
         <div class="gpt-rec"><span class="n">3</span><span class="nm">That one down the street</span><span class="star">&#9733; 4.6</span></div>
       </div>
     </div>
-    <div class="gpt-input"><span>Message ChatGPT</span><span class="send">&#8593;</span></div>""",
-  '<span class="sticker" style="right:30px;bottom:96px;">You&rsquo;re not on this list.</span><span class="statchip" style="left:30px;bottom:-18px;">Google Top 3 rankings for high-intent buyer searches</span>',
-  "Comment FOUND, I&rsquo;ll check your business &#8594;")
+    <div class="gpt-input"><span>Message ChatGPT</span><span class="send">&#8593;</span></div>
+    <div class="gpt-note">63% of enterprise buyers now use AI for research. 2026 B2B Buying Disconnect Report</div>""",
+  '<span class="sticker" style="right:30px;bottom:96px;">You&rsquo;re not on this list.</span><span class="statchip" style="left:30px;bottom:-18px;white-space:nowrap;max-width:none;">Google Top 3 for high-intent buyer searches, in only 4 weeks</span>',
+  "Comment FOUND, free check on your business &#8594;")
 
 ADS["ad-site-no-calls.html"] = ad(
   "BERMO. ad · SITE · visits but no calls", "1 slide, 1080x1350, mint · comment keyword SITE",
@@ -243,17 +246,17 @@ ADS["ad-site-no-calls.html"] = ad(
       <p style="font:500 22px Inter,sans-serif;color:#9a9aa0;margin-top:14px;">Proudly serving our customers since 2015.</p><div class="l1" style="margin-top:20px;"></div>
       <span class="btn">Learn More</span>
     </div>""",
-  """<span class="statcard" style="right:26px;bottom:24px;transform:none;">
+  """<span class="statcard" style="right:26px;bottom:132px;transform:none;">
       <span class="cap">This month</span>
       <span class="row"><span><span class="big">214</span> <span class="lbl">visits</span></span>
       <span><span class="bad">2</span> <span class="lbl">calls</span></span></span>
-    </span><span class="statchip" style="left:30px;bottom:-18px;">71% more buyers chose their website from Google search</span>""",
-  "Comment SITE, get the free 2-minute scan &#8594;")
+    </span><span class="statchip" style="left:30px;bottom:-18px;">Buyer searches moved into Google&rsquo;s Top 3, and 71% more buyers chose their website</span>""",
+  "Comment SITE, free 2 minute website scan &#8594;")
 
 ADS["ad-hours-slow-reply.html"] = ad(
   "BERMO. ad · HOURS · the AI assistant", "1 slide, 1080x1350, mint · comment keyword HOURS",
-  'Hiring a <span class="ombre">virtual assistant?</span>',
-  '<span class="pain">Your leads wait days, then hire someone else.</span>We build you an AI assistant that replies in minutes, follows up, and books the job. It sounds like you.',
+  'Looking for the most efficient ways to use <span class="ombre">AI to automate?</span>',
+  '<span class="pain">Customers message you, wait days for a reply, and buy somewhere else.</span>We build you an AI assistant that replies in minutes, follows up, and books the job. It sounds like you.',
   f"""<div class="msg-head"><span style="width:52px;height:52px;border-radius:12px;background:linear-gradient(180deg,#6ee86e,#28c840);display:flex;align-items:center;justify-content:center;">{icon('imsg',30,'#ffffff')}</span><div><div class="who">New Lead</div><div class="st">Text Message</div></div></div>
     <div class="msg-body">
       <div class="msg-time">Tuesday 9:41 AM</div>
@@ -263,7 +266,7 @@ ADS["ad-hours-slow-reply.html"] = ad(
       <div class="msg-sys">&#9888;&nbsp; This lead already booked someone else</div>
     </div>""",
   '<span class="sticker" style="right:24px;top:16px;transform:rotate(2deg);font-size:22px;padding:14px 22px;">Your AI assistant replies in 90 seconds.</span><span class="statchip" style="left:30px;bottom:-18px;">5 to 10 hours of manual work eliminated every week</span>',
-  "Comment HOURS for a free demo &#8594;")
+  "Comment HOURS, free automation demo &#8594;", h1size=64)
 
 ADS["ad-window-last-post-april.html"] = ad(
   "BERMO. ad · WINDOW · last post April", "1 slide, 1080x1350, mint · comment keyword WINDOW",
@@ -294,7 +297,7 @@ ADS["ad-window-last-post-april.html"] = ad(
       </div></div>
     </div>""",
   '<span class="statchip" style="left:30px;bottom:-18px;">28K+ views in 24 hours from an account with 34 followers</span>',
-  "Comment WINDOW, get the free plan &#8594;")
+  "Comment WINDOW, free content plan &#8594;")
 
 
 ADS["ad-grow-marketing-plan.html"] = ad(
@@ -318,7 +321,7 @@ ADS["ad-grow-marketing-plan.html"] = ad(
       </div>
     </div>""",
   '<span class="sticker" style="right:40px;bottom:-20px;transform:rotate(-2deg);">Sound familiar?</span>',
-  "Comment GROW, get the free Gap Scan &#8594;")
+  "Comment GROW, free Gap Scan &#8594;")
 
 ADS["ad-proof-receipt.html"] = ad(
   "BERMO. ad · PROOF · the receipts", "1 slide, 1080x1350, mint · comment keyword PROOF",
@@ -335,7 +338,7 @@ ADS["ad-proof-receipt.html"] = ad(
       <div class="rfoot">HUMAN-LED &middot; AI-LEVERAGED &middot; BERMOCO.COM</div>
     </div>""",
   "",
-  "Comment PROOF, get the free Gap Scan &#8594;")
+  "Comment PROOF, free Gap Scan &#8594;")
 
 for name, html in ADS.items():
     with open(os.path.join(HERE, name), "w") as f:

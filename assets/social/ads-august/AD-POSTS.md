@@ -220,61 +220,50 @@ Everything else in these posts is already in your approved system.
 ---
 ---
 
-# POST 4 — AI + AUTOMATION (time back, deals that stop leaking)
-**Angle:** Deals don't die on "no." They die on the follow-up that never went out. Opens with your approved post-6 buyer-email scene.
+# POST 4 — AI + AUTOMATION (custom workflows, time back, real results)
+**Angle:** Not an assistant, not a BDR agent. Custom AI workflows built around the business: social media, emails, data, sales pipelines. Set up once, runs every day.
 **Keyword:** HOURS
 
 ## LinkedIn
 
-> "Loved the walkthrough. Can you send pricing and next steps?"
+> "I'll post this week." "I'll send the follow up tomorrow." "I'll update the pipeline Friday."
 >
-> A buyer sent that on a Tuesday. The follow-up never went out. Six days later, the deal had gone quiet.
+> You won't. You're running the business.
 >
-> That's not a sales problem. That's a founder doing nine jobs.
+> That's not a discipline problem. It's a founder doing nine jobs, and the repeating work always loses.
 >
-> I see this inside almost every founder-led business I step into. Deals don't die because buyers say no. They die in the gaps: the quote that took a week, the lead nobody answered, the invoice that went out late.
+> This is what AI is actually for. We build custom automations around how YOU work:
 >
-> THIS is what AI is actually for. Not writing robotic posts. Taking work off your plate:
+> → Social media: posts written and scheduled for the week
+> → Emails: follow ups that go out automatically, in your voice
+> → Data: your weekly numbers built into one Monday report
+> → Sales pipeline: every lead tracked and moved forward
 >
-> → A new lead gets an answer in minutes, not days
-> → Follow-ups go out on time, every time, sounding like you
-> → Quotes and invoices build themselves from your templates
-> → Every morning you get one short list: who's waiting on what
+> Set up once. Runs every day. And while we build, we find the gaps that deliver real results, not just saved minutes.
 >
-> None of it replaces you. It just stops "I forgot" from costing you money.
+> Clients get 5 to 10 hours of manual work back every week.
 >
-> That's the whole philosophy: human-led, AI-leveraged. You make the calls. The system makes sure nothing leaks.
+> What's the task you keep pushing to next week? Comment HOURS and I'll DM you the first automation I'd build for your business. Free, specific, no pitch.
 >
-> The hours come back fast. But the real win is the deals that stop dying in your inbox.
->
-> What's the one task you keep dropping? Comment HOURS and I'll DM you the first workflow I'd automate in your business — specific to what you do. Free, no pitch.
->
-> BERMO.
+> Human-led. AI-leveraged. BERMO.
 
 **First comment:**
-> If you want the full picture of where your business leaks — follow-up, website, messaging, visibility — the free Gap Scan is at bermoco.com/audit. Comment HOURS and I'll start with your workflow either way.
+> If you want the full picture of where your business leaks time and money, the free Gap Scan is at bermoco.com/audit. Comment HOURS and I'll start with your first automation either way.
 
 ## Instagram
 
-**Format:** Single-slide ad, black template — recreate the post-6 buyer-email UI (the "Re: Great meeting you both" thread with "⚠ No follow up sent · 6 days and counting"). One slide, one gut-punch. This is your proven single-slide ad chassis.
-
-**Slide text:** the email thread mock + headline "Deals don't die on no. They die on the follow-up that never went out." + "Comment HOURS → the first thing I'd automate in your business. Free." + bermoco.com
+**Format:** Single slide, mint, the "Your automations" dashboard mockup (social media, emails, data, sales pipeline, all toggled on).
 
 **Caption:**
-> "Can you send pricing?" — sent Tuesday. Follow-up: never went out. Deal: gone.
+> Social media. Emails. Data. Sales pipelines. If you're doing it all by hand, that's 5 to 10 hours every week you're not getting back.
 >
-> That's not a sales problem. That's a founder doing nine jobs.
+> We build custom AI automations around your needs. Set up once, runs every day, sounds like you. And while we build, we find the gaps that deliver real results.
 >
-> AI isn't for writing robotic posts. It's for making sure every lead gets answered in minutes, every follow-up goes out on time sounding like YOU, and nothing leaks while you run the business.
->
-> Comment HOURS and I'll DM you the first workflow I'd automate in your business, based on what you actually do. Free, specific, no pitch.
+> Comment HOURS and I'll DM you the first automation I'd build for your business. Free, specific, no pitch.
 >
 > AI workflows + automation for founder-led businesses. Human-led. AI-leveraged. BERMO.
 >
-> #aiautomation #aiforbusiness #founderled #timemanagement #smallbusinessowner
-
----
----
+> #aiautomation #aiworkflows #founderled #smallbusinessowner #timemanagement
 
 # HOW TO RUN THESE (the mechanics matter as much as the copy)
 

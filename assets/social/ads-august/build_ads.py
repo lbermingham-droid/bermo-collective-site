@@ -43,8 +43,8 @@ EXTRA = """
 .freebadge{background:#c8f500;color:#0a0a0a;font:800 21px 'Inter Tight',sans-serif;padding:14px 22px;border-radius:12px;white-space:nowrap;}
 .statchip{position:absolute;background:#c8f500;color:#0a0a0a;font:800 22px/1.3 'Inter Tight',sans-serif;
   padding:15px 24px;border-radius:12px;box-shadow:0 16px 36px rgba(120,150,0,0.35);transform:rotate(-1.5deg);z-index:5;max-width:700px;}
-.cta2{display:inline-block;font:900 31px 'Inter Tight',sans-serif;letter-spacing:-0.6px;white-space:nowrap;
-  background:linear-gradient(92deg,#f57300 0%,#ff2d7a 75%);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.cta2{display:inline-block;font:900 35px 'Inter Tight',sans-serif;letter-spacing:0;white-space:nowrap;
+  background:linear-gradient(92deg,#f06400 0%,#ff2d7a 70%);-webkit-background-clip:text;background-clip:text;color:transparent;}
 .gpt-note{font:500 17px 'Inter',sans-serif;color:#a5a5a5;text-align:center;padding:0 32px 64px;margin-top:-8px;}
 .pgrid .vb{position:absolute;top:10px;right:12px;color:#fff;font:800 21px 'Inter Tight',sans-serif;text-shadow:0 2px 10px rgba(0,0,0,0.5);}
 /* --- google docs --- */
@@ -126,19 +126,19 @@ EXTRA = """
 .statcard .row{display:flex;gap:26px;align-items:baseline;}
 .statcard .lbl{font:600 20px 'Inter',sans-serif;color:#8a8a90;}
 
-/* --- messages --- */
-.msg-head{display:flex;align-items:center;gap:16px;padding:20px 26px;border-bottom:1px solid #ececec;background:#fafafa;}
-.msg-head .av{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#b9c0c9,#8d97a5);display:flex;align-items:center;justify-content:center;color:#fff;font:700 20px 'Inter',sans-serif;}
-.msg-head .who{font:700 24px 'Inter',sans-serif;color:#111;}
-.msg-head .st{font:500 19px 'Inter',sans-serif;color:#8e8e93;}
-.msg-body{padding:26px 26px 34px;display:flex;flex-direction:column;gap:6px;}
-.msg-time{font:600 17px 'Inter',sans-serif;color:#a0a0a5;text-align:center;margin:8px 0 10px;}
-.mb{max-width:76%;font:500 25px/1.4 'Inter',sans-serif;padding:16px 24px;border-radius:24px;}
-.mb.in{background:#e9e9eb;color:#111;border-bottom-left-radius:8px;align-self:flex-start;}
-.mb.out{background:#0a84ff;color:#fff;border-bottom-right-radius:8px;align-self:flex-end;}
-.msg-sys{display:flex;align-items:center;gap:10px;justify-content:center;background:rgba(255,45,122,0.09);
-  border:1px solid rgba(255,45,122,0.3);border-radius:14px;padding:16px 20px;margin-top:18px;
-  font:700 23px 'Inter',sans-serif;color:#d61e68;}
+/* --- automations dashboard --- */
+.auto-head{display:flex;align-items:center;justify-content:space-between;padding:24px 30px;border-bottom:1px solid #ececec;}
+.auto-head .at{font:800 27px 'Inter Tight',sans-serif;color:#111;}
+.auto-list{padding:10px 30px;}
+.auto-row{display:flex;align-items:center;gap:18px;padding:19px 0;border-bottom:1px solid #f2f2f2;}
+.auto-row:last-child{border-bottom:0;}
+.aico{width:54px;height:54px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.am{flex:1;}
+.an{font:700 24px 'Inter',sans-serif;color:#111;}
+.ad2{font:500 19px 'Inter',sans-serif;color:#8a8a90;margin-top:2px;}
+.tog{width:60px;height:34px;border-radius:100px;background:#28c840;position:relative;flex-shrink:0;}
+.tog i{position:absolute;right:4px;top:4px;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.2);}
+.auto-foot{font:600 20px 'Inter',sans-serif;color:#9a9aa0;text-align:center;padding:16px 0 24px;border-top:1px dashed #e6e6e6;margin:0 30px;}
 
 /* --- instagram --- */
 .ig-head{display:flex;align-items:center;gap:22px;padding:26px 28px 18px;}
@@ -206,7 +206,7 @@ def ad(name, note, h1, sub, card, sticker, cta, h1size=78):
     <div class="app">{card}</div>
     {sticker}
   </div>
-  <div style="display:flex;gap:18px;align-items:center;width:100%;">
+  <div style="display:flex;gap:18px;align-items:center;width:100%;position:relative;z-index:9;margin-top:14px;">
     <span class="cta2">{cta}</span>
     <span style="font:900 24px 'Inter Tight',sans-serif;color:var(--ink);margin-left:auto;">bermoco.com</span>
   </div>
@@ -232,7 +232,7 @@ ADS["ad-found-ai-answers.html"] = ad(
     <div class="gpt-input"><span>Message ChatGPT</span><span class="send">&#8593;</span></div>
     <div class="gpt-note">63% of enterprise buyers now use AI for research. 2026 B2B Buying Disconnect Report</div>""",
   '<span class="sticker" style="right:30px;bottom:96px;">You&rsquo;re not on this list.</span><span class="statchip" style="left:30px;bottom:-18px;white-space:nowrap;max-width:none;">Google Top 3 for high-intent buyer searches, in only 4 weeks</span>',
-  "Comment FOUND, free check on your business &#8594;")
+  "Comment FOUND, free business check &#8594;")
 
 ADS["ad-site-no-calls.html"] = ad(
   "BERMO. ad · SITE · visits but no calls", "1 slide, 1080x1350, mint · comment keyword SITE",
@@ -250,22 +250,22 @@ ADS["ad-site-no-calls.html"] = ad(
       <span class="cap">This month</span>
       <span class="row"><span><span class="big">214</span> <span class="lbl">visits</span></span>
       <span><span class="bad">2</span> <span class="lbl">calls</span></span></span>
-    </span><span class="statchip" style="left:30px;bottom:-18px;">Buyer searches moved into Google&rsquo;s Top 3, and 71% more buyers chose their website</span>""",
+    </span><span class="statchip" style="left:30px;bottom:-18px;">Buyer searches moved into Google&rsquo;s Top 3, and 71% more buyers chose their website, converting into demos</span>""",
   "Comment SITE, free 2 minute website scan &#8594;")
 
 ADS["ad-hours-slow-reply.html"] = ad(
   "BERMO. ad · HOURS · the AI assistant", "1 slide, 1080x1350, mint · comment keyword HOURS",
   'Looking for the most efficient ways to use <span class="ombre">AI to automate?</span>',
-  '<span class="pain">Customers message you, wait days for a reply, and buy somewhere else.</span>We build you an AI assistant that replies in minutes, follows up, and books the job. It sounds like you.',
-  f"""<div class="msg-head"><span style="width:52px;height:52px;border-radius:12px;background:linear-gradient(180deg,#6ee86e,#28c840);display:flex;align-items:center;justify-content:center;">{icon('imsg',30,'#ffffff')}</span><div><div class="who">New Lead</div><div class="st">Text Message</div></div></div>
-    <div class="msg-body">
-      <div class="msg-time">Tuesday 9:41 AM</div>
-      <div class="mb in">Hi! Are you free to take on a job this week?</div>
-      <div class="msg-time" style="margin-top:22px;">Friday 4:12 PM</div>
-      <div class="mb out">So sorry for the late reply! Yes, we'd love to help&hellip;</div>
-      <div class="msg-sys">&#9888;&nbsp; This lead already booked someone else</div>
-    </div>""",
-  '<span class="sticker" style="right:24px;top:16px;transform:rotate(2deg);font-size:22px;padding:14px 22px;">Your AI assistant replies in 90 seconds.</span><span class="statchip" style="left:30px;bottom:-18px;">5 to 10 hours of manual work eliminated every week</span>',
+  '<span class="pain">We build AI workflows that give you time back, and find the gaps that deliver real results.</span>Custom automations built around your needs. Social media, emails, data, sales pipelines, and more.',
+  f"""<div class="auto-head"><span class="at">Your automations</span><span class="utag cy">All running</span></div>
+    <div class="auto-list">
+      <div class="auto-row"><span class="aico" style="background:#ffe4d6;color:#c2510a;">&#9654;</span><div class="am"><div class="an">Social media</div><div class="ad2">Posts written and scheduled for the week</div></div><span class="tog"><i></i></span></div>
+      <div class="auto-row"><span class="aico" style="background:#dce9ff;color:#2b5fb8;">&#9993;</span><div class="am"><div class="an">Emails</div><div class="ad2">Follow ups sent automatically, in your voice</div></div><span class="tog"><i></i></span></div>
+      <div class="auto-row"><span class="aico" style="background:#e4f6e9;color:#2e7d4f;">&#9636;</span><div class="am"><div class="an">Data</div><div class="ad2">Weekly report built every Monday morning</div></div><span class="tog"><i></i></span></div>
+      <div class="auto-row"><span class="aico" style="background:#ffe0ec;color:#c2185b;">&#9889;</span><div class="am"><div class="an">Sales pipeline</div><div class="ad2">Every lead tracked and moved forward</div></div><span class="tog"><i></i></span></div>
+    </div>
+    <div class="auto-foot">+ Add automation &middot; custom built for your business</div>""",
+  '<span class="sticker" style="right:24px;top:14px;transform:rotate(2deg);font-size:22px;padding:14px 22px;">Set up once. Runs every day.</span><span class="statchip" style="left:30px;bottom:-18px;">5 to 10 hours of manual work eliminated every week</span>',
   "Comment HOURS, free automation demo &#8594;", h1size=64)
 
 ADS["ad-window-last-post-april.html"] = ad(

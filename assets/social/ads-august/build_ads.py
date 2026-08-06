@@ -43,9 +43,7 @@ EXTRA = """
 .freebadge{background:#c8f500;color:#0a0a0a;font:800 21px 'Inter Tight',sans-serif;padding:14px 22px;border-radius:12px;white-space:nowrap;}
 .subline{font:600 34px/1.35 'Inter',sans-serif;color:rgba(10,10,10,0.78);max-width:900px;letter-spacing:-0.5px;}
 .subline b{color:#0a0a0a;}
-.hirepill{display:inline-flex;align-items:center;gap:12px;background:#0a0a0a;color:#fff;
-  font:800 27px 'Inter Tight',sans-serif;border-radius:100px;padding:14px 30px;margin-bottom:22px;}
-.hirepill b{color:var(--cyan);font-weight:800;}
+.subline .pain{display:block;font-weight:800;color:#0a0a0a;font-size:38px;letter-spacing:-1px;margin-bottom:10px;}
 
 /* --- ChatGPT --- */
 .gpt-head{display:flex;align-items:center;justify-content:center;position:relative;padding:22px;border-bottom:1px solid #ececec;}
@@ -122,15 +120,34 @@ EXTRA = """
 .ig-grid i{display:block;}
 .ig-grid i:nth-child(1){background:linear-gradient(135deg,#ffe4d6,#ffc9b0);}
 .ig-grid i:nth-child(2){background:linear-gradient(135deg,#dce9ff,#b9d0f5);}
-.ig-grid .blank{background:#fff;border:3px dashed #d6d6dc;border-radius:6px;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:8px;color:#b9b9c0;}
-.ig-grid .blank .plus{font:300 46px/1 'Inter',sans-serif;}
-.ig-grid .blank .lbl2{font:600 18px 'Inter',sans-serif;}
-.ig-topbar{display:flex;align-items:center;gap:14px;padding:18px 24px;border-bottom:1px solid #f0f0f0;}
-.ig-topbar .un{font:800 24px 'Inter',sans-serif;color:#111;}
+.phones{display:flex;gap:26px;width:100%;align-items:stretch;}
+.phone{flex:1;background:#111;border-radius:38px;padding:12px;box-shadow:0 30px 60px -18px rgba(10,60,50,0.4);}
+.phone .screen{background:#fff;border-radius:28px;overflow:hidden;height:100%;}
+.ph-bar{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid #f0f0f0;}
+.ph-bar .pu{font:800 21px 'Inter',sans-serif;color:#111;}
+.ph-bar .ph-dots{margin-left:auto;color:#111;font:800 22px 'Inter',sans-serif;letter-spacing:2px;}
+.ph-bar .ph-search{flex:1;background:#eef3f8;border-radius:8px;font:500 18px 'Inter',sans-serif;color:#666;padding:8px 14px;}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:3px;}
+.pgrid i{position:relative;display:block;height:128px;}
+.pgrid i b{position:absolute;left:10px;bottom:10px;height:10px;width:70%;border-radius:6px;background:rgba(255,255,255,0.85);}
+.pgrid .g1{background:linear-gradient(135deg,#ffd9c4,#f7a882);}
+.pgrid .g2{background:linear-gradient(135deg,#cfe0fb,#9dbcf0);}
+.pgrid .g3{background:linear-gradient(135deg,#ffd3e4,#efa3c4);}
+.pgrid .g4{background:linear-gradient(135deg,#d5efdc,#a3d6b4);}
+.pgrid .g5{background:linear-gradient(135deg,#ffedbf,#eed28d);}
+.pgrid .g6{background:linear-gradient(135deg,#e7dbfb,#c3abee);}
+.pgrid{filter:saturate(0.75);}
+.li-post{padding:16px 18px 10px;}
+.lp-head{display:flex;gap:12px;align-items:center;margin-bottom:12px;}
+.lp-av{width:48px;height:48px;border-radius:50%;background:#dfe6ee;color:#4a5b6d;display:flex;align-items:center;justify-content:center;font:700 18px 'Inter',sans-serif;}
+.lp-n{font:700 21px 'Inter',sans-serif;color:#111;}
+.lp-d{font:500 17px 'Inter',sans-serif;color:#8e8e93;}
+.lp-txt{font:500 20px/1.4 'Inter',sans-serif;color:#222;margin-bottom:12px;}
+.lp-img{height:118px;border-radius:10px;background:linear-gradient(135deg,#cfe0fb,#f7c8dd);filter:saturate(0.75);}
+.lp-act{display:flex;justify-content:space-between;padding:14px 6px 8px;font:600 18px 'Inter',sans-serif;color:#5f6a75;}
 """
 
-def ad(name, note, pill, h1, sub, card, sticker, cta):
+def ad(name, note, h1, sub, card, sticker, cta):
     return f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><title>{name}</title>
 <style>{FONTS}
@@ -141,8 +158,7 @@ def ad(name, note, pill, h1, sub, card, sticker, cta):
 <div class="bar"><div class="wordmark">BERMO.</div><span class="cover-shadow-tr">{MASCOT}Shadow.</span></div>
 <div class="content" style="align-items:flex-start;text-align:left;gap:34px;justify-content:center;padding-top:10px;">
   <div>
-    <span class="hirepill">{pill}</span>
-    <h1 style="font-size:74px;line-height:1.05;letter-spacing:-2.5px;">{h1}</h1>
+    <h1 style="font-size:84px;line-height:1.04;letter-spacing:-2.5px;">{h1}</h1>
     <p class="subline" style="margin-top:18px;">{sub}</p>
   </div>
   <div style="position:relative;width:100%;">
@@ -161,9 +177,8 @@ ADS = {}
 
 ADS["ad-found-ai-answers.html"] = ad(
   "BERMO. ad · FOUND · customers can't find you", "1 slide, 1080x1350, mint · comment keyword FOUND",
-  'Hiring <b>marketing help?</b>',
-  'Customers can&rsquo;t <span class="ombre">find you</span> online.',
-  "So they hire whoever shows up. On Google <b>and now on ChatGPT.</b> We make sure that&rsquo;s you.",
+  'Hiring <span class="ombre">marketing help?</span>',
+  '<span class="pain">Customers can&rsquo;t find you online.</span>They hire whoever shows up, on Google and now on ChatGPT. We make sure that&rsquo;s you.',
   f"""<div class="gpt-head"><span class="dots"><i></i><i></i><i></i></span><span class="t" style="display:flex;align-items:center;gap:10px;">{icon('gpt',26,'#0d0d0d')} ChatGPT <span>&#8964;</span></span></div>
     <div class="gpt-body">
       <div class="gpt-user"><p>Need help getting my sales up. Who should I hire?</p></div>
@@ -180,15 +195,14 @@ ADS["ad-found-ai-answers.html"] = ad(
 
 ADS["ad-site-no-calls.html"] = ad(
   "BERMO. ad · SITE · visits but no calls", "1 slide, 1080x1350, mint · comment keyword SITE",
-  'Hiring a <b>web designer?</b>',
-  'Your website gets visits. <span class="ombre">You get no calls.</span>',
-  "We rebuild it so people actually book, call, and buy. One rebuild brought <b>71% more Google clicks.</b>",
+  'Hiring a <span class="ombre">web designer?</span>',
+  '<span class="pain">Your website gets visits. You get no calls.</span>We rebuild it so people book, call, and buy. One rebuild brought 71% more Google clicks.',
   f"""<div class="br-tabs"><span class="tdots"><i style="background:#ff5f57;"></i><i style="background:#febc2e;"></i><i style="background:#28c840;"></i></span><span class="br-tab" style="display:flex;align-items:center;gap:10px;">{CHROME} Your Website</span></div>
     <div class="br-url"><span>yourbusiness.com</span></div>
     <div class="site">
       <div class="site-nav"><span class="logo"></span><span>Home</span><span>About</span><span>Services</span><span>Contact</span></div>
-      <h3>Welcome to Smith &amp; Sons.</h3>
-      <p style="font:500 22px Inter,sans-serif;color:#9a9aa0;margin-top:14px;">Serving the area since 1998. Family owned and operated.</p><div class="l1" style="margin-top:20px;"></div>
+      <h3>Welcome to Harborview Services.</h3>
+      <p style="font:500 22px Inter,sans-serif;color:#9a9aa0;margin-top:14px;">Proudly serving our customers since 2015.</p><div class="l1" style="margin-top:20px;"></div>
       <span class="btn">Learn More</span>
     </div>""",
   """<span class="statcard" style="right:26px;bottom:24px;transform:none;">
@@ -200,9 +214,8 @@ ADS["ad-site-no-calls.html"] = ad(
 
 ADS["ad-hours-slow-reply.html"] = ad(
   "BERMO. ad · HOURS · the AI assistant", "1 slide, 1080x1350, mint · comment keyword HOURS",
-  'Hiring a <b>virtual assistant?</b>',
-  'Your leads wait days. <span class="ombre">They hire someone else.</span>',
-  "We build you an <b>AI assistant</b> that replies in minutes, follows up, and books the job. Trained to sound like you.",
+  'Hiring a <span class="ombre">virtual assistant?</span>',
+  '<span class="pain">Your leads wait days, then hire someone else.</span>We build you an AI assistant that replies in minutes, follows up, and books the job. It sounds like you.',
   f"""<div class="msg-head"><span style="width:52px;height:52px;border-radius:12px;background:linear-gradient(180deg,#6ee86e,#28c840);display:flex;align-items:center;justify-content:center;">{icon('imsg',30,'#ffffff')}</span><div><div class="who">New Lead</div><div class="st">Text Message</div></div></div>
     <div class="msg-body">
       <div class="msg-time">Tuesday 9:41 AM</div>
@@ -216,19 +229,28 @@ ADS["ad-hours-slow-reply.html"] = ad(
 
 ADS["ad-window-last-post-april.html"] = ad(
   "BERMO. ad · WINDOW · last post April", "1 slide, 1080x1350, mint · comment keyword WINDOW",
-  'Hiring a <b>social media manager?</b>',
-  'They checked your Instagram. <span class="ombre">Last post: April.</span>',
-  "People look you up before they buy. We plan, write, and post <b>every week, in your voice.</b>",
-  f"""<div class="ig-topbar">{icon('ig',30,'#111111')}<span class="un">yourbusiness</span><span style="margin-left:auto;color:#111;font:800 26px Inter,sans-serif;letter-spacing:2px;">&#8942;</span></div>
-    <div class="ig-head">
-      <span class="ig-av"><i></i></span>
-      <div class="ig-id"><div class="u">yourbusiness</div>
-        <div class="ig-stats"><span><b>26</b> posts</span><span><b>812</b> followers</span><span><b>410</b> following</span></div>
-      </div>
-      <span class="ig-follow">Follow</span>
-    </div>
-    <div class="ig-warn">&#9888;&nbsp; Last post &middot; 4 months ago</div>
-    <div class="ig-grid"><i style="background:linear-gradient(135deg,#ffe4d6,#ffc9b0);filter:saturate(0.6);"></i><i style="background:linear-gradient(135deg,#dce9ff,#b9d0f5);filter:saturate(0.6);"></i><span class="blank"><span class="plus">+</span><span class="lbl2">your post</span></span><span class="blank"><span class="plus">+</span><span class="lbl2">your post</span></span><span class="blank"><span class="plus">+</span><span class="lbl2">your post</span></span><span class="blank"><span class="plus">+</span><span class="lbl2">your post</span></span></div>""",
+  'Hiring a <span class="ombre">social media manager?</span>',
+  '<span class="pain">Buyers check you out before they call.</span>We plan, write, and post every week &mdash; Instagram and LinkedIn, in your voice.',
+  f"""<div class="phones">
+      <div class="phone"><div class="screen">
+        <div class="ph-bar">{icon('ig',26,'#111111')}<span class="pu">yourbusiness</span><span class="ph-dots">&#8942;</span></div>
+        <div class="ig-warn" style="font-size:19px;padding:11px;">&#9888;&nbsp; Last post &middot; 4 months ago</div>
+        <div class="pgrid">
+          <i class="g1"><b></b></i><i class="g2"><b style="width:56%;"></b></i><i class="g3"><b style="width:44%;"></b></i>
+          <i class="g4"><b style="width:60%;"></b></i><i class="g5"><b></b></i><i class="g6"><b style="width:50%;"></b></i>
+        </div>
+      </div></div>
+      <div class="phone"><div class="screen">
+        <div class="ph-bar">{icon('li',26,'#0A66C2')}<span class="ph-search">Search</span><span class="ph-dots">&#8942;</span></div>
+        <div class="li-post">
+          <div class="lp-head"><span class="lp-av">YB</span><div><div class="lp-n">Your Business</div><div class="lp-d">Posted &middot; March 12</div></div></div>
+          <p class="lp-txt">Excited to share what we've been working on this spring&hellip;</p>
+          <div class="lp-img"></div>
+          <div class="lp-act"><span>&#128077; Like</span><span>&#128172; Comment</span><span>&#8631; Repost</span></div>
+        </div>
+        <div class="ig-warn" style="font-size:19px;padding:11px;border-bottom:0;">&#9888;&nbsp; Nothing since March</div>
+      </div></div>
+    </div>""",
   "",
   "Comment WINDOW, get the free plan &#8594;")
 

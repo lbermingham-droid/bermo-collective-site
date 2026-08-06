@@ -18,6 +18,22 @@ FONTS = open(os.path.join(SRC, "fonts.css")).read()
 CHASSIS = open(os.path.join(SRC, "chassis.css")).read()
 MASCOT = '<img src="data:image/png;base64,%s" alt="" class="msct" style="border-radius:50%%;display:block;"/>' % open(os.path.join(SRC, "mascot.b64")).read().strip()
 
+import json
+LOGOS = json.load(open(os.path.join(SRC, "logos.json")))
+def icon(key, size, color):
+    return ('<svg width="%d" height="%d" viewBox="0 0 24 24" style="display:block;">'
+            '<path fill="%s" d="%s"/></svg>') % (size, size, color, LOGOS[key])
+# colored Chrome mark, drawn to scale (wedges + blue core)
+CHROME = '''<svg width="26" height="26" viewBox="0 0 48 48" style="display:block;">
+<circle cx="24" cy="24" r="22" fill="#fff"/>
+<path d="M24 2a22 22 0 0 1 19.05 11H24a11 11 0 0 0-9.53 5.5L7.3 6.9A21.94 21.94 0 0 1 24 2z" fill="#ea4335"/>
+<path d="M45.9 17a22 22 0 0 1-16.4 28.4L36.4 30a11 11 0 0 0 .1-11z" fill="#fbbc05" transform="rotate(120 24 24)"/>
+<path d="M45.9 17a22 22 0 0 1-16.4 28.4L36.4 30a11 11 0 0 0 .1-11z" fill="#34a853" transform="rotate(0 24 24)"/>
+<circle cx="24" cy="24" r="11" fill="#fff"/>
+<circle cx="24" cy="24" r="9" fill="#4285f4"/>
+</svg>'''
+
+
 EXTRA = """
 /* flat product card: real-app mockups, no rotation, depth from layered shadow */
 .app{position:relative;width:100%;background:#fff;border-radius:24px;overflow:hidden;
@@ -27,6 +43,9 @@ EXTRA = """
 .freebadge{background:#c8f500;color:#0a0a0a;font:800 21px 'Inter Tight',sans-serif;padding:14px 22px;border-radius:12px;white-space:nowrap;}
 .subline{font:600 34px/1.35 'Inter',sans-serif;color:rgba(10,10,10,0.78);max-width:900px;letter-spacing:-0.5px;}
 .subline b{color:#0a0a0a;}
+.hirepill{display:inline-flex;align-items:center;gap:12px;background:#0a0a0a;color:#fff;
+  font:800 27px 'Inter Tight',sans-serif;border-radius:100px;padding:14px 30px;margin-bottom:22px;}
+.hirepill b{color:var(--cyan);font-weight:800;}
 
 /* --- ChatGPT --- */
 .gpt-head{display:flex;align-items:center;justify-content:center;position:relative;padding:22px;border-bottom:1px solid #ececec;}
@@ -98,17 +117,20 @@ EXTRA = """
   border-top:1px solid rgba(255,45,122,0.25);border-bottom:1px solid rgba(255,45,122,0.25);
   padding:15px;font:700 23px 'Inter',sans-serif;color:#d61e68;}
 .ig-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;}
-.ig-grid i{display:block;height:158px;}
+.ig-grid i,.ig-grid .blank{height:158px;}
+.ig-grid .blank{display:flex;}
+.ig-grid i{display:block;}
 .ig-grid i:nth-child(1){background:linear-gradient(135deg,#ffe4d6,#ffc9b0);}
 .ig-grid i:nth-child(2){background:linear-gradient(135deg,#dce9ff,#b9d0f5);}
-.ig-grid i:nth-child(3){background:linear-gradient(135deg,#ffe0ec,#f6bdd6);}
-.ig-grid i:nth-child(4){background:linear-gradient(135deg,#e4f6e9,#bfe6cc);}
-.ig-grid i:nth-child(5){background:linear-gradient(135deg,#fff3cf,#f5dfa1);}
-.ig-grid i:nth-child(6){background:linear-gradient(135deg,#eee2ff,#d4c2f2);}
-.ig-grid{filter:saturate(0.55) brightness(0.98);}
+.ig-grid .blank{background:#fff;border:3px dashed #d6d6dc;border-radius:6px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;color:#b9b9c0;}
+.ig-grid .blank .plus{font:300 46px/1 'Inter',sans-serif;}
+.ig-grid .blank .lbl2{font:600 18px 'Inter',sans-serif;}
+.ig-topbar{display:flex;align-items:center;gap:14px;padding:18px 24px;border-bottom:1px solid #f0f0f0;}
+.ig-topbar .un{font:800 24px 'Inter',sans-serif;color:#111;}
 """
 
-def ad(name, note, h1, sub, card, sticker, cta):
+def ad(name, note, pill, h1, sub, card, sticker, cta):
     return f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><title>{name}</title>
 <style>{FONTS}
@@ -119,7 +141,8 @@ def ad(name, note, h1, sub, card, sticker, cta):
 <div class="bar"><div class="wordmark">BERMO.</div><span class="cover-shadow-tr">{MASCOT}Shadow.</span></div>
 <div class="content" style="align-items:flex-start;text-align:left;gap:34px;justify-content:center;padding-top:10px;">
   <div>
-    <h1 style="font-size:78px;line-height:1.05;letter-spacing:-2.5px;">{h1}</h1>
+    <span class="hirepill">{pill}</span>
+    <h1 style="font-size:74px;line-height:1.05;letter-spacing:-2.5px;">{h1}</h1>
     <p class="subline" style="margin-top:18px;">{sub}</p>
   </div>
   <div style="position:relative;width:100%;">
@@ -138,11 +161,12 @@ ADS = {}
 
 ADS["ad-found-ai-answers.html"] = ad(
   "BERMO. ad · FOUND · customers can't find you", "1 slide, 1080x1350, mint · comment keyword FOUND",
+  'Hiring <b>marketing help?</b>',
   'Customers can&rsquo;t <span class="ombre">find you</span> online.',
   "So they hire whoever shows up. On Google <b>and now on ChatGPT.</b> We make sure that&rsquo;s you.",
-  """<div class="gpt-head"><span class="dots"><i></i><i></i><i></i></span><span class="t">ChatGPT <span>&#8964;</span></span></div>
+  f"""<div class="gpt-head"><span class="dots"><i></i><i></i><i></i></span><span class="t" style="display:flex;align-items:center;gap:10px;">{icon('gpt',26,'#0d0d0d')} ChatGPT <span>&#8964;</span></span></div>
     <div class="gpt-body">
-      <div class="gpt-user"><p>Who's the best near me?</p></div>
+      <div class="gpt-user"><p>Need help getting my sales up. Who should I hire?</p></div>
       <div class="gpt-ans">
         <p>Here are the top 3 I'd recommend:</p>
         <div class="gpt-rec"><span class="n">1</span><span class="nm">Your competitor</span><span class="star">&#9733; 4.8</span></div>
@@ -156,14 +180,15 @@ ADS["ad-found-ai-answers.html"] = ad(
 
 ADS["ad-site-no-calls.html"] = ad(
   "BERMO. ad · SITE · visits but no calls", "1 slide, 1080x1350, mint · comment keyword SITE",
+  'Hiring a <b>web designer?</b>',
   'Your website gets visits. <span class="ombre">You get no calls.</span>',
   "We rebuild it so people actually book, call, and buy. One rebuild brought <b>71% more Google clicks.</b>",
-  """<div class="br-tabs"><span class="tdots"><i style="background:#ff5f57;"></i><i style="background:#febc2e;"></i><i style="background:#28c840;"></i></span><span class="br-tab">Your Website</span></div>
+  f"""<div class="br-tabs"><span class="tdots"><i style="background:#ff5f57;"></i><i style="background:#febc2e;"></i><i style="background:#28c840;"></i></span><span class="br-tab" style="display:flex;align-items:center;gap:10px;">{CHROME} Your Website</span></div>
     <div class="br-url"><span>yourbusiness.com</span></div>
     <div class="site">
       <div class="site-nav"><span class="logo"></span><span>Home</span><span>About</span><span>Services</span><span>Contact</span></div>
-      <h3>We do quality work.</h3>
-      <div class="l1"></div><div class="l2"></div>
+      <h3>Welcome to Smith &amp; Sons.</h3>
+      <p style="font:500 22px Inter,sans-serif;color:#9a9aa0;margin-top:14px;">Serving the area since 1998. Family owned and operated.</p><div class="l1" style="margin-top:20px;"></div>
       <span class="btn">Learn More</span>
     </div>""",
   """<span class="statcard" style="right:26px;bottom:24px;transform:none;">
@@ -174,10 +199,11 @@ ADS["ad-site-no-calls.html"] = ad(
   "Comment SITE, get the free 2-minute scan &#8594;")
 
 ADS["ad-hours-slow-reply.html"] = ad(
-  "BERMO. ad · HOURS · the late reply", "1 slide, 1080x1350, mint · comment keyword HOURS",
-  'You replied 3 days later. <span class="ombre">They already hired someone.</span>',
-  "Our AI answers your leads in minutes and follows up for you. <b>It sounds like you, not a robot.</b>",
-  """<div class="msg-head"><span class="av">NL</span><div><div class="who">New Lead</div><div class="st">Mobile</div></div></div>
+  "BERMO. ad · HOURS · the AI assistant", "1 slide, 1080x1350, mint · comment keyword HOURS",
+  'Hiring a <b>virtual assistant?</b>',
+  'Your leads wait days. <span class="ombre">They hire someone else.</span>',
+  "We build you an <b>AI assistant</b> that replies in minutes, follows up, and books the job. Trained to sound like you.",
+  f"""<div class="msg-head"><span style="width:52px;height:52px;border-radius:12px;background:linear-gradient(180deg,#6ee86e,#28c840);display:flex;align-items:center;justify-content:center;">{icon('imsg',30,'#ffffff')}</span><div><div class="who">New Lead</div><div class="st">Text Message</div></div></div>
     <div class="msg-body">
       <div class="msg-time">Tuesday 9:41 AM</div>
       <div class="mb in">Hi! Are you free to take on a job this week?</div>
@@ -185,14 +211,16 @@ ADS["ad-hours-slow-reply.html"] = ad(
       <div class="mb out">So sorry for the late reply! Yes, we'd love to help&hellip;</div>
       <div class="msg-sys">&#9888;&nbsp; This lead already booked someone else</div>
     </div>""",
-  "",
-  "Comment HOURS, get your first fix &#8594;")
+  '<span class="sticker" style="right:56px;bottom:-20px;transform:rotate(-2deg);font-size:24px;">Your AI assistant replies in 90 seconds.</span>',
+  "Comment HOURS for a free demo &#8594;")
 
 ADS["ad-window-last-post-april.html"] = ad(
   "BERMO. ad · WINDOW · last post April", "1 slide, 1080x1350, mint · comment keyword WINDOW",
+  'Hiring a <b>social media manager?</b>',
   'They checked your Instagram. <span class="ombre">Last post: April.</span>',
   "People look you up before they buy. We plan, write, and post <b>every week, in your voice.</b>",
-  """<div class="ig-head">
+  f"""<div class="ig-topbar">{icon('ig',30,'#111111')}<span class="un">yourbusiness</span><span style="margin-left:auto;color:#111;font:800 26px Inter,sans-serif;letter-spacing:2px;">&#8942;</span></div>
+    <div class="ig-head">
       <span class="ig-av"><i></i></span>
       <div class="ig-id"><div class="u">yourbusiness</div>
         <div class="ig-stats"><span><b>26</b> posts</span><span><b>812</b> followers</span><span><b>410</b> following</span></div>
@@ -200,7 +228,7 @@ ADS["ad-window-last-post-april.html"] = ad(
       <span class="ig-follow">Follow</span>
     </div>
     <div class="ig-warn">&#9888;&nbsp; Last post &middot; 4 months ago</div>
-    <div class="ig-grid"><i></i><i></i><i></i><i></i><i></i><i></i></div>""",
+    <div class="ig-grid"><i style="background:linear-gradient(135deg,#ffe4d6,#ffc9b0);filter:saturate(0.6);"></i><i style="background:linear-gradient(135deg,#dce9ff,#b9d0f5);filter:saturate(0.6);"></i><span class="blank"><span class="plus">+</span><span class="lbl2">your post</span></span><span class="blank"><span class="plus">+</span><span class="lbl2">your post</span></span><span class="blank"><span class="plus">+</span><span class="lbl2">your post</span></span><span class="blank"><span class="plus">+</span><span class="lbl2">your post</span></span></div>""",
   "",
   "Comment WINDOW, get the free plan &#8594;")
 

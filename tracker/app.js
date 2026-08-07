@@ -590,6 +590,7 @@ function renderAll(){
   else if(currentTab === "body") renderBody();
   else if(currentTab === "history") renderHistory();
   else if(currentTab === "settings") renderSettings();
+  else if(currentTab === "goals") renderGoalsView();
 }
 
 // ---------- DASHBOARD ----------
@@ -7870,9 +7871,10 @@ function drawDeckRing(canvasId, vals, goals){
   ctx.clearRect(0,0,w,h);
   const cx = w/2, cy = h/2;
   const rings = [
-    { color:"#ff2231", track:"#33070b", val:vals.move,     goal:goals.move,     r:56, lw:13 },
-    { color:"#d8ff00", track:"#252b00", val:vals.exercise, goal:goals.exercise, r:40, lw:13 },
-    { color:"#00e5ff", track:"#00272e", val:vals.stand,    goal:goals.stand,    r:24, lw:13 },
+    { color:"#ff2231", track:"#33070b", val:vals.move,      goal:goals.move,      r:58, lw:10 },
+    { color:"#d8ff00", track:"#252b00", val:vals.exercise,  goal:goals.exercise,  r:46, lw:10 },
+    { color:"#ff7a00", track:"#2b1500", val:vals.nutrition, goal:goals.nutrition, r:34, lw:10 },
+    { color:"#00e5ff", track:"#00272e", val:vals.water,     goal:goals.water,     r:22, lw:10 },
   ];
   rings.forEach(ring => {
     ctx.beginPath();
@@ -7897,29 +7899,41 @@ function renderDeck(){
   const g = getActivityGoals();
 
   const a = getActivityForDay(todayKey());
-  drawDeckRing("deckToday", a, g);
+  const tFood = totalsFor(todayKey());
+  const waterToday = (state.days[todayKey()] || {}).water || 0;
+  const calG = state.goals.cal || 2200;
+  const watG = state.goals.water || 64;
+  drawDeckRing("deckToday",
+    { move:a.move, exercise:a.exercise, nutrition:tFood.cal, water:waterToday },
+    { move:g.move, exercise:g.exercise, nutrition:calG, water:watG });
   const ts = document.getElementById("deckTodayStats");
   if(ts) ts.innerHTML =
     `<span class="ds-move">${Math.round(a.move)}<i>/${g.move}</i></span>` +
     `<span class="ds-ex">${Math.round(a.exercise)}<i>/${g.exercise}m</i></span>` +
-    `<span class="ds-st">${Math.round(a.stand)}<i>/${g.stand}h</i></span>`;
+    `<span class="ds-nut">${Math.round(tFood.cal)}<i>/${calG}</i></span>` +
+    `<span class="ds-wat">${Math.round(waterToday)}<i>/${watG}oz</i></span>`;
 
   const mon = weekStart(new Date());
   const today = new Date(); today.setHours(0,0,0,0);
   const elapsed = Math.min(7, Math.round((today - mon) / 86400000) + 1);
-  let wm = 0, we = 0, wst = 0;
+  let wm = 0, we = 0, wnut = 0, wwat = 0;
   for(let i = 0; i < elapsed; i++){
     const d = new Date(mon.getTime() + i*86400000);
-    const da = getActivityForDay(todayKey(d));
-    wm += da.move || 0; we += da.exercise || 0; wst += da.stand || 0;
+    const k2 = todayKey(d);
+    const da = getActivityForDay(k2);
+    wm += da.move || 0; we += da.exercise || 0;
+    wnut += totalsFor(k2).cal || 0;
+    wwat += (state.days[k2] || {}).water || 0;
   }
-  const wg = { move: g.move * elapsed, exercise: g.exercise * elapsed, stand: g.stand * elapsed };
-  drawDeckRing("deckWeek", { move: wm, exercise: we, stand: wst }, wg);
+  const wg = { move: g.move * elapsed, exercise: g.exercise * elapsed,
+               nutrition: calG * elapsed, water: watG * elapsed };
+  drawDeckRing("deckWeek", { move: wm, exercise: we, nutrition: wnut, water: wwat }, wg);
   const ws = document.getElementById("deckWeekStats");
   if(ws) ws.innerHTML =
     `<span class="ds-move">${Math.round(wm)}<i>/${wg.move}</i></span>` +
     `<span class="ds-ex">${Math.round(we)}<i>/${wg.exercise}m</i></span>` +
-    `<span class="ds-st">${Math.round(wst)}<i>/${wg.stand}h</i></span>`;
+    `<span class="ds-nut">${Math.round(wnut)}<i>/${wg.nutrition}</i></span>` +
+    `<span class="ds-wat">${Math.round(wwat)}<i>/${wg.water}oz</i></span>`;
 
   // WEEK strip — one line, Mon–Sun, food + workout verdict dots
   const wkStrip = document.getElementById("deckWeekStrip");
@@ -8489,6 +8503,340 @@ function appendAccountabilityBanners(){
 }
 
 
+
+// =================================================================
+// HOME CARDS — Today's Nutrition + Workouts This Week (editable)
+// =================================================================
+function renderDashNutCard(){
+  const card = document.getElementById("dashNutCard");
+  if(!card) return;
+  const k = todayKey();
+  const t = totalsFor(k);
+  const gl = state.goals || {};
+  const calG = gl.cal || 2200;
+  const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+  set("dnCal", Math.round(t.cal));
+  set("dnCalGoal", calG);
+  set("dnLeft", t.cal > calG ? `${Math.round(t.cal - calG)} OVER` : `${Math.round(calG - t.cal)} left`);
+  const bar = document.getElementById("dnBar");
+  if(bar){
+    const pct = Math.min(100, (t.cal/calG)*100);
+    bar.style.width = pct + "%";
+    bar.style.background = t.cal > calG ? "var(--iron-red)" : "var(--iron-volt)";
+  }
+  const setM = (barId, txtId, val, goal) => {
+    const b = document.getElementById(barId);
+    if(b) b.style.width = Math.min(100, (val/Math.max(1,goal))*100) + "%";
+    set(txtId, `${Math.round(val)}/${goal}`);
+  };
+  setM("dnP", "dnPTxt", t.p, gl.protein || 0);
+  setM("dnC", "dnCTxt", t.c, gl.carbs || 0);
+  setM("dnF", "dnFTxt", t.f, gl.fat || 0);
+  const water = (state.days[k] || {}).water || 0;
+  const watG = gl.water || 64;
+  const wb = document.getElementById("dnWaterBar");
+  if(wb){ wb.style.width = Math.min(100, (water/watG)*100) + "%"; wb.style.background = "var(--iron-cyan)"; }
+  set("dnWaterTxt", `${Math.round(water)}/${watG}`);
+}
+
+function renderDashWorkList(){
+  const list = document.getElementById("dwList");
+  if(!list) return;
+  const mon = weekStart(new Date());
+  const wk = weekKey(mon);
+  const wkPlan = (state.plan && state.plan[wk]) || {};
+  const names = ["mon","tue","wed","thu","fri","sat","sun"];
+  let html = "";
+  for(let i = 0; i < 7; i++){
+    const d = new Date(mon.getTime() + i*86400000);
+    const k = todayKey(d);
+    const p = wkPlan[names[i]] || {};
+    const sessions = (state.days[k] && state.days[k].sessions) || [];
+    const done = sessions.length > 0;
+    const isToday = k === todayKey();
+    const past = k < todayKey();
+    // What actually happened / is planned
+    const cardio = sessions.find(x => x.type === "cardio");
+    const doneName = done ? (p.type || (cardio ? cardio.name : sessions[0].name)) : null;
+    const vol = sessions.reduce((n, x) => n + (x.weight||0)*(x.reps||0)*(x.sets||1), 0);
+    const kcal = sessions.reduce((n, x) => n + (x.calories||0), 0);
+    const statParts = [];
+    if(done){
+      statParts.push(`${sessions.length} entries`);
+      if(vol > 0) statParts.push(`${Math.round(vol).toLocaleString()} ${unit()}`);
+      if(kcal > 0) statParts.push(`${Math.round(kcal)} kcal`);
+    }
+    const label = done ? doneName : (p.type || "Rest / unplanned");
+    const mark = done ? "✓" : (p.type ? (past ? "✕" : (isToday ? "▶" : "·")) : "");
+    const cls = done ? "done" : (p.type ? (past ? "missed" : (isToday ? "today-up" : "planned")) : "empty");
+    html += `<button class="dw-row ${cls} ${isToday?"today":""}" data-day="${names[i]}" data-date="${k}">
+      <span class="dw-day">${d.toLocaleDateString(undefined,{weekday:"short"}).toUpperCase()}<i>${d.getDate()}</i></span>
+      <span class="dw-info">
+        <b>${escape(String(label))}</b>
+        ${statParts.length ? `<small>${escape(statParts.join(" · "))}</small>` : (p.notes ? `<small>${escape(p.notes)}</small>` : "")}
+      </span>
+      <span class="dw-mark">${mark}</span>
+    </button>`;
+  }
+  list.innerHTML = html;
+  // Tap a row → edit that day's plan (move/change/clear); today with plan → offer start
+  list.querySelectorAll(".dw-row").forEach(row => {
+    row.addEventListener("click", () => {
+      const dayName = row.dataset.day;
+      const k = row.dataset.date;
+      const isToday = k === todayKey();
+      const p = wkPlan[dayName];
+      if(isToday && p && p.type && (p.exercises || []).length){
+        openWorkoutSession(todayKey());
+      } else {
+        openPlanDayModal(wk, dayName);
+      }
+    });
+  });
+}
+
+onReady(() => {
+  on("#dnWaterAdd", "click", (e) => {
+    e.stopPropagation();
+    addWater(8);
+    toast("+8 oz water", "cyan");
+    renderAll();
+  });
+  on("#dashNutCard", "click", (e) => {
+    if(e.target.closest("button")) return;
+    jumpToTab("nutrition");
+  });
+  on("#dwEditPlan", "click", () => go("plan"));
+});
+
+
+// =================================================================
+// GOALS VIEW — contract + targets + weight-vs-goal
+// =================================================================
+function renderGoalsView(){
+  const grid = document.getElementById("gsGrid");
+  if(grid){
+    const gl = state.goals || {};
+    const cells = [
+      ["Calories", (gl.cal||0) + " kcal"],
+      ["Protein", (gl.protein||0) + " g"],
+      ["Carbs", (gl.carbs||0) + " g"],
+      ["Fat", (gl.fat||0) + " g"],
+      ["Water", (gl.water||0) + " " + unitVol()],
+      ["Goal weight", gl.weight ? gl.weight + " " + unit() : "not set"],
+    ];
+    grid.innerHTML = cells.map(([l,v]) => `<div class="gs-cell"><span>${l}</span><b>${escape(String(v))}</b></div>`).join("");
+  }
+  // Weight vs goal mini chart (plain canvas, newest 20 weigh-ins)
+  const cv = document.getElementById("gpChart");
+  if(cv && cv.getContext){
+    const ctx = cv.getContext("2d");
+    const wts = (state.weights || []).slice(-20);
+    const goalW = (state.goals || {}).weight;
+    cv.width = cv.clientWidth || 320;
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    const meta = document.getElementById("gpMeta");
+    if(wts.length < 2){
+      if(meta) meta.textContent = "log 2+ weigh-ins to see the trend";
+    } else {
+      const vals = wts.map(w => w.val);
+      const min = Math.min(...vals, goalW || Infinity) - 2;
+      const max = Math.max(...vals, goalW || -Infinity) + 2;
+      const X = (i) => 6 + (i/(wts.length-1)) * (cv.width - 12);
+      const Y = (v) => 6 + (1 - (v - min)/(max - min)) * (cv.height - 12);
+      if(goalW){
+        ctx.strokeStyle = "#d8ff00"; ctx.setLineDash([4,4]); ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(0, Y(goalW)); ctx.lineTo(cv.width, Y(goalW)); ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      ctx.strokeStyle = "#00e5ff"; ctx.lineWidth = 2;
+      ctx.beginPath();
+      wts.forEach((w, i) => { i ? ctx.lineTo(X(i), Y(w.val)) : ctx.moveTo(X(i), Y(w.val)); });
+      ctx.stroke();
+      const last = vals[vals.length-1];
+      if(meta) meta.textContent = goalW
+        ? `${last} ${unit()} now · ${Math.abs(last - goalW).toFixed(1)} ${unit()} to ${goalW}`
+        : `${last} ${unit()} — set a goal weight in Settings`;
+    }
+  }
+}
+
+onReady(() => {
+  on("#goalsEditBtn", "click", () => {
+    go("settings");
+    setTimeout(() => {
+      const f = document.getElementById("goalsForm");
+      if(f) f.scrollIntoView({ behavior:"smooth", block:"center" });
+    }, 150);
+  });
+});
+
+
+
+// =================================================================
+// MUSCLE MAP v2 — Fitbod-style recency map + fresh groups stats
+// =================================================================
+const MUSCLE_PARTS = ["chest","back","shoulders","arms","legs","glutes","core"];
+function _daysSincePart(){
+  // days since each part was last trained (null = never in 60d window)
+  const lastHit = _bodyPartLastHit();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const out = {};
+  MUSCLE_PARTS.forEach(p => {
+    out[p] = lastHit[p] ? Math.round((today - new Date(lastHit[p] + "T00:00:00")) / 86400000) : null;
+  });
+  return out;
+}
+function _muscleFill(days){
+  if(days === null) return "#20262e";       // never trained — neutral
+  if(days <= 2) return "#ff2231";           // just hit — recovering (red like Fitbod's worked)
+  if(days <= 5) return "#ff7a00";           // recently
+  if(days <= 8) return "#d8ff00";           // fresh — ready to train
+  return "#5b6673";                          // stale — going cold
+}
+function renderMuscleMap(){
+  const fit = document.getElementById("view-fitness");
+  if(!fit) return;
+  let card = document.getElementById("muscleMapCard");
+  const grid = fit.querySelector(".grid-12");
+  if(!card){
+    card = document.createElement("div");
+    card.id = "muscleMapCard";
+    card.className = "card span-12";
+    card.dataset.fsec = "summary";
+    if(grid) grid.insertBefore(card, grid.firstChild);
+    else fit.appendChild(card);
+  }
+  const ds = _daysSincePart();
+  // Fitbod-style headline stats
+  const allDays = Object.values(ds).filter(v => v !== null);
+  const daysSinceWorkout = allDays.length ? Math.min(...allDays) : null;
+  const fresh = MUSCLE_PARTS.filter(p => ds[p] === null || ds[p] >= 3).length;
+  const stale = MUSCLE_PARTS.filter(p => ds[p] !== null && ds[p] >= 9);
+  const F = (p) => _muscleFill(ds[p]);
+  card.innerHTML = `
+    <div class="mm-stats">
+      <div class="mm-stat"><b>${daysSinceWorkout === null ? "—" : daysSinceWorkout}</b><span>DAYS SINCE<br>LAST WORKOUT</span></div>
+      <div class="mm-stat mm-right"><b>${fresh}</b><span>FRESH MUSCLE<br>GROUPS</span></div>
+    </div>
+    <div class="mm-wrap">
+      <svg class="mm-svg" viewBox="0 0 230 250" xmlns="http://www.w3.org/2000/svg">
+        <!-- FRONT -->
+        <g stroke="#0c0f13" stroke-width="1.2">
+          <ellipse cx="60" cy="18" rx="11" ry="13" fill="#2a313b"/>
+          <path d="M52 32 L68 32 L67 40 L53 40 Z" fill="#2a313b"/>
+          <path data-part="shoulders" d="M34 42 Q42 36 52 40 L50 56 Q38 54 34 48 Z" fill="${F("shoulders")}"/>
+          <path data-part="shoulders" d="M86 42 Q78 36 68 40 L70 56 Q82 54 86 48 Z" fill="${F("shoulders")}"/>
+          <path data-part="chest" d="M50 42 Q60 38 70 42 L69 62 Q60 67 51 62 Z" fill="${F("chest")}"/>
+          <path data-part="core" d="M52 64 Q60 68 68 64 L67 96 Q60 101 53 96 Z" fill="${F("core")}"/>
+          <path data-part="arms" d="M33 50 L28 88 L36 90 L42 58 Z" fill="${F("arms")}"/>
+          <path data-part="arms" d="M87 50 L92 88 L84 90 L78 58 Z" fill="${F("arms")}"/>
+          <path data-part="legs" d="M52 100 L48 168 L58 168 L60 102 Z" fill="${F("legs")}"/>
+          <path data-part="legs" d="M68 100 L72 168 L62 168 L60 102 Z" fill="${F("legs")}"/>
+          <path d="M48 170 L58 170 L57 182 L49 182 Z" fill="#2a313b"/>
+          <path d="M72 170 L62 170 L63 182 L71 182 Z" fill="#2a313b"/>
+        </g>
+        <!-- BACK -->
+        <g stroke="#0c0f13" stroke-width="1.2">
+          <ellipse cx="170" cy="18" rx="11" ry="13" fill="#2a313b"/>
+          <path d="M162 32 L178 32 L177 40 L163 40 Z" fill="#2a313b"/>
+          <path data-part="shoulders" d="M144 42 Q152 36 162 40 L160 56 Q148 54 144 48 Z" fill="${F("shoulders")}"/>
+          <path data-part="shoulders" d="M196 42 Q188 36 178 40 L180 56 Q192 54 196 48 Z" fill="${F("shoulders")}"/>
+          <path data-part="back" d="M160 42 Q170 38 180 42 L179 76 Q170 82 161 76 Z" fill="${F("back")}"/>
+          <path data-part="glutes" d="M161 80 Q170 84 179 80 L178 100 Q170 106 162 100 Z" fill="${F("glutes")}"/>
+          <path data-part="arms" d="M143 50 L138 88 L146 90 L152 58 Z" fill="${F("arms")}"/>
+          <path data-part="arms" d="M197 50 L202 88 L194 90 L188 58 Z" fill="${F("arms")}"/>
+          <path data-part="legs" d="M162 104 L158 168 L168 168 L170 106 Z" fill="${F("legs")}"/>
+          <path data-part="legs" d="M178 104 L182 168 L172 168 L170 106 Z" fill="${F("legs")}"/>
+          <path d="M158 170 L168 170 L167 182 L159 182 Z" fill="#2a313b"/>
+          <path d="M182 170 L172 170 L173 182 L181 182 Z" fill="#2a313b"/>
+        </g>
+        <text x="60" y="196" font-size="8" fill="#8b95a1" text-anchor="middle" letter-spacing="2">FRONT</text>
+        <text x="170" y="196" font-size="8" fill="#8b95a1" text-anchor="middle" letter-spacing="2">BACK</text>
+        <!-- legend -->
+        <g font-size="7" fill="#8b95a1">
+          <rect x="18" y="214" width="8" height="8" fill="#ff2231"/><text x="30" y="221">Just hit (0-2d)</text>
+          <rect x="90" y="214" width="8" height="8" fill="#ff7a00"/><text x="102" y="221">Recent (3-5d)</text>
+          <rect x="162" y="214" width="8" height="8" fill="#d8ff00"/><text x="174" y="221">Fresh (6-8d)</text>
+          <rect x="18" y="230" width="8" height="8" fill="#5b6673"/><text x="30" y="237">Going cold (9d+)</text>
+          <rect x="90" y="230" width="8" height="8" fill="#20262e"/><text x="102" y="237">No data yet</text>
+        </g>
+      </svg>
+    </div>
+    ${stale.length ? `<div class="mm-callout">⚠ GOING COLD: ${stale.map(p => p.toUpperCase()).join(" · ")} — ${ds[stale[0]]}+ days. Build them into this week.</div>` : ""}
+  `;
+  card.querySelectorAll("[data-part]").forEach(el => {
+    el.style.cursor = "pointer";
+    el.addEventListener("click", () => {
+      const counts = _anatomyVolumeByPart(7);
+      openAnatomyDetail(el.dataset.part, counts[el.dataset.part] || 0);
+    });
+  });
+}
+
+
+// =================================================================
+// SUB-NAVS — fitness (Summary/PRs/Progress/Calendar/Saved) +
+//            nutrition (Tracker/Summary/Saved/Calendar)
+// =================================================================
+function _tagFitnessSections(){
+  // Assign each fitness card to a sub-section so chips can toggle them
+  const tag = (sel, sec) => { const el = document.querySelector(sel); if(el){ const card = el.closest(".card, .plan-mini") || el; card.dataset.fsec = sec; } };
+  tag("#muscleMapCard", "summary");
+  tag("#planMini", "summary");
+  tag("#todaySessions", "summary");
+  tag("#liftsCard", "prs");
+  tag("#heatmap", "progress");
+  tag("#fitWodTitle", "summary");
+  const bp = document.getElementById("bodyCoverageCard");
+  if(bp) bp.dataset.fsec = "progress";
+  const an = document.getElementById("anatomyCard");
+  if(an) an.dataset.fsec = "summary";
+}
+let _fitSub = "summary";
+function applyFitSub(){
+  _tagFitnessSections();
+  document.querySelectorAll("#fitSubnav .sub-chip").forEach(c =>
+    c.classList.toggle("active", c.dataset.fsub === _fitSub));
+  document.querySelectorAll('#view-fitness [data-fsec]').forEach(el => {
+    el.classList.toggle("hidden", el.dataset.fsec !== _fitSub);
+  });
+}
+onReady(() => {
+  document.querySelectorAll("#fitSubnav .sub-chip").forEach(c => {
+    c.addEventListener("click", () => {
+      const sub = c.dataset.fsub;
+      if(sub === "calendar"){ go("plan"); return; }
+      if(sub === "saved"){
+        go("plan");
+        setTimeout(() => {
+          const lib = document.getElementById("workoutLibCard");
+          if(lib) lib.scrollIntoView({ behavior:"smooth", block:"start" });
+        }, 200);
+        return;
+      }
+      _fitSub = sub;
+      applyFitSub();
+    });
+  });
+  // Nutrition chips: scroll-anchors (content stays a single page)
+  document.querySelectorAll("#nutSubnav .sub-chip").forEach(c => {
+    c.addEventListener("click", () => {
+      document.querySelectorAll("#nutSubnav .sub-chip").forEach(x => x.classList.toggle("active", x === c));
+      const sub = c.dataset.nsub;
+      const scrollTo = (sel) => { const el = document.querySelector(sel); if(el) el.scrollIntoView({ behavior:"smooth", block:"start" }); };
+      if(sub === "tracker") scrollTo("#view-nutrition .view-head");
+      else if(sub === "summary"){
+        const d = document.getElementById("detailCard");
+        if(d){ d.open = true; scrollTo("#detailCard"); }
+      }
+      else if(sub === "saved") scrollTo("#usualsRow");
+      else if(sub === "calendar") scrollTo("#nutWeek");
+    });
+  });
+});
+
+
 // =================================================================
 
 // PIPELINES — explicit composition (replaces the old wrapper chains).
@@ -8507,6 +8855,8 @@ function renderFitness(){
   renderLiftsList();
   renderPlanMini();
   renderBodyCoverage();
+  try{ renderMuscleMap(); }catch(e){ console.warn("muscle map", e); }
+  try{ applyFitSub(); }catch(e){ console.warn("fit subnav", e); }
 }
 
 function renderDashboard(){
@@ -8520,6 +8870,8 @@ function renderDashboard(){
   try{ renderSmartBanners(); }catch(e){ console.warn("smart banners", e); }
   try{ appendAccountabilityBanners(); }catch(e){ console.warn("accountability", e); }
   try{ renderDeck(); }catch(e){ console.warn("deck", e); }
+  try{ renderDashNutCard(); }catch(e){ console.warn("dash nut", e); }
+  try{ renderDashWorkList(); }catch(e){ console.warn("dash work", e); }
 }
 
 function openLiftDetail(lift){

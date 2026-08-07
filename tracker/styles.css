@@ -2452,3 +2452,108 @@ input:focus, select:focus, textarea:focus{ border-color:var(--iron-volt) !import
   .deck-stats{ font-size:9px; gap:5px; }
   .dk-sd-name{ font-size:8px; }
 }
+
+/* ============================================================
+   IA RESTRUCTURE (v8) — home cards, sub-navs, muscle map, goals
+   ============================================================ */
+
+/* Dashboard declutter: sections that moved to their own pages */
+#view-dashboard .hubs-grid,
+#view-dashboard .wod-suggestion,
+#view-dashboard .dash-bottom-actions{ display:none !important; }
+
+/* Deck stats: 4 metrics */
+.deck-stats .ds-nut{ color:var(--iron-orange); }
+.deck-stats .ds-wat{ color:var(--iron-cyan); }
+.deck-stats{ flex-wrap:wrap; justify-content:center; }
+
+/* Sub-nav chip row (fitness / nutrition) */
+.subnav{
+  display:flex; gap:4px; margin:0 0 12px; overflow-x:auto;
+  -webkit-overflow-scrolling:touch; scrollbar-width:none;
+}
+.subnav::-webkit-scrollbar{ display:none; }
+.sub-chip{
+  flex:0 0 auto; padding:8px 14px;
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  color:var(--iron-mute); font-size:10px; font-weight:900;
+  letter-spacing:1.5px; cursor:pointer; border-radius:3px;
+}
+.sub-chip.active{
+  background:var(--iron-volt); color:#0d1100; border-color:var(--iron-volt);
+}
+
+/* Today's Nutrition card */
+.dash-card{ margin-bottom:12px; cursor:pointer; }
+.dn-cal-row{ display:flex; align-items:baseline; justify-content:space-between; margin:4px 0 6px; }
+.dn-big b{ font-family:'Inter Tight',sans-serif; font-size:30px; font-weight:900; }
+.dn-big i{ font-style:normal; font-size:12px; color:var(--iron-mute); margin-left:4px; }
+.dn-left{ font-size:12px; font-weight:800; color:var(--iron-volt); }
+.dn-bar{ height:8px; margin-bottom:10px; }
+.dn-macros{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:10px; }
+.dn-m{ display:flex; align-items:center; gap:5px; font-size:10px; }
+.dn-m span{ font-weight:900; color:var(--iron-mute); width:10px; }
+.dn-m .bar{ flex:1; height:5px; }
+.dn-m b{ font-size:9px; color:var(--iron-mute); font-weight:700; white-space:nowrap; }
+.dn-water-row{ display:flex; align-items:center; gap:8px; font-size:11px; }
+.dn-w-label{ font-weight:800; flex-shrink:0; }
+.dn-w-bar{ flex:1; height:6px; }
+.dn-water-row b{ font-size:10px; color:var(--iron-mute); }
+.dn-w-add{
+  background:var(--iron-cyan) !important; color:#00272e !important;
+  font-size:10px; font-weight:900; padding:5px 10px; border:none;
+  border-radius:3px; cursor:pointer; flex-shrink:0;
+}
+
+/* Workouts-this-week list */
+.dw-list{ display:flex; flex-direction:column; gap:3px; }
+.dw-row{
+  display:flex; align-items:center; gap:10px; width:100%;
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  padding:8px 10px; cursor:pointer; text-align:left; border-radius:3px;
+}
+.dw-row.today{ border-color:var(--iron-volt); }
+.dw-row.done{ border-left:3px solid var(--iron-volt); }
+.dw-row.missed{ border-left:3px solid var(--iron-red); }
+.dw-row.planned, .dw-row.today-up{ border-left:3px solid var(--iron-cyan); }
+.dw-row.empty{ opacity:.55; }
+.dw-day{
+  display:flex; flex-direction:column; align-items:center; width:34px; flex-shrink:0;
+  font-size:9px; font-weight:900; letter-spacing:1px; color:var(--iron-mute);
+}
+.dw-day i{ font-style:normal; font-size:13px; color:var(--iron-text); }
+.dw-info{ flex:1; min-width:0; display:flex; flex-direction:column; }
+.dw-info b{ font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.03em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dw-info small{ font-size:10px; color:var(--iron-mute); margin-top:1px; }
+.dw-mark{ font-size:14px; font-weight:900; flex-shrink:0; width:18px; text-align:center; }
+.dw-row.done .dw-mark{ color:var(--iron-volt); }
+.dw-row.missed .dw-mark{ color:var(--iron-red); }
+.dw-row.today-up .dw-mark{ color:var(--iron-cyan); }
+
+/* Muscle map */
+.mm-stats{ display:flex; justify-content:space-between; margin-bottom:4px; }
+.mm-stat b{
+  display:block; font-family:'Inter Tight',sans-serif;
+  font-size:34px; font-weight:900; font-style:italic; line-height:1;
+}
+.mm-stat span{ font-size:8px; font-weight:800; letter-spacing:1.5px; color:var(--iron-mute); line-height:1.4; }
+.mm-stat.mm-right{ text-align:right; }
+.mm-wrap{ display:flex; justify-content:center; }
+.mm-svg{ width:100%; max-width:340px; height:auto; }
+.mm-callout{
+  margin-top:8px; padding:8px 10px; font-size:11px; font-weight:800;
+  letter-spacing:.03em; color:#ff8b93; background:#1a0508;
+  border:1px solid var(--iron-red); border-left:4px solid var(--iron-red);
+  border-radius:3px;
+}
+
+/* Goals view */
+.gs-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; }
+@media(max-width:520px){ .gs-grid{ grid-template-columns:repeat(2, 1fr); } }
+.gs-cell{
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  padding:10px; display:flex; flex-direction:column; gap:2px; border-radius:3px;
+}
+.gs-cell span{ font-size:8px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; color:var(--iron-mute); }
+.gs-cell b{ font-size:16px; font-weight:900; font-family:'Inter Tight',sans-serif; }
+#goalsSummaryCard, #goalsProgressCard{ margin-bottom:12px; }

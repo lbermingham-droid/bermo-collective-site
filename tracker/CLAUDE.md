@@ -95,6 +95,22 @@ live timer or manual minutes, kcal from body weight, feeds rings via
 autoComputeActivity cardio branch. Accountability callouts appended
 after smart banners: missed-planned-yesterday ("RUN IT NOW"), body-part
 neglect (8+ days), weekly volume backslide vs 3-week average.
+IA v8: 6-section nav (Home / Fitness / Nutrition / Body / Goals / Health
++ gear -> Settings; Plan + History off the main nav — Plan reachable via
+Fitness > Calendar/Saved chips + "EDIT WEEK"). Dashboard decluttered to:
+banners -> mini-log row -> 4-ring deck (Move / Workout / Nutrition-cal /
+Water, today + week aggregate) -> week + month hit/fail strips ->
+Today's Nutrition card (cal bar, P/C/F bars, water bar + one-tap +8oz) ->
+Workouts This Week editable list (tap row = edit plan day; today w/
+exercises = start session). Hubs/WOD/contract hidden from dashboard
+(CSS), contract + restart moved to new view-goals (+ targets grid +
+weight-vs-goal canvas chart). Fitness sub-chips: Summary (muscle map,
+plan mini, today's sessions) / PRs / Progress (heatmap + coverage) /
+Calendar / Saved. Nutrition chips scroll-anchor. Muscle Map v2
+(#muscleMapCard): front+back SVG colored by per-part training recency
+(red just-hit -> orange -> volt fresh -> gray going-cold), Fitbod-style
+"days since last workout" + "fresh muscle groups" stats, GOING COLD
+callout, parts tap into exercise suggestions.
 Shell: 6 dashboard hubs (reorder/hide via Customize), detail drill-down
 overlay (Day/Week/Month/90D/Year + date navigation), back buttons everywhere,
 navy theme + density pass, mobile layout on any touch device <1100px,

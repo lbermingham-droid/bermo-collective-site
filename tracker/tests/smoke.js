@@ -145,8 +145,15 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
     await page.click(`${tabSel}[data-tab="dashboard"]`).catch(()=>{});
     await page.click(`${tabSel}[data-tab="home"]`).catch(()=>{});
     await page.waitForTimeout(600);
-    const hubs = await page.$$eval(".hub", els => els.filter(h => h.offsetParent !== null).length);
-    hubs >= 3 ? ok(`dashboard renders (${hubs} visible hubs)`) : fail("dashboard renders", `${hubs} hubs visible`);
+    // v8 IA: hubs are hidden — dashboard = deck rings + nutrition card + workouts week list
+    const dash = await page.evaluate(() => ({
+      deck: !!document.querySelector("#commandDeck canvas"),
+      nut: (document.getElementById("dashNutCard")||{}).offsetParent !== null,
+      work: document.querySelectorAll("#dwList .dw-row").length,
+    }));
+    (dash.deck && dash.nut && dash.work === 7)
+      ? ok(`dashboard renders (deck + nutrition card + ${dash.work}-day workout list)`)
+      : fail("dashboard renders", JSON.stringify(dash));
   } catch (e) { fail("dashboard re-render", e); }
 
   await browser.close();

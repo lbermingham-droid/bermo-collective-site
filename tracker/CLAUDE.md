@@ -83,6 +83,18 @@ check-in, smart banners, reminders (workout / water / end-of-day-untracked).
 Rings: 4 rings (Move/Exercise/Stand/Nutrition) in distinct BERMO colors,
 auto/manual modes, day-strip that swaps the viewed date, Apple Watch
 screenshot import ("Apple Watch snap").
+IRON layer (v7): aggressive restyle — near-black, sharp 3-4px corners (no
+pills), blood red #ff2231 / volt #d8ff00 / cyan #00e5ff palette, compact.
+Command Deck at dashboard top: daily + weekly rings, one-line week strip
+(food + workout verdict dots), one-line month strip, week schedule
+(planned/done/missed). Workout Library on Plan tab (state.workoutLib):
+build named workouts from categorized lifts + 24 machines + custom,
+START (-> session logger) / ASSIGN to weekdays / edit / delete.
+Cardio logger: 16 MET-based types incl. uphill walk (incline + mph),
+live timer or manual minutes, kcal from body weight, feeds rings via
+autoComputeActivity cardio branch. Accountability callouts appended
+after smart banners: missed-planned-yesterday ("RUN IT NOW"), body-part
+neglect (8+ days), weekly volume backslide vs 3-week average.
 Shell: 6 dashboard hubs (reorder/hide via Customize), detail drill-down
 overlay (Day/Week/Month/90D/Year + date navigation), back buttons everywhere,
 navy theme + density pass, mobile layout on any touch device <1100px,

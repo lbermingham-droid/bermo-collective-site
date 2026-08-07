@@ -1693,6 +1693,12 @@ function autoComputeActivity(key){
   let move = 0, exerciseMin = 0;
   const standHours = new Set();
   (day.sessions || []).forEach(s => {
+    // Cardio sessions carry their own MET-derived calories + duration
+    if(s.type === "cardio" && s.durationMin){
+      move += s.calories || 0;
+      exerciseMin += s.durationMin;
+      return;
+    }
     const reps = s.reps || 1, sets = s.sets || 1, weight = s.weight || 0;
     move += Math.round(sets * reps * Math.max(weight, 10) * 0.0008);
     exerciseMin += sets * 2;
@@ -7813,6 +7819,676 @@ setInterval(() => { try{ renderSmartBanners(); }catch(e){} }, 5*60*1000);
 // Service worker is already registered earlier in the file — reused for showNotification
 
 
+
+// =================================================================
+// IRON DECK — daily+weekly rings, hit/fail strips, week schedule
+// =================================================================
+function _userWeightKg(){
+  const w = (state.weights && state.weights.length) ? state.weights[state.weights.length-1].val : (state.profile.weightLb || 160);
+  return state.profile.units === "metric" ? w : w * 0.4536;
+}
+
+// Per-day goal verdicts. food: hit = logged and within 5% of cal goal.
+// workout: hit = any session or 15+ exercise min; fail only when a workout
+// was planned or the past day has nothing at all.
+function dayGoalStatus(k){
+  const day = state.days[k];
+  const isFuture = k > todayKey();
+  const isToday = k === todayKey();
+  const g = state.goals || {};
+  const out = { food: "none", workout: "none" };
+  if(isFuture) return out;
+
+  const t = totalsFor(k);
+  const anyFood = t.cal > 0;
+  if(anyFood){
+    out.food = (t.cal <= (g.cal || 2200) * 1.05) ? "hit" : "fail";
+  } else if(!isToday){
+    out.food = "fail";
+  }
+
+  const sessions = (day && day.sessions) || [];
+  const act = getActivityForDay(k);
+  const worked = sessions.length > 0 || (act.exercise || 0) >= 15;
+  const dt = new Date(k + "T12:00:00");
+  const dayName = ["sun","mon","tue","wed","thu","fri","sat"][dt.getDay()];
+  const wk = weekKey(weekStart(dt));
+  const planned = state.plan && state.plan[wk] && state.plan[wk][dayName] && state.plan[wk][dayName].type;
+  const isRest = planned && /rest|recov/i.test(planned);
+  if(worked) out.workout = "hit";
+  else if(isRest) out.workout = "rest";
+  else if(planned && !isToday) out.workout = "fail";
+  else if(!isToday) out.workout = "miss";
+  return out;
+}
+
+function drawDeckRing(canvasId, vals, goals){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0,0,w,h);
+  const cx = w/2, cy = h/2;
+  const rings = [
+    { color:"#ff2231", track:"#33070b", val:vals.move,     goal:goals.move,     r:56, lw:13 },
+    { color:"#d8ff00", track:"#252b00", val:vals.exercise, goal:goals.exercise, r:40, lw:13 },
+    { color:"#00e5ff", track:"#00272e", val:vals.stand,    goal:goals.stand,    r:24, lw:13 },
+  ];
+  rings.forEach(ring => {
+    ctx.beginPath();
+    ctx.lineWidth = ring.lw;
+    ctx.lineCap = "butt";
+    ctx.strokeStyle = ring.track;
+    ctx.arc(cx, cy, ring.r, 0, Math.PI*2);
+    ctx.stroke();
+    const pct = Math.min(1, ring.val / Math.max(1, ring.goal));
+    if(pct > 0){
+      ctx.beginPath();
+      ctx.lineCap = "round";
+      ctx.strokeStyle = ring.color;
+      ctx.arc(cx, cy, ring.r, -Math.PI/2, -Math.PI/2 + pct * Math.PI*2);
+      ctx.stroke();
+    }
+  });
+}
+
+function renderDeck(){
+  if(!document.getElementById("commandDeck")) return;
+  const g = getActivityGoals();
+
+  const a = getActivityForDay(todayKey());
+  drawDeckRing("deckToday", a, g);
+  const ts = document.getElementById("deckTodayStats");
+  if(ts) ts.innerHTML =
+    `<span class="ds-move">${Math.round(a.move)}<i>/${g.move}</i></span>` +
+    `<span class="ds-ex">${Math.round(a.exercise)}<i>/${g.exercise}m</i></span>` +
+    `<span class="ds-st">${Math.round(a.stand)}<i>/${g.stand}h</i></span>`;
+
+  const mon = weekStart(new Date());
+  const today = new Date(); today.setHours(0,0,0,0);
+  const elapsed = Math.min(7, Math.round((today - mon) / 86400000) + 1);
+  let wm = 0, we = 0, wst = 0;
+  for(let i = 0; i < elapsed; i++){
+    const d = new Date(mon.getTime() + i*86400000);
+    const da = getActivityForDay(todayKey(d));
+    wm += da.move || 0; we += da.exercise || 0; wst += da.stand || 0;
+  }
+  const wg = { move: g.move * elapsed, exercise: g.exercise * elapsed, stand: g.stand * elapsed };
+  drawDeckRing("deckWeek", { move: wm, exercise: we, stand: wst }, wg);
+  const ws = document.getElementById("deckWeekStats");
+  if(ws) ws.innerHTML =
+    `<span class="ds-move">${Math.round(wm)}<i>/${wg.move}</i></span>` +
+    `<span class="ds-ex">${Math.round(we)}<i>/${wg.exercise}m</i></span>` +
+    `<span class="ds-st">${Math.round(wst)}<i>/${wg.stand}h</i></span>`;
+
+  // WEEK strip — one line, Mon–Sun, food + workout verdict dots
+  const wkStrip = document.getElementById("deckWeekStrip");
+  if(wkStrip){
+    let html = "";
+    for(let i = 0; i < 7; i++){
+      const d = new Date(mon.getTime() + i*86400000);
+      const k = todayKey(d);
+      const st = dayGoalStatus(k);
+      const isToday = k === todayKey();
+      const cls = (v) => v === "hit" ? "on" : v === "fail" ? "bad" : v === "rest" ? "rest" : "off";
+      html += `<button class="dk-day ${isToday?"today":""}" data-date="${k}" title="${k} · food:${st.food} workout:${st.workout}">
+        <span class="dk-l">${d.toLocaleDateString(undefined,{weekday:"narrow"})}</span>
+        <span class="dk-dot ${cls(st.food)}" title="Food"></span>
+        <span class="dk-dot dk-w ${cls(st.workout)}" title="Workout"></span>
+      </button>`;
+    }
+    wkStrip.innerHTML = html;
+    wkStrip.querySelectorAll(".dk-day").forEach(b => b.addEventListener("click", () => {
+      currentDate = b.dataset.date;
+      renderAll();
+      jumpToTab("nutrition");
+    }));
+  }
+
+  // MONTH strip — one line of dots for the current month
+  const moStrip = document.getElementById("deckMonthStrip");
+  if(moStrip){
+    const now = new Date();
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+    const lbl = document.getElementById("deckMonthLabel");
+    if(lbl) lbl.textContent = now.toLocaleDateString(undefined,{month:"short"}).toUpperCase();
+    let html = "";
+    for(let dnum = 1; dnum <= daysInMonth; dnum++){
+      const d = new Date(now.getFullYear(), now.getMonth(), dnum);
+      const k = todayKey(d);
+      const st = dayGoalStatus(k);
+      let cls = "off";
+      if(k > todayKey()) cls = "future";
+      else if(st.food === "hit" && (st.workout === "hit" || st.workout === "rest")) cls = "on";
+      else if(st.food === "hit" || st.workout === "hit") cls = "half";
+      else cls = "bad";
+      html += `<button class="dk-mdot ${cls} ${k===todayKey()?"today":""}" data-date="${k}" title="${k}"></button>`;
+    }
+    moStrip.innerHTML = html;
+    moStrip.querySelectorAll(".dk-mdot").forEach(b => b.addEventListener("click", () => {
+      currentDate = b.dataset.date;
+      renderAll();
+      jumpToTab("nutrition");
+    }));
+  }
+
+  // WEEK SCHEDULE — planned vs done vs missed, Apple Workouts style
+  const sched = document.getElementById("deckSchedule");
+  if(sched){
+    const wk = weekKey(mon);
+    const wkPlan = (state.plan && state.plan[wk]) || {};
+    const names = ["mon","tue","wed","thu","fri","sat","sun"];
+    let html = "";
+    for(let i = 0; i < 7; i++){
+      const d = new Date(mon.getTime() + i*86400000);
+      const k = todayKey(d);
+      const p = wkPlan[names[i]] || {};
+      const sessions = (state.days[k] && state.days[k].sessions) || [];
+      const done = sessions.length > 0;
+      const isToday = k === todayKey();
+      const past = k < todayKey();
+      const doneName = done ? (sessions.find(s => s.type === "cardio") || sessions[0]).name : null;
+      const label = p.type || (done ? doneName : "—");
+      const stateCls = done ? "done" : (p.type ? (past ? "missed" : "planned") : "empty");
+      html += `<button class="dk-sd ${stateCls} ${isToday?"today":""}" data-date="${k}">
+        <span class="dk-sd-day">${d.toLocaleDateString(undefined,{weekday:"short"}).toUpperCase()}</span>
+        <span class="dk-sd-name">${escape(String(label).slice(0,14))}</span>
+        <span class="dk-sd-mark">${done ? "✓" : (p.type ? (past ? "✕" : "·") : "")}</span>
+      </button>`;
+    }
+    sched.innerHTML = html;
+    sched.querySelectorAll(".dk-sd").forEach(b => b.addEventListener("click", () => {
+      jumpToTab("plan");
+    }));
+  }
+}
+
+onReady(() => {
+  on("#deckTodayBlock", "click", () => openDetail("move"));
+  on("#deckWeekBlock", "click", () => openDetail("move"));
+});
+
+
+
+// =================================================================
+// CARDIO LOGGER — type picker, MET calories, live timer or manual
+// =================================================================
+const CARDIO_TYPES = [
+  { id:"bike",      name:"Indoor Bike",     met:6.8 },
+  { id:"walk",      name:"Walk",            met:3.3 },
+  { id:"speedwalk", name:"Speed Walk",      met:4.8 },
+  { id:"uphill",    name:"Uphill Walk",     met:6.0, incline:true },
+  { id:"run",       name:"Run",             met:9.8 },
+  { id:"elliptical",name:"Elliptical",      met:5.0 },
+  { id:"stair",     name:"Stairmaster",     met:9.0 },
+  { id:"row",       name:"Row Erg",         met:7.0 },
+  { id:"swim",      name:"Swim",            met:7.0 },
+  { id:"crossfit",  name:"CrossFit",        met:8.0 },
+  { id:"hiitclass", name:"HIIT Class",      met:8.0 },
+  { id:"spin",      name:"Spin Class",      met:8.5 },
+  { id:"bootcamp",  name:"Bootcamp",        met:8.0 },
+  { id:"zumba",     name:"Zumba",           met:6.6 },
+  { id:"pilates",   name:"Pilates",         met:3.8 },
+  { id:"yoga",      name:"Yoga",            met:3.0 },
+];
+
+let _cardioTimer = null, _cardioStart = null, _cardioElapsed = 0;
+function _cardioMET(type, mph, level){
+  if(!type.incline) return type.met;
+  const v = parseFloat(mph) || 3.0;
+  const inc = parseFloat(level) || 5;
+  return Math.max(3, 2.0 + v * 0.9 + inc * 0.45);
+}
+
+function openCardioModal(){
+  clearInterval(_cardioTimer); _cardioTimer = null; _cardioStart = null; _cardioElapsed = 0;
+  const opts = CARDIO_TYPES.map(t => `<option value="${t.id}">${t.name}</option>`).join("");
+  openModal("Log cardio", `
+    <label><span>Type</span><select id="cdType">${opts}</select></label>
+    <div id="cdIncline" class="form-grid" style="display:none">
+      <label><span>Speed (mph)</span><input id="cdMph" type="number" step="0.1" min="1" max="6" value="3.0"></label>
+      <label><span>Incline level</span><input id="cdLevel" type="number" step="1" min="1" max="15" value="5"></label>
+    </div>
+    <div class="cd-timer">
+      <div class="cd-clock" id="cdClock">00:00</div>
+      <div class="cd-timer-btns">
+        <button type="button" class="btn btn-lime" id="cdStart">▶ START</button>
+        <button type="button" class="btn btn-ghost" id="cdPause" disabled>⏸ PAUSE</button>
+      </div>
+      <div class="cd-or">— or enter manually —</div>
+      <label><span>Duration (min)</span><input id="cdMin" type="number" min="1" max="600" placeholder="30"></label>
+    </div>
+    <div class="cd-cal-row">
+      <span>Est. burn</span>
+      <b id="cdCal">0</b>
+      <span>kcal <i style="font-style:normal;color:#888">(based on your weight)</i></span>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-cyan" id="cdSave">SAVE SESSION</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => {
+      clearInterval(_cardioTimer); closeModal();
+    }));
+    const typeEl = document.getElementById("cdType");
+    const minEl = document.getElementById("cdMin");
+    const calEl = document.getElementById("cdCal");
+    const clock = document.getElementById("cdClock");
+    const startB = document.getElementById("cdStart");
+    const pauseB = document.getElementById("cdPause");
+
+    const currentMinutes = () => {
+      const manual = parseFloat(minEl.value);
+      if(manual > 0) return manual;
+      return _cardioElapsed / 60000;
+    };
+    const recalc = () => {
+      const t = CARDIO_TYPES.find(x => x.id === typeEl.value);
+      const met = _cardioMET(t, (document.getElementById("cdMph")||{}).value, (document.getElementById("cdLevel")||{}).value);
+      const kcal = Math.round(met * _userWeightKg() * (currentMinutes() / 60));
+      calEl.textContent = kcal;
+      return kcal;
+    };
+    typeEl.addEventListener("change", () => {
+      const t = CARDIO_TYPES.find(x => x.id === typeEl.value);
+      document.getElementById("cdIncline").style.display = t.incline ? "grid" : "none";
+      recalc();
+    });
+    ["cdMph","cdLevel","cdMin"].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.addEventListener("input", recalc);
+    });
+
+    const tick = () => {
+      const now = Date.now();
+      const total = _cardioElapsed + (_cardioStart ? now - _cardioStart : 0);
+      const m = Math.floor(total/60000), sec = Math.floor((total%60000)/1000);
+      clock.textContent = `${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
+      if(m > 0 || sec > 10) recalc();
+    };
+    startB.addEventListener("click", () => {
+      if(_cardioStart) return;
+      _cardioStart = Date.now();
+      _cardioTimer = setInterval(tick, 500);
+      startB.disabled = true; pauseB.disabled = false;
+      startB.textContent = "RUNNING";
+    });
+    pauseB.addEventListener("click", () => {
+      if(!_cardioStart) return;
+      _cardioElapsed += Date.now() - _cardioStart;
+      _cardioStart = null;
+      clearInterval(_cardioTimer);
+      startB.disabled = false; pauseB.disabled = true;
+      startB.textContent = "▶ RESUME";
+      tick();
+    });
+
+    document.getElementById("cdSave").addEventListener("click", () => {
+      if(_cardioStart){ _cardioElapsed += Date.now() - _cardioStart; _cardioStart = null; }
+      clearInterval(_cardioTimer);
+      const mins = Math.round(currentMinutes());
+      if(!mins || mins < 1){ toast("Add a duration — timer or manual", "pink"); return; }
+      const t = CARDIO_TYPES.find(x => x.id === typeEl.value);
+      const kcal = recalc();
+      let name = t.name;
+      if(t.incline){
+        const mph = (document.getElementById("cdMph")||{}).value || "3";
+        const lvl = (document.getElementById("cdLevel")||{}).value || "5";
+        name = `Uphill Walk · L${lvl} @ ${mph}mph`;
+      }
+      const day = dayObj(currentDate);
+      if(!day.sessions) day.sessions = [];
+      day.sessions.push({
+        id: uid(), name, lift: name,
+        weight: 0, reps: 0, sets: 1,
+        type: "cardio",
+        durationMin: mins,
+        calories: kcal,
+        cardioId: t.id,
+      });
+      save(); closeModal(); renderAll();
+      toast(`${name} · ${mins} min · ~${kcal} kcal`, "cyan");
+    });
+    recalc();
+  });
+}
+
+onReady(() => {
+  document.querySelectorAll('[data-mini="cardio"]').forEach(b => {
+    b.addEventListener("click", openCardioModal);
+  });
+  on("#fitNewCardio", "click", openCardioModal);
+});
+
+
+
+// =================================================================
+// WORKOUT LIBRARY — build named workouts, assign to days, start
+// =================================================================
+const MACHINE_LIST = [
+  "Leg Press","Hack Squat","Leg Extension","Leg Curl","Calf Raise Machine",
+  "Hip Thrust Machine","Hip Abductor","Hip Adductor","Smith Machine Squat",
+  "Lat Pulldown","Seated Cable Row","T-Bar Row","Assisted Pull-up",
+  "Chest Press Machine","Pec Deck","Cable Fly","Shoulder Press Machine",
+  "Lateral Raise Machine","Cable Tricep Pushdown","Cable Curl","Preacher Curl Machine",
+  "Ab Crunch Machine","Cable Woodchop","Back Extension"
+];
+const WORKOUT_STYLES = ["Lift Day","HIIT · Grouped Superset","Circuit","CrossFit","Cardio + Lift"];
+
+function getWorkoutLib(){
+  if(!state.workoutLib) state.workoutLib = [];
+  return state.workoutLib;
+}
+
+function renderWorkoutLib(){
+  let card = document.getElementById("workoutLibCard");
+  const planView = document.getElementById("view-plan");
+  if(!planView) return;
+  if(!card){
+    card = document.createElement("div");
+    card.id = "workoutLibCard";
+    card.className = "card wl-card";
+    planView.appendChild(card);
+  }
+  const lib = getWorkoutLib();
+  const rows = lib.map(w => `
+    <div class="wl-row" data-id="${w.id}">
+      <div class="wl-info">
+        <div class="wl-name">${escape(w.name)}</div>
+        <div class="wl-meta">${escape(w.style)} · ${w.exercises.length} exercises</div>
+      </div>
+      <div class="wl-actions">
+        <button class="wl-btn wl-start" data-wl-start title="Start now">START</button>
+        <button class="wl-btn" data-wl-assign title="Put on a weekday">ASSIGN</button>
+        <button class="wl-btn" data-wl-edit title="Edit">✎</button>
+        <button class="wl-btn wl-del" data-wl-del title="Delete">×</button>
+      </div>
+    </div>
+  `).join("");
+  card.innerHTML = `
+    <div class="card-head">
+      <span class="card-eyebrow">MY WORKOUTS — build once, run forever</span>
+      <button class="link-btn-sm" id="wlNew">+ BUILD WORKOUT</button>
+    </div>
+    ${rows || `<p class="wl-empty">No saved workouts yet. Build Leg Day, Back Day, your HIIT circuit — pick the exact machines and lifts, then assign to weekdays.</p>`}
+  `;
+  card.querySelector("#wlNew").addEventListener("click", () => openWorkoutBuilder());
+  card.querySelectorAll(".wl-row").forEach(row => {
+    const w = lib.find(x => x.id === row.dataset.id);
+    if(!w) return;
+    row.querySelector("[data-wl-start]").addEventListener("click", () => startLibWorkout(w));
+    row.querySelector("[data-wl-assign]").addEventListener("click", () => assignLibWorkout(w));
+    row.querySelector("[data-wl-edit]").addEventListener("click", () => openWorkoutBuilder(w));
+    row.querySelector("[data-wl-del]").addEventListener("click", () => {
+      if(!confirm(`Delete "${w.name}"?`)) return;
+      state.workoutLib = lib.filter(x => x.id !== w.id);
+      save(); renderWorkoutLib();
+    });
+  });
+}
+
+function openWorkoutBuilder(existing){
+  const w = existing || { name:"", style:"Lift Day", exercises:[] };
+  const chosen = new Set(w.exercises.map(e => e.name));
+  const catHtml = LIFT_CATEGORIES.map(cat => `
+    <div class="wb-cat">
+      <div class="wb-cat-h">${escape(cat.name)}</div>
+      <div class="wb-cat-list">
+        ${cat.lifts.map(l => `
+          <label class="wb-ex ${chosen.has(l)?"on":""}">
+            <input type="checkbox" data-wb-ex="${escape(l)}" ${chosen.has(l)?"checked":""}>
+            <span>${escape(l)}</span>
+          </label>
+        `).join("")}
+      </div>
+    </div>
+  `).join("");
+  const machHtml = `
+    <div class="wb-cat">
+      <div class="wb-cat-h">Machines</div>
+      <div class="wb-cat-list">
+        ${MACHINE_LIST.map(l => `
+          <label class="wb-ex ${chosen.has(l)?"on":""}">
+            <input type="checkbox" data-wb-ex="${escape(l)}" ${chosen.has(l)?"checked":""}>
+            <span>${escape(l)}</span>
+          </label>
+        `).join("")}
+      </div>
+    </div>
+  `;
+  const styleOpts = WORKOUT_STYLES.map(st => `<option ${st===w.style?"selected":""}>${st}</option>`).join("");
+  openModal(existing ? "Edit workout" : "Build workout", `
+    <div class="form-grid">
+      <label><span>Name it</span><input id="wbName" type="text" maxlength="30" placeholder="Leg Day / Back + Bis / HIIT A" value="${escape(w.name)}"></label>
+      <label><span>Style</span><select id="wbStyle">${styleOpts}</select></label>
+    </div>
+    <p class="wb-hint">Tap every lift + machine that belongs in this workout. Log sets live when you run it.</p>
+    <div class="wb-picker">${catHtml}${machHtml}</div>
+    <label style="margin-top:8px"><span>Custom exercise (optional)</span><input id="wbCustom" type="text" placeholder="e.g. Sled Push — press Enter to add" maxlength="40"></label>
+    <div id="wbCustomList" class="wb-custom-list">${w.exercises.filter(e => e.custom).map(e => `<span class="wb-chip" data-name="${escape(e.name)}">${escape(e.name)} <b>×</b></span>`).join("")}</div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-cyan" id="wbSave">${existing ? "SAVE CHANGES" : "SAVE WORKOUT"}</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    root.querySelectorAll(".wb-ex input").forEach(cb => cb.addEventListener("change", () => {
+      cb.closest(".wb-ex").classList.toggle("on", cb.checked);
+    }));
+    const customInput = document.getElementById("wbCustom");
+    const customList = document.getElementById("wbCustomList");
+    const addChip = (name) => {
+      const span = document.createElement("span");
+      span.className = "wb-chip"; span.dataset.name = name;
+      span.innerHTML = `${escape(name)} <b>×</b>`;
+      span.querySelector("b").addEventListener("click", () => span.remove());
+      customList.appendChild(span);
+    };
+    customList.querySelectorAll(".wb-chip b").forEach(b => b.addEventListener("click", () => b.closest(".wb-chip").remove()));
+    customInput.addEventListener("keydown", (e) => {
+      if(e.key === "Enter"){
+        e.preventDefault();
+        const v = customInput.value.trim();
+        if(v){ addChip(v); customInput.value = ""; }
+      }
+    });
+    document.getElementById("wbSave").addEventListener("click", () => {
+      const name = document.getElementById("wbName").value.trim();
+      if(!name){ toast("Name the workout", "pink"); return; }
+      const picked = Array.from(root.querySelectorAll(".wb-ex input:checked")).map(cb => ({ name: cb.dataset.wbEx }));
+      const customs = Array.from(customList.querySelectorAll(".wb-chip")).map(c => ({ name: c.dataset.name, custom: true }));
+      const exercises = [...picked, ...customs];
+      if(!exercises.length){ toast("Pick at least one exercise", "pink"); return; }
+      const lib = getWorkoutLib();
+      if(existing){
+        existing.name = name;
+        existing.style = document.getElementById("wbStyle").value;
+        existing.exercises = exercises;
+      } else {
+        lib.unshift({ id: uid(), name, style: document.getElementById("wbStyle").value, exercises });
+      }
+      save(); closeModal(); renderWorkoutLib();
+      toast(`Saved: ${name} (${exercises.length} exercises)`, "cyan");
+    });
+  });
+}
+
+function assignLibWorkout(w){
+  const names = ["mon","tue","wed","thu","fri","sat","sun"];
+  const labels = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+  openModal(`Assign "${w.name}"`, `
+    <p class="wb-hint">Pick the day(s) this week. It lands on the planner with the full exercise list — the session logger reads it from there.</p>
+    <div class="wb-days">
+      ${labels.map((l,i) => `<label class="wb-dayrow"><input type="checkbox" data-day="${names[i]}"><span>${l}</span></label>`).join("")}
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-cyan" id="wbAssignGo">ASSIGN</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    document.getElementById("wbAssignGo").addEventListener("click", () => {
+      const days = Array.from(root.querySelectorAll("[data-day]:checked")).map(cb => cb.dataset.day);
+      if(!days.length){ toast("Pick a day", "pink"); return; }
+      const plan = getPlan();
+      const wk = weekKey(weekStart(new Date()));
+      if(!plan[wk]) plan[wk] = {};
+      days.forEach(d => {
+        plan[wk][d] = { type: w.name, exercises: w.exercises.map(e => ({ name: e.name, scheme: e.scheme || "" })) };
+      });
+      save(); closeModal();
+      renderPlan();
+      renderDeck();
+      toast(`${w.name} → ${days.length} day${days.length===1?"":"s"}`, "cyan");
+    });
+  });
+}
+
+function startLibWorkout(w){
+  const plan = getPlan();
+  const wk = weekKey(weekStart(new Date()));
+  const dayName = ["sun","mon","tue","wed","thu","fri","sat"][new Date().getDay()];
+  if(!plan[wk]) plan[wk] = {};
+  plan[wk][dayName] = { type: w.name, exercises: w.exercises.map(e => ({ name: e.name, scheme: e.scheme || "" })) };
+  save();
+  openWorkoutSession(todayKey());
+}
+
+
+// =================================================================
+// ACCOUNTABILITY — slack detection + progress trend callouts
+// =================================================================
+function _volumeForRange(startDate, endDate){
+  let vol = 0;
+  Object.keys(state.days).forEach(k => {
+    if(k >= startDate && k < endDate){
+      ((state.days[k] || {}).sessions || []).forEach(s => {
+        vol += (s.weight || 0) * (s.reps || 0) * (s.sets || 1);
+      });
+    }
+  });
+  return vol;
+}
+
+function _bodyPartLastHit(){
+  const lastHit = {};
+  const keys = Object.keys(state.days).sort().reverse().slice(0, 60);
+  for(const k of keys){
+    ((state.days[k] || {}).sessions || []).forEach(s => {
+      const parts = (typeof BODY_PART_MAP !== "undefined" && BODY_PART_MAP[(s.name || "").toLowerCase()]) || [];
+      parts.forEach(p => { if(!lastHit[p] || k > lastHit[p]) lastHit[p] = k; });
+    });
+  }
+  return lastHit;
+}
+
+function accountabilityCallouts(){
+  const out = [];
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // 1. Missed planned workout yesterday
+  const y = new Date(today); y.setDate(y.getDate() - 1);
+  const yk = todayKey(y);
+  const yName = ["sun","mon","tue","wed","thu","fri","sat"][y.getDay()];
+  const yWk = weekKey(weekStart(y));
+  const yPlan = state.plan && state.plan[yWk] && state.plan[yWk][yName];
+  const yWorked = ((state.days[yk] || {}).sessions || []).length > 0;
+  if(yPlan && yPlan.type && !/rest|recov/i.test(yPlan.type) && !yWorked){
+    out.push({
+      key: "missed-" + yk,
+      title: `✕ You planned ${yPlan.type} yesterday. You didn't show.`,
+      sub: "Doesn't reset the week — run it today. Tap to start.",
+      primary: { label: "RUN IT NOW", action: () => {
+        const plan = getPlan();
+        const wk = weekKey(weekStart(new Date()));
+        const dn = ["sun","mon","tue","wed","thu","fri","sat"][new Date().getDay()];
+        if(!plan[wk]) plan[wk] = {};
+        if(!plan[wk][dn] || !plan[wk][dn].type) plan[wk][dn] = yPlan;
+        save();
+        openWorkoutSession(todayKey());
+      }},
+    });
+  }
+
+  // 2. Neglected body part — only with real lift history
+  const totalSessions = Object.values(state.days).reduce((n, d) => n + ((d.sessions || []).length), 0);
+  if(totalSessions >= 10 && typeof BODY_PART_MAP !== "undefined"){
+    const lastHit = _bodyPartLastHit();
+    const parts = ["legs","back","chest","shoulders","arms","glutes","core"];
+    for(const p of parts){
+      if(!lastHit[p]) continue;
+      const days = Math.round((today - new Date(lastHit[p] + "T00:00:00")) / 86400000);
+      if(days >= 8){
+        out.push({
+          key: "neglect-" + p,
+          title: `⚠ ${p.toUpperCase()}: ${days} days untouched.`,
+          sub: `Last trained ${fmtDate(lastHit[p])}. That's how imbalances start.`,
+          primary: { label: "LOG " + p.toUpperCase(), action: () => openLiftModal() },
+        });
+        break; // one neglect callout at a time — the loudest one
+      }
+    }
+  }
+
+  // 3. Volume backslide — this week vs 3-week average, judged Thu onward
+  const mon = weekStart(new Date());
+  const monKey = todayKey(mon);
+  const elapsed = Math.max(1, Math.round((today - mon) / 86400000) + 1);
+  if(elapsed >= 4){
+    const thisVol = _volumeForRange(monKey, todayKey(new Date(today.getTime() + 86400000)));
+    let prevSum = 0;
+    for(let w = 1; w <= 3; w++){
+      const s2 = new Date(mon.getTime() - w*7*86400000);
+      const e2 = new Date(s2.getTime() + elapsed*86400000);
+      prevSum += _volumeForRange(todayKey(s2), todayKey(e2));
+    }
+    const prevAvg = prevSum / 3;
+    if(prevAvg > 1000 && thisVol < prevAvg * 0.7){
+      out.push({
+        key: "backslide-" + weekKey(mon),
+        title: `▼ Volume down ${Math.round(100 - (thisVol/prevAvg)*100)}% vs your 3-week average.`,
+        sub: `${Math.round(thisVol).toLocaleString()} vs usual ${Math.round(prevAvg).toLocaleString()} ${unit()}·reps by this point in the week. Pick it up.`,
+        primary: { label: "LOG A LIFT", action: () => openLiftModal() },
+      });
+    }
+  }
+
+  return out;
+}
+
+// Called from the dashboard pipeline right after renderSmartBanners()
+function appendAccountabilityBanners(){
+  const wrap = document.getElementById("smartBanners");
+  if(!wrap) return;
+  const r = getReminders();
+  if(!r.enabled) return;
+  accountabilityCallouts().forEach(c => {
+    if(_bannerDismissed(c.key)) return;
+    if(wrap.querySelector(`[data-banner-key="${c.key}"]`)) return;
+    const div = document.createElement("div");
+    div.className = "smart-banner sb-aggr";
+    div.dataset.bannerKey = c.key;
+    div.innerHTML = `
+      <div class="sb-body">
+        <div class="sb-title">${c.title}</div>
+        <div class="sb-sub">${c.sub}</div>
+      </div>
+      <div class="sb-actions">
+        <button class="btn btn-cyan btn-sm" data-acc-go>${escape(c.primary.label)}</button>
+        <button class="btn btn-ghost btn-sm" data-acc-x aria-label="Dismiss">✕</button>
+      </div>
+    `;
+    div.querySelector("[data-acc-go]").addEventListener("click", c.primary.action);
+    div.querySelector("[data-acc-x]").addEventListener("click", () => {
+      _dismissBanner(c.key);
+      div.remove();
+    });
+    wrap.appendChild(div);
+  });
+}
+
+
 // =================================================================
 
 // PIPELINES — explicit composition (replaces the old wrapper chains).
@@ -7842,6 +8518,8 @@ function renderDashboard(){
   renderDashboardStep_RDForToday();
   try{ renderAdaptiveCard(); }catch(e){ console.warn("adaptive card", e); }
   try{ renderSmartBanners(); }catch(e){ console.warn("smart banners", e); }
+  try{ appendAccountabilityBanners(); }catch(e){ console.warn("accountability", e); }
+  try{ renderDeck(); }catch(e){ console.warn("deck", e); }
 }
 
 function openLiftDetail(lift){
@@ -7858,6 +8536,7 @@ function renderPlan(){
   renderPlanBase();
   renderPlanStep_RenderPlan();
   renderPlanStep_RenderPlanForWorkoutBtn();
+  try{ renderWorkoutLib(); }catch(e){ console.warn("workout lib", e); }
 }
 
 function renderNutritionWeek(){

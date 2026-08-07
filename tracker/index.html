@@ -191,7 +191,7 @@
     <div class="tb-left">
       <div class="tb-logo">
         <span class="tb-top">BERMO<span class="c">.</span></span>
-        <span class="tb-bot">TRACKER <span style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v6</span></span>
+        <span class="tb-bot">TRACKER <span style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v7</span></span>
       </div>
     </div>
     <nav class="tb-nav" id="tabNav">
@@ -272,8 +272,8 @@
         <button class="mini-log" data-mini="lift" title="Log a lift">
           <span class="ml-icon">🏋️</span><span class="ml-label">Lift</span>
         </button>
-        <button class="mini-log" data-mini="activity" title="Log activity / Apple Watch">
-          <span class="ml-icon">🔥</span><span class="ml-label">Activity</span>
+        <button class="mini-log" data-mini="cardio" title="Log cardio — bike, walk, run, class">
+          <span class="ml-icon">🏃</span><span class="ml-label">Cardio</span>
         </button>
         <button class="mini-log" data-mini="water" title="+ 8 oz water">
           <span class="ml-icon">💧</span><span class="ml-label">+8 oz</span>
@@ -281,6 +281,31 @@
         <button class="mini-log" data-mini="weigh" title="Weigh in">
           <span class="ml-icon">⚖️</span><span class="ml-label">Weigh</span>
         </button>
+      </div>
+
+      <!-- COMMAND DECK — daily + weekly rings, hit/fail strips, week schedule -->
+      <div class="deck" id="commandDeck">
+        <div class="deck-rings">
+          <div class="deck-block" id="deckTodayBlock" title="Tap for day detail">
+            <div class="deck-h">TODAY</div>
+            <canvas id="deckToday" width="130" height="130"></canvas>
+            <div class="deck-stats" id="deckTodayStats"></div>
+          </div>
+          <div class="deck-block" id="deckWeekBlock" title="Tap for week detail">
+            <div class="deck-h">THIS WEEK</div>
+            <canvas id="deckWeek" width="130" height="130"></canvas>
+            <div class="deck-stats" id="deckWeekStats"></div>
+          </div>
+        </div>
+        <div class="deck-strip-wrap">
+          <div class="deck-strip-label">WEEK</div>
+          <div class="deck-strip" id="deckWeekStrip"></div>
+        </div>
+        <div class="deck-strip-wrap">
+          <div class="deck-strip-label" id="deckMonthLabel">MONTH</div>
+          <div class="deck-strip deck-strip-month" id="deckMonthStrip"></div>
+        </div>
+        <div class="deck-sched" id="deckSchedule"></div>
       </div>
 
       <!-- Goal Contract card (always visible, big, motivating) -->
@@ -626,7 +651,8 @@
           <h1 class="view-h1">Workout board</h1>
         </div>
         <div class="view-head-actions">
-          <button class="btn btn-ghost" id="fitNewLift">+ Log lift</button>
+          <button class="btn btn-ghost" id="fitNewLift">+ Lift</button>
+          <button class="btn btn-ghost" id="fitNewCardio">+ Cardio</button>
           <button class="btn btn-cyan" id="fitNewWod">+ Log WOD</button>
         </div>
       </header>

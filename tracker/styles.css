@@ -2208,3 +2208,247 @@ html, body, #app, .app, .main, .view, .hubs-grid, .smart-banners{
 
 /* HIDE the now-redundant separate strip */
 .lift-mini-strip{ display: none !important; }
+
+
+/* ============================================================
+   IRON LAYER — aggressive bodybuilder restyle
+   Sharp corners, bright hard colors, compact everything.
+   Appended last so it wins the cascade.
+   ============================================================ */
+:root{
+  --iron-bg:#07080a;
+  --iron-panel:#101318;
+  --iron-panel-2:#161b22;
+  --iron-line:#232a33;
+  --iron-red:#ff2231;
+  --iron-volt:#d8ff00;
+  --iron-cyan:#00e5ff;
+  --iron-orange:#ff7a00;
+  --iron-text:#f2f5f7;
+  --iron-mute:#8b95a1;
+}
+
+/* Ground */
+body, .app, .main{ background:var(--iron-bg) !important; color:var(--iron-text) !important; }
+.topbar, .mobnav{ background:#000 !important; border-color:var(--iron-line) !important; }
+.topbar{ border-bottom:2px solid var(--iron-red) !important; }
+.mobnav{ border-top:2px solid var(--iron-red) !important; }
+.tab.active, .mtab.active{ color:var(--iron-volt) !important; }
+.tb-logo .c{ color:var(--iron-red) !important; }
+.gate-logo .gl-bar{ background:var(--iron-red) !important; }
+
+/* KILL PILLS — sharp corners everywhere */
+.btn, .gate-btn, .mini-log, .meal-slot, .qchip, .hub-log, .cc-edit,
+.btn-add, .link-btn-sm, .dp-btn, .select, .wl-btn, .food-tab,
+.detail-log, .wod-picker, input, select, textarea, .search-input,
+.dmt, .ds-btn, .dn-label, .dn-arrow{
+  border-radius:3px !important;
+}
+.card, .hub, .modal-card, .plan-day, .meal, .contract-card, .restart-card,
+.smart-banner, .deck, .wl-card, .ql-row, .bd-item, .search-result,
+.detail-overlay-card, .fab-sheet-card, .mini-log{
+  border-radius:4px !important;
+}
+.ql-add{ border-radius:3px !important; }
+.water-cell{ border-radius:2px !important; }
+
+/* Panels */
+.card, .hub, .meal, .plan-day, .wl-card{
+  background:var(--iron-panel) !important;
+  border:1px solid var(--iron-line) !important;
+  box-shadow:none !important;
+}
+.modal-card{ background:var(--iron-panel) !important; border:1px solid var(--iron-line) !important; }
+input, select, textarea{ background:var(--iron-panel-2) !important; border:1px solid var(--iron-line) !important; }
+input:focus, select:focus, textarea:focus{ border-color:var(--iron-volt) !important; }
+
+/* Type: heavy uppercase headers */
+.view-h1, .card-eyebrow, .hub-title, .modal-head h3, .deck-h{
+  text-transform:uppercase !important; letter-spacing:.04em;
+}
+.card-eyebrow, .eyebrow{ color:var(--iron-volt) !important; font-weight:800 !important; }
+.hub-eyebrow{ color:var(--iron-mute) !important; }
+
+/* Buttons: hard blocks */
+.btn-cyan{ background:var(--iron-volt) !important; color:#0d1100 !important; font-weight:800 !important; text-transform:uppercase; letter-spacing:.05em; }
+.btn-cyan:hover{ background:#eaff4d !important; }
+.btn-lime{ background:var(--iron-red) !important; color:#fff !important; font-weight:800 !important; text-transform:uppercase; letter-spacing:.05em; }
+.btn-lime:hover{ background:#ff4553 !important; }
+.btn-pink{ background:var(--iron-orange) !important; color:#180b00 !important; font-weight:800 !important; }
+.btn-ghost{ border:1px solid var(--iron-line) !important; color:var(--iron-text) !important; text-transform:uppercase; font-weight:700 !important; letter-spacing:.04em; }
+
+/* Mini-log row: solid sharp blocks, no gradient */
+.mini-log{ background:var(--iron-panel-2) !important; border:1px solid var(--iron-line) !important; min-height:52px; padding:8px 4px; }
+.mini-log:hover{ border-color:var(--iron-volt) !important; background:#1b2129 !important; }
+.mini-log-primary{
+  background:var(--iron-red) !important; color:#fff !important;
+  border:none !important; box-shadow:none !important; filter:none !important;
+}
+.mini-log-primary:hover{ background:#ff4553 !important; filter:none !important; }
+.mini-log-row{ gap:4px; margin-bottom:10px; }
+
+/* Compact pass */
+.main{ padding-top:12px !important; }
+.view-head{ margin-bottom:10px !important; }
+.hubs-grid{ gap:8px !important; }
+.hub{ padding:12px !important; }
+.card{ padding:12px !important; }
+.contract-card{ padding:14px !important; }
+.smart-banners{ gap:6px; margin-bottom:10px; }
+
+/* Deck rings hub is redundant now — hide the activity hub */
+.hub[data-hub="activity"]{ display:none !important; }
+
+/* ---------- COMMAND DECK ---------- */
+.deck{
+  background:var(--iron-panel); border:1px solid var(--iron-line);
+  padding:12px; margin:0 0 12px;
+}
+.deck-rings{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.deck-block{
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  padding:10px 6px; cursor:pointer;
+}
+.deck-block:hover{ border-color:var(--iron-volt); }
+.deck-h{ font-size:9px; font-weight:900; letter-spacing:2px; color:var(--iron-mute); }
+.deck-stats{ display:flex; gap:8px; font-size:10px; font-weight:800; font-family:'JetBrains Mono',monospace; }
+.deck-stats i{ font-style:normal; color:var(--iron-mute); font-weight:600; }
+.deck-stats .ds-move{ color:var(--iron-red); }
+.deck-stats .ds-ex{ color:var(--iron-volt); }
+.deck-stats .ds-st{ color:var(--iron-cyan); }
+
+.deck-strip-wrap{ display:flex; align-items:center; gap:8px; margin-top:8px; }
+.deck-strip-label{ font-size:8px; font-weight:900; letter-spacing:1.5px; color:var(--iron-mute); width:34px; flex-shrink:0; }
+.deck-strip{ display:flex; gap:3px; flex:1; }
+.dk-day{
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:2px;
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  padding:4px 0 5px; cursor:pointer;
+}
+.dk-day.today{ border-color:var(--iron-volt); }
+.dk-l{ font-size:9px; font-weight:800; color:var(--iron-mute); }
+.dk-dot{ width:8px; height:8px; border-radius:1px; background:#20262e; }
+.dk-dot.on{ background:var(--iron-volt); }
+.dk-dot.bad{ background:var(--iron-red); }
+.dk-dot.rest{ background:#3a4553; }
+.deck-strip-month{ flex-wrap:nowrap; gap:2px; overflow-x:auto; }
+.dk-mdot{
+  flex:1; min-width:6px; height:14px; border-radius:1px;
+  background:#20262e; border:none; cursor:pointer; padding:0;
+}
+.dk-mdot.on{ background:var(--iron-volt); }
+.dk-mdot.half{ background:#6f8500; }
+.dk-mdot.bad{ background:var(--iron-red); }
+.dk-mdot.future{ background:#14181e; }
+.dk-mdot.today{ outline:1px solid var(--iron-volt); }
+
+.deck-sched{ display:flex; gap:3px; margin-top:8px; }
+.dk-sd{
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:2px;
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  padding:6px 2px; cursor:pointer; min-width:0;
+}
+.dk-sd.today{ border-color:var(--iron-volt); }
+.dk-sd.done{ border-bottom:2px solid var(--iron-volt); }
+.dk-sd.missed{ border-bottom:2px solid var(--iron-red); }
+.dk-sd.planned{ border-bottom:2px solid var(--iron-cyan); }
+.dk-sd-day{ font-size:8px; font-weight:900; letter-spacing:1px; color:var(--iron-mute); }
+.dk-sd-name{ font-size:9px; font-weight:700; color:var(--iron-text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+.dk-sd.empty .dk-sd-name{ color:#3a4553; }
+.dk-sd-mark{ font-size:10px; font-weight:900; }
+.dk-sd.done .dk-sd-mark{ color:var(--iron-volt); }
+.dk-sd.missed .dk-sd-mark{ color:var(--iron-red); }
+
+/* ---------- WORKOUT LIBRARY ---------- */
+.wl-card{ margin-top:12px; }
+.wl-row{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  padding:8px 10px; margin-bottom:4px;
+}
+.wl-name{ font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.03em; }
+.wl-meta{ font-size:10px; color:var(--iron-mute); margin-top:1px; }
+.wl-actions{ display:flex; gap:4px; flex-shrink:0; }
+.wl-btn{
+  background:transparent; border:1px solid var(--iron-line); color:var(--iron-text);
+  font-size:9px; font-weight:800; letter-spacing:.05em; padding:6px 8px; cursor:pointer;
+}
+.wl-btn:hover{ border-color:var(--iron-volt); color:var(--iron-volt); }
+.wl-start{ background:var(--iron-red); border-color:var(--iron-red); color:#fff; }
+.wl-start:hover{ background:#ff4553; color:#fff; }
+.wl-del:hover{ border-color:var(--iron-red); color:var(--iron-red); }
+.wl-empty{ font-size:12px; color:var(--iron-mute); line-height:1.5; margin:4px 0 0; }
+
+/* Workout builder picker */
+.wb-hint{ font-size:11px; color:var(--iron-mute); line-height:1.4; margin:6px 0 8px; }
+.wb-picker{ max-height:38vh; overflow-y:auto; border:1px solid var(--iron-line); padding:8px; }
+.wb-cat{ margin-bottom:8px; }
+.wb-cat-h{ font-size:9px; font-weight:900; letter-spacing:1.5px; text-transform:uppercase; color:var(--iron-volt); margin-bottom:4px; }
+.wb-cat-list{ display:grid; grid-template-columns:1fr 1fr; gap:2px; }
+.wb-ex{
+  display:flex; align-items:center; gap:6px; font-size:11px;
+  padding:5px 6px; background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  cursor:pointer;
+}
+.wb-ex input{ width:auto !important; margin:0; }
+.wb-ex.on{ border-color:var(--iron-volt); background:#1c2500; }
+.wb-custom-list{ display:flex; flex-wrap:wrap; gap:4px; margin-top:6px; }
+.wb-chip{
+  font-size:11px; padding:4px 8px; background:var(--iron-panel-2);
+  border:1px solid var(--iron-volt); color:var(--iron-volt); font-weight:700;
+}
+.wb-chip b{ cursor:pointer; margin-left:3px; }
+.wb-days{ display:flex; flex-direction:column; gap:3px; }
+.wb-dayrow{
+  display:flex; align-items:center; gap:8px; padding:8px 10px;
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  font-size:13px; font-weight:700; cursor:pointer;
+}
+.wb-dayrow input{ width:auto !important; }
+
+/* ---------- CARDIO ---------- */
+.cd-timer{ text-align:center; margin:10px 0; }
+.cd-clock{
+  font-family:'JetBrains Mono',monospace; font-size:42px; font-weight:800;
+  color:var(--iron-volt); letter-spacing:2px; line-height:1;
+}
+.cd-timer-btns{ display:flex; gap:6px; justify-content:center; margin:8px 0; }
+.cd-or{ font-size:10px; color:var(--iron-mute); letter-spacing:1px; text-transform:uppercase; margin:8px 0 4px; }
+.cd-cal-row{
+  display:flex; align-items:baseline; gap:6px; justify-content:center;
+  font-size:12px; color:var(--iron-mute); margin:8px 0 4px;
+}
+.cd-cal-row b{ font-size:26px; color:var(--iron-red); font-family:'JetBrains Mono',monospace; }
+
+/* Aggressive accountability banner variant */
+.smart-banner.sb-aggr{
+  background:#1a0508 !important; border:1px solid var(--iron-red) !important;
+  border-left:4px solid var(--iron-red) !important;
+}
+.smart-banner.sb-aggr .sb-title{ color:#ff8b93 !important; font-weight:900; text-transform:uppercase; letter-spacing:.02em; font-size:13px; }
+.smart-banner.sb-aggr .sb-sub{ color:#c98b90 !important; }
+
+/* Restyle default smart banners dark to match */
+.smart-banner{
+  background:#141009 !important; border:1px solid var(--iron-orange) !important;
+  border-left:4px solid var(--iron-orange) !important;
+}
+.smart-banner .sb-title{ color:#ffb066 !important; }
+.smart-banner .sb-sub{ color:#b5906a !important; }
+
+/* Contract + restart cards: dark, sharp */
+.contract-card{ background:#0c0f13 !important; border:1px solid var(--iron-line) !important; }
+.restart-card{ background:#141009 !important; border:1px solid var(--iron-orange) !important; color:var(--iron-text) !important; }
+.restart-card .rs-title{ color:#ffb066 !important; }
+.restart-card .rs-sub{ color:#b5906a !important; }
+
+/* Meal slot pills → sharp segmented control */
+.meal-slot{ background:var(--iron-panel-2) !important; border:1px solid var(--iron-line) !important; }
+.meal-slot.on{ background:var(--iron-volt) !important; color:#0d1100 !important; border-color:var(--iron-volt) !important; }
+
+/* Mobile: month strip stays one line */
+@media(max-width:520px){
+  .deck-stats{ font-size:9px; gap:5px; }
+  .dk-sd-name{ font-size:8px; }
+}

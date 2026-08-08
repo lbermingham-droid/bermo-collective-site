@@ -5860,28 +5860,6 @@ onReady(() => {
     btn.parentNode.replaceChild(nb, btn);
     nb.addEventListener("click", openCustomizeModal);
   }
-  // Top "+ Quick log food" — opens the food modal directly to quicklog tab
-  // (no extra sheet step). The "More…" button keeps access to lifts/water/check-ins.
-  // dashOpenLog/dashOpenMore bindings removed — header hidden, mini-log row covers logging
-  // Mini quick-log row (always visible at top of dashboard)
-  document.querySelectorAll("[data-mini]").forEach(b => {
-    b.addEventListener("click", () => {
-      const a = b.dataset.mini;
-      if(a === "food"){
-        const h = new Date().getHours();
-        const meal = h < 10 ? "breakfast" : h < 14 ? "lunch" : h < 18 ? "snacks" : "dinner";
-        if(typeof openFoodModal === "function") openFoodModal(meal);
-      } else if(a === "lift"){
-        if(typeof openLiftModal === "function") openLiftModal();
-      } else if(a === "activity"){
-        if(typeof openActivityLogModal === "function") openActivityLogModal();
-      } else if(a === "water"){
-        if(typeof addWater === "function"){ addWater(8); toast("+8 oz water","cyan"); renderAll(); }
-      } else if(a === "weigh"){
-        if(typeof openWeighInModal === "function") openWeighInModal();
-      }
-    });
-  });
 });
 
 
@@ -8157,9 +8135,6 @@ function openCardioModal(){
 }
 
 onReady(() => {
-  document.querySelectorAll('[data-mini="cardio"]').forEach(b => {
-    b.addEventListener("click", openCardioModal);
-  });
   on("#fitNewCardio", "click", openCardioModal);
 });
 

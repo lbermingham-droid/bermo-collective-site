@@ -142,6 +142,23 @@ back-compat {type,time,exercises,extra:[]}; week list shows time tags
 last/2/4-weeks-ago/custom week — workouts, volume, avg cal/day
 (lower=better), water, with delta arrows; fair same-elapsed-days
 comparison.
+v11 nutrition rebuild (page-by-page pass, page 2 — MFP reference):
+brain row (type/photo/speak, .js-brain delegated) + one-line stat row
+now on EVERY section page (nutrition Cal/P/C/F/water; fitness Move/Ex/
+Stand/Lifted; body Now/Goal/To-go). Nutrition tabs = DIARY / CALORIES /
+NUTRIENTS / MACROS (real section swaps; charts render after unhide).
+DIARY: one box, meals with per-meal cal+P/C/F, +ADD and ±M
+(macros-only quick log, doubles as item editor) per meal; tap item =
+action sheet (move to meal, duplicate to any date+meal, favorite,
+edit, delete); SELECT mode -> multi-pick -> SAVE AS MEAL (template);
+red-flag tiers now border diary items. CALORIES: MFP donut by meal
+(blue palette) + legend % + Total/Exercise-Burn/Net/Goal rows.
+MACROS: MFP split donut (teal/purple/orange) + Total%-vs-Goal% rows.
+NUTRIENTS: Total/Goal/Left rows now with progress bars. Favorites
+(state.favFoods) show atop the food-modal Quick log pane. Removed:
+meal-grid, nut-summary pills, ai-quick-row, quick chips, save-as-usual
+buttons (swept per hygiene rule; .meal-item CSS kept — custom foods
+list uses it). Old smoke food-step now uses [data-dy-add].
 Cleanup (v9.1): dead code removed — legacy anatomy heatmap card (muscle
 map replaced it), hidden deck week-schedule strip (Workouts card replaced
 it), Customize-hubs menu item + dead dashboard header bindings. app.js

@@ -288,9 +288,7 @@ a{color:inherit}
   .tb-name{display:none}
   .form-grid{grid-template-columns:1fr}
   .form-grid .span-2{grid-column:span 1}
-  .nut-summary{grid-template-columns:repeat(2,1fr)}
-  .meal-grid{grid-template-columns:1fr}
-}
+    }
 
 /* ---------- RING + STATS ---------- */
 .ring-wrap{position:relative;display:flex;justify-content:center;align-items:center;padding:6px 0 14px}
@@ -346,24 +344,10 @@ a{color:inherit}
 .dp-btn:hover{background:var(--cream);color:var(--black)}
 .date-picker input[type=date]{border:none;background:transparent;font-size:12px;font-family:'JetBrains Mono',monospace;outline:none;padding:4px}
 
-.nut-summary{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
-.nut-pill{background:#fff;border:1px solid var(--lgray);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
-.nut-pill span{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gray);font-weight:700}
-.nut-pill strong{font-family:'Inter Tight',sans-serif;font-size:24px;letter-spacing:-.02em;font-weight:900}
-.nut-pill em{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gray);font-style:normal}
-@media(max-width:720px){.nut-summary{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){}
 
 /* ---------- MEAL GRID ---------- */
-.meal-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-bottom:24px}
-@media(max-width:720px){.meal-grid{grid-template-columns:1fr}}
-.meal{background:#fff;border:1px solid var(--lgray);border-radius:18px;padding:18px 18px 20px;box-shadow:var(--shadow)}
-.meal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px}
-.meal-head h3{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:18px;letter-spacing:-.01em;text-transform:uppercase;margin:0}
-.meal-cal{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gray);letter-spacing:1px}
-.btn-add{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;background:var(--cyan);color:var(--black);padding:7px 12px;border-radius:100px}
-.btn-add:hover{background:var(--lime)}
-.meal-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;min-height:30px}
-.meal-list:empty::before{content:"No items yet";display:block;font-size:11px;color:#bbb;font-style:italic;padding:8px 0}
+@media(max-width:720px){}
 .meal-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--cream);border-radius:10px;font-size:13px;gap:8px}
 .mi-name{font-weight:600}
 .mi-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gray)}
@@ -372,13 +356,6 @@ a{color:inherit}
 .mi-del:hover{background:var(--pink);color:#fff}
 
 /* ---------- QUICK CHIPS ---------- */
-.quick-row{margin-top:8px}
-.quick-row h4{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gray);font-weight:700;margin:0 0 10px}
-.quick-chips{display:flex;flex-wrap:wrap;gap:8px}
-.qchip{background:#fff;border:1px solid var(--lgray);border-radius:100px;padding:8px 14px;font-size:12px;font-weight:600;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
-.qchip:hover{background:var(--cyan);border-color:var(--cyan)}
-.qchip i{font-family:'JetBrains Mono',monospace;font-style:normal;color:var(--gray);font-size:10px;font-weight:500}
-.qchip:hover i{color:var(--black)}
 
 /* ---------- PR + SESSIONS ---------- */
 .pr-list,.session-list,.weigh-list,.meas-list,.cf-list,.timeline{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
@@ -479,10 +456,8 @@ a{color:inherit}
 
 @media(max-width:720px){
   .view-h1{font-size:32px}
-  .meal-grid{gap:12px}
-  .water-grid{grid-template-columns:repeat(8,1fr);gap:4px}
-  .nut-summary{gap:8px}
-}
+    .water-grid{grid-template-columns:repeat(8,1fr);gap:4px}
+  }
 
 /* ---------- PR REP-RANGE CARDS (SugarWOD-style) ---------- */
 .pr-cards{display:flex;flex-direction:column;gap:10px;margin:0;padding:0}
@@ -569,8 +544,6 @@ a{color:inherit}
 .usual-add:hover{background:var(--cyan)}
 
 /* "Save as usual" button on meal headers */
-.save-usual{font-size:9px;letter-spacing:1px;text-transform:uppercase;font-weight:700;background:transparent;color:var(--gray);padding:6px 10px;border-radius:100px;border:1px solid var(--lgray);transition:all .15s;margin-left:6px}
-.save-usual:hover{background:var(--lime);border-color:var(--lime);color:var(--black)}
 
 /* ---------- RED FLAGS / OVER-GOAL ---------- */
 .bar-fill.over{background:var(--pink) !important;box-shadow:0 0 0 2px rgba(255,45,122,0.2);width:100% !important}
@@ -578,26 +551,10 @@ a{color:inherit}
 .over-banner{background:linear-gradient(90deg,var(--pink) 0%,#ff5491 100%);color:#fff;padding:12px 18px;border-radius:12px;font-weight:700;font-size:13px;letter-spacing:.5px;margin-bottom:14px;box-shadow:0 4px 14px rgba(255,45,122,.2);display:flex;align-items:center;gap:8px}
 .over-banner.warn{background:linear-gradient(90deg,#ffb347 0%,#ffc875 100%)}
 
-/* Cheat food marker */
-.meal-list .meal-item.cheat{border-left:3px solid var(--pink);padding-left:9px;background:linear-gradient(90deg,#ffe6ee 0%,var(--cream) 60%)}
-.meal-list .meal-item.cheat .mi-name::after{content:" 🔴";font-size:9px;vertical-align:middle}
-
-/* ---------- MACRO-BASED FOOD TIERS (overrides keyword version) ---------- */
-.meal-list .meal-item.cheat,
-.meal-list .meal-item.indulgent{
-  border-left:3px solid var(--pink);
-  padding-left:9px;
-  background:linear-gradient(90deg,#ffe6ee 0%,var(--cream) 60%);
-}
-.meal-list .meal-item.cheat .mi-name::after,
-.meal-list .meal-item.indulgent .mi-name::after{content:" 🔴";font-size:10px;vertical-align:middle}
-.meal-list .meal-item.watch{
-  border-left:3px solid #ffb347;
-  padding-left:9px;
-  background:linear-gradient(90deg,#fff2dc 0%,var(--cream) 60%);
-}
-.meal-list .meal-item.watch .mi-name::after{content:" 🟡";font-size:10px;vertical-align:middle}
-.meal-list .meal-item.clean{}  /* no marker, default */
+/* ---------- MACRO-BASED FOOD TIERS (diary items) ---------- */
+.dy-item.cheat{ border-left:3px solid var(--iron-red); }
+.dy-item.watch{ border-left:3px solid var(--iron-orange); }
+.dy-item.clean{ border-left:3px solid var(--iron-volt); }
 
 /* ---------- APP-LIKE TOPBAR (settings gear + user menu) ---------- */
 .tb-icon{
@@ -785,19 +742,7 @@ a{color:inherit}
 .sym-r-del:hover{background:var(--pink);color:#fff}
 
 /* ---------- AI QUICK ROW (Snap photo + Type) ---------- */
-.ai-quick-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
-@media(max-width:600px){.ai-quick-row{grid-template-columns:1fr}}
-.ai-btn{
-  display:flex;flex-direction:column;align-items:flex-start;gap:4px;
-  padding:18px 20px;border-radius:16px;background:#fff;border:1px solid var(--lgray);
-  text-align:left;transition:all .2s;box-shadow:var(--shadow);cursor:pointer;
-}
-.ai-btn:hover{transform:translateY(-2px);border-color:var(--cyan);box-shadow:0 8px 24px rgba(0,245,212,.15)}
-.ai-btn-photo{background:linear-gradient(120deg,#fff 0%,#e0fcf6 100%);border-color:rgba(0,245,212,.3)}
-.ai-btn-text{background:linear-gradient(120deg,#fff 0%,#fff5e0 100%);border-color:rgba(255,179,71,.3)}
-.ai-icon{font-size:24px;line-height:1}
-.ai-label{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:16px;letter-spacing:-.01em}
-.ai-sub{font-size:11px;color:var(--gray);font-weight:500}
+@media(max-width:600px){}
 
 /* ---------- AI CONFIRM MODAL (parsed items editor) ---------- */
 #aiConfirmList{display:flex;flex-direction:column;gap:10px;max-height:400px;overflow:auto}
@@ -1475,26 +1420,10 @@ a{color:inherit}
 .nw-day:hover{transform:translateY(-2px)}
 
 /* ---------- COMPACT NUTRITION MACRO PILLS (one row, smaller) ---------- */
-.nut-summary{
-  display:grid !important;grid-template-columns:repeat(5,1fr) !important;
-  gap:6px !important;margin-bottom:18px !important;
-}
-.nut-pill{
-  padding:10px 12px !important;gap:1px !important;
-}
-.nut-pill span{font-size:8px !important;letter-spacing:1.2px !important}
-.nut-pill strong{font-size:18px !important;letter-spacing:-.02em !important;line-height:1}
-.nut-pill em{font-size:9px !important}
 @media(max-width:720px){
-  .nut-summary{gap:4px !important}
-  .nut-pill{padding:8px 6px !important}
-  .nut-pill strong{font-size:15px !important}
-  .nut-pill span{font-size:7px !important;letter-spacing:1px !important}
-  .nut-pill em{font-size:8px !important}
-}
+          }
 @media(max-width:380px){
-  .nut-pill strong{font-size:13px !important}
-}
+  }
 
 /* ---------- DAY QUICK-VIEW MODAL ---------- */
 .qv-rings{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0 4px}
@@ -1514,25 +1443,10 @@ a{color:inherit}
 .eyebrow{font-size:9px;letter-spacing:3px;margin-bottom:4px}
 
 /* Compress AI quick row buttons (snap photo + type) */
-.ai-quick-row{gap:10px;margin-bottom:14px}
-.ai-btn{padding:12px 16px;gap:2px}
-.ai-icon{font-size:18px}
-.ai-label{font-size:14px}
-.ai-sub{font-size:10px}
 
 /* Compress meal grid cards */
-.meal-grid{gap:10px;margin-bottom:14px}
-.meal{padding:14px 14px 14px}
-.meal-head{margin-bottom:8px}
-.meal-head h3{font-size:15px}
-.meal-cal{font-size:10px}
-.btn-add{font-size:9px;padding:6px 10px}
-.save-usual{font-size:8px;padding:5px 8px;letter-spacing:.5px}
 
 /* Compress nutrition macro pills further */
-.nut-summary{gap:5px !important;margin-bottom:14px !important}
-.nut-pill{padding:8px 10px !important}
-.nut-pill strong{font-size:16px !important}
 
 /* Compress meal items */
 .meal-item{padding:8px 10px;font-size:12px}
@@ -1714,20 +1628,8 @@ a{color:inherit}
 .ls-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gray);margin-top:3px}
 
 /* ---------- AI BUTTONS ONE ROW ---------- */
-.ai-quick-row{
-  display:flex !important;flex-direction:row !important;
-  gap:8px !important;margin-bottom:14px !important;
-}
-.ai-btn{
-  flex:1;flex-direction:row !important;align-items:center !important;
-  gap:8px !important;padding:10px 12px !important;
-}
-.ai-icon{font-size:20px !important;flex-shrink:0}
-.ai-btn .ai-label{font-size:12px !important}
-.ai-btn .ai-sub{font-size:9px !important;display:block}
 @media(max-width:380px){
-  .ai-btn .ai-sub{display:none}
-}
+  }
 
 /* ---------- DASHBOARD FOOTER ONE ROW ---------- */
 .dash-bottom-actions{
@@ -2199,13 +2101,7 @@ body, .app, .main{ background:var(--iron-bg) !important; color:var(--iron-text) 
 .gate-logo .gl-bar{ background:var(--iron-red) !important; }
 
 /* KILL PILLS — sharp corners everywhere */
-.btn, .gate-btn, .meal-slot, .qchip, .hub-log, .cc-edit,
-.btn-add, .link-btn-sm, .dp-btn, .select, .wl-btn, .food-tab,
-.detail-log, .wod-picker, input, select, textarea, .search-input,
-.dmt, .ds-btn, .dn-label, .dn-arrow{
-  border-radius:3px !important;
-}
-.card, .hub, .modal-card, .plan-day, .meal, .contract-card, .restart-card,
+.btn, .gate-btn, .meal-slot, .card, .hub, .modal-card, .plan-day, .meal, .contract-card, .restart-card,
 .smart-banner, .deck, .wl-card, .ql-row, .bd-item, .search-result,
 .detail-overlay-card, .fab-sheet-card, .ql-add{ border-radius:3px !important; }
 .water-cell{ border-radius:2px !important; }
@@ -2532,23 +2428,8 @@ input:focus, select:focus, textarea:focus{ border-color:var(--iron-volt) !import
 
 
 /* AI quick-row buttons (Snap / Type) — were cream with invisible text */
-.ai-btn{
-  background:var(--iron-panel-2) !important; border:1px solid var(--iron-line) !important;
-  border-radius:3px !important; color:var(--iron-text) !important; box-shadow:none !important;
-}
-.ai-btn .ai-label{ color:var(--iron-text) !important; font-weight:800 !important; }
-.ai-btn .ai-sub{ color:var(--iron-mute) !important; }
-.ai-btn-photo{ border-left:3px solid var(--iron-cyan) !important; }
-.ai-btn-text{ border-left:3px solid var(--iron-orange) !important; }
 
 /* Nutrition summary pills — were white on white */
-.nut-pill{
-  background:var(--iron-panel-2) !important; border:1px solid var(--iron-line) !important;
-  border-radius:3px !important; box-shadow:none !important;
-}
-.nut-pill span{ color:var(--iron-mute) !important; }
-.nut-pill strong{ color:var(--iron-text) !important; }
-.nut-pill em{ color:var(--iron-mute) !important; }
 
 /* Detailed Nutrition disclosure + density cards */
 .detail-card{
@@ -2691,3 +2572,113 @@ input:focus, select:focus, textarea:focus{ border-color:var(--iron-volt) !import
 /* Time-of-day tags on planner cards */
 .pd-time{ font-style:normal; font-size:9px; font-weight:800; color:var(--iron-cyan); margin-left:4px; }
 .pd-type-extra{ margin-top:2px; opacity:.9; }
+
+/* ============================================================
+   v11 — MFP-style nutrition: diary, donut sub-pages, page tops
+   ============================================================ */
+
+/* Small brain row used on section pages */
+.brain-row--sm{ margin:8px 0 8px; }
+.brain-row--sm .br-main{ padding:9px 8px; font-size:12px; }
+.brain-row--sm .br-main span{ font-size:14px; }
+.brain-row--sm .br-side{ width:44px; font-size:15px; }
+
+/* One-line page stat row (under brain row) */
+.page-stats{
+  display:flex; gap:12px; flex-wrap:wrap; align-items:baseline;
+  padding:7px 10px; margin:0 0 10px;
+  background:var(--iron-panel); border:1px solid var(--iron-line); border-radius:4px;
+  font-size:10px; color:var(--iron-mute);
+}
+.page-stats span{ display:flex; gap:4px; align-items:baseline; }
+.page-stats i{ font-style:normal; font-weight:800; }
+.page-stats b{ font-family:'Inter Tight',sans-serif; font-weight:900; font-size:13px; color:var(--iron-text); }
+
+/* Diary — one box, meal sections */
+#diaryList{ display:flex; flex-direction:column; }
+.dy-meal{ border-top:1px solid var(--iron-line); padding:8px 0 6px; }
+.dy-meal:first-child{ border-top:none; padding-top:0; }
+.dy-meal-head{ display:flex; align-items:baseline; gap:8px; margin-bottom:4px; }
+.dy-meal-head b{ font-size:13px; font-weight:900; text-transform:uppercase; letter-spacing:.04em; }
+.dy-meal-head small{ font-size:9px; color:var(--iron-mute); flex:1; }
+.dy-meal-btns{ display:flex; gap:4px; flex-shrink:0; }
+.dy-add, .dy-macros{
+  font-size:9px; font-weight:900; letter-spacing:1px; padding:5px 8px;
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  color:var(--iron-volt); cursor:pointer; border-radius:3px;
+}
+.dy-macros{ color:var(--iron-cyan); }
+.dy-add:hover, .dy-macros:hover{ border-color:var(--iron-volt); }
+.dy-item{
+  display:flex; align-items:center; gap:8px; padding:6px 8px;
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  border-radius:3px; margin-bottom:3px; cursor:pointer;
+}
+.dy-item:hover{ border-color:var(--iron-volt); }
+.dy-item.sel{ border-color:var(--iron-volt); background:rgba(216,255,0,.06); }
+.dy-check{ flex-shrink:0; font-size:14px; }
+.dy-item-info{ flex:1; min-width:0; display:flex; flex-direction:column; }
+.dy-item-info b{ font-size:12px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dy-item-info small{ font-size:9px; color:var(--iron-mute); }
+.dy-item-cal{ flex-shrink:0; font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:800; }
+.dy-empty{ font-size:10px; color:var(--iron-mute); font-style:italic; padding:2px 8px 6px; }
+.dy-selectbar{
+  display:flex; align-items:center; gap:8px; margin-top:8px;
+  padding:8px 10px; background:var(--iron-panel-2); border:1px solid var(--iron-volt); border-radius:3px;
+}
+.dy-selectbar span{ flex:1; font-size:11px; font-weight:800; color:var(--iron-volt); }
+
+/* Item action sheet */
+.dy-sheet-h{ font-size:8px; font-weight:900; letter-spacing:1.5px; text-transform:uppercase; color:var(--iron-mute); margin:10px 0 4px; }
+.dy-sheet-row{ display:flex; gap:4px; flex-wrap:wrap; align-items:center; }
+.dy-sheet-row select, .dy-sheet-row input[type=date]{ font-size:11px; padding:7px 8px; flex:1; min-width:0; }
+
+/* Donut sub-pages (MFP look) */
+.donut-wrap{ height:180px; position:relative; margin:6px 0 10px; }
+.donut-legend{ display:flex; flex-direction:column; gap:2px; margin-bottom:10px; }
+.dl-row{
+  display:flex; align-items:baseline; gap:8px; padding:6px 10px;
+  background:var(--iron-panel-2); border:1px solid var(--iron-line); border-radius:3px; font-size:11px;
+}
+.dl-row b{ font-weight:800; min-width:76px; }
+.dl-row small{ color:var(--iron-mute); }
+.dl-swatch{ width:10px; height:10px; border-radius:2px; flex-shrink:0; display:inline-block; margin-right:6px; }
+.mfp-rows{ display:flex; flex-direction:column; gap:2px; }
+.mfp-row{
+  display:grid; grid-template-columns:1fr auto auto; gap:12px; align-items:baseline;
+  padding:8px 10px; background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  border-radius:3px; font-size:12px;
+}
+.mfp-row span{ font-weight:700; display:flex; align-items:center; }
+.mfp-row b{ font-family:'JetBrains Mono',monospace; font-weight:800; font-size:12px; text-align:right; min-width:52px; }
+.mfp-row .mfp-goal{ color:var(--iron-cyan); }
+.mfp-row.mfp-head{ background:transparent; border-color:transparent; padding:2px 10px; }
+.mfp-row.mfp-head b{ font-size:8px; letter-spacing:1.5px; text-transform:uppercase; color:var(--iron-mute); font-family:'Inter',sans-serif; }
+
+/* Nutrients rows with bars */
+.nt-block{ margin-bottom:3px; }
+.nt-block .nt-row{ margin-bottom:0; border-bottom:none; border-radius:3px 3px 0 0; }
+.nt-bar{ height:3px; background:#20262e; border-radius:0 0 3px 3px; overflow:hidden; }
+.nt-bar i{ display:block; height:100%; }
+
+/* Favorites label inside quick log */
+.ql-section-inline{
+  list-style:none; font-size:9px; font-weight:900; letter-spacing:1.5px;
+  color:var(--iron-volt); padding:4px 2px 2px;
+}
+
+/* Usuals (saved meals) — IRON restyle, lives under the Diary */
+.usuals-row{
+  background:var(--iron-panel) !important; border:1px solid var(--iron-line) !important;
+  border-radius:4px !important; padding:12px !important; box-shadow:none !important;
+  margin-top:12px;
+}
+.usuals-head h4{ color:var(--iron-volt) !important; font-size:10px !important; letter-spacing:1.5px; text-transform:uppercase; }
+.usuals-hint{ color:var(--iron-mute) !important; font-size:10px !important; }
+.usuals-empty, .usuals-grid .usual-card{ color:var(--iron-text) !important; }
+.usual-card{
+  background:var(--iron-panel-2) !important; border:1px solid var(--iron-line) !important;
+  border-radius:3px !important; box-shadow:none !important;
+}
+.usual-card *{ color:var(--iron-text); }
+.usual-card .uc-meta, .usual-card small{ color:var(--iron-mute) !important; }

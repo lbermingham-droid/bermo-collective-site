@@ -323,8 +323,6 @@ function bindGlobal(){
   on("#nutNext", "click", () => shiftDate(1));
 
 
-  // Meal add buttons
-  $$(".btn-add[data-add-meal]").forEach(b => b.addEventListener("click", () => openFoodModal(b.dataset.addMeal)));
 
   // Quick chips
   on("#dashCopyYesterday", "click", copyYesterday);
@@ -816,51 +814,6 @@ function drawWeeklyChart(){
 function renderNutritionBase(){
   $("#nutDate").textContent = fmtMed(currentDate);
   $("#nutDateInput").value = currentDate;
-
-  const t = totalsFor(currentDate);
-  const g = state.goals;
-  $("#nutCal").textContent = t.cal;
-  $("#nutCalGoal").textContent = "/ " + g.cal;
-  $("#nutP").textContent = t.p + "g";   $("#nutPGoal").textContent = "/ " + g.protein + "g";
-  $("#nutC").textContent = t.c + "g";   $("#nutCGoal").textContent = "/ " + g.carbs + "g";
-  $("#nutF").textContent = t.f + "g";   $("#nutFGoal").textContent = "/ " + g.fat + "g";
-  $("#nutRem").textContent = Math.max(0, g.cal - t.cal);
-
-  const day = dayObj(currentDate);
-  ["breakfast","lunch","dinner","snacks"].forEach(meal => {
-    const list = $(`.meal-list[data-list="${meal}"]`);
-    let mealCal = 0;
-    list.innerHTML = day.meals[meal].map(it => {
-      mealCal += it.cal;
-      return `<li class="meal-item">
-        <div>
-          <div class="mi-name">${escape(it.name)}</div>
-          <div class="mi-meta">${escape(it.serving||"")} · P${Math.round(it.p)} C${Math.round(it.c)} F${Math.round(it.f)}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <span class="mi-cal">${Math.round(it.cal)} kcal</span>
-          <button class="mi-del" data-meal="${meal}" data-id="${it.id}" aria-label="Remove">×</button>
-        </div>
-      </li>`;
-    }).join("");
-    $(`.meal-cal[data-cal="${meal}"]`).textContent = Math.round(mealCal) + " cal";
-    list.querySelectorAll(".mi-del").forEach(b => b.addEventListener("click", () => removeMealItem(b.dataset.meal, b.dataset.id)));
-  });
-
-  // quick chips
-  const chips = $("#quickChips");
-  const allFoods = [...DATA.foodDB, ...state.customFoods];
-  chips.innerHTML = DATA.quickFoods.map(name => {
-    const f = allFoods.find(x => x.name === name);
-    if(!f) return "";
-    return `<button class="qchip" data-id="${f.id}">${escape(f.name)} <i>${f.cal}kcal</i></button>`;
-  }).join("");
-  chips.querySelectorAll(".qchip").forEach(b => b.addEventListener("click", () => {
-    const f = allFoods.find(x => x.id === b.dataset.id);
-    dayObj(currentDate).meals.snacks.push({ id: uid(), ...f });
-    save(); renderAll();
-    toast(`Added ${f.name}`, "cyan");
-  }));
 }
 
 // ---------- FITNESS VIEW ----------
@@ -2206,7 +2159,7 @@ function renderUsuals(){
   if(!grid) return;
   const tpls = getTemplates();
   if(!tpls.length){
-    grid.innerHTML = `<div class="usuals-empty">No usuals saved yet. Use the <b>★ Save as usual</b> button on any meal block to save it.</div>`;
+    grid.innerHTML = `<div class="usuals-empty">No saved meals yet. In the Diary, tap <b>SELECT</b>, pick items, then <b>SAVE AS MEAL</b>.</div>`;
     return;
   }
   grid.innerHTML = tpls.map(t => {
@@ -2291,17 +2244,17 @@ function applyRedFlags(){
     }
   }
 
-  // Mark items in meal lists by macro-based tier (indulgent / watch / clean)
+  // Mark diary items by macro-based tier (indulgent / watch / clean)
   const day = dayObj(currentDate);
-  ["breakfast","lunch","dinner","snacks"].forEach(meal => {
-    const lis = document.querySelectorAll(`.meal-list[data-list="${meal}"] .meal-item`);
+  MEAL_ORDER.forEach(meal => {
+    const rows = document.querySelectorAll(`.dy-meal[data-meal="${meal}"] .dy-item`);
     (day.meals[meal] || []).forEach((item, i) => {
-      const li = lis[i];
-      if(!li) return;
-      li.classList.remove("cheat","watch","clean");
+      const row = rows[i];
+      if(!row) return;
+      row.classList.remove("cheat","watch","clean");
       const { tier, reason } = classifyFood(item);
-      li.classList.add(tier);
-      li.title = reason;
+      row.classList.add(tier);
+      row.title = reason;
     });
   });
 }
@@ -2312,25 +2265,10 @@ function applyRedFlags(){
 // Pipeline step (extracted from a wrapper patch; composed at EOF).
 function renderNutritionStep_RenderNutritionForFlags(){
   renderUsuals();
-  addSaveAsUsualButtons();
   applyRedFlags();
 }
 
-function addSaveAsUsualButtons(){
-  // Each meal-head gets a "★ Save as usual" button (idempotent)
-  document.querySelectorAll(".meal-head").forEach(head => {
-    if(head.querySelector(".save-usual")) return;
-    const meal = head.parentElement.dataset.meal;
-    if(!meal) return;
-    const btn = document.createElement("button");
-    btn.className = "save-usual";
-    btn.type = "button";
-    btn.textContent = "★ Save as usual";
-    btn.title = "Save this meal as a one-tap template";
-    btn.addEventListener("click", () => saveMealAsTemplate(meal));
-    head.appendChild(btn);
-  });
-}
+// (addSaveAsUsualButtons removed — diary SELECT -> SAVE AS MEAL covers it)
 
 
 
@@ -3224,11 +3162,7 @@ onReady(() => {
     });
   }
 
-  // Wire AI buttons on Nutrition tab
-  const photo = document.getElementById("aiPhotoBtn");
-  if(photo) photo.addEventListener("click", openAIPhotoModal);
-  const text = document.getElementById("aiTextBtn");
-  if(text) text.addEventListener("click", openAITextModal);
+  // (aiPhotoBtn/aiTextBtn removed — brain row covers photo/text entry)
 });
 
 // ---- API caller ----
@@ -3844,9 +3778,11 @@ function openBrainDumpReview(parsed){
 }
 
 onReady(() => {
-  on("#brainDumpBtn", "click", () => openBrainDumpModal());
-  on("#brainPhotoBtn", "click", () => openBrainDumpModal("photo"));
-  on("#brainSpeakBtn", "click", () => openBrainDumpModal("speak"));
+  // Brain rows exist on every page — delegate by class
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest(".js-brain");
+    if(b) openBrainDumpModal(b.dataset.bmode || undefined);
+  });
 });
 
 
@@ -3878,12 +3814,10 @@ onReady(() => {
       switch(action){
         case "food":
           jumpToTab("nutrition");
-          // Open food modal for default meal (lunch by time of day)
           setTimeout(() => {
             const h = new Date().getHours();
             const meal = h < 10 ? "breakfast" : h < 14 ? "lunch" : h < 18 ? "snacks" : "dinner";
-            const btn = document.querySelector(`.btn-add[data-add-meal="${meal}"]`);
-            if(btn) btn.click();
+            openFoodModal(meal);
           }, 200);
           break;
         case "photo":
@@ -7317,11 +7251,15 @@ function renderQuickLogPane(meal, allFoods, filter){
   `;
   const recList = $("#qlRecents");
   if(recList){
-    if(recents.length){
-      recList.innerHTML = recents.map(renderRow).join("");
-    } else {
-      recList.innerHTML = `<li class="ql-empty">No recents yet — log a few items to populate.</li>`;
-    }
+    const favs = (state.favFoods || []).filter(x =>
+      !filter || x.name.toLowerCase().includes(filterLower));
+    const favHtml = favs.length
+      ? `<li class="ql-section-inline">★ FAVORITES</li>` + favs.map(renderRow).join("")
+      : "";
+    const recHtml = recents.length
+      ? recents.map(renderRow).join("")
+      : `<li class="ql-empty">No recents yet — log a few items to populate.</li>`;
+    recList.innerHTML = favHtml + recHtml;
   }
   const allList = $("#qlAll");
   if(allList){
@@ -8746,9 +8684,10 @@ onReady(() => {
   // Nutrition chips: toggle sub-sections; Calendar opens the full
   // nutrition history overlay (Day/Week/Month/90D/Year)
   const NUT_SECTIONS = {
-    tracker: [".ai-quick-row", ".nut-summary", ".meal-grid", ".quick-row", "#detailCard", "#overBanner"],
-    summary: ["#nutSummaryCard", "#detailCard"],
-    saved:   ["#usualsRow"],
+    diary:     ["#diaryCard", "#usualsRow"],
+    calories:  ["#calSubCard"],
+    nutrients: ["#nutSummaryCard", "#detailCard"],
+    macros:    ["#macroSubCard"],
   };
   const applyNutSub = (sub) => {
     document.querySelectorAll("#nutSubnav .sub-chip").forEach(x =>
@@ -8760,22 +8699,19 @@ onReady(() => {
     (NUT_SECTIONS[sub] || []).forEach(sel => {
       document.querySelectorAll("#view-nutrition " + sel).forEach(el => el.classList.remove("nsec-hide"));
     });
-    if(sub === "summary"){
+    window._nutSub = sub;
+    // Charts must draw AFTER their canvas is visible
+    if(sub === "calories") renderCalSub();
+    else if(sub === "macros") renderMacroSub();
+    else if(sub === "nutrients"){
       const d = document.getElementById("detailCard");
       if(d) d.open = true;
       renderNutrientsTable();
     }
-    if(sub === "saved"){
-      const u = document.getElementById("usualsRow");
-      if(u) u.style.display = "";
-    }
   };
+  window._nutSub = "diary";
   document.querySelectorAll("#nutSubnav .sub-chip").forEach(c => {
-    c.addEventListener("click", () => {
-      const sub = c.dataset.nsub;
-      if(sub === "calendar"){ openDetail("nutrition"); return; }
-      applyNutSub(sub);
-    });
+    c.addEventListener("click", () => applyNutSub(c.dataset.nsub));
   });
 });
 
@@ -8934,11 +8870,15 @@ function renderNutrientsTable(){
     ${rows.map(([name, tot, goal, u]) => {
       const left = Math.max(0, goal - tot);
       const over = tot > goal && goal > 0;
-      return `<div class="nt-row">
-        <span>${name}</span>
-        <b>${tot}${u}</b>
-        <b class="nt-goal">${goal}${u}</b>
-        <b class="${over ? "nt-over" : "nt-left"}">${over ? (tot-goal)+u+" over" : left+u}</b>
+      const pct = goal > 0 ? Math.min(100, (tot/goal)*100) : 0;
+      return `<div class="nt-block">
+        <div class="nt-row">
+          <span>${name}</span>
+          <b>${tot}${u}</b>
+          <b class="nt-goal">${goal}${u}</b>
+          <b class="${over ? "nt-over" : "nt-left"}">${over ? (tot-goal)+u+" over" : left+u}</b>
+        </div>
+        <div class="nt-bar"><i style="width:${pct}%;background:${over ? "var(--iron-red)" : "var(--iron-volt)"}"></i></div>
       </div>`;
     }).join("")}
   `;
@@ -9063,6 +9003,331 @@ onReady(() => {
 });
 
 
+
+// =================================================================
+// v11 NUTRITION — MFP-style diary + sub-pages + item actions
+// =================================================================
+const MEAL_ORDER = ["breakfast","lunch","dinner","snacks"];
+const MEAL_LABEL = { breakfast:"Breakfast", lunch:"Lunch", dinner:"Dinner", snacks:"Snacks" };
+let _dySelectMode = false;
+let _dySelected = new Set(); // "meal|id"
+
+function getFavFoods(){
+  if(!state.favFoods) state.favFoods = [];
+  return state.favFoods;
+}
+
+function _mealTotals(meal){
+  const day = dayObj(currentDate);
+  return (day.meals[meal]||[]).reduce((a,it) => ({
+    cal:a.cal+(it.cal||0), p:a.p+(it.p||0), c:a.c+(it.c||0), f:a.f+(it.f||0)
+  }), {cal:0,p:0,c:0,f:0});
+}
+
+// ---- Top stat row (one line under the brain row) ----
+function renderNutTopStats(){
+  const el = document.getElementById("nutTopStats");
+  if(!el) return;
+  const t = totalsFor(currentDate);
+  const g = state.goals || {};
+  const water = (state.days[currentDate]||{}).water || 0;
+  el.innerHTML = `
+    <span><i style="color:#ff7a00">Cal</i> <b>${Math.round(t.cal)}</b>/${g.cal||0}</span>
+    <span><i style="color:#00e5ff">P</i> <b>${Math.round(t.p)}</b>/${g.protein||0}</span>
+    <span><i style="color:#d8ff00">C</i> <b>${Math.round(t.c)}</b>/${g.carbs||0}</span>
+    <span><i style="color:#ff2d7a">F</i> <b>${Math.round(t.f)}</b>/${g.fat||0}</span>
+    <span><i style="color:#00e5ff">💧</i> <b>${Math.round(water)}</b>/${g.water||64}</span>`;
+}
+function renderFitTopStats(){
+  const el = document.getElementById("fitTopStats");
+  if(!el) return;
+  const a = getActivityForDay(todayKey());
+  const g = getActivityGoals();
+  const lifted = _liftedLbFor(todayKey());
+  el.innerHTML = `
+    <span><i style="color:#ff2231">Move</i> <b>${Math.round(a.move)}</b>/${g.move}</span>
+    <span><i style="color:#d8ff00">Ex</i> <b>${Math.round(a.exercise)}</b>/${g.exercise}m</span>
+    <span><i style="color:#00e5ff">Stand</i> <b>${Math.round(a.stand)}</b>/${g.stand}h</span>
+    <span><i style="color:#8b95a1">Lifted</i> <b>${Math.round(lifted).toLocaleString()}</b> ${unit()}</span>`;
+}
+function renderBodyTopStats(){
+  const el = document.getElementById("bodyTopStats");
+  if(!el) return;
+  const wts = state.weights || [];
+  const last = wts.length ? wts[wts.length-1] : null;
+  const goal = (state.goals||{}).weight;
+  el.innerHTML = last
+    ? `<span><i style="color:#00e5ff">Now</i> <b>${last.val}</b> ${unit()}</span>
+       <span><i style="color:#d8ff00">Goal</i> <b>${goal || "—"}</b>${goal ? " "+unit() : ""}</span>
+       <span><i style="color:#8b95a1">To go</i> <b>${goal ? Math.abs(last.val-goal).toFixed(1) : "—"}</b></span>`
+    : `<span><i style="color:#8b95a1">No weigh-ins yet</i></span>`;
+}
+
+// ---- DIARY (one box, per-meal macros, item actions) ----
+function renderDiary(){
+  const list = document.getElementById("diaryList");
+  if(!list) return;
+  const day = dayObj(currentDate);
+  list.innerHTML = MEAL_ORDER.map(meal => {
+    const items = day.meals[meal] || [];
+    const mt = _mealTotals(meal);
+    const rows = items.map(it => {
+      const key = meal + "|" + it.id;
+      return `<div class="dy-item ${_dySelected.has(key) ? "sel" : ""}" data-meal="${meal}" data-id="${it.id}">
+        ${_dySelectMode ? `<span class="dy-check">${_dySelected.has(key) ? "☑" : "☐"}</span>` : ""}
+        <div class="dy-item-info">
+          <b>${escape(it.name)}</b>
+          <small>${escape(it.serving||"")}${it.serving ? " · " : ""}P${Math.round(it.p||0)} C${Math.round(it.c||0)} F${Math.round(it.f||0)}</small>
+        </div>
+        <span class="dy-item-cal">${Math.round(it.cal||0)}</span>
+      </div>`;
+    }).join("");
+    return `<div class="dy-meal" data-meal="${meal}">
+      <div class="dy-meal-head">
+        <b>${MEAL_LABEL[meal]}</b>
+        <small>${Math.round(mt.cal)} cal · P${Math.round(mt.p)} C${Math.round(mt.c)} F${Math.round(mt.f)}</small>
+        <span class="dy-meal-btns">
+          <button class="dy-add" data-dy-add="${meal}" title="Add food">+ ADD</button>
+          <button class="dy-macros" data-dy-macros="${meal}" title="Log macros only, no food item">±M</button>
+        </span>
+      </div>
+      ${rows || `<div class="dy-empty">Nothing logged</div>`}
+    </div>`;
+  }).join("");
+
+  list.querySelectorAll("[data-dy-add]").forEach(b =>
+    b.addEventListener("click", () => openFoodModal(b.dataset.dyAdd)));
+  list.querySelectorAll("[data-dy-macros]").forEach(b =>
+    b.addEventListener("click", () => openMacrosOnlyModal(b.dataset.dyMacros)));
+  list.querySelectorAll(".dy-item").forEach(row => {
+    row.addEventListener("click", () => {
+      const meal = row.dataset.meal, id = row.dataset.id;
+      if(_dySelectMode){
+        const key = meal + "|" + id;
+        _dySelected.has(key) ? _dySelected.delete(key) : _dySelected.add(key);
+        const cnt = document.getElementById("dySelCount");
+        if(cnt) cnt.textContent = _dySelected.size + " selected";
+        renderDiary();
+      } else {
+        openDiaryItemSheet(meal, id);
+      }
+    });
+  });
+  const bar = document.getElementById("dySelectBar");
+  if(bar) bar.classList.toggle("hidden", !_dySelectMode);
+  const selBtn = document.getElementById("dySelectBtn");
+  if(selBtn) selBtn.textContent = _dySelectMode ? "DONE" : "SELECT";
+}
+
+// ---- Item action sheet: move / duplicate / favorite / delete ----
+function openDiaryItemSheet(meal, id){
+  const day = dayObj(currentDate);
+  const it = (day.meals[meal]||[]).find(x => x.id === id);
+  if(!it) return;
+  const others = MEAL_ORDER.filter(m => m !== meal);
+  openModal(escape(it.name), `
+    <p class="wb-hint" style="margin:0 0 10px">${Math.round(it.cal||0)} cal · P${Math.round(it.p||0)} C${Math.round(it.c||0)} F${Math.round(it.f||0)}${it.serving ? " · " + escape(it.serving) : ""}</p>
+    <div class="dy-sheet">
+      <div class="dy-sheet-h">Move to</div>
+      <div class="dy-sheet-row">${others.map(m => `<button class="btn btn-ghost btn-sm" data-mv="${m}">${MEAL_LABEL[m]}</button>`).join("")}</div>
+      <div class="dy-sheet-h">Duplicate to</div>
+      <div class="dy-sheet-row">
+        <select id="dupMeal">${MEAL_ORDER.map(m => `<option value="${m}" ${m===meal?"selected":""}>${MEAL_LABEL[m]}</option>`).join("")}</select>
+        <input type="date" id="dupDate" value="${currentDate}">
+        <button class="btn btn-cyan btn-sm" id="dupGo">COPY</button>
+      </div>
+      <div class="dy-sheet-row" style="margin-top:10px">
+        <button class="btn btn-ghost btn-sm" id="itFav">☆ FAVORITE</button>
+        <button class="btn btn-ghost btn-sm" id="itEdit">✎ EDIT</button>
+        <button class="btn btn-pink btn-sm" id="itDel">DELETE</button>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close>Close</button></div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    root.querySelectorAll("[data-mv]").forEach(b => b.addEventListener("click", () => {
+      day.meals[meal] = day.meals[meal].filter(x => x.id !== id);
+      day.meals[b.dataset.mv].push(it);
+      save(); closeModal(); renderAll();
+      toast(`Moved to ${MEAL_LABEL[b.dataset.mv]}`, "cyan");
+    }));
+    document.getElementById("dupGo").addEventListener("click", () => {
+      const dMeal = document.getElementById("dupMeal").value;
+      const dDate = document.getElementById("dupDate").value;
+      if(!dDate) return;
+      const target = dayObj(dDate);
+      target.meals[dMeal].push({ ...it, id: uid() });
+      save(); closeModal(); renderAll();
+      toast(`Copied to ${MEAL_LABEL[dMeal]} · ${fmtDate(dDate)}`, "cyan");
+    });
+    document.getElementById("itFav").addEventListener("click", () => {
+      const favs = getFavFoods();
+      if(!favs.find(f => f.name === it.name)){
+        favs.unshift({ name:it.name, serving:it.serving, cal:it.cal, p:it.p, c:it.c, f:it.f });
+        state.favFoods = favs.slice(0, 30);
+        save(); toast("Saved to favorites ★", "cyan");
+      } else toast("Already in favorites", "cyan");
+    });
+    document.getElementById("itEdit").addEventListener("click", () => {
+      closeModal();
+      openMacrosOnlyModal(meal, it);
+    });
+    document.getElementById("itDel").addEventListener("click", () => {
+      day.meals[meal] = day.meals[meal].filter(x => x.id !== id);
+      save(); closeModal(); renderAll();
+      toast("Deleted", "pink");
+    });
+  });
+}
+
+// ---- Macros-only quick entry (also doubles as item editor) ----
+function openMacrosOnlyModal(meal, existing){
+  const it = existing || { name:"", cal:"", p:"", c:"", f:"", serving:"" };
+  openModal(existing ? "Edit item" : "Log macros only", `
+    <label><span>Name (optional)</span><input id="moName" type="text" maxlength="40" value="${escape(it.name||"")}" placeholder="e.g. Quick macros"></label>
+    <div class="form-grid">
+      <label><span>Calories</span><input id="moCal" type="number" min="0" max="4000" value="${it.cal !== "" ? Math.round(it.cal) : ""}"></label>
+      <label><span>Protein g</span><input id="moP" type="number" min="0" max="300" step="0.1" value="${it.p !== "" ? it.p : ""}"></label>
+      <label><span>Carbs g</span><input id="moC" type="number" min="0" max="500" step="0.1" value="${it.c !== "" ? it.c : ""}"></label>
+      <label><span>Fat g</span><input id="moF" type="number" min="0" max="200" step="0.1" value="${it.f !== "" ? it.f : ""}"></label>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-cyan" id="moSave">${existing ? "SAVE" : "+ LOG"}</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    document.getElementById("moSave").addEventListener("click", () => {
+      const cal = parseFloat(document.getElementById("moCal").value) || 0;
+      const p = parseFloat(document.getElementById("moP").value) || 0;
+      const c = parseFloat(document.getElementById("moC").value) || 0;
+      const f = parseFloat(document.getElementById("moF").value) || 0;
+      const name = document.getElementById("moName").value.trim() || "Quick macros";
+      if(!cal && !p && !c && !f){ toast("Enter at least one number", "pink"); return; }
+      const day = dayObj(currentDate);
+      if(existing){
+        existing.name = name; existing.cal = cal; existing.p = p; existing.c = c; existing.f = f;
+      } else {
+        day.meals[meal].push({ id: uid(), name, serving:"", cal, p, c, f });
+      }
+      save(); closeModal(); renderAll();
+      toast(existing ? "Updated" : `Logged to ${MEAL_LABEL[meal]}`, "cyan");
+    });
+  });
+}
+
+
+
+// ---- Multi-select → save as meal ----
+function saveSelectionAsMeal(){
+  if(!_dySelected.size){ toast("Tap items to select first", "pink"); return; }
+  const day = dayObj(currentDate);
+  const items = [];
+  _dySelected.forEach(key => {
+    const [meal, id] = key.split("|");
+    const it = (day.meals[meal]||[]).find(x => x.id === id);
+    if(it) items.push({ name:it.name, serving:it.serving, cal:it.cal, p:it.p, c:it.c, f:it.f });
+  });
+  if(!items.length) return;
+  const name = prompt("Name this meal:", "My meal");
+  if(!name) return;
+  const totals = items.reduce((a,b) => ({
+    cal:a.cal+(b.cal||0), p:a.p+(b.p||0), c:a.c+(b.c||0), f:a.f+(b.f||0)
+  }), {cal:0,p:0,c:0,f:0});
+  ["cal","p","c","f"].forEach(k => totals[k] = Math.round(totals[k]*10)/10);
+  if(!state.mealTemplates) state.mealTemplates = [];
+  state.mealTemplates.unshift({ id: uid(), name, items, totals, createdAt: currentDate });
+  save();
+  _dySelectMode = false; _dySelected.clear();
+  renderDiary();
+  toast(`Saved meal: ${name} (${items.length} items)`, "cyan");
+}
+
+// ---- CALORIES sub-page (MFP: donut by meal + totals rows) ----
+const MEAL_COLORS = { breakfast:"#4d8dff", lunch:"#1f5fd6", dinner:"#7ab0ff", snacks:"#2e77e6" };
+let _calDonutRef = null, _macroDonutRef = null;
+function renderCalSub(){
+  const cv = document.getElementById("calDonut");
+  if(!cv || typeof Chart === "undefined") return;
+  const totals = MEAL_ORDER.map(m => _mealTotals(m).cal);
+  const totalCal = totals.reduce((a,b) => a+b, 0);
+  if(_calDonutRef){ _calDonutRef.destroy(); _calDonutRef = null; }
+  _calDonutRef = new Chart(cv.getContext("2d"), {
+    type: "doughnut",
+    data: {
+      labels: MEAL_ORDER.map(m => MEAL_LABEL[m]),
+      datasets: [{
+        data: totalCal ? totals : [1],
+        backgroundColor: totalCal ? MEAL_ORDER.map(m => MEAL_COLORS[m]) : ["#161b22"],
+        borderColor: "#07080a", borderWidth: 2,
+      }],
+    },
+    options: { responsive:true, maintainAspectRatio:false, cutout:"62%",
+      plugins:{ legend:{ display:false }, tooltip:{ enabled: totalCal > 0 } } },
+  });
+  const legend = document.getElementById("calLegend");
+  if(legend) legend.innerHTML = MEAL_ORDER.map((m,i) => {
+    const pct = totalCal ? Math.round((totals[i]/totalCal)*100) : 0;
+    return `<div class="dl-row"><span class="dl-swatch" style="background:${MEAL_COLORS[m]}"></span>
+      <b>${MEAL_LABEL[m]}</b><small>${pct}% (${Math.round(totals[i])} cal)</small></div>`;
+  }).join("");
+  const t = totalsFor(currentDate);
+  const a = getActivityForDay(currentDate);
+  const g = state.goals || {};
+  const rowsEl = document.getElementById("calTotals");
+  if(rowsEl) rowsEl.innerHTML = `
+    <div class="mfp-row"><span>Total Calories</span><b>${Math.round(t.cal)}</b></div>
+    <div class="mfp-row"><span>Exercise Burn</span><b>${a.move ? "-" + Math.round(a.move) : "0"}</b></div>
+    <div class="mfp-row"><span>Net Calories</span><b>${Math.round(t.cal - (a.move||0))}</b></div>
+    <div class="mfp-row"><span>Goal</span><b class="mfp-goal">${g.cal || 0}</b></div>`;
+}
+
+// ---- MACROS sub-page (MFP: split donut + total% vs goal%) ----
+function renderMacroSub(){
+  const cv = document.getElementById("macroDonut");
+  if(!cv || typeof Chart === "undefined") return;
+  const t = totalsFor(currentDate);
+  const g = state.goals || {};
+  const calFrom = { c: t.c*4, f: t.f*9, p: t.p*4 };
+  const totalMacroCal = calFrom.c + calFrom.f + calFrom.p;
+  const goalCal = { c:(g.carbs||0)*4, f:(g.fat||0)*9, p:(g.protein||0)*4 };
+  const goalTotal = goalCal.c + goalCal.f + goalCal.p || 1;
+  const COLORS = { c:"#2bc4a9", f:"#c77dde", p:"#f5a623" };
+  if(_macroDonutRef){ _macroDonutRef.destroy(); _macroDonutRef = null; }
+  _macroDonutRef = new Chart(cv.getContext("2d"), {
+    type:"doughnut",
+    data:{
+      labels:["Carbohydrates","Fat","Protein"],
+      datasets:[{
+        data: totalMacroCal ? [calFrom.c, calFrom.f, calFrom.p] : [1],
+        backgroundColor: totalMacroCal ? [COLORS.c, COLORS.f, COLORS.p] : ["#161b22"],
+        borderColor:"#07080a", borderWidth:2,
+      }],
+    },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:"62%",
+      plugins:{ legend:{ display:false }, tooltip:{ enabled: totalMacroCal > 0 } } },
+  });
+  const pct = (v) => totalMacroCal ? Math.round((v/totalMacroCal)*100) : 0;
+  const gpct = (v) => Math.round((v/goalTotal)*100);
+  const rows = document.getElementById("macroRows");
+  if(rows) rows.innerHTML = `
+    <div class="mfp-row mfp-head"><span></span><b>Total</b><b class="mfp-goal">Goal</b></div>
+    <div class="mfp-row"><span><i class="dl-swatch" style="background:${COLORS.c}"></i>Carbohydrates (${Math.round(t.c)}g)</span><b>${pct(calFrom.c)}%</b><b class="mfp-goal">${gpct(goalCal.c)}%</b></div>
+    <div class="mfp-row"><span><i class="dl-swatch" style="background:${COLORS.f}"></i>Fat (${Math.round(t.f)}g)</span><b>${pct(calFrom.f)}%</b><b class="mfp-goal">${gpct(goalCal.f)}%</b></div>
+    <div class="mfp-row"><span><i class="dl-swatch" style="background:${COLORS.p}"></i>Protein (${Math.round(t.p)}g)</span><b>${pct(calFrom.p)}%</b><b class="mfp-goal">${gpct(goalCal.p)}%</b></div>`;
+}
+
+onReady(() => {
+  on("#dySelectBtn", "click", () => {
+    _dySelectMode = !_dySelectMode;
+    if(!_dySelectMode) _dySelected.clear();
+    renderDiary();
+  });
+  on("#dySaveMeal", "click", saveSelectionAsMeal);
+  on("#dySelCancel", "click", () => { _dySelectMode = false; _dySelected.clear(); renderDiary(); });
+});
+
+
 // =================================================================
 
 // PIPELINES — explicit composition (replaces the old wrapper chains).
@@ -9080,6 +9345,7 @@ function renderBody(){
   renderBodyBase();
   try{ renderBodyComp(); }catch(e){ console.warn("body comp", e); }
   try{ renderBodyRing(); }catch(e){ console.warn("body ring", e); }
+  try{ renderBodyTopStats(); }catch(e){ console.warn("body top", e); }
 }
 
 function renderFitness(){
@@ -9090,6 +9356,7 @@ function renderFitness(){
   try{ renderMuscleMap(); }catch(e){ console.warn("muscle map", e); }
   try{ renderFitProgress(); }catch(e){ console.warn("fit progress", e); }
   try{ renderFitRing(); }catch(e){ console.warn("fit ring", e); }
+  try{ renderFitTopStats(); }catch(e){ console.warn("fit top", e); }
   try{ applyFitSub(); }catch(e){ console.warn("fit subnav", e); }
 }
 
@@ -9163,10 +9430,16 @@ function renderTrends(){
 
 function renderNutrition(){
   renderNutritionBase();
-  renderNutritionStep_RenderNutritionForFlags();
+  try{ renderDiary(); }catch(e){ console.warn("diary", e); }
+  renderNutritionStep_RenderNutritionForFlags(); // decorates diary items — must follow renderDiary
   renderDetail();
   try{ renderNutRing(); }catch(e){ console.warn("nut ring", e); }
+  try{ renderNutTopStats(); }catch(e){ console.warn("nut top", e); }
   try{ renderNutrientsTable(); }catch(e){ console.warn("nutrients", e); }
+  try{
+    if(window._nutSub === "calories") renderCalSub();
+    else if(window._nutSub === "macros") renderMacroSub();
+  }catch(e){ console.warn("nut sub", e); }
 }
 
 // ---------- SINGLE INIT ----------

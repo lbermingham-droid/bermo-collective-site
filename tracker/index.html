@@ -191,7 +191,7 @@
     <div class="tb-left">
       <div class="tb-logo">
         <span class="tb-top">BERMO<span class="c">.</span></span>
-        <span class="tb-bot">TRACKER <span style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v10</span></span>
+        <span class="tb-bot">TRACKER <span style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v11</span></span>
       </div>
     </div>
     <nav class="tb-nav" id="tabNav">
@@ -244,11 +244,11 @@
 
       <!-- BRAIN DUMP — one line: type / photo / speak -->
       <div class="brain-row">
-        <button class="br-main" id="brainDumpBtn" title="Type your whole day — AI files everything">
+        <button class="br-main js-brain" data-bmode="" title="Type your whole day — AI files everything">
           <span>🧠</span><b>BRAIN DUMP</b>
         </button>
-        <button class="br-side" id="brainPhotoBtn" title="Snap food / watch / whiteboard">📸</button>
-        <button class="br-side" id="brainSpeakBtn" title="Speak your day">🎤</button>
+        <button class="br-side js-brain" data-bmode="photo" title="Snap food / watch / whiteboard">📸</button>
+        <button class="br-side js-brain" data-bmode="speak" title="Speak your day">🎤</button>
       </div>
 
       <!-- RING DECK — Apple-style: day selector + fitness/nutrition rings -->
@@ -521,37 +521,52 @@
         </div>
       </header>
 
+      <div class="brain-row brain-row--sm">
+        <button class="br-main js-brain" data-bmode="" title="Type your whole day — AI files everything"><span>🧠</span><b>BRAIN DUMP</b></button>
+        <button class="br-side js-brain" data-bmode="photo" title="Snap food / watch">📸</button>
+        <button class="br-side js-brain" data-bmode="speak" title="Speak your day">🎤</button>
+      </div>
+      <div class="page-stats" id="nutTopStats"></div>
+
       <div class="subnav" id="nutSubnav">
-        <button class="sub-chip active" data-nsub="tracker">TRACKER</button>
-        <button class="sub-chip" data-nsub="summary">SUMMARY</button>
-        <button class="sub-chip" data-nsub="saved">SAVED</button>
-        <button class="sub-chip" data-nsub="calendar">CALENDAR</button>
+        <button class="sub-chip active" data-nsub="diary">DIARY</button>
+        <button class="sub-chip" data-nsub="calories">CALORIES</button>
+        <button class="sub-chip" data-nsub="nutrients">NUTRIENTS</button>
+        <button class="sub-chip" data-nsub="macros">MACROS</button>
       </div>
 
       <div class="over-banner hidden" id="overBanner"></div>
 
-      <div class="ai-quick-row">
-        <button class="ai-btn ai-btn-photo" id="aiPhotoBtn">
-          <span class="ai-icon">📸</span>
-          <span class="ai-label">Snap food photo</span>
-          <span class="ai-sub">AI estimates calories + macros</span>
-        </button>
-        <button class="ai-btn ai-btn-text" id="aiTextBtn">
-          <span class="ai-icon">💬</span>
-          <span class="ai-label">Type what you ate</span>
-          <span class="ai-sub">"2 eggs, oatmeal, coffee" → done</span>
-        </button>
+      <!-- DIARY — one box, MFP-style meals with per-meal macros + item actions -->
+      <div class="card" id="diaryCard" data-nsec="diary">
+        <div class="card-head">
+          <span class="card-eyebrow">Diary</span>
+          <button class="link-btn-sm" id="dySelectBtn">SELECT</button>
+        </div>
+        <div id="diaryList"></div>
+        <div class="dy-selectbar hidden" id="dySelectBar">
+          <span id="dySelCount">0 selected</span>
+          <button class="btn btn-cyan btn-sm" id="dySaveMeal">SAVE AS MEAL</button>
+          <button class="btn btn-ghost btn-sm" id="dySelCancel">CANCEL</button>
+        </div>
       </div>
 
-      <div class="nut-summary">
-        <div class="nut-pill"><span>Calories</span><strong id="nutCal">0</strong><em id="nutCalGoal">/ 2200</em></div>
-        <div class="nut-pill"><span>Protein</span><strong id="nutP">0g</strong><em id="nutPGoal">/ 0g</em></div>
-        <div class="nut-pill"><span>Carbs</span><strong id="nutC">0g</strong><em id="nutCGoal">/ 0g</em></div>
-        <div class="nut-pill"><span>Fat</span><strong id="nutF">0g</strong><em id="nutFGoal">/ 0g</em></div>
-        <div class="nut-pill"><span>Remaining</span><strong id="nutRem">2200</strong><em>cal</em></div>
+      <!-- CALORIES — MFP-style meal breakdown donut + totals -->
+      <div class="card nsec-hide" id="calSubCard" data-nsec="calories">
+        <div class="card-head"><span class="card-eyebrow">Calories · by meal</span></div>
+        <div class="donut-wrap"><canvas id="calDonut"></canvas></div>
+        <div class="donut-legend" id="calLegend"></div>
+        <div class="mfp-rows" id="calTotals"></div>
       </div>
 
-      <div class="card nsec-hide" id="nutSummaryCard" data-nsec="summary">
+      <!-- MACROS — MFP-style split donut + % vs goal -->
+      <div class="card nsec-hide" id="macroSubCard" data-nsec="macros">
+        <div class="card-head"><span class="card-eyebrow">Macros · split</span></div>
+        <div class="donut-wrap"><canvas id="macroDonut"></canvas></div>
+        <div class="mfp-rows" id="macroRows"></div>
+      </div>
+
+      <div class="card nsec-hide" id="nutSummaryCard" data-nsec="nutrients">
         <div class="card-head">
           <span class="card-eyebrow">Nutrients · today</span>
           <span class="card-meta">total / goal / left</span>
@@ -559,47 +574,7 @@
         <div class="nt-table" id="ntTable"></div>
       </div>
 
-      <div class="meal-grid">
-        <article class="meal" data-meal="breakfast">
-          <header class="meal-head">
-            <h3>Breakfast</h3>
-            <span class="meal-cal" data-cal="breakfast">0 cal</span>
-            <button class="btn-add" data-add-meal="breakfast">+ Add food</button>
-          </header>
-          <ul class="meal-list" data-list="breakfast"></ul>
-        </article>
-        <article class="meal" data-meal="lunch">
-          <header class="meal-head">
-            <h3>Lunch</h3>
-            <span class="meal-cal" data-cal="lunch">0 cal</span>
-            <button class="btn-add" data-add-meal="lunch">+ Add food</button>
-          </header>
-          <ul class="meal-list" data-list="lunch"></ul>
-        </article>
-        <article class="meal" data-meal="dinner">
-          <header class="meal-head">
-            <h3>Dinner</h3>
-            <span class="meal-cal" data-cal="dinner">0 cal</span>
-            <button class="btn-add" data-add-meal="dinner">+ Add food</button>
-          </header>
-          <ul class="meal-list" data-list="dinner"></ul>
-        </article>
-        <article class="meal" data-meal="snacks">
-          <header class="meal-head">
-            <h3>Snacks</h3>
-            <span class="meal-cal" data-cal="snacks">0 cal</span>
-            <button class="btn-add" data-add-meal="snacks">+ Add food</button>
-          </header>
-          <ul class="meal-list" data-list="snacks"></ul>
-        </article>
-      </div>
-
-      <div class="quick-row">
-        <h4>Quick add</h4>
-        <div class="quick-chips" id="quickChips"></div>
-      </div>
-
-      <details class="detail-card" id="detailCard">
+      <details class="detail-card nsec-hide" id="detailCard" data-nsec="nutrients">
         <summary>
           <span>Detailed Nutrition <span class="detail-sub">fiber · sugar · per-meal breakdown</span></span>
         </summary>
@@ -638,6 +613,13 @@
         <button class="sub-chip" data-fsub="calendar">CALENDAR</button>
         <button class="sub-chip" data-fsub="saved">SAVED</button>
       </div>
+      <div class="brain-row brain-row--sm">
+        <button class="br-main js-brain" data-bmode=""><span>🧠</span><b>BRAIN DUMP</b></button>
+        <button class="br-side js-brain" data-bmode="photo">📸</button>
+        <button class="br-side js-brain" data-bmode="speak">🎤</button>
+      </div>
+      <div class="page-stats" id="fitTopStats"></div>
+
 
       <div class="grid-12">
         <!-- Today's plan mini box (top of fitness) -->
@@ -756,6 +738,13 @@
           <button class="btn btn-ghost" id="inbodyBtn">📸 InBody scan</button>
         </div>
       </header>
+      <div class="brain-row brain-row--sm">
+        <button class="br-main js-brain" data-bmode=""><span>🧠</span><b>BRAIN DUMP</b></button>
+        <button class="br-side js-brain" data-bmode="photo">📸</button>
+        <button class="br-side js-brain" data-bmode="speak">🎤</button>
+      </div>
+      <div class="page-stats" id="bodyTopStats"></div>
+
 
       <div class="grid-12">
         <div class="card span-4">
@@ -812,6 +801,12 @@
           <button class="btn btn-cyan" id="goalsEditBtn">EDIT GOALS</button>
         </div>
       </header>
+      <div class="brain-row brain-row--sm">
+        <button class="br-main js-brain" data-bmode=""><span>🧠</span><b>BRAIN DUMP</b></button>
+        <button class="br-side js-brain" data-bmode="photo">📸</button>
+        <button class="br-side js-brain" data-bmode="speak">🎤</button>
+      </div>
+
 <!-- Goal Contract card -->
       <div class="contract-card" id="contractCard">
         <div class="cc-grid">
@@ -873,6 +868,12 @@
           <button class="btn btn-cyan" id="trRefreshBtn">⟳ Recompute</button>
         </div>
       </header>
+      <div class="brain-row brain-row--sm">
+        <button class="br-main js-brain" data-bmode=""><span>🧠</span><b>BRAIN DUMP</b></button>
+        <button class="br-side js-brain" data-bmode="photo">📸</button>
+        <button class="br-side js-brain" data-bmode="speak">🎤</button>
+      </div>
+
 
       <div class="trend-hero" id="trendHero">
         <div class="trend-hero-icon">✦</div>

@@ -93,7 +93,7 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
     await page.click(`${tabSel}[data-tab="nutrition"]`).catch(()=>{});
     await page.click(`${tabSel}[data-tab="food"]`).catch(()=>{});
     await page.waitForTimeout(400);
-    await page.click('.btn-add[data-add-meal="breakfast"]', { timeout: 4000 });
+    await page.click('[data-dy-add="breakfast"]', { timeout: 4000 });
     await page.waitForTimeout(500);
     if (!(await page.isVisible("#modal.open"))) fail("food modal opens", "modal not open");
     else {
@@ -113,7 +113,7 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
   // 7. Modal X closes
   try {
     if (await page.isVisible("#modal.open")) await page.click("#modal .modal-close");
-    await page.click('.btn-add[data-add-meal="lunch"]', { timeout: 4000 });
+    await page.click('[data-dy-add="lunch"]', { timeout: 4000 });
     await page.waitForTimeout(350);
     await page.click("#modal .modal-close", { timeout: 3000 });
     await page.waitForTimeout(350);
@@ -152,7 +152,7 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       water: !!document.getElementById("deckWaterAdd"),
       work: document.querySelectorAll("#dwList .dw-row").length,
       cmp: document.querySelectorAll("#cmpRows .cmp-row").length,
-      brain: !!document.getElementById("brainSpeakBtn"),
+      brain: document.querySelectorAll(".js-brain").length >= 3,
     }));
     (dash.days === 7 && dash.rings && dash.water && dash.work === 7 && dash.cmp >= 3 && dash.brain)
       ? ok(`dashboard renders (day strip + dual rings + water + ${dash.work}-day list + compare)`)

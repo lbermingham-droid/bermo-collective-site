@@ -159,6 +159,30 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       : fail("dashboard renders", JSON.stringify(dash));
   } catch (e) { fail("dashboard re-render", e); }
 
+  // 10. Calendars connected: one selected-day state across pages
+  try {
+    await page.click(`${tabSel}[data-tab="dashboard"]`);
+    await page.waitForTimeout(500);
+    const tapped = await page.$eval("#deckDays .dk-dc:first-child", el => el.dataset.date);
+    await page.click("#deckDays .dk-dc:first-child");
+    await page.waitForTimeout(400);
+    await page.click(`${tabSel}[data-tab="nutrition"]`);
+    await page.waitForTimeout(400);
+    const nutDate = await page.$eval("#nutDateInput", el => el.value);
+    // now move the date in nutrition and confirm the dashboard follows
+    const prev = await page.evaluate(() => {
+      const el = document.getElementById("nutPrev");
+      el.click();
+      return document.getElementById("nutDateInput").value;
+    });
+    await page.click(`${tabSel}[data-tab="dashboard"]`);
+    await page.waitForTimeout(400);
+    const deckSel = await page.$eval("#deckDays .dk-dc.sel", el => el.dataset.date).catch(() => null);
+    (nutDate === tapped && deckSel === prev)
+      ? ok("calendars connected (dashboard day strip <-> nutrition date)")
+      : fail("calendars connected", JSON.stringify({ tapped, nutDate, prev, deckSel }));
+  } catch (e) { fail("calendars connected", e); }
+
   await browser.close();
   print();
 })();

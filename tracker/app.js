@@ -7739,9 +7739,9 @@ function dayGoalStatus(k){
   return out;
 }
 
-// Ring deck v3 — Apple-style. A tappable day strip drives which date the
-// fitness + nutrition ring stacks and stats show (deckDate).
-let deckDate = todayKey();
+// Ring deck v3 — Apple-style. The day strip reads/writes currentDate:
+// ONE selected-day state for the whole app, so the dashboard, nutrition,
+// fitness, and every calendar stay in sync. Never add a second date state.
 
 function drawRingStack(canvasId, rings){
   const canvas = document.getElementById(canvasId);
@@ -7808,12 +7808,12 @@ function renderDeck(){
   // ---- Day selector strip (Mon–Sun, mini rings, tap to switch) ----
   const days = document.getElementById("deckDays");
   if(days){
-    const mon = weekStart(new Date());
+    const mon = weekStart(new Date(currentDate + "T12:00:00"));
     let html = "";
     for(let i = 0; i < 7; i++){
       const d = new Date(mon.getTime() + i*86400000);
       const k = todayKey(d);
-      const isSel = k === deckDate;
+      const isSel = k === currentDate;
       const isToday = k === todayKey();
       html += `<button class="dk-dc ${isSel?"sel":""}" data-date="${k}">
         <span class="dk-dc-l ${isToday?"today":""}">${d.toLocaleDateString(undefined,{weekday:"narrow"})}</span>
@@ -7823,13 +7823,13 @@ function renderDeck(){
     days.innerHTML = html;
     days.querySelectorAll(".dk-dc").forEach(b => {
       _drawDayMini(b.querySelector("canvas"), b.dataset.date);
-      b.addEventListener("click", () => { deckDate = b.dataset.date; renderDeck(); });
+      b.addEventListener("click", () => { currentDate = b.dataset.date; renderAll(); });
     });
   }
 
-  // ---- Fitness ring stack + stats for deckDate ----
-  const a = getActivityForDay(deckDate);
-  const lifted = _liftedLbFor(deckDate);
+  // ---- Fitness ring stack + stats for the selected day ----
+  const a = getActivityForDay(currentDate);
+  const lifted = _liftedLbFor(currentDate);
   drawRingStack("deckFitRings", [
     { color:"#ff2231", track:"#2b090d", val:a.move,     goal:g.move,     r:56, lw:13 },
     { color:"#d8ff00", track:"#20240a", val:a.exercise, goal:g.exercise, r:41, lw:13 },
@@ -7843,8 +7843,8 @@ function renderDeck(){
     <div class="dds"><i style="color:#00e5ff">Stand</i><b>${Math.round(a.stand)}</b><s>/${g.stand} hr</s></div>
     <div class="dds"><i style="color:#8b95a1">Lifted</i><b>${Math.round(lifted).toLocaleString()}</b><s>${unit()}</s></div>`;
 
-  // ---- Nutrition ring stack + stats for deckDate ----
-  const t = totalsFor(deckDate);
+  // ---- Nutrition ring stack + stats for the selected day ----
+  const t = totalsFor(currentDate);
   drawRingStack("deckNutRings", [
     { color:"#ff7a00", track:"#291503", val:t.cal, goal:calG,           r:56, lw:13 },
     { color:"#00e5ff", track:"#0a2126", val:t.p,   goal:gl.protein||1,  r:41, lw:13 },
@@ -7861,14 +7861,14 @@ function renderDeck(){
   // ---- Water row (one line, one-tap +8) ----
   const wr = document.getElementById("deckWaterRow");
   if(wr){
-    const water = (state.days[deckDate] || {}).water || 0;
+    const water = (state.days[currentDate] || {}).water || 0;
     wr.innerHTML = `
       <span class="dw-lbl">💧 WATER</span>
       <div class="bar dw-bar"><div class="bar-fill" style="width:${Math.min(100,(water/watG)*100)}%;background:#00e5ff"></div></div>
       <b>${Math.round(water)}/${watG} oz</b>
       <button class="dn-w-add" id="deckWaterAdd">+8</button>`;
     wr.querySelector("#deckWaterAdd").addEventListener("click", () => {
-      const day = dayObj(deckDate);
+      const day = dayObj(currentDate);
       day.water = (day.water || 0) + 8;
       save(); renderDeck();
       toast("+8 oz water", "cyan");
@@ -7896,8 +7896,8 @@ function renderDeck(){
     }
     moStrip.innerHTML = html;
     moStrip.querySelectorAll(".dk-mdot").forEach(b => b.addEventListener("click", () => {
-      deckDate = b.dataset.date;
-      renderDeck();
+      currentDate = b.dataset.date;
+      renderAll();
     }));
   }
 }
@@ -8743,7 +8743,7 @@ function drawSectionRing(canvasId, pct, color){
 }
 function renderFitRing(){
   const g = getActivityGoals();
-  const a = getActivityForDay(todayKey());
+  const a = getActivityForDay(currentDate);
   drawSectionRing("fitRing", (a.exercise || 0) / Math.max(1, g.exercise), "#d8ff00");
 }
 function renderNutRing(){
@@ -9041,9 +9041,9 @@ function renderNutTopStats(){
 function renderFitTopStats(){
   const el = document.getElementById("fitTopStats");
   if(!el) return;
-  const a = getActivityForDay(todayKey());
+  const a = getActivityForDay(currentDate);
   const g = getActivityGoals();
-  const lifted = _liftedLbFor(todayKey());
+  const lifted = _liftedLbFor(currentDate);
   el.innerHTML = `
     <span><i style="color:#ff2231">Move</i> <b>${Math.round(a.move)}</b>/${g.move}</span>
     <span><i style="color:#d8ff00">Ex</i> <b>${Math.round(a.exercise)}</b>/${g.exercise}m</span>

@@ -32,6 +32,12 @@ Deliberately NOT linked from the main site nav — it's a standalone app.
 - `netlify/functions/send-emails.js` — email function
 
 ## Architecture (critical to know)
+- **ONE selected-day state**: `currentDate` is the single source of truth
+  for "which day am I looking at" — the dashboard deck day strip, month
+  strip, nutrition date input, fitness stats, and diary all read/write
+  it. NEVER introduce a second date variable for a view; wire new
+  calendars to currentDate + renderAll() (guarded by the smoke test
+  "calendars connected").
 - **Local-first**: all data in `localStorage["bermo.tracker.v1"]`. No accounts.
 - Global `state`: `profile`, `goals`, `customFoods`, `days`, `weights`,
   `measurements`, `prs`, `prsRep`, `mealTemplates`, `plan` (keyed `YYYY-W##`),
@@ -184,7 +190,7 @@ export/import, PWA install.
   `{ server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" }`
   (do NOT `npx playwright install`). Covers load, wizard onboarding,
   mobile overflow, all tabs, food + lift logging end-to-end, modal
-  close, dashboard re-render. Expected: 14/14 + zero page errors.
+  close, dashboard re-render, cross-page date sync. Expected: 15/15 + zero page errors.
   Also always `node --check tracker/app.js`. The user additionally
   tests on iPhone — when something breaks there, ask for a screenshot
   + the exact element tapped.

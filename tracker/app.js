@@ -3953,27 +3953,6 @@ onReady(() => {
     // already wired
   });
 
-  // First-time help banner
-  const seen = localStorage.getItem("bermo.tracker.helpSeen");
-  if(!seen){
-    const banner = document.getElementById("helpBanner");
-    if(banner){
-      // Show after gate dismissed
-      const tryShow = () => {
-        if(!document.getElementById("app").classList.contains("hidden")){
-          banner.classList.remove("hidden");
-        } else {
-          setTimeout(tryShow, 500);
-        }
-      };
-      tryShow();
-    }
-  }
-  const helpClose = document.getElementById("helpClose");
-  if(helpClose) helpClose.addEventListener("click", () => {
-    document.getElementById("helpBanner").classList.add("hidden");
-    localStorage.setItem("bermo.tracker.helpSeen", "1");
-  });
 
   // Escape closes FAB
   document.addEventListener("keydown", (e) => { if(e.key === "Escape") closeFAB(); });

@@ -124,6 +124,24 @@ coverage, date picker, help banner rewritten for new nav), stranded
 dashboard greeting hidden, singular/plural fixes. Screenshot QA loop:
 seed data via localStorage then capture every page (scratchpad
 shots.js pattern).
+v10 dashboard refinement (user page-by-page pass, page 1): greeting
+moved to top; mini quick-log buttons REMOVED (brain dump covers them);
+brain dump is one line — red BRAIN DUMP + photo + speak buttons (speak
+uses webkitSpeechRecognition when available, else focuses the textarea
+for the iOS keyboard mic; photo auto-opens the picker). Ring deck v3:
+Apple-style — 7-day mini-ring selector strip (tap a day => deckDate
+drives BOTH ring stacks + stats + water), fitness rings (move/exercise/
+stand) + nutrition rings (cal/protein/carbs) side by side in ONE flat
+card, stat lines include Lifted lb + fat, one-line water bar w/ +8 that
+logs to the selected day, month strip kept. Today's Nutrition card
+REMOVED (deck stats replaced it). openPlanDayModal REPLACED by
+multi-workout day editor: N workouts per day (double days), each with
+saved-workout / category / custom picker + time-of-day; storage
+back-compat {type,time,exercises,extra:[]}; week list shows time tags
++ "+ second workout" sub-lines. New Compared To card: this week vs
+last/2/4-weeks-ago/custom week — workouts, volume, avg cal/day
+(lower=better), water, with delta arrows; fair same-elapsed-days
+comparison.
 Cleanup (v9.1): dead code removed — legacy anatomy heatmap card (muscle
 map replaced it), hidden deck week-schedule strip (Workouts card replaced
 it), Customize-hubs menu item + dead dashboard header bindings. app.js

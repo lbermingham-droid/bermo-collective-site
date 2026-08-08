@@ -3561,7 +3561,7 @@ function openConfirmModal(parsed){
 // BRAIN DUMP — natural language + photos → fills everything
 // =================================================================
 let _brainImages = []; // base64 strings
-function openBrainDumpModal(){
+function openBrainDumpModal(mode){
   _brainImages = [];
   openModal("🧠 Brain dump", `
     <p style="font-size:13px;color:#444;line-height:1.5;margin:0 0 8px">
@@ -3613,6 +3613,41 @@ function openBrainDumpModal(){
       fileEl.value = "";
       renderThumbs();
     });
+    // Entry modes from the one-line brain row
+    if(mode === "photo"){
+      setTimeout(() => fileEl.click(), 250);
+    } else if(mode === "speak"){
+      const ta = document.getElementById("bdText");
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if(SR){
+        try {
+          const rec = new SR();
+          rec.continuous = true; rec.interimResults = true; rec.lang = "en-US";
+          let base = "";
+          rec.onresult = (ev) => {
+            let interim = "";
+            for(let i = ev.resultIndex; i < ev.results.length; i++){
+              if(ev.results[i].isFinal) base += ev.results[i][0].transcript + " ";
+              else interim += ev.results[i][0].transcript;
+            }
+            ta.value = (base + interim).trim();
+          };
+          rec.onerror = () => { ta.focus(); };
+          rec.start();
+          const status = document.getElementById("bdStatus");
+          if(status) status.innerHTML = '<span style="color:var(--iron-volt)">🎤 Listening — just talk. Tap Parse when done.</span>';
+          // stop dictation when modal closes or parse starts
+          const stopRec = () => { try{ rec.stop(); }catch(e){} };
+          document.getElementById("bdGo").addEventListener("click", stopRec, { once:true });
+          document.querySelector("#modal [data-close]").addEventListener("click", stopRec, { once:true });
+        } catch(e){ ta.focus(); }
+      } else {
+        // iOS Safari: no Web Speech — focus the box so the keyboard mic works
+        ta.focus();
+        const status = document.getElementById("bdStatus");
+        if(status) status.innerHTML = '<span style="color:var(--iron-mute)">Tap the 🎤 on your keyboard and just talk.</span>';
+      }
+    }
     document.getElementById("bdGo").addEventListener("click", async () => {
       const text = document.getElementById("bdText").value.trim();
       if(!text && _brainImages.length === 0){ toast("Type something or add a photo","pink"); return; }
@@ -3809,8 +3844,9 @@ function openBrainDumpReview(parsed){
 }
 
 onReady(() => {
-  const btn = document.getElementById("brainDumpBtn");
-  if(btn) btn.addEventListener("click", openBrainDumpModal);
+  on("#brainDumpBtn", "click", () => openBrainDumpModal());
+  on("#brainPhotoBtn", "click", () => openBrainDumpModal("photo"));
+  on("#brainSpeakBtn", "click", () => openBrainDumpModal("speak"));
 });
 
 
@@ -4274,40 +4310,6 @@ function typeColor(t){
   if(/run|cycl|swim|row|cardio/.test(lower)) return "pt-blue";
   if(/yoga|pilat|barre|mobil|stretch|recov|rest/.test(lower)) return "pt-purple";
   return "pt-gray";
-}
-
-function openPlanDayModal(wkKey, dayName){
-  const plan = getPlan();
-  if(!plan[wkKey]) plan[wkKey] = {};
-  const cur = plan[wkKey][dayName] || {};
-  const opts = WORKOUT_TYPES.map(t => `<option value="${escape(t)}" ${t===cur.type?"selected":""}>${escape(t)}</option>`).join("");
-  openModal(`Plan ${dayName.charAt(0).toUpperCase()+dayName.slice(1)}`, `
-    <label><span>Workout type</span>
-      <select id="planType">${opts}</select>
-    </label>
-    <label><span>Or custom</span><input id="planCustom" type="text" placeholder="(leave blank to use selected above)" maxlength="40"></label>
-    <label><span>Notes</span><input id="planNotes" type="text" maxlength="120" value="${escape(cur.notes||"")}" placeholder="Specific exercises, sets, etc."></label>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" data-close>Cancel</button>
-      ${cur.type ? `<button class="btn btn-pink" id="planClear">Clear</button>` : ""}
-      <button class="btn btn-cyan" id="planSave">Save</button>
-    </div>
-  `, (root) => {
-    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
-    document.getElementById("planSave").addEventListener("click", () => {
-      const custom = document.getElementById("planCustom").value.trim();
-      const type = custom || document.getElementById("planType").value;
-      const notes = document.getElementById("planNotes").value.trim();
-      plan[wkKey][dayName] = { type, notes: notes||undefined };
-      save(); closeModal(); renderPlan();
-      toast(`Planned: ${type}`,"cyan");
-    });
-    const clear = document.getElementById("planClear");
-    if(clear) clear.addEventListener("click", () => {
-      delete plan[wkKey][dayName];
-      save(); closeModal(); renderPlan();
-    });
-  });
 }
 
 function autofillFromLastWeek(){
@@ -6090,77 +6092,113 @@ function renderNutritionWeekStep_RNW(){
 // PLANNER ENHANCEMENTS — exercises field + Today's Plan mini box
 // =================================================================
 
-// Override openPlanDayModal to include exercises field
-openPlanDayModal = function(wkKey, dayName){
+// Day workout editor — used by the dashboard week list AND the planner.
+// Supports multiple workouts per day (double days), a time-of-day per
+// workout, and picking from Saved workouts / categories / custom names.
+// Storage stays back-compat: { type, time, exercises, notes, extra:[...] }
+function openPlanDayModal(wkKey, dayName){
   const plan = getPlan();
   if(!plan[wkKey]) plan[wkKey] = {};
   const cur = plan[wkKey][dayName] || {};
-  const opts = WORKOUT_TYPES.map(t => `<option value="${escape(t)}" ${t===cur.type?"selected":""}>${escape(t)}</option>`).join("");
-  const exercises = (cur.exercises || []);
-  const exHtml = exercises.length
-    ? exercises.map((ex,i) => `
-        <div class="ex-row" data-idx="${i}">
-          <input class="ex-name" type="text" placeholder="Exercise (e.g. Back Squat)" value="${escape(ex.name||"")}">
-          <input class="ex-sets" type="text" placeholder="5x5 @ 135" value="${escape(ex.scheme||"")}">
-          <button class="ex-del" type="button">×</button>
-        </div>
-      `).join("")
-    : "";
-  openModal(`Plan ${dayName.charAt(0).toUpperCase()+dayName.slice(1)}`, `
-    <label><span>Workout type</span>
-      <select id="planType">${opts}</select>
-    </label>
-    <label><span>Or custom name</span><input id="planCustom" type="text" placeholder="(leave blank to use selected above)" maxlength="40"></label>
-    <label><span>Notes</span><input id="planNotes" type="text" maxlength="160" value="${escape(cur.notes||"")}" placeholder="Specific focus, gear, etc."></label>
+  const items = [{ name: cur.type || "", time: cur.time || "", exercises: cur.exercises || [] }]
+    .concat((cur.extra || []).map(x => ({ name: x.name || "", time: x.time || "", exercises: x.exercises || [] })));
 
-    <div class="ex-section">
-      <div class="ex-h"><span>Exercises planned <i>(optional, copies week-to-week)</i></span><button type="button" class="ex-add" id="exAdd">+ Add exercise</button></div>
-      <div class="ex-list" id="exList">${exHtml}</div>
-    </div>
+  const lib = getWorkoutLib();
+  const optionsHtml = (sel) => {
+    const saved = lib.map(w => `<option value="saved:${w.id}" ${sel === ("saved:"+w.id) ? "selected":""}>★ ${escape(w.name)}</option>`).join("");
+    const cats = WORKOUT_TYPES.map(t => `<option value="cat:${escape(t)}" ${sel === ("cat:"+t) ? "selected":""}>${escape(t)}</option>`).join("");
+    return `<option value="">— pick —</option>
+      ${saved ? `<optgroup label="My saved workouts">${saved}</optgroup>` : ""}
+      <optgroup label="Categories">${cats}</optgroup>
+      <option value="custom" ${sel === "custom" ? "selected":""}>Custom name…</option>`;
+  };
+  const rowHtml = (it, i) => {
+    // preselect: saved workout with same name > category with same name > custom
+    let sel = "";
+    if(it.name){
+      const savedMatch = lib.find(w => w.name === it.name);
+      if(savedMatch) sel = "saved:" + savedMatch.id;
+      else if(WORKOUT_TYPES.includes(it.name)) sel = "cat:" + it.name;
+      else sel = "custom";
+    }
+    return `<div class="pde-row" data-i="${i}">
+      <select class="pde-sel">${optionsHtml(sel)}</select>
+      <input class="pde-custom" type="text" placeholder="Custom name" maxlength="30"
+        value="${sel === "custom" ? escape(it.name) : ""}" style="${sel === "custom" ? "" : "display:none"}">
+      <input class="pde-time" type="time" value="${escape(it.time || "")}" title="Time of day">
+      <button type="button" class="pde-del" title="Remove">×</button>
+    </div>`;
+  };
 
+  openModal(`${dayName.charAt(0).toUpperCase()+dayName.slice(1)} — workouts`, `
+    <div class="pde-list" id="pdeList">${items.map(rowHtml).join("")}</div>
+    <button type="button" class="btn btn-ghost btn-sm" id="pdeAdd" style="width:100%;margin-top:6px">+ ADD ANOTHER WORKOUT (double day)</button>
+    <p class="wb-hint" style="margin-top:8px">Saved workouts bring their exercise list into the live session logger. Time is optional.</p>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Cancel</button>
-      ${cur.type ? `<button class="btn btn-pink" id="planClear">Clear</button>` : ""}
-      <button class="btn btn-cyan" id="planSave">Save</button>
+      ${cur.type ? `<button class="btn btn-pink" id="pdeClear">CLEAR DAY</button>` : ""}
+      <button class="btn btn-cyan" id="pdeSave">SAVE</button>
     </div>
   `, (root) => {
     root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
-
-    const exList = document.getElementById("exList");
-    const addExRow = (name="", scheme="") => {
-      const idx = exList.children.length;
-      const div = document.createElement("div");
-      div.className = "ex-row"; div.dataset.idx = idx;
-      div.innerHTML = `
-        <input class="ex-name" type="text" placeholder="Exercise (e.g. Back Squat)" value="${escape(name)}">
-        <input class="ex-sets" type="text" placeholder="5x5 @ 135" value="${escape(scheme)}">
-        <button class="ex-del" type="button">×</button>
-      `;
-      exList.appendChild(div);
-      div.querySelector(".ex-del").addEventListener("click", () => div.remove());
+    const list = document.getElementById("pdeList");
+    const wireRow = (row) => {
+      const sel = row.querySelector(".pde-sel");
+      const custom = row.querySelector(".pde-custom");
+      sel.addEventListener("change", () => {
+        custom.style.display = sel.value === "custom" ? "" : "none";
+        if(sel.value === "custom") custom.focus();
+      });
+      row.querySelector(".pde-del").addEventListener("click", () => {
+        if(list.children.length > 1) row.remove();
+        else { sel.value = ""; custom.value = ""; custom.style.display = "none"; row.querySelector(".pde-time").value = ""; }
+      });
     };
-    document.getElementById("exAdd").addEventListener("click", () => addExRow());
-    exList.querySelectorAll(".ex-del").forEach(b => b.addEventListener("click", () => b.closest(".ex-row").remove()));
-
-    document.getElementById("planSave").addEventListener("click", () => {
-      const custom = document.getElementById("planCustom").value.trim();
-      const type = custom || document.getElementById("planType").value;
-      const notes = document.getElementById("planNotes").value.trim();
-      const exercises = Array.from(exList.querySelectorAll(".ex-row")).map(row => ({
-        name: row.querySelector(".ex-name").value.trim(),
-        scheme: row.querySelector(".ex-sets").value.trim()
-      })).filter(x => x.name);
-      plan[wkKey][dayName] = { type, notes: notes||undefined, exercises: exercises.length ? exercises : undefined };
-      save(); closeModal(); renderPlan();
-      toast(`Planned: ${type}${exercises.length ? ` (${exercises.length} exercises)` : ""}`,"cyan");
+    list.querySelectorAll(".pde-row").forEach(wireRow);
+    document.getElementById("pdeAdd").addEventListener("click", () => {
+      const div = document.createElement("div");
+      div.innerHTML = rowHtml({ name:"", time:"", exercises:[] }, list.children.length);
+      const row = div.firstElementChild;
+      list.appendChild(row);
+      wireRow(row);
     });
-    const clear = document.getElementById("planClear");
+    document.getElementById("pdeSave").addEventListener("click", () => {
+      const rows = Array.from(list.querySelectorAll(".pde-row"));
+      const parsed = rows.map(row => {
+        const v = row.querySelector(".pde-sel").value;
+        const time = row.querySelector(".pde-time").value;
+        if(v.startsWith("saved:")){
+          const w = lib.find(x => x.id === v.slice(6));
+          if(!w) return null;
+          return { name: w.name, time, exercises: w.exercises.map(e => ({ name: e.name, scheme: e.scheme || "" })) };
+        }
+        if(v.startsWith("cat:")) return { name: v.slice(4), time, exercises: [] };
+        if(v === "custom"){
+          const name = row.querySelector(".pde-custom").value.trim();
+          return name ? { name, time, exercises: [] } : null;
+        }
+        return null;
+      }).filter(Boolean);
+      if(!parsed.length){ toast("Pick at least one workout (or Clear day)", "pink"); return; }
+      const main = parsed[0];
+      plan[wkKey][dayName] = {
+        type: main.name,
+        time: main.time || undefined,
+        exercises: main.exercises.length ? main.exercises : undefined,
+        extra: parsed.length > 1 ? parsed.slice(1) : undefined,
+      };
+      save(); closeModal();
+      renderPlan(); renderDashWorkList(); renderDeck();
+      toast(`${dayName.toUpperCase()}: ${parsed.map(x => x.name).join(" + ")}`, "cyan");
+    });
+    const clear = document.getElementById("pdeClear");
     if(clear) clear.addEventListener("click", () => {
       delete plan[wkKey][dayName];
-      save(); closeModal(); renderPlan();
+      save(); closeModal();
+      renderPlan(); renderDashWorkList(); renderDeck();
     });
   });
-};
+}
 
 // Update plan day rendering to show planned exercises preview
 // Pipeline step (extracted from a wrapper patch; composed at EOF).
@@ -7804,19 +7842,17 @@ function dayGoalStatus(k){
   return out;
 }
 
-function drawDeckRing(canvasId, vals, goals){
+// Ring deck v3 — Apple-style. A tappable day strip drives which date the
+// fitness + nutrition ring stacks and stats show (deckDate).
+let deckDate = todayKey();
+
+function drawRingStack(canvasId, rings){
   const canvas = document.getElementById(canvasId);
   if(!canvas) return;
   const ctx = canvas.getContext("2d");
   const w = canvas.width, h = canvas.height;
   ctx.clearRect(0,0,w,h);
   const cx = w/2, cy = h/2;
-  const rings = [
-    { color:"#ff2231", track:"#33070b", val:vals.move,      goal:goals.move,      r:58, lw:10 },
-    { color:"#d8ff00", track:"#252b00", val:vals.exercise,  goal:goals.exercise,  r:46, lw:10 },
-    { color:"#ff7a00", track:"#2b1500", val:vals.nutrition, goal:goals.nutrition, r:34, lw:10 },
-    { color:"#00e5ff", track:"#00272e", val:vals.water,     goal:goals.water,     r:22, lw:10 },
-  ];
   rings.forEach(ring => {
     ctx.beginPath();
     ctx.lineWidth = ring.lw;
@@ -7825,7 +7861,7 @@ function drawDeckRing(canvasId, vals, goals){
     ctx.arc(cx, cy, ring.r, 0, Math.PI*2);
     ctx.stroke();
     const pct = Math.min(1, ring.val / Math.max(1, ring.goal));
-    if(pct > 0){
+    if(pct > 0.005){
       ctx.beginPath();
       ctx.lineCap = "round";
       ctx.strokeStyle = ring.color;
@@ -7835,72 +7871,114 @@ function drawDeckRing(canvasId, vals, goals){
   });
 }
 
+function _liftedLbFor(k){
+  return ((state.days[k] || {}).sessions || [])
+    .reduce((n, x) => n + (x.weight||0)*(x.reps||0)*(x.sets||1), 0);
+}
+
+function _drawDayMini(canvas, k){
+  // 3 tiny concentric rings per day: move / exercise / calories
+  const ctx = canvas.getContext("2d");
+  const g = getActivityGoals();
+  const a = getActivityForDay(k);
+  const cal = totalsFor(k).cal;
+  const calG = state.goals.cal || 2200;
+  const rings = [
+    { color:"#ff2231", track:"#2b090d", val:a.move,     goal:g.move,     r:13, lw:3.5 },
+    { color:"#d8ff00", track:"#20240a", val:a.exercise, goal:g.exercise, r:9,  lw:3.5 },
+    { color:"#00e5ff", track:"#0a2126", val:cal,        goal:calG,       r:5,  lw:3.5 },
+  ];
+  const w = canvas.width, h = canvas.height, cx = w/2, cy = h/2;
+  ctx.clearRect(0,0,w,h);
+  rings.forEach(ring => {
+    ctx.beginPath(); ctx.lineWidth = ring.lw; ctx.lineCap = "butt";
+    ctx.strokeStyle = ring.track; ctx.arc(cx, cy, ring.r, 0, Math.PI*2); ctx.stroke();
+    const pct = Math.min(1, ring.val / Math.max(1, ring.goal));
+    if(pct > 0.02){
+      ctx.beginPath(); ctx.lineCap = "round"; ctx.strokeStyle = ring.color;
+      ctx.arc(cx, cy, ring.r, -Math.PI/2, -Math.PI/2 + pct*Math.PI*2); ctx.stroke();
+    }
+  });
+}
+
 function renderDeck(){
   if(!document.getElementById("commandDeck")) return;
   const g = getActivityGoals();
+  const gl = state.goals || {};
+  const calG = gl.cal || 2200;
+  const watG = gl.water || 64;
 
-  const a = getActivityForDay(todayKey());
-  const tFood = totalsFor(todayKey());
-  const waterToday = (state.days[todayKey()] || {}).water || 0;
-  const calG = state.goals.cal || 2200;
-  const watG = state.goals.water || 64;
-  drawDeckRing("deckToday",
-    { move:a.move, exercise:a.exercise, nutrition:tFood.cal, water:waterToday },
-    { move:g.move, exercise:g.exercise, nutrition:calG, water:watG });
-  const ts = document.getElementById("deckTodayStats");
-  if(ts) ts.innerHTML =
-    `<span class="ds-move">${Math.round(a.move)}<i>/${g.move}</i></span>` +
-    `<span class="ds-ex">${Math.round(a.exercise)}<i>/${g.exercise}m</i></span>` +
-    `<span class="ds-nut">${Math.round(tFood.cal)}<i>/${calG}</i></span>` +
-    `<span class="ds-wat">${Math.round(waterToday)}<i>/${watG}oz</i></span>`;
-
-  const mon = weekStart(new Date());
-  const today = new Date(); today.setHours(0,0,0,0);
-  const elapsed = Math.min(7, Math.round((today - mon) / 86400000) + 1);
-  let wm = 0, we = 0, wnut = 0, wwat = 0;
-  for(let i = 0; i < elapsed; i++){
-    const d = new Date(mon.getTime() + i*86400000);
-    const k2 = todayKey(d);
-    const da = getActivityForDay(k2);
-    wm += da.move || 0; we += da.exercise || 0;
-    wnut += totalsFor(k2).cal || 0;
-    wwat += (state.days[k2] || {}).water || 0;
-  }
-  const wg = { move: g.move * elapsed, exercise: g.exercise * elapsed,
-               nutrition: calG * elapsed, water: watG * elapsed };
-  drawDeckRing("deckWeek", { move: wm, exercise: we, nutrition: wnut, water: wwat }, wg);
-  const ws = document.getElementById("deckWeekStats");
-  if(ws) ws.innerHTML =
-    `<span class="ds-move">${Math.round(wm)}<i>/${wg.move}</i></span>` +
-    `<span class="ds-ex">${Math.round(we)}<i>/${wg.exercise}m</i></span>` +
-    `<span class="ds-nut">${Math.round(wnut)}<i>/${wg.nutrition}</i></span>` +
-    `<span class="ds-wat">${Math.round(wwat)}<i>/${wg.water}oz</i></span>`;
-
-  // WEEK strip — one line, Mon–Sun, food + workout verdict dots
-  const wkStrip = document.getElementById("deckWeekStrip");
-  if(wkStrip){
+  // ---- Day selector strip (Mon–Sun, mini rings, tap to switch) ----
+  const days = document.getElementById("deckDays");
+  if(days){
+    const mon = weekStart(new Date());
     let html = "";
     for(let i = 0; i < 7; i++){
       const d = new Date(mon.getTime() + i*86400000);
       const k = todayKey(d);
-      const st = dayGoalStatus(k);
+      const isSel = k === deckDate;
       const isToday = k === todayKey();
-      const cls = (v) => v === "hit" ? "on" : v === "fail" ? "bad" : v === "rest" ? "rest" : "off";
-      html += `<button class="dk-day ${isToday?"today":""}" data-date="${k}" title="${k} · food:${st.food} workout:${st.workout}">
-        <span class="dk-l">${d.toLocaleDateString(undefined,{weekday:"narrow"})}</span>
-        <span class="dk-dot ${cls(st.food)}" title="Food"></span>
-        <span class="dk-dot dk-w ${cls(st.workout)}" title="Workout"></span>
+      html += `<button class="dk-dc ${isSel?"sel":""}" data-date="${k}">
+        <span class="dk-dc-l ${isToday?"today":""}">${d.toLocaleDateString(undefined,{weekday:"narrow"})}</span>
+        <canvas width="34" height="34"></canvas>
       </button>`;
     }
-    wkStrip.innerHTML = html;
-    wkStrip.querySelectorAll(".dk-day").forEach(b => b.addEventListener("click", () => {
-      currentDate = b.dataset.date;
-      renderAll();
-      jumpToTab("nutrition");
-    }));
+    days.innerHTML = html;
+    days.querySelectorAll(".dk-dc").forEach(b => {
+      _drawDayMini(b.querySelector("canvas"), b.dataset.date);
+      b.addEventListener("click", () => { deckDate = b.dataset.date; renderDeck(); });
+    });
   }
 
-  // MONTH strip — one line of dots for the current month
+  // ---- Fitness ring stack + stats for deckDate ----
+  const a = getActivityForDay(deckDate);
+  const lifted = _liftedLbFor(deckDate);
+  drawRingStack("deckFitRings", [
+    { color:"#ff2231", track:"#2b090d", val:a.move,     goal:g.move,     r:56, lw:13 },
+    { color:"#d8ff00", track:"#20240a", val:a.exercise, goal:g.exercise, r:41, lw:13 },
+    { color:"#00e5ff", track:"#0a2126", val:a.stand,    goal:g.stand,    r:26, lw:13 },
+  ]);
+  const fs = document.getElementById("deckFitStats");
+  if(fs) fs.innerHTML = `
+    <div class="dds-h">FITNESS</div>
+    <div class="dds"><i style="color:#ff2231">Move</i><b>${Math.round(a.move)}</b><s>/${g.move} cal</s></div>
+    <div class="dds"><i style="color:#d8ff00">Exercise</i><b>${Math.round(a.exercise)}</b><s>/${g.exercise} min</s></div>
+    <div class="dds"><i style="color:#00e5ff">Stand</i><b>${Math.round(a.stand)}</b><s>/${g.stand} hr</s></div>
+    <div class="dds"><i style="color:#8b95a1">Lifted</i><b>${Math.round(lifted).toLocaleString()}</b><s>${unit()}</s></div>`;
+
+  // ---- Nutrition ring stack + stats for deckDate ----
+  const t = totalsFor(deckDate);
+  drawRingStack("deckNutRings", [
+    { color:"#ff7a00", track:"#291503", val:t.cal, goal:calG,           r:56, lw:13 },
+    { color:"#00e5ff", track:"#0a2126", val:t.p,   goal:gl.protein||1,  r:41, lw:13 },
+    { color:"#d8ff00", track:"#20240a", val:t.c,   goal:gl.carbs||1,    r:26, lw:13 },
+  ]);
+  const ns = document.getElementById("deckNutStats");
+  if(ns) ns.innerHTML = `
+    <div class="dds-h">NUTRITION</div>
+    <div class="dds"><i style="color:#ff7a00">Calories</i><b>${Math.round(t.cal)}</b><s>/${calG}</s></div>
+    <div class="dds"><i style="color:#00e5ff">Protein</i><b>${Math.round(t.p)}</b><s>/${gl.protein||0} g</s></div>
+    <div class="dds"><i style="color:#d8ff00">Carbs</i><b>${Math.round(t.c)}</b><s>/${gl.carbs||0} g</s></div>
+    <div class="dds"><i style="color:#ff2d7a">Fat</i><b>${Math.round(t.f)}</b><s>/${gl.fat||0} g</s></div>`;
+
+  // ---- Water row (one line, one-tap +8) ----
+  const wr = document.getElementById("deckWaterRow");
+  if(wr){
+    const water = (state.days[deckDate] || {}).water || 0;
+    wr.innerHTML = `
+      <span class="dw-lbl">💧 WATER</span>
+      <div class="bar dw-bar"><div class="bar-fill" style="width:${Math.min(100,(water/watG)*100)}%;background:#00e5ff"></div></div>
+      <b>${Math.round(water)}/${watG} oz</b>
+      <button class="dn-w-add" id="deckWaterAdd">+8</button>`;
+    wr.querySelector("#deckWaterAdd").addEventListener("click", () => {
+      const day = dayObj(deckDate);
+      day.water = (day.water || 0) + 8;
+      save(); renderDeck();
+      toast("+8 oz water", "cyan");
+    });
+  }
+
+  // ---- Month strip (kept: one-line month hit/fail) ----
   const moStrip = document.getElementById("deckMonthStrip");
   if(moStrip){
     const now = new Date();
@@ -7921,18 +7999,15 @@ function renderDeck(){
     }
     moStrip.innerHTML = html;
     moStrip.querySelectorAll(".dk-mdot").forEach(b => b.addEventListener("click", () => {
-      currentDate = b.dataset.date;
-      renderAll();
-      jumpToTab("nutrition");
+      deckDate = b.dataset.date;
+      renderDeck();
     }));
   }
-
-  // (Week schedule now lives in the Workouts This Week dashboard card)
 }
 
 onReady(() => {
-  on("#deckTodayBlock", "click", () => openDetail("move"));
-  on("#deckWeekBlock", "click", () => openDetail("move"));
+  on("#deckFitCol", "click", (e) => { if(!e.target.closest("button")) openDetail("move"); });
+  on("#deckNutCol", "click", (e) => { if(!e.target.closest("button")) jumpToTab("nutrition"); });
 });
 
 
@@ -8439,38 +8514,6 @@ function appendAccountabilityBanners(){
 // =================================================================
 // HOME CARDS — Today's Nutrition + Workouts This Week (editable)
 // =================================================================
-function renderDashNutCard(){
-  const card = document.getElementById("dashNutCard");
-  if(!card) return;
-  const k = todayKey();
-  const t = totalsFor(k);
-  const gl = state.goals || {};
-  const calG = gl.cal || 2200;
-  const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
-  set("dnCal", Math.round(t.cal));
-  set("dnCalGoal", calG);
-  set("dnLeft", t.cal > calG ? `${Math.round(t.cal - calG)} OVER` : `${Math.round(calG - t.cal)} left`);
-  const bar = document.getElementById("dnBar");
-  if(bar){
-    const pct = Math.min(100, (t.cal/calG)*100);
-    bar.style.width = pct + "%";
-    bar.style.background = t.cal > calG ? "var(--iron-red)" : "var(--iron-volt)";
-  }
-  const setM = (barId, txtId, val, goal) => {
-    const b = document.getElementById(barId);
-    if(b) b.style.width = Math.min(100, (val/Math.max(1,goal))*100) + "%";
-    set(txtId, `${Math.round(val)}/${goal}`);
-  };
-  setM("dnP", "dnPTxt", t.p, gl.protein || 0);
-  setM("dnC", "dnCTxt", t.c, gl.carbs || 0);
-  setM("dnF", "dnFTxt", t.f, gl.fat || 0);
-  const water = (state.days[k] || {}).water || 0;
-  const watG = gl.water || 64;
-  const wb = document.getElementById("dnWaterBar");
-  if(wb){ wb.style.width = Math.min(100, (water/watG)*100) + "%"; wb.style.background = "var(--iron-cyan)"; }
-  set("dnWaterTxt", `${Math.round(water)}/${watG}`);
-}
-
 function renderDashWorkList(){
   const list = document.getElementById("dwList");
   if(!list) return;
@@ -8501,11 +8544,14 @@ function renderDashWorkList(){
     const label = done ? doneName : (p.type || "Rest / unplanned");
     const mark = done ? "✓" : (p.type ? (past ? "✕" : (isToday ? "▶" : "·")) : "");
     const cls = done ? "done" : (p.type ? (past ? "missed" : (isToday ? "today-up" : "planned")) : "empty");
+    const timeTag = p.time ? ` <em class="dw-time">${escape(p.time)}</em>` : "";
+    const extras = (p.extra || []).map(x =>
+      `<small class="dw-extra">+ ${escape(x.name)}${x.time ? ` · ${escape(x.time)}` : ""}</small>`).join("");
     html += `<button class="dw-row ${cls} ${isToday?"today":""}" data-day="${names[i]}" data-date="${k}">
       <span class="dw-day">${d.toLocaleDateString(undefined,{weekday:"short"}).toUpperCase()}<i>${d.getDate()}</i></span>
       <span class="dw-info">
-        <b>${escape(String(label))}</b>
-        ${statParts.length ? `<small>${escape(statParts.join(" · "))}</small>` : (p.notes ? `<small>${escape(p.notes)}</small>` : "")}
+        <b>${escape(String(label))}${timeTag}</b>
+        ${statParts.length ? `<small>${escape(statParts.join(" · "))}</small>` : ""}${extras}
       </span>
       <span class="dw-mark">${mark}</span>
     </button>`;
@@ -8528,16 +8574,6 @@ function renderDashWorkList(){
 }
 
 onReady(() => {
-  on("#dnWaterAdd", "click", (e) => {
-    e.stopPropagation();
-    addWater(8);
-    toast("+8 oz water", "cyan");
-    renderAll();
-  });
-  on("#dashNutCard", "click", (e) => {
-    if(e.target.closest("button")) return;
-    jumpToTab("nutrition");
-  });
   on("#dwEditPlan", "click", () => go("plan"));
 });
 
@@ -8993,6 +9029,84 @@ function renderBodyComp(){
 }
 
 
+
+// =================================================================
+// COMPARE CARD — this week vs a chosen week
+// =================================================================
+let _cmpOffset = 1;      // weeks back
+let _cmpCustomStart = null; // YYYY-MM-DD of any day in the custom week
+function _weekMetrics(monDate){
+  const out = { workouts:0, volume:0, calDays:0, calSum:0, waterSum:0, days:0 };
+  for(let i = 0; i < 7; i++){
+    const d = new Date(monDate.getTime() + i*86400000);
+    const k = todayKey(d);
+    if(k > todayKey()) break; // don't count future days
+    out.days++;
+    const day = state.days[k] || {};
+    const sessions = day.sessions || [];
+    if(sessions.length) out.workouts++;
+    out.volume += sessions.reduce((n,x) => n + (x.weight||0)*(x.reps||0)*(x.sets||1), 0);
+    const cal = totalsFor(k).cal;
+    if(cal > 0){ out.calDays++; out.calSum += cal; }
+    out.waterSum += day.water || 0;
+  }
+  return out;
+}
+function renderCompareCard(){
+  const wrap = document.getElementById("cmpRows");
+  if(!wrap) return;
+  const thisMon = weekStart(new Date());
+  let thatMon;
+  if(_cmpCustomStart){
+    thatMon = weekStart(new Date(_cmpCustomStart + "T12:00:00"));
+  } else {
+    thatMon = new Date(thisMon.getTime() - _cmpOffset*7*86400000);
+  }
+  const A = _weekMetrics(thisMon);
+  // For the comparison week, count the same number of elapsed days for fairness
+  const B = _weekMetrics(thatMon);
+  const bDays = Math.min(B.days, A.days) || 1;
+  const label = thatMon.toLocaleDateString(undefined,{month:"short",day:"numeric"});
+  const row = (name, a, b, fmt, higherBetter=true) => {
+    const diff = a - b;
+    const arrow = diff === 0 ? "—" : (diff > 0 ? "▲" : "▼");
+    const good = diff === 0 ? "" : ((diff > 0) === higherBetter ? "cmp-good" : "cmp-bad");
+    return `<div class="cmp-row">
+      <span>${name}</span>
+      <b>${fmt(a)}</b>
+      <s>vs ${fmt(b)}</s>
+      <em class="${good}">${arrow} ${fmt(Math.abs(diff))}</em>
+    </div>`;
+  };
+  const n0 = (v) => Math.round(v).toLocaleString();
+  wrap.innerHTML = `
+    <div class="cmp-sub">This week (${A.days}d) vs week of ${label}</div>
+    ${row("Workouts", A.workouts, B.workouts, n0)}
+    ${row("Volume (" + unit() + ")", A.volume, B.volume, n0)}
+    ${row("Avg cal/day", A.calDays ? A.calSum/A.calDays : 0, B.calDays ? B.calSum/B.calDays : 0, n0, false)}
+    ${row("Water (oz)", A.waterSum, B.waterSum, n0)}
+  `;
+}
+onReady(() => {
+  const sel = document.getElementById("cmpWeekSel");
+  const custom = document.getElementById("cmpCustom");
+  if(sel) sel.addEventListener("change", () => {
+    if(sel.value === "custom"){
+      custom.style.display = "";
+      if(custom.value){ _cmpCustomStart = custom.value; renderCompareCard(); }
+    } else {
+      custom.style.display = "none";
+      _cmpCustomStart = null;
+      _cmpOffset = parseInt(sel.value, 10) || 1;
+      renderCompareCard();
+    }
+  });
+  if(custom) custom.addEventListener("change", () => {
+    if(custom.value){ _cmpCustomStart = custom.value; renderCompareCard(); }
+  });
+});
+
+
 // =================================================================
 
 // PIPELINES — explicit composition (replaces the old wrapper chains).
@@ -9034,8 +9148,8 @@ function renderDashboard(){
   try{ renderSmartBanners(); }catch(e){ console.warn("smart banners", e); }
   try{ appendAccountabilityBanners(); }catch(e){ console.warn("accountability", e); }
   try{ renderDeck(); }catch(e){ console.warn("deck", e); }
-  try{ renderDashNutCard(); }catch(e){ console.warn("dash nut", e); }
   try{ renderDashWorkList(); }catch(e){ console.warn("dash work", e); }
+  try{ renderCompareCard(); }catch(e){ console.warn("compare", e); }
 }
 
 function openLiftDetail(lift){

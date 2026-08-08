@@ -191,7 +191,7 @@
     <div class="tb-left">
       <div class="tb-logo">
         <span class="tb-top">BERMO<span class="c">.</span></span>
-        <span class="tb-bot">TRACKER <span style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v9</span></span>
+        <span class="tb-bot">TRACKER <span style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v10</span></span>
       </div>
     </div>
     <nav class="tb-nav" id="tabNav">
@@ -236,6 +236,10 @@
 
     <!-- ============ DASHBOARD ============ -->
     <section class="view active" id="view-dashboard">
+      <div class="dash-greet">
+        <h1 id="dashGreeting">Let's go.</h1>
+        <span class="dg-date" id="dashDate"></span>
+      </div>
       <div class="help-banner hidden" id="helpBanner">
         <div class="hb-icon">👋</div>
         <div class="hb-body">
@@ -246,73 +250,32 @@
       </div>
       <div class="smart-banners" id="smartBanners"></div>
 
-            <!-- Mini quick-log row: one tap each, the brain dump handles the rest -->
-      <div class="mini-log-row">
-        <button class="mini-log mini-log-primary" id="brainDumpBtn" title="Type your day + photos, AI fills it all in">
-          <span class="ml-icon">🧠</span><span class="ml-label">Brain dump</span>
+      <!-- BRAIN DUMP — one line: type / photo / speak -->
+      <div class="brain-row">
+        <button class="br-main" id="brainDumpBtn" title="Type your whole day — AI files everything">
+          <span>🧠</span><b>BRAIN DUMP</b>
         </button>
-        <button class="mini-log" data-mini="food" title="Open food log">
-          <span class="ml-icon">🍴</span><span class="ml-label">Food</span>
-        </button>
-        <button class="mini-log" data-mini="lift" title="Log a lift">
-          <span class="ml-icon">🏋️</span><span class="ml-label">Lift</span>
-        </button>
-        <button class="mini-log" data-mini="cardio" title="Log cardio — bike, walk, run, class">
-          <span class="ml-icon">🏃</span><span class="ml-label">Cardio</span>
-        </button>
-        <button class="mini-log" data-mini="water" title="+ 8 oz water">
-          <span class="ml-icon">💧</span><span class="ml-label">+8 oz</span>
-        </button>
-        <button class="mini-log" data-mini="weigh" title="Weigh in">
-          <span class="ml-icon">⚖️</span><span class="ml-label">Weigh</span>
-        </button>
+        <button class="br-side" id="brainPhotoBtn" title="Snap food / watch / whiteboard">📸</button>
+        <button class="br-side" id="brainSpeakBtn" title="Speak your day">🎤</button>
       </div>
 
-      <!-- COMMAND DECK — daily + weekly rings, hit/fail strips, week schedule -->
+      <!-- RING DECK — Apple-style: day selector + fitness/nutrition rings -->
       <div class="deck" id="commandDeck">
-        <div class="deck-rings">
-          <div class="deck-block" id="deckTodayBlock" title="Tap for day detail">
-            <div class="deck-h">TODAY</div>
-            <canvas id="deckToday" width="130" height="130"></canvas>
-            <div class="deck-stats" id="deckTodayStats"></div>
+        <div class="deck-days" id="deckDays"></div>
+        <div class="deck-duo">
+          <div class="dd-col" id="deckFitCol">
+            <canvas id="deckFitRings" width="132" height="132"></canvas>
+            <div class="dd-stats" id="deckFitStats"></div>
           </div>
-          <div class="deck-block" id="deckWeekBlock" title="Tap for week detail">
-            <div class="deck-h">THIS WEEK</div>
-            <canvas id="deckWeek" width="130" height="130"></canvas>
-            <div class="deck-stats" id="deckWeekStats"></div>
+          <div class="dd-col" id="deckNutCol">
+            <canvas id="deckNutRings" width="132" height="132"></canvas>
+            <div class="dd-stats" id="deckNutStats"></div>
           </div>
         </div>
-        <div class="deck-strip-wrap">
-          <div class="deck-strip-label">WEEK</div>
-          <div class="deck-strip" id="deckWeekStrip"></div>
-        </div>
+        <div class="deck-water" id="deckWaterRow"></div>
         <div class="deck-strip-wrap">
           <div class="deck-strip-label" id="deckMonthLabel">MONTH</div>
           <div class="deck-strip deck-strip-month" id="deckMonthStrip"></div>
-        </div>
-      </div>
-
-      <!-- TODAY'S NUTRITION — Apple Summary-style card -->
-      <div class="card dash-card" id="dashNutCard">
-        <div class="card-head">
-          <span class="card-eyebrow">Nutrition · Today</span>
-          <span class="card-meta" id="dnMeta">tap to open food log</span>
-        </div>
-        <div class="dn-cal-row">
-          <div class="dn-big"><b id="dnCal">0</b><i>/ <span id="dnCalGoal">2200</span> cal</i></div>
-          <div class="dn-left" id="dnLeft">2200 left</div>
-        </div>
-        <div class="bar dn-bar"><div class="bar-fill" id="dnBar"></div></div>
-        <div class="dn-macros">
-          <div class="dn-m"><span>P</span><div class="bar"><div class="bar-fill bf-cyan" id="dnP"></div></div><b id="dnPTxt">0/0</b></div>
-          <div class="dn-m"><span>C</span><div class="bar"><div class="bar-fill bf-lime" id="dnC"></div></div><b id="dnCTxt">0/0</b></div>
-          <div class="dn-m"><span>F</span><div class="bar"><div class="bar-fill bf-pink" id="dnF"></div></div><b id="dnFTxt">0/0</b></div>
-        </div>
-        <div class="dn-water-row">
-          <span class="dn-w-label">💧 Water</span>
-          <div class="bar dn-w-bar"><div class="bar-fill" id="dnWaterBar"></div></div>
-          <b id="dnWaterTxt">0/64</b>
-          <button class="dn-w-add" id="dnWaterAdd">+8</button>
         </div>
       </div>
 
@@ -325,14 +288,23 @@
         <div class="dw-list" id="dwList"></div>
       </div>
 
-      <header class="view-head">
-        <div>
-          <p class="eyebrow">Today · <span id="dashDate"></span></p>
-          <h1 class="view-h1" id="dashGreeting">Let's go.</h1>
+      <!-- COMPARE — this week vs a chosen week -->
+      <div class="card dash-card" id="dashCompareCard">
+        <div class="card-head">
+          <span class="card-eyebrow">Compared to</span>
+          <div class="cmp-pick">
+            <select id="cmpWeekSel">
+              <option value="1">Last week</option>
+              <option value="2">2 weeks ago</option>
+              <option value="4">4 weeks ago</option>
+              <option value="custom">Custom week…</option>
+            </select>
+            <input type="date" id="cmpCustom" class="cmp-date" style="display:none">
+          </div>
         </div>
-        <div class="view-head-actions">
-        </div>
-      </header>
+        <div class="cmp-rows" id="cmpRows"></div>
+      </div>
+
 
       <div class="hubs-grid">
 

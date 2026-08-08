@@ -2717,3 +2717,96 @@ input:focus, select:focus, textarea:focus{ border-color:var(--iron-volt) !import
 
 /* Nutrition sub-section hide — must beat legacy !important display rules */
 #view-nutrition .nsec-hide{ display:none !important; }
+
+/* ============================================================
+   v10 — dashboard refinement: greet top, one-line brain dump,
+   Apple ring deck w/ day selector, day editor, compare card
+   ============================================================ */
+
+/* Greeting at top */
+.dash-greet{ display:flex; align-items:baseline; gap:10px; margin:2px 0 10px; }
+.dash-greet h1{
+  margin:0; font-family:'Inter Tight',sans-serif; font-weight:900;
+  font-size:22px; letter-spacing:-.01em; text-transform:uppercase;
+}
+.dg-date{ font-size:10px; font-weight:800; letter-spacing:1.5px; color:var(--iron-mute); text-transform:uppercase; }
+
+/* One-line brain dump row */
+.brain-row{ display:flex; gap:4px; margin:0 0 12px; }
+.br-main{
+  flex:1; display:flex; align-items:center; justify-content:center; gap:8px;
+  background:var(--iron-red); color:#fff; border:none; border-radius:3px;
+  padding:13px 10px; cursor:pointer; font-size:14px;
+}
+.br-main b{ font-weight:900; letter-spacing:.08em; }
+.br-main:hover{ background:#ff4553; }
+.br-side{
+  width:52px; display:flex; align-items:center; justify-content:center;
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  border-radius:3px; font-size:18px; cursor:pointer;
+}
+.br-side:hover{ border-color:var(--iron-volt); }
+
+/* Ring deck v3 — one flat card, Apple-style */
+.deck{ padding:14px 12px 10px; }
+.deck-days{ display:flex; justify-content:space-between; gap:2px; margin-bottom:12px; }
+.dk-dc{
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
+  background:none; border:none; padding:2px 0 4px; cursor:pointer; border-radius:3px;
+}
+.dk-dc.sel{ background:rgba(216,255,0,.08); outline:1px solid var(--iron-volt); }
+.dk-dc-l{
+  font-size:10px; font-weight:800; color:var(--iron-mute);
+  width:18px; height:18px; line-height:18px; border-radius:50%;
+}
+.dk-dc-l.today{ background:var(--iron-red); color:#fff; }
+.deck-duo{ display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.dd-col{ display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; }
+.dds-h{ font-size:9px; font-weight:900; letter-spacing:2px; color:var(--iron-mute); margin-bottom:2px; text-align:center; }
+.dd-stats{ width:100%; display:flex; flex-direction:column; gap:1px; }
+.dds{
+  display:flex; align-items:baseline; gap:4px; font-size:10px;
+  padding:2px 4px; justify-content:center;
+}
+.dds i{ font-style:normal; font-weight:800; min-width:52px; text-align:right; }
+.dds b{ font-family:'Inter Tight',sans-serif; font-weight:900; font-size:13px; color:var(--iron-text); }
+.dds s{ text-decoration:none; color:var(--iron-mute); font-size:9px; }
+.deck-water{
+  display:flex; align-items:center; gap:8px; margin:10px 2px 4px;
+  font-size:10px; color:var(--iron-mute);
+}
+.deck-water .dw-lbl{ font-weight:900; letter-spacing:1px; flex-shrink:0; }
+.deck-water .dw-bar{ flex:1; height:6px; }
+.deck-water b{ font-size:10px; color:var(--iron-text); white-space:nowrap; }
+
+/* Day workout editor */
+.pde-list{ display:flex; flex-direction:column; gap:4px; }
+.pde-row{ display:flex; gap:4px; align-items:center; }
+.pde-sel{ flex:1; min-width:0; font-size:12px; padding:9px 8px; }
+.pde-custom{ flex:1; min-width:0; font-size:12px; padding:9px 8px; }
+.pde-time{ width:88px; flex-shrink:0; font-size:12px; padding:8px 6px; }
+.pde-del{
+  width:30px; height:34px; flex-shrink:0; background:transparent;
+  border:1px solid var(--iron-line); color:var(--iron-red);
+  font-size:15px; cursor:pointer; border-radius:3px;
+}
+.dw-time{ font-style:normal; font-size:10px; color:var(--iron-cyan); font-weight:800; margin-left:4px; }
+.dw-extra{ color:var(--iron-mute); font-size:10px; }
+
+/* Compare card */
+.cmp-pick{ display:flex; gap:4px; align-items:center; }
+.cmp-pick select{ font-size:11px; padding:6px 8px; }
+.cmp-date{ font-size:11px; padding:6px; width:120px; }
+.cmp-sub{ font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--iron-mute); font-weight:800; margin-bottom:6px; }
+.cmp-rows{ display:flex; flex-direction:column; }
+.cmp-row{
+  display:grid; grid-template-columns:1.2fr .7fr .9fr .8fr; gap:6px; align-items:baseline;
+  padding:8px 10px; background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  border-radius:3px; margin-bottom:2px; font-size:11px;
+}
+.cmp-row span{ font-weight:800; text-transform:uppercase; letter-spacing:.5px; font-size:9px; color:var(--iron-mute); }
+.cmp-row b{ font-family:'Inter Tight',sans-serif; font-weight:900; font-size:13px; }
+.cmp-row s{ text-decoration:none; color:var(--iron-mute); font-size:10px; }
+.cmp-row em{ font-style:normal; font-weight:900; font-size:10px; text-align:right; }
+.cmp-row .cmp-good{ color:var(--iron-volt); }
+.cmp-row .cmp-bad{ color:var(--iron-red); }

@@ -147,12 +147,15 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
     await page.waitForTimeout(600);
     // v8 IA: hubs are hidden — dashboard = deck rings + nutrition card + workouts week list
     const dash = await page.evaluate(() => ({
-      deck: !!document.querySelector("#commandDeck canvas"),
-      nut: (document.getElementById("dashNutCard")||{}).offsetParent !== null,
+      days: document.querySelectorAll("#deckDays .dk-dc").length,
+      rings: !!document.getElementById("deckFitRings") && !!document.getElementById("deckNutRings"),
+      water: !!document.getElementById("deckWaterAdd"),
       work: document.querySelectorAll("#dwList .dw-row").length,
+      cmp: document.querySelectorAll("#cmpRows .cmp-row").length,
+      brain: !!document.getElementById("brainSpeakBtn"),
     }));
-    (dash.deck && dash.nut && dash.work === 7)
-      ? ok(`dashboard renders (deck + nutrition card + ${dash.work}-day workout list)`)
+    (dash.days === 7 && dash.rings && dash.water && dash.work === 7 && dash.cmp >= 3 && dash.brain)
+      ? ok(`dashboard renders (day strip + dual rings + water + ${dash.work}-day list + compare)`)
       : fail("dashboard renders", JSON.stringify(dash));
   } catch (e) { fail("dashboard re-render", e); }
 

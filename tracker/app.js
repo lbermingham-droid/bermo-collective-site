@@ -1034,7 +1034,7 @@ function drawHeatmap(){
 }
 
 // ---------- BODY ----------
-function renderBody(){
+function renderBodyBase(){
   const ws = state.weights.slice().sort((a,b)=>a.date.localeCompare(b.date));
   if(ws.length){
     const last = ws[ws.length-1];
@@ -6675,7 +6675,7 @@ function getBodyCoverage(daysBack){
   Object.entries(state.days).forEach(([date, day]) => {
     if(new Date(date) < cutoff) return;
     (day.sessions || []).forEach(s => {
-      const parts = BODY_PART_MAP[(s.name||"").toLowerCase()] || [];
+      const parts = partsForExercise(s.name);
       parts.forEach(p => { tally[p] = (tally[p] || 0) + 1; });
     });
   });
@@ -7146,8 +7146,7 @@ function _anatomyVolumeByPart(daysBack){
     if(new Date(k) < cutoff) return;
     const day = state.days[k];
     (day.sessions || []).forEach(s => {
-      const ex = (s.lift || s.exercise || s.name || "").toLowerCase();
-      const parts = (BODY_PART_MAP && BODY_PART_MAP[ex]) || [];
+      const parts = partsForExercise(s.lift || s.exercise || s.name);
       const sets = (s.sets && s.sets.length) || 1;
       parts.forEach(p => { if(counts[p] !== undefined) counts[p] += sets; });
     });
@@ -8385,12 +8384,31 @@ function _volumeForRange(startDate, endDate){
   return vol;
 }
 
+
+// Resolve body parts for ANY exercise name: exact map first, then keywords
+// (covers machines like Lat Pulldown / Leg Press and free-typed customs).
+function partsForExercise(name){
+  const n = (name || "").toLowerCase();
+  if(BODY_PART_MAP[n]) return BODY_PART_MAP[n];
+  const out = new Set();
+  if(/squat|lunge|leg press|leg extension|leg curl|calf|step.?up|sled/.test(n)){ out.add("legs"); }
+  if(/squat|deadlift|hip thrust|glute|kickback|abduct/.test(n)){ out.add("glutes"); }
+  if(/deadlift|row|pull.?down|pull.?up|chin.?up|pullover|back extension|shrug|face pull|t-bar/.test(n)){ out.add("back"); }
+  if(/bench|push.?up|chest|pec|fly|dip/.test(n)){ out.add("chest"); }
+  if(/press$|overhead|shoulder|lateral raise|front raise|arnold|jerk|snatch/.test(n)){ out.add("shoulders"); }
+  if(/curl|tricep|extension$|pushdown|skull|close.?grip|dip/.test(n)){ out.add("arms"); }
+  if(/ab |abs|crunch|plank|sit.?up|woodchop|core|hollow|l-sit|leg raise/.test(n)){ out.add("core"); }
+  // machine leg curl/extension shouldn't hit arms via "extension$"
+  if(/leg (curl|extension)/.test(n)){ out.delete("arms"); }
+  return Array.from(out);
+}
+
 function _bodyPartLastHit(){
   const lastHit = {};
   const keys = Object.keys(state.days).sort().reverse().slice(0, 60);
   for(const k of keys){
     ((state.days[k] || {}).sessions || []).forEach(s => {
-      const parts = (typeof BODY_PART_MAP !== "undefined" && BODY_PART_MAP[(s.name || "").toLowerCase()]) || [];
+      const parts = partsForExercise(s.name);
       parts.forEach(p => { if(!lastHit[p] || k > lastHit[p]) lastHit[p] = k; });
     });
   }
@@ -8562,7 +8580,7 @@ function renderDashWorkList(){
     const kcal = sessions.reduce((n, x) => n + (x.calories||0), 0);
     const statParts = [];
     if(done){
-      statParts.push(`${sessions.length} entries`);
+      statParts.push(`${sessions.length} ${sessions.length===1?"entry":"entries"}`);
       if(vol > 0) statParts.push(`${Math.round(vol).toLocaleString()} ${unit()}`);
       if(kcal > 0) statParts.push(`${Math.round(kcal)} kcal`);
     }
@@ -8716,7 +8734,7 @@ function renderMuscleMap(){
   const F = (p) => _muscleFill(ds[p]);
   card.innerHTML = `
     <div class="mm-stats">
-      <div class="mm-stat"><b>${daysSinceWorkout === null ? "—" : daysSinceWorkout}</b><span>DAYS SINCE<br>LAST WORKOUT</span></div>
+      <div class="mm-stat"><b>${daysSinceWorkout === null ? "—" : daysSinceWorkout}</b><span>${daysSinceWorkout === 1 ? "DAY" : "DAYS"} SINCE<br>LAST WORKOUT</span></div>
       <div class="mm-stat mm-right"><b>${fresh}</b><span>FRESH MUSCLE<br>GROUPS</span></div>
     </div>
     <div class="mm-wrap">
@@ -8819,22 +8837,246 @@ onReady(() => {
       applyFitSub();
     });
   });
-  // Nutrition chips: scroll-anchors (content stays a single page)
+  // Nutrition chips: toggle sub-sections; Calendar opens the full
+  // nutrition history overlay (Day/Week/Month/90D/Year)
+  const NUT_SECTIONS = {
+    tracker: [".ai-quick-row", ".nut-summary", ".meal-grid", ".quick-row", "#detailCard", "#overBanner"],
+    summary: ["#nutSummaryCard", "#detailCard"],
+    saved:   ["#usualsRow"],
+  };
+  const applyNutSub = (sub) => {
+    document.querySelectorAll("#nutSubnav .sub-chip").forEach(x =>
+      x.classList.toggle("active", x.dataset.nsub === sub));
+    const all = new Set(Object.values(NUT_SECTIONS).flat());
+    all.forEach(sel => {
+      document.querySelectorAll("#view-nutrition " + sel).forEach(el => el.classList.add("nsec-hide"));
+    });
+    (NUT_SECTIONS[sub] || []).forEach(sel => {
+      document.querySelectorAll("#view-nutrition " + sel).forEach(el => el.classList.remove("nsec-hide"));
+    });
+    if(sub === "summary"){
+      const d = document.getElementById("detailCard");
+      if(d) d.open = true;
+      renderNutrientsTable();
+    }
+    if(sub === "saved"){
+      const u = document.getElementById("usualsRow");
+      if(u) u.style.display = "";
+    }
+  };
   document.querySelectorAll("#nutSubnav .sub-chip").forEach(c => {
     c.addEventListener("click", () => {
-      document.querySelectorAll("#nutSubnav .sub-chip").forEach(x => x.classList.toggle("active", x === c));
       const sub = c.dataset.nsub;
-      const scrollTo = (sel) => { const el = document.querySelector(sel); if(el) el.scrollIntoView({ behavior:"smooth", block:"start" }); };
-      if(sub === "tracker") scrollTo("#view-nutrition .view-head");
-      else if(sub === "summary"){
-        const d = document.getElementById("detailCard");
-        if(d){ d.open = true; scrollTo("#detailCard"); }
-      }
-      else if(sub === "saved") scrollTo("#usualsRow");
-      else if(sub === "calendar") scrollTo("#nutWeek");
+      if(sub === "calendar"){ openDetail("nutrition"); return; }
+      applyNutSub(sub);
     });
   });
 });
+
+
+
+// =================================================================
+// v9 — section rings, training-volume progress, nutrients table,
+//       body composition
+// =================================================================
+function drawSectionRing(canvasId, pct, color){
+  const cv = document.getElementById(canvasId);
+  if(!cv) return;
+  const ctx = cv.getContext("2d");
+  const w = cv.width, h = cv.height;
+  ctx.clearRect(0,0,w,h);
+  const cx = w/2, cy = h/2, r = (Math.min(w,h)/2) - 6;
+  ctx.beginPath(); ctx.lineWidth = 6; ctx.lineCap = "butt";
+  ctx.strokeStyle = "rgba(255,255,255,.08)";
+  ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.stroke();
+  const p = Math.max(0, Math.min(1, pct));
+  if(p > 0){
+    ctx.beginPath(); ctx.lineCap = "round"; ctx.strokeStyle = color;
+    ctx.arc(cx, cy, r, -Math.PI/2, -Math.PI/2 + p*Math.PI*2); ctx.stroke();
+  }
+  ctx.fillStyle = "#f2f5f7";
+  ctx.font = "800 11px 'Inter Tight', sans-serif";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText(Math.round(p*100) + "%", cx, cy);
+}
+function renderFitRing(){
+  const g = getActivityGoals();
+  const a = getActivityForDay(todayKey());
+  drawSectionRing("fitRing", (a.exercise || 0) / Math.max(1, g.exercise), "#d8ff00");
+}
+function renderNutRing(){
+  const t = totalsFor(currentDate);
+  drawSectionRing("nutRing", t.cal / Math.max(1, state.goals.cal || 2200), "#ff7a00");
+}
+function renderBodyRing(){
+  const wts = state.weights || [];
+  const goal = (state.goals || {}).weight;
+  if(!wts.length || !goal){ drawSectionRing("bodyRing", 0, "#00e5ff"); return; }
+  const start = wts[0].val, cur = wts[wts.length-1].val;
+  const total = Math.abs(start - goal);
+  const done = Math.abs(start - cur);
+  const movingRightWay = (start > goal && cur <= start) || (start < goal && cur >= start);
+  drawSectionRing("bodyRing", total < 0.1 ? 1 : (movingRightWay ? done/total : 0), "#00e5ff");
+}
+
+// ---- Training volume progress (Fitbod Overall Strength style) ----
+let _fpScale = "m";
+let _fpChartRef = null;
+function _volumeBuckets(scale){
+  // Returns [{label, vol}] oldest -> newest
+  const out = [];
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dayVol = (k) => ((state.days[k] || {}).sessions || [])
+    .reduce((n, s) => n + (s.weight||0)*(s.reps||0)*(s.sets||1), 0);
+  if(scale === "w"){
+    for(let i = 6; i >= 0; i--){
+      const d = new Date(today.getTime() - i*86400000);
+      out.push({ label: d.toLocaleDateString(undefined,{weekday:"narrow"}), vol: dayVol(todayKey(d)) });
+    }
+  } else if(scale === "m" || scale === "6m"){
+    const weeks = scale === "m" ? 5 : 26;
+    for(let w = weeks-1; w >= 0; w--){
+      const start = new Date(weekStart(today).getTime() - w*7*86400000);
+      let v = 0;
+      for(let i = 0; i < 7; i++) v += dayVol(todayKey(new Date(start.getTime() + i*86400000)));
+      out.push({ label: start.toLocaleDateString(undefined,{month:"numeric",day:"numeric"}), vol: v });
+    }
+  } else {
+    for(let m = 11; m >= 0; m--){
+      const d = new Date(today.getFullYear(), today.getMonth()-m, 1);
+      const end = new Date(d.getFullYear(), d.getMonth()+1, 1);
+      let v = 0;
+      Object.keys(state.days).forEach(k => {
+        const dk = new Date(k + "T12:00:00");
+        if(dk >= d && dk < end) v += dayVol(k);
+      });
+      out.push({ label: d.toLocaleDateString(undefined,{month:"narrow"}), vol: v });
+    }
+  }
+  return out;
+}
+function renderFitProgress(){
+  const cv = document.getElementById("fpChart");
+  if(!cv || typeof Chart === "undefined") return;
+  const data = _volumeBuckets(_fpScale);
+  const vols = data.map(d => d.vol);
+  const total = vols.reduce((a,b) => a+b, 0);
+  const nonzero = vols.filter(v => v > 0);
+  const best = nonzero.length ? Math.max(...nonzero) : 0;
+  const avg = nonzero.length ? total/nonzero.length : 0;
+  const half = Math.floor(vols.length/2);
+  const firstHalf = vols.slice(0, half).reduce((a,b)=>a+b,0);
+  const secondHalf = vols.slice(half).reduce((a,b)=>a+b,0);
+  const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+  set("fpBig", total > 0 ? Math.round(total).toLocaleString() + " " + unit() : "No data");
+  set("fpSub", total > 0 ? `total volume (${unit()} × reps) this period` : "log lifts to see your volume trend");
+  set("fpBest", best ? Math.round(best).toLocaleString() : "—");
+  set("fpAvg", avg ? Math.round(avg).toLocaleString() : "—");
+  set("fpTrend", (firstHalf > 0 || secondHalf > 0)
+    ? (secondHalf >= firstHalf
+        ? "▲ up " + (firstHalf ? Math.round(((secondHalf-firstHalf)/firstHalf)*100) + "%" : "")
+        : "▼ down " + Math.round(((firstHalf-secondHalf)/Math.max(1,firstHalf))*100) + "%")
+    : "—");
+  document.querySelectorAll(".fp-scale").forEach(b =>
+    b.classList.toggle("active", b.dataset.fp === _fpScale));
+  if(_fpChartRef){ _fpChartRef.destroy(); _fpChartRef = null; }
+  _fpChartRef = new Chart(cv.getContext("2d"), {
+    type: "bar",
+    data: {
+      labels: data.map(d => d.label),
+      datasets: [{ data: vols, backgroundColor: vols.map(v => v > 0 ? "#d8ff00" : "#20262e"), borderRadius: 2 }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { enabled: true } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: "#8b95a1", font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } },
+        y: { grid: { color: "rgba(255,255,255,.06)" }, ticks: { color: "#8b95a1", font: { size: 9 }, maxTicksLimit: 5 } },
+      },
+    },
+  });
+}
+onReady(() => {
+  document.querySelectorAll(".fp-scale").forEach(b => {
+    b.addEventListener("click", () => { _fpScale = b.dataset.fp; renderFitProgress(); });
+  });
+});
+
+// ---- Nutrients table (MFP-style Total / Goal / Left) ----
+function renderNutrientsTable(){
+  const el = document.getElementById("ntTable");
+  if(!el) return;
+  const day = dayObj(currentDate);
+  let cal=0,p=0,c=0,f=0,fiber=0,sugar=0;
+  ["breakfast","lunch","dinner","snacks"].forEach(m => {
+    (day.meals[m]||[]).forEach(it => {
+      cal += it.cal||0; p += it.p||0; c += it.c||0; f += it.f||0;
+      fiber += it.fiber||0; sugar += it.sugar||0;
+    });
+  });
+  const g = state.goals || {};
+  const rows = [
+    ["Calories", Math.round(cal), g.cal || 2200, ""],
+    ["Protein", Math.round(p), g.protein || 0, "g"],
+    ["Carbohydrates", Math.round(c), g.carbs || 0, "g"],
+    ["Fiber", Math.round(fiber), g.fiber || 25, "g"],
+    ["Sugar", Math.round(sugar), g.sugar || 50, "g"],
+    ["Fat", Math.round(f), g.fat || 0, "g"],
+  ];
+  el.innerHTML = `
+    <div class="nt-row nt-head"><span>Nutrient</span><b>Total</b><b>Goal</b><b>Left</b></div>
+    ${rows.map(([name, tot, goal, u]) => {
+      const left = Math.max(0, goal - tot);
+      const over = tot > goal && goal > 0;
+      return `<div class="nt-row">
+        <span>${name}</span>
+        <b>${tot}${u}</b>
+        <b class="nt-goal">${goal}${u}</b>
+        <b class="${over ? "nt-over" : "nt-left"}">${over ? (tot-goal)+u+" over" : left+u}</b>
+      </div>`;
+    }).join("")}
+  `;
+}
+
+// ---- Body composition (Fitbod Results style) ----
+function renderBodyComp(){
+  const grid = document.getElementById("bcGrid");
+  if(!grid) return;
+  const wts = state.weights || [];
+  const lastW = wts.length ? wts[wts.length-1] : null;
+  const bfEntry = (state.measurements || []).slice().reverse().find(m => m.type === "bodyfat");
+  const bf = bfEntry ? parseFloat(bfEntry.val) : null;
+  const wLb = lastW ? (state.profile.units === "metric" ? lastW.val * 2.2046 : lastW.val) : null;
+  const heightIn = state.profile.heightIn || null;
+  const fatMass = (wLb != null && bf != null) ? wLb * bf/100 : null;
+  const leanMass = (wLb != null && bf != null) ? wLb - fatMass : null;
+  const bmi = (wLb != null && heightIn) ? (wLb * 703) / (heightIn * heightIn) : null;
+  // Katch-McArdle when BF known, else Mifflin-St Jeor
+  let bmr = null;
+  if(wLb != null){
+    const kg = wLb * 0.4536;
+    if(leanMass != null){
+      bmr = 370 + 21.6 * (leanMass * 0.4536);
+    } else if(heightIn && state.profile.ageYears){
+      const cm = heightIn * 2.54;
+      const male = state.profile.sex === "male" || state.profile.sex === "m";
+      bmr = 10*kg + 6.25*cm - 5*(state.profile.ageYears) + (male ? 5 : -161);
+    }
+  }
+  const u = unit();
+  const cells = [
+    ["Weight", lastW ? `${lastW.val} ${u}` : "—", lastW ? fmtDate(lastW.date) : "log a weigh-in"],
+    ["Body fat", bf != null ? `${bf}%` : "—", bfEntry ? fmtDate(bfEntry.date) : "add in measurements"],
+    ["Lean mass", leanMass != null ? `${leanMass.toFixed(1)} lb` : "—", leanMass != null ? "" : "needs weight + BF%"],
+    ["Fat mass", fatMass != null ? `${fatMass.toFixed(1)} lb` : "—", ""],
+    ["BMI", bmi != null ? bmi.toFixed(1) : "—", bmi != null ? "" : "needs height"],
+    ["Metabolic rate", bmr != null ? `${Math.round(bmr)} kcal` : "—", bmr != null ? "at rest (BMR)" : ""],
+  ];
+  grid.innerHTML = cells.map(([l, v, sub]) => `
+    <div class="bc-cell">
+      <span>${l}</span><b>${escape(String(v))}</b>${sub ? `<small>${escape(sub)}</small>` : ""}
+    </div>`).join("");
+}
 
 
 // =================================================================
@@ -8850,12 +9092,20 @@ function renderSettings(){
   renderAISetup();
 }
 
+function renderBody(){
+  renderBodyBase();
+  try{ renderBodyComp(); }catch(e){ console.warn("body comp", e); }
+  try{ renderBodyRing(); }catch(e){ console.warn("body ring", e); }
+}
+
 function renderFitness(){
   renderFitnessBase();
   renderLiftsList();
   renderPlanMini();
   renderBodyCoverage();
   try{ renderMuscleMap(); }catch(e){ console.warn("muscle map", e); }
+  try{ renderFitProgress(); }catch(e){ console.warn("fit progress", e); }
+  try{ renderFitRing(); }catch(e){ console.warn("fit ring", e); }
   try{ applyFitSub(); }catch(e){ console.warn("fit subnav", e); }
 }
 
@@ -8931,6 +9181,8 @@ function renderNutrition(){
   renderNutritionBase();
   renderNutritionStep_RenderNutritionForFlags();
   renderDetail();
+  try{ renderNutRing(); }catch(e){ console.warn("nut ring", e); }
+  try{ renderNutrientsTable(); }catch(e){ console.warn("nutrients", e); }
 }
 
 // ---------- SINGLE INIT ----------

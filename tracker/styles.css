@@ -2557,3 +2557,142 @@ input:focus, select:focus, textarea:focus{ border-color:var(--iron-volt) !import
 .gs-cell span{ font-size:8px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; color:var(--iron-mute); }
 .gs-cell b{ font-size:16px; font-weight:900; font-family:'Inter Tight',sans-serif; }
 #goalsSummaryCard, #goalsProgressCard{ margin-bottom:12px; }
+
+/* ============================================================
+   v9 — section rings, progress chart, nutrients table, body comp
+   ============================================================ */
+.sec-ring{ flex-shrink:0; margin-left:auto; margin-right:10px; }
+.view-head{ align-items:center; }
+
+/* Fitness progress card */
+.fp-scales{ display:flex; gap:3px; }
+.fp-scale{
+  padding:5px 10px; background:var(--iron-panel-2);
+  border:1px solid var(--iron-line); color:var(--iron-mute);
+  font-size:10px; font-weight:900; letter-spacing:1px; cursor:pointer; border-radius:3px;
+}
+.fp-scale.active{ background:var(--iron-volt); color:#0d1100; border-color:var(--iron-volt); }
+.fp-big{
+  font-family:'Inter Tight',sans-serif; font-size:32px; font-weight:900;
+  font-style:italic; line-height:1; margin:6px 0 2px;
+}
+.fp-sub{ font-size:10px; color:var(--iron-mute); letter-spacing:.5px; margin-bottom:8px; }
+#fpChart{ max-height:130px; }
+.fp-rows{ margin-top:8px; display:flex; flex-direction:column; gap:2px; }
+.fp-row{
+  display:flex; justify-content:space-between; padding:7px 10px;
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  font-size:11px; border-radius:3px;
+}
+.fp-row span{ color:var(--iron-mute); font-weight:700; text-transform:uppercase; letter-spacing:1px; font-size:9px; }
+.fp-row b{ font-weight:900; }
+
+/* Nutrients table */
+.nt-table{ display:flex; flex-direction:column; gap:2px; }
+.nt-row{
+  display:grid; grid-template-columns:1.4fr .8fr .8fr .9fr; gap:6px;
+  padding:9px 10px; background:var(--iron-panel-2);
+  border:1px solid var(--iron-line); font-size:12px; align-items:center; border-radius:3px;
+}
+.nt-row span{ font-weight:700; }
+.nt-row b{ text-align:right; font-weight:800; font-family:'JetBrains Mono',monospace; font-size:11px; }
+.nt-row.nt-head{ background:transparent; border-color:transparent; padding:2px 10px; }
+.nt-row.nt-head span, .nt-row.nt-head b{
+  font-size:8px; letter-spacing:1.5px; text-transform:uppercase; color:var(--iron-mute);
+}
+.nt-goal{ color:var(--iron-mute) !important; }
+.nt-left{ color:var(--iron-volt) !important; }
+.nt-over{ color:var(--iron-red) !important; }
+
+/* Body composition grid */
+.bc-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+@media(max-width:520px){ .bc-grid{ grid-template-columns:repeat(2,1fr); } }
+.bc-cell{
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  padding:10px; display:flex; flex-direction:column; gap:2px; border-radius:3px;
+}
+.bc-cell span{ font-size:8px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; color:var(--iron-mute); }
+.bc-cell b{ font-size:17px; font-weight:900; font-family:'Inter Tight',sans-serif; }
+.bc-cell small{ font-size:9px; color:var(--iron-mute); }
+
+/* ============================================================
+   v9 QA PASS — legacy cream components restyled for IRON theme
+   ============================================================ */
+
+/* Dashboard: hide the stranded greeting header (mini row covers logging) */
+#view-dashboard > .view-head{ display:none !important; }
+
+/* Help banner: compact */
+.help-banner{
+  background:var(--iron-panel) !important; border:1px solid var(--iron-line) !important;
+  border-left:3px solid var(--iron-volt) !important; border-radius:4px !important;
+  padding:10px 12px !important; box-shadow:none !important;
+}
+.help-banner .hb-title{ font-size:12px !important; color:var(--iron-text) !important; }
+.help-banner .hb-title b{ color:var(--iron-volt) !important; background:none !important; padding:0 !important; }
+.help-banner .hb-sub{ font-size:10px !important; color:var(--iron-mute) !important; }
+.help-banner .hb-icon{ font-size:16px !important; }
+
+/* AI quick-row buttons (Snap / Type) — were cream with invisible text */
+.ai-btn{
+  background:var(--iron-panel-2) !important; border:1px solid var(--iron-line) !important;
+  border-radius:3px !important; color:var(--iron-text) !important; box-shadow:none !important;
+}
+.ai-btn .ai-label{ color:var(--iron-text) !important; font-weight:800 !important; }
+.ai-btn .ai-sub{ color:var(--iron-mute) !important; }
+.ai-btn-photo{ border-left:3px solid var(--iron-cyan) !important; }
+.ai-btn-text{ border-left:3px solid var(--iron-orange) !important; }
+
+/* Nutrition summary pills — were white on white */
+.nut-pill{
+  background:var(--iron-panel-2) !important; border:1px solid var(--iron-line) !important;
+  border-radius:3px !important; box-shadow:none !important;
+}
+.nut-pill span{ color:var(--iron-mute) !important; }
+.nut-pill strong{ color:var(--iron-text) !important; }
+.nut-pill em{ color:var(--iron-mute) !important; }
+
+/* Detailed Nutrition disclosure + density cards */
+.detail-card{
+  background:var(--iron-panel) !important; border:1px solid var(--iron-line) !important;
+  border-radius:4px !important; color:var(--iron-text) !important; box-shadow:none !important;
+}
+.detail-card summary{ color:var(--iron-text) !important; }
+.detail-card .detail-sub{ color:var(--iron-mute) !important; }
+.detail-card .detail-grid > div, .detail-grid .dg-cell{
+  background:var(--iron-panel-2) !important; border:1px solid var(--iron-line) !important;
+  color:var(--iron-text) !important; border-radius:3px !important;
+}
+.detail-card .detail-grid *{ color:var(--iron-text); }
+.detail-card .detail-note{ color:var(--iron-mute) !important; }
+
+/* Body Part Coverage — labels were near-invisible; warning box was cream */
+.bp-row .bp-name{ color:var(--iron-text) !important; font-weight:800; }
+.bp-row .bp-count{ color:var(--iron-mute) !important; }
+.bp-row.bp-missing .bp-name{ color:var(--iron-red) !important; }
+.bp-bar{ background:var(--iron-panel-2) !important; }
+.bp-suggest{
+  background:#1a0508 !important; border:1px solid var(--iron-red) !important;
+  border-left:3px solid var(--iron-red) !important; border-radius:3px !important;
+  color:#ff8b93 !important;
+}
+.bp-suggest b{ color:#ff8b93 !important; }
+.bp-suggest i{ color:#c98b90 !important; }
+
+/* Date picker + back buttons — dark, consistent */
+.date-picker{ background:var(--iron-panel-2) !important; border:1px solid var(--iron-line) !important; border-radius:3px !important; box-shadow:none !important; }
+.date-picker input{ background:transparent !important; border:none !important; color:var(--iron-text) !important; }
+.dp-btn{ color:var(--iron-text) !important; }
+.view-back{
+  background:var(--iron-panel-2) !important; border:1px solid var(--iron-line) !important;
+  color:var(--iron-text) !important; border-radius:3px !important; box-shadow:none !important;
+}
+
+/* Sub-chips: tighter so all 5 fit on iPhone width */
+.sub-chip{ padding:7px 10px; font-size:9px; letter-spacing:1.2px; }
+
+/* Measurements list label casing */
+.meas-list{ text-transform:capitalize; }
+
+/* Nutrition sub-section hide — must beat legacy !important display rules */
+#view-nutrition .nsec-hide{ display:none !important; }

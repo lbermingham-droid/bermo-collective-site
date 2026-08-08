@@ -111,6 +111,19 @@ Calendar / Saved. Nutrition chips scroll-anchor. Muscle Map v2
 (red just-hit -> orange -> volt fresh -> gray going-cold), Fitbod-style
 "days since last workout" + "fresh muscle groups" stats, GOING COLD
 callout, parts tap into exercise suggestions.
+v9: per-section header rings (fitness volt / nutrition orange / body
+cyan %), Fitness PROGRESS training-volume Chart.js card (W/M/6M/Y,
+best/avg/trend), Nutrition SUMMARY = real sub-toggle (class .nsec-hide
+beats legacy !important) with MFP-style nutrients table (Total/Goal/
+Left incl fiber+sugar), Body composition grid (weight/BF%/lean/fat/
+BMI/BMR Katch-McArdle), partsForExercise() fuzzy body-part resolver
+(machines + customs now hit the muscle map/coverage/neglect), 4-ring
+deck now Move/Workout/NutritionCal/Water. QA pass: legacy cream
+components restyled to IRON (ai-btns, nut-pills, detail card, body
+coverage, date picker, help banner rewritten for new nav), stranded
+dashboard greeting hidden, singular/plural fixes. Screenshot QA loop:
+seed data via localStorage then capture every page (scratchpad
+shots.js pattern).
 Shell: 6 dashboard hubs (reorder/hide via Customize), detail drill-down
 overlay (Day/Week/Month/90D/Year + date navigation), back buttons everywhere,
 navy theme + density pass, mobile layout on any touch device <1100px,

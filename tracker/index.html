@@ -191,7 +191,7 @@
     <div class="tb-left">
       <div class="tb-logo">
         <span class="tb-top">BERMO<span class="c">.</span></span>
-        <span class="tb-bot">TRACKER <span style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v8</span></span>
+        <span class="tb-bot">TRACKER <span style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v9</span></span>
       </div>
     </div>
     <nav class="tb-nav" id="tabNav">
@@ -240,8 +240,8 @@
       <div class="help-banner hidden" id="helpBanner">
         <div class="hb-icon">👋</div>
         <div class="hb-body">
-          <div class="hb-title">Quick-log anything with the buttons below — <b>Brain Dump</b> lets you type or photograph your whole day.</div>
-          <div class="hb-sub">Tabs switch screens: Home · Food · Lift · Plan · Body · Trends. Tap your avatar (top right) for Settings.</div>
+          <div class="hb-title"><b>Brain Dump</b> logs your whole day — type it or snap photos of food + your watch.</div>
+          <div class="hb-sub">Home · Fitness · Nutrition · Body · Goals · Health. Gear icon = settings.</div>
         </div>
         <button class="hb-close" id="helpClose" title="Got it">×</button>
       </div>
@@ -551,6 +551,7 @@
           <p class="eyebrow">Nutrition · <span id="nutDate"></span></p>
           <h1 class="view-h1">Food log</h1>
         </div>
+        <canvas class="sec-ring" id="nutRing" width="54" height="54" title="Calories today vs goal"></canvas>
         <div class="view-head-actions">
           <div class="date-picker">
             <button class="dp-btn" id="nutPrev" aria-label="Previous day">‹</button>
@@ -588,6 +589,14 @@
         <div class="nut-pill"><span>Carbs</span><strong id="nutC">0g</strong><em id="nutCGoal">/ 0g</em></div>
         <div class="nut-pill"><span>Fat</span><strong id="nutF">0g</strong><em id="nutFGoal">/ 0g</em></div>
         <div class="nut-pill"><span>Remaining</span><strong id="nutRem">2200</strong><em>cal</em></div>
+      </div>
+
+      <div class="card nsec-hide" id="nutSummaryCard" data-nsec="summary">
+        <div class="card-head">
+          <span class="card-eyebrow">Nutrients · today</span>
+          <span class="card-meta">total / goal / left</span>
+        </div>
+        <div class="nt-table" id="ntTable"></div>
       </div>
 
       <div class="meal-grid">
@@ -654,6 +663,7 @@
           <p class="eyebrow">Fitness · <span id="fitDate"></span></p>
           <h1 class="view-h1">Workout board</h1>
         </div>
+        <canvas class="sec-ring" id="fitRing" width="54" height="54" title="Workout minutes today vs goal"></canvas>
         <div class="view-head-actions">
           <button class="btn btn-ghost" id="fitNewLift">+ Lift</button>
           <button class="btn btn-ghost" id="fitNewCardio">+ Cardio</button>
@@ -678,6 +688,27 @@
               <div class="pm-type" id="planMiniType">No plan set</div>
             </div>
             <button class="btn btn-ghost btn-sm" id="planMiniGo">Open Planner →</button>
+          </div>
+        </div>
+
+        <!-- PROGRESS — weekly volume trend (Fitbod Overall Strength style) -->
+        <div class="card span-12" id="fitProgressCard" data-fsec="progress">
+          <div class="card-head">
+            <span class="card-eyebrow">Training volume</span>
+            <div class="fp-scales">
+              <button class="fp-scale" data-fp="w">W</button>
+              <button class="fp-scale active" data-fp="m">M</button>
+              <button class="fp-scale" data-fp="6m">6M</button>
+              <button class="fp-scale" data-fp="y">Y</button>
+            </div>
+          </div>
+          <div class="fp-big" id="fpBig">—</div>
+          <div class="fp-sub" id="fpSub">total volume this period</div>
+          <canvas id="fpChart" height="120"></canvas>
+          <div class="fp-rows">
+            <div class="fp-row"><span>Best period</span><b id="fpBest">—</b></div>
+            <div class="fp-row"><span>Average</span><b id="fpAvg">—</b></div>
+            <div class="fp-row"><span>Trend</span><b id="fpTrend">—</b></div>
           </div>
         </div>
 
@@ -756,8 +787,9 @@
       <header class="view-head">
         <div>
           <p class="eyebrow">Body · metrics</p>
-          <h1 class="view-h1">Weight + measurements</h1>
+          <h1 class="view-h1">Body</h1>
         </div>
+        <canvas class="sec-ring" id="bodyRing" width="54" height="54" title="Progress toward goal weight"></canvas>
         <div class="view-head-actions">
           <button class="btn btn-cyan" id="weighInBtn">+ Weigh in</button>
           <button class="btn btn-ghost" id="measureBtn">+ Measurements</button>
@@ -786,6 +818,10 @@
             <span class="stat-big" id="bodyGoal">—</span>
             <span class="stat-sub" id="bodyGoalDelta">set in settings</span>
           </div>
+        </div>
+        <div class="card span-12" id="bodyCompCard">
+          <div class="card-head"><span class="card-eyebrow">Body composition</span><span class="card-meta" id="bcMeta">from weigh-ins + measurements</span></div>
+          <div class="bc-grid" id="bcGrid"></div>
         </div>
         <div class="card span-12">
           <div class="card-head">

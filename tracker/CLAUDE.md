@@ -173,6 +173,11 @@ export/import, PWA install.
   + the exact element tapped.
 
 ## Working conventions
+- HYGIENE RULE: any change that removes or replaces UI must sweep for
+  orphans in the same batch — dead render functions, dead bindings
+  (grep the removed ids/classes across app.js), and dead CSS rules
+  (grep each removed class in index.html + app.js; 0 refs = delete the
+  rule). Verify with smoke + a screenshot compare before committing.
 - Descriptive commits; push each batch; remind user to wait ~60s + check the
   BUILD marker to confirm the new version loaded
 - `node --check` on app.js AND data.js before every commit

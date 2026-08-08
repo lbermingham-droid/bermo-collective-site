@@ -2665,15 +2665,15 @@ input:focus, select:focus, textarea:focus{ border-color:var(--iron-volt) !import
 .dk-dc-l.today{ background:var(--iron-red); color:#fff; }
 .deck-duo{ display:grid; grid-template-columns:1fr 1fr; gap:6px; }
 .dd-col{ display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; }
-.dds-h{ font-size:9px; font-weight:900; letter-spacing:2px; color:var(--iron-mute); margin-bottom:2px; text-align:center; }
+.dds-h{ font-size:9px; font-weight:900; letter-spacing:2px; color:var(--iron-mute); margin-bottom:2px; text-align:left; padding-left:8px; }
 .dd-stats{ width:100%; display:flex; flex-direction:column; gap:1px; }
 .dds{
-  display:flex; align-items:baseline; gap:4px; font-size:10px;
-  padding:2px 4px; justify-content:center;
+  display:grid; grid-template-columns:56px auto 1fr; align-items:baseline;
+  gap:5px; font-size:10px; padding:2px 0 2px 8px;
 }
-.dds i{ font-style:normal; font-weight:800; min-width:52px; text-align:right; }
-.dds b{ font-family:'Inter Tight',sans-serif; font-weight:900; font-size:13px; color:var(--iron-text); }
-.dds s{ text-decoration:none; color:var(--iron-mute); font-size:9px; }
+.dds i{ font-style:normal; font-weight:800; text-align:left; }
+.dds b{ font-family:'Inter Tight',sans-serif; font-weight:900; font-size:13px; color:var(--iron-text); text-align:left; }
+.dds s{ text-decoration:none; color:var(--iron-mute); font-size:9px; text-align:left; }
 .deck-water{
   display:flex; align-items:center; gap:8px; margin:10px 2px 4px;
   font-size:10px; color:var(--iron-mute);
@@ -2713,3 +2713,7 @@ input:focus, select:focus, textarea:focus{ border-color:var(--iron-volt) !import
 .cmp-row em{ font-style:normal; font-weight:900; font-size:10px; text-align:right; }
 .cmp-row .cmp-good{ color:var(--iron-volt); }
 .cmp-row .cmp-bad{ color:var(--iron-red); }
+
+/* Time-of-day tags on planner cards */
+.pd-time{ font-style:normal; font-size:9px; font-weight:800; color:var(--iron-cyan); margin-left:4px; }
+.pd-type-extra{ margin-top:2px; opacity:.9; }

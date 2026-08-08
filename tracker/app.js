@@ -4263,7 +4263,8 @@ function renderPlanBase(){
   for(let i=0;i<7;i++){
     const date = new Date(wkStart.getTime() + i*86400000);
     const dayKey = todayKey(date);
-    const planType = (weekData[dayNames[i].toLowerCase()] || {}).type || null;
+    const dayPlan = weekData[dayNames[i].toLowerCase()] || {};
+    const planType = dayPlan.type || null;
     const sessions = (state.days[dayKey] && state.days[dayKey].sessions) || [];
     const wodResult = state.days[dayKey] && state.days[dayKey].wodResult;
     const isToday = dayKey === todayKey();
@@ -4275,7 +4276,8 @@ function renderPlanBase(){
         <span class="pd-date">${date.toLocaleDateString(undefined,{month:"short",day:"numeric"})}</span>
       </div>
       ${planType
-        ? `<div class="pd-type ${typeColor(planType)}">${escape(planType)}</div>`
+        ? `<div class="pd-type ${typeColor(planType)}">${escape(planType)}${dayPlan.time ? ` <em class="pd-time">${escape(dayPlan.time)}</em>` : ""}</div>`
+          + ((dayPlan.extra || []).map(x => `<div class="pd-type pd-type-extra ${typeColor(x.name)}">${escape(x.name)}${x.time ? ` <em class="pd-time">${escape(x.time)}</em>` : ""}</div>`).join(""))
         : `<button class="pd-add ${isPast?"hidden":""}">+ Plan</button>`}
       ${logged
         ? `<div class="pd-logged">✓ ${sessions.length}${sessions.length?" set"+(sessions.length===1?"":"s"):""}${wodResult?" · WOD":""}</div>`

@@ -9,6 +9,34 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 // Single-init pipeline: modules queue their setup with onReady(); ONE
 // DOMContentLoaded listener (registered at the bottom of this file) runs the
 // queue in file order, each step isolated so one failure can't kill the rest.
+
+/* =====================================================================
+   CODE MAP (major blocks, in file order)
+   ---------------------------------------------------------------------
+    1. Init helpers (onReady / on) + storage + state
+    2. Onboarding wizard + gate
+    3. Tabs (goBase) + renderAll dispatch + toast/modal helpers
+    4. Nutrition: totals, water, food modal (search/quicklog/templates/
+       AI/barcode), meal render, quick chips
+    5. Dashboard base render + activity (autoComputeActivity, rings)
+    6. Activity log modal (Apple Watch snap) + macro calculator
+    7. Fitness: WODs, lift modal, PRs (1/2/3/5RM), session lists
+    8. Plan: weekly planner, plan-day modal (exercise schemes), programs
+    9. Detail overlay (Day/Week/Month/90D/Year drill-down)
+   10. Settings, AI setup (BYOK legacy), history/export
+   11. Brain Dump (server ai-parse) + review/apply
+   12. Workout Session overlay (live set logger + rest timer)
+   13. Body Part Coverage + trends/insight engine + symptoms + cycle
+   14. Reminders + smart banners + accountability callouts
+   15. IRON deck (4-ring today/week + hit/fail strips)
+   16. Cardio logger (MET) · Workout Library (builder/assign/start)
+   17. Home cards (Today's Nutrition, Workouts This Week) · Goals view
+   18. Muscle Map v2 + partsForExercise + sub-navs (fitness/nutrition)
+   19. v9: section rings, training-volume progress, nutrients table,
+       body composition
+   20. PIPELINES (composed renders — extend HERE) + single init runner
+   ===================================================================== */
+
 const INIT_QUEUE = [];
 function onReady(fn){ INIT_QUEUE.push(fn); }
 
@@ -5830,32 +5858,9 @@ onReady(() => {
     btn.parentNode.replaceChild(nb, btn);
     nb.addEventListener("click", openCustomizeModal);
   }
-  // User menu item
-  const menu = document.getElementById("tbmCustomize");
-  if(menu){
-    menu.addEventListener("click", (e) => {
-      e.stopPropagation();
-      document.getElementById("tbUser").classList.remove("open");
-      if(typeof openCustomizeModal === "function") openCustomizeModal();
-    });
-  }
   // Top "+ Quick log food" — opens the food modal directly to quicklog tab
   // (no extra sheet step). The "More…" button keeps access to lifts/water/check-ins.
-  const top = document.getElementById("dashOpenLog");
-  if(top){
-    top.addEventListener("click", () => {
-      const h = new Date().getHours();
-      const meal = h < 10 ? "breakfast" : h < 14 ? "lunch" : h < 18 ? "snacks" : "dinner";
-      if(typeof openFoodModal === "function") openFoodModal(meal);
-    });
-  }
-  const more = document.getElementById("dashOpenMore");
-  if(more){
-    more.addEventListener("click", () => {
-      const sheet = document.getElementById("fabSheet");
-      if(sheet) sheet.classList.add("open");
-    });
-  }
+  // dashOpenLog/dashOpenMore bindings removed — header hidden, mini-log row covers logging
   // Mini quick-log row (always visible at top of dashboard)
   document.querySelectorAll("[data-mini]").forEach(b => {
     b.addEventListener("click", () => {
@@ -7153,61 +7158,6 @@ function _anatomyVolumeByPart(daysBack){
   });
   return counts;
 }
-function _anatomyColor(sets, target){
-  if(sets === 0) return "#ff2d7a";
-  if(sets < target * 0.6) return "#ffa500";
-  return "#c8f500";
-}
-function renderAnatomyHeatmap(){
-  const fit = $("#view-fitness");
-  if(!fit) return;
-  const existing = $("#anatomyCard");
-  if(existing) existing.remove();
-  const counts = _anatomyVolumeByPart(7);
-  const card = document.createElement("div");
-  card.id = "anatomyCard";
-  card.className = "card";
-  const fill = (part) => _anatomyColor(counts[part]||0, ANATOMY_TARGETS[part]||10);
-  card.innerHTML = `
-    <div class="card-head">
-      <span class="card-eyebrow">Anatomy heatmap · last 7 days</span>
-      <span class="card-meta">tap a region for detail</span>
-    </div>
-    <div class="anatomy-wrap">
-      <svg class="anatomy-svg" viewBox="0 0 200 270" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="55" cy="22" rx="14" ry="17" fill="#1a1a1a" stroke="#333"/>
-        <path data-part="chest"     d="M30 50 Q55 45 80 50 L82 90 Q55 95 28 90 Z" fill="${fill("chest")}" stroke="#000" stroke-width="0.5"/>
-        <path data-part="core"      d="M32 92 Q55 96 78 92 L76 130 Q55 135 34 130 Z" fill="${fill("core")}" stroke="#000" stroke-width="0.5"/>
-        <path data-part="shoulders" d="M22 50 Q26 42 32 50 L30 65 Q22 60 22 50 Z" fill="${fill("shoulders")}" stroke="#000" stroke-width="0.5"/>
-        <path data-part="shoulders" d="M88 50 Q84 42 78 50 L80 65 Q88 60 88 50 Z" fill="${fill("shoulders")}" stroke="#000" stroke-width="0.5"/>
-        <path data-part="arms"      d="M22 65 L18 110 L26 112 L30 65 Z" fill="${fill("arms")}" stroke="#000" stroke-width="0.5"/>
-        <path data-part="arms"      d="M88 65 L92 110 L84 112 L80 65 Z" fill="${fill("arms")}" stroke="#000" stroke-width="0.5"/>
-        <path data-part="legs"      d="M34 132 L32 230 L48 230 L52 132 Z" fill="${fill("legs")}" stroke="#000" stroke-width="0.5"/>
-        <path data-part="legs"      d="M76 132 L78 230 L62 230 L58 132 Z" fill="${fill("legs")}" stroke="#000" stroke-width="0.5"/>
-        <ellipse cx="155" cy="22" rx="14" ry="17" fill="#1a1a1a" stroke="#333"/>
-        <path data-part="back"      d="M130 50 Q155 45 180 50 L182 95 Q155 100 128 95 Z" fill="${fill("back")}" stroke="#000" stroke-width="0.5"/>
-        <path data-part="glutes"    d="M132 100 Q155 105 178 100 L176 132 Q155 137 134 132 Z" fill="${fill("glutes")}" stroke="#000" stroke-width="0.5"/>
-        <path data-part="shoulders" d="M122 50 Q126 42 132 50 L130 65 Q122 60 122 50 Z" fill="${fill("shoulders")}" stroke="#000" stroke-width="0.5"/>
-        <path data-part="shoulders" d="M188 50 Q184 42 178 50 L180 65 Q188 60 188 50 Z" fill="${fill("shoulders")}" stroke="#000" stroke-width="0.5"/>
-        <path data-part="arms"      d="M122 65 L118 110 L126 112 L130 65 Z" fill="${fill("arms")}" stroke="#000" stroke-width="0.5"/>
-        <path data-part="arms"      d="M188 65 L192 110 L184 112 L180 65 Z" fill="${fill("arms")}" stroke="#000" stroke-width="0.5"/>
-        <path data-part="legs"      d="M134 134 L132 230 L148 230 L152 134 Z" fill="${fill("legs")}" stroke="#000" stroke-width="0.5"/>
-        <path data-part="legs"      d="M176 134 L178 230 L162 230 L158 134 Z" fill="${fill("legs")}" stroke="#000" stroke-width="0.5"/>
-        <text x="55" y="250" font-size="9" fill="#888" text-anchor="middle">Front</text>
-        <text x="155" y="250" font-size="9" fill="#888" text-anchor="middle">Back</text>
-      </svg>
-      <div class="anatomy-legend">
-        <span class="al-pin"><i style="background:#ff2d7a"></i> Missing</span>
-        <span class="al-pin"><i style="background:#ffa500"></i> Under</span>
-        <span class="al-pin"><i style="background:#c8f500"></i> Good</span>
-      </div>
-    </div>`;
-  fit.appendChild(card);
-  card.querySelectorAll("[data-part]").forEach(el => {
-    el.style.cursor = "pointer";
-    el.addEventListener("click", () => openAnatomyDetail(el.dataset.part, counts[el.dataset.part]||0));
-  });
-}
 function openAnatomyDetail(part, sets){
   const target = ANATOMY_TARGETS[part] || 10;
   const status = sets === 0 ? "Missing" : sets < target * 0.6 ? "Under-trained" : "On track";
@@ -7500,14 +7450,6 @@ function saveCurrentMealAsTemplate(meal){
   }
 })();
 
-// Anatomy heatmap is hidden for now — saved for later. Re-enable by uncommenting:
-// if(typeof renderFitness === "function"){
-//   const _origRF_AN = renderFitness;
-//   renderFitness = function(){
-//     _origRF_AN();
-//     try{ renderAnatomyHeatmap(); }catch(e){ console.warn("anatomy", e); }
-//   };
-// }
 
 // =================================================================
 // REMINDERS + IN-APP ACCOUNTABILITY BANNERS
@@ -7985,35 +7927,7 @@ function renderDeck(){
     }));
   }
 
-  // WEEK SCHEDULE — planned vs done vs missed, Apple Workouts style
-  const sched = document.getElementById("deckSchedule");
-  if(sched){
-    const wk = weekKey(mon);
-    const wkPlan = (state.plan && state.plan[wk]) || {};
-    const names = ["mon","tue","wed","thu","fri","sat","sun"];
-    let html = "";
-    for(let i = 0; i < 7; i++){
-      const d = new Date(mon.getTime() + i*86400000);
-      const k = todayKey(d);
-      const p = wkPlan[names[i]] || {};
-      const sessions = (state.days[k] && state.days[k].sessions) || [];
-      const done = sessions.length > 0;
-      const isToday = k === todayKey();
-      const past = k < todayKey();
-      const doneName = done ? (sessions.find(s => s.type === "cardio") || sessions[0]).name : null;
-      const label = p.type || (done ? doneName : "—");
-      const stateCls = done ? "done" : (p.type ? (past ? "missed" : "planned") : "empty");
-      html += `<button class="dk-sd ${stateCls} ${isToday?"today":""}" data-date="${k}">
-        <span class="dk-sd-day">${d.toLocaleDateString(undefined,{weekday:"short"}).toUpperCase()}</span>
-        <span class="dk-sd-name">${escape(String(label).slice(0,14))}</span>
-        <span class="dk-sd-mark">${done ? "✓" : (p.type ? (past ? "✕" : "·") : "")}</span>
-      </button>`;
-    }
-    sched.innerHTML = html;
-    sched.querySelectorAll(".dk-sd").forEach(b => b.addEventListener("click", () => {
-      jumpToTab("plan");
-    }));
-  }
+  // (Week schedule now lives in the Workouts This Week dashboard card)
 }
 
 onReady(() => {

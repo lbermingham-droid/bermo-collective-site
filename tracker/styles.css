@@ -1,3 +1,24 @@
+/* =====================================================================
+   STYLESHEET LAYER MAP — read before editing
+   ---------------------------------------------------------------------
+   This file is layered: later sections intentionally override earlier
+   ones (the app evolved cream -> navy -> IRON dark). Bottom wins.
+     L1  Base + gate + shell (original cream/light theme)
+     L2  Components: rings, cards, meals, modals, plan, heatmaps...
+     L3  NAVY / CYAN / HOT-PINK override layer (+ compression pass)
+     L4  NAVY DEEP CLEAN (kills white bleed)
+     L5  IRON LAYER (v7): near-black, sharp corners, red/volt/cyan
+     L6  IA RESTRUCTURE (v8): home cards, sub-navs, muscle map, goals
+     L7  v9 + QA: section rings, progress, nutrients, legacy restyles
+   RULES:
+   - New styles go at the BOTTOM (a new dated layer), never mid-file.
+   - Never delete L1-L4 rules blindly; hidden legacy components still
+     depend on them and later layers assume their base metrics.
+   - Runtime show/hide must use a CLASS (e.g. .nsec-hide) — several
+     legacy layers set display with !important, which beats inline
+     style.display.
+   ===================================================================== */
+
 /* BERMO TRACKER — base + gate + shell */
 :root{
   --cyan:#00f5d4; --lime:#c8f500; --pink:#ff2d7a;

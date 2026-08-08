@@ -124,7 +124,13 @@ coverage, date picker, help banner rewritten for new nav), stranded
 dashboard greeting hidden, singular/plural fixes. Screenshot QA loop:
 seed data via localStorage then capture every page (scratchpad
 shots.js pattern).
-Shell: 6 dashboard hubs (reorder/hide via Customize), detail drill-down
+Cleanup (v9.1): dead code removed — legacy anatomy heatmap card (muscle
+map replaced it), hidden deck week-schedule strip (Workouts card replaced
+it), Customize-hubs menu item + dead dashboard header bindings. app.js
+has a CODE MAP comment at the top; styles.css has a STYLESHEET LAYER MAP
+explaining the layered cascade (bottom wins; use classes not inline
+display to hide because legacy layers use !important).
+Shell: 6 dashboard hubs (hidden on dashboard since v8), detail drill-down
 overlay (Day/Week/Month/90D/Year + date navigation), back buttons everywhere,
 navy theme + density pass, mobile layout on any touch device <1100px,
 iOS safe-area fixes, FAB hidden on mobile (mini quick-log row instead),

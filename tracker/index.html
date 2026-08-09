@@ -191,7 +191,7 @@
     <div class="tb-left">
       <div class="tb-logo">
         <span class="tb-top">BERMO<span class="c">.</span></span>
-        <span class="tb-bot">TRACKER <span style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v11</span></span>
+        <span class="tb-bot">TRACKER <span style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v12</span></span>
       </div>
     </div>
     <nav class="tb-nav" id="tabNav">
@@ -622,16 +622,15 @@
 
 
       <div class="grid-12">
-        <!-- Today's plan mini box (top of fitness) -->
-        <div class="card span-12 plan-mini" id="planMini">
-          <div class="pm-row">
-            <div>
-              <div class="pm-eyebrow">Today's Plan</div>
-              <div class="pm-type" id="planMiniType">No plan set</div>
-            </div>
-            <button class="btn btn-ghost btn-sm" id="planMiniGo">Open Planner →</button>
+        <!-- Week plan mini-list + selected-day view (mirrors nutrition diary) -->
+        <div class="card span-12" id="fitWeekCard" data-fsec="summary">
+          <div class="card-head">
+            <span class="card-eyebrow">This week</span>
+            <button class="link-btn-sm" id="fwOpenPlanner">FULL PLANNER</button>
           </div>
+          <div class="fw-list" id="fitWeekList"></div>
         </div>
+        <div class="card span-12" id="fitDayCard" data-fsec="summary"></div>
 
         <!-- PROGRESS — weekly volume trend (Fitbod Overall Strength style) -->
         <div class="card span-12" id="fitProgressCard" data-fsec="progress">

@@ -843,7 +843,7 @@ function renderFitnessBase(){
       </div>
       <span class="s-tag t-${s.type}">${s.type}</span>
     </li>`).join("");
-  $("#todaySessionsMeta").textContent = (day.sessions||[]).length + " entries";
+  s_meta: { const n = (day.sessions||[]).length; $("#todaySessionsMeta").textContent = n + (n === 1 ? " entry" : " entries"); }
 
   if(day.wodResult){
     list.innerHTML += `<li class="session-row">
@@ -4145,13 +4145,20 @@ function weekKey(date){
   return `${d.getFullYear()}-W${String(w).padStart(2,"0")}`;
 }
 function weekStart(date){
-  // Monday-start
+  // Sunday-start (user preference — applies to every week strip/list)
   const d = new Date(date);
   d.setHours(0,0,0,0);
-  const day = d.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  d.setDate(d.getDate() + diff);
+  d.setDate(d.getDate() - d.getDay());
   return d;
+}
+
+// 12-hour time for display ("05:30" -> "5:30 AM"); inputs stay type=time
+function fmtTime12(hm){
+  if(!hm || typeof hm !== "string" || !hm.includes(":")) return hm || "";
+  const [h, m] = hm.split(":").map(n => parseInt(n, 10));
+  const ap = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${String(m).padStart(2, "0")} ${ap}`;
 }
 
 let planViewDate = new Date();
@@ -4171,7 +4178,7 @@ function renderPlanBase(){
     <span class="plan-week-tag">${wkKey}${isPast?" · locked":isFuture?" · future":" · this week"}</span>
   `;
 
-  const dayNames = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   let html = "";
   for(let i=0;i<7;i++){
     const date = new Date(wkStart.getTime() + i*86400000);
@@ -4189,8 +4196,8 @@ function renderPlanBase(){
         <span class="pd-date">${date.toLocaleDateString(undefined,{month:"short",day:"numeric"})}</span>
       </div>
       ${planType
-        ? `<div class="pd-type ${typeColor(planType)}">${escape(planType)}${dayPlan.time ? ` <em class="pd-time">${escape(dayPlan.time)}</em>` : ""}</div>`
-          + ((dayPlan.extra || []).map(x => `<div class="pd-type pd-type-extra ${typeColor(x.name)}">${escape(x.name)}${x.time ? ` <em class="pd-time">${escape(x.time)}</em>` : ""}</div>`).join(""))
+        ? `<div class="pd-type ${typeColor(planType)}">${escape(planType)}${dayPlan.time ? ` <em class="pd-time">${escape(fmtTime12(dayPlan.time))}</em>` : ""}</div>`
+          + ((dayPlan.extra || []).map(x => `<div class="pd-type pd-type-extra ${typeColor(x.name)}">${escape(x.name)}${x.time ? ` <em class="pd-time">${escape(fmtTime12(x.time))}</em>` : ""}</div>`).join(""))
         : `<button class="pd-add ${isPast?"hidden":""}">+ Plan</button>`}
       ${logged
         ? `<div class="pd-logged">✓ ${sessions.length}${sessions.length?" set"+(sessions.length===1?"":"s"):""}${wodResult?" · WOD":""}</div>`
@@ -4237,7 +4244,7 @@ function autofillFromLastWeek(){
   if(!prev || !Object.keys(prev).length){ toast("No previous week to copy","pink"); return; }
   if(!plan[wkKey_]) plan[wkKey_] = {};
   let copied = 0;
-  ["mon","tue","wed","thu","fri","sat","sun"].forEach(d => {
+  ["sun","mon","tue","wed","thu","fri","sat"].forEach(d => {
     if(prev[d] && !plan[wkKey_][d]){
       plan[wkKey_][d] = { ...prev[d] };
       copied++;
@@ -4660,7 +4667,7 @@ function openActivityDetail(){
 let detailRefDate = new Date();
 
 function _addDays(d, n){ const x = new Date(d); x.setDate(x.getDate()+n); return x; }
-function _weekStart(d){ const x = new Date(d); x.setHours(0,0,0,0); const dow = x.getDay(); const diff = dow === 0 ? -6 : 1-dow; x.setDate(x.getDate()+diff); return x; }
+function _weekStart(d){ const x = new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate() - x.getDay()); return x; }
 function _monthStart(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
 function _monthEnd(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0); }
 
@@ -5815,11 +5822,10 @@ function drawActivityRingsStep_DrawRingsForStrip(){
   // Get this week's plan to inline lift type per day
   const plan = state.plan || {};
   const today = new Date(); today.setHours(0,0,0,0);
-  const weekOffset = (today.getDay() + 6) % 7;
-  const monday = new Date(today); monday.setDate(today.getDate() - weekOffset);
+  const monday = weekStart(today);
   const wkKey = (typeof weekKey === "function") ? weekKey(monday) : null;
   const wkPlan = (wkKey && plan[wkKey]) || {};
-  const planNames = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  const planNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
   let html = "";
   for(let i = 6; i >= 0; i--){
@@ -5844,7 +5850,7 @@ function drawActivityRingsStep_DrawRingsForStrip(){
     const isToday = i === 0;
     // Workout-type label for this day (logged > planned > —)
     const dIso = new Date(d); dIso.setHours(0,0,0,0);
-    const planDayName = planNames[(dIso.getDay() + 6) % 7];
+    const planDayName = planNames[dIso.getDay()];
     const planEntry = wkPlan[planDayName];
     const sessions = dayObjEntry.sessions || [];
     let liftLabel = "—", liftCls = "";
@@ -5872,54 +5878,8 @@ function drawActivityRingsStep_DrawRingsForStrip(){
   // (Old separate lift-mini-strip removed — consolidated above)
 }
 
-// Lifts mini-strip — week of planned workout types
-function renderLiftMiniStrip(rootEl){
-  if(!rootEl) return;
-  const plan = state.plan || {};
-  const today = new Date();
-  // Monday-anchored week containing today
-  const offset = (today.getDay() + 6) % 7;
-  const monday = new Date(today); monday.setDate(today.getDate() - offset); monday.setHours(0,0,0,0);
-  const wkKey = (typeof weekKey === "function") ? weekKey(monday) : null;
-  const wkPlan = (wkKey && plan[wkKey]) || {};
-  const dayNames = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-  let strip = rootEl.parentElement.querySelector(".lift-mini-strip");
-  if(!strip){
-    strip = document.createElement("div");
-    strip.className = "lift-mini-strip";
-    rootEl.parentElement.insertBefore(strip, rootEl.nextSibling);
-  }
-  const todayName = dayNames[(today.getDay() + 6) % 7];
-  let html = "";
-  dayNames.forEach((dn, idx) => {
-    const d = new Date(monday); d.setDate(monday.getDate() + idx);
-    const k = todayKey(d);
-    const day = state.days[k];
-    const planned = wkPlan[dn];
-    const sessions = (day && day.sessions) || [];
-    const skipped = day && day.skipped;
-    let cls = "lift-mini-cell", label = "—";
-    if(d > today){ // future
-      label = planned ? planned.type : "—";
-      if(!planned) cls += " empty";
-    } else if(skipped){
-      cls += " skipped"; label = "SKIPPED";
-    } else if(sessions.length){
-      // first session.lift name as a short tag
-      const first = sessions[0];
-      label = (first.lift || first.exercise || planned?.type || "Logged").slice(0,12);
-    } else if(planned){
-      label = planned.type;
-    } else {
-      cls += " empty"; label = "—";
-    }
-    if(dn === todayName) cls += " today";
-    html += `<div class="${cls}"><div class="lm-day">${dn[0]}</div><div class="lm-type">${escape(label)}</div></div>`;
-  });
-  strip.innerHTML = html;
-}
+// (renderLiftMiniStrip removed — dead: zero callers, CSS-hidden)
 
-// ---- DAY QUICK-VIEW POPOVER on day-strip clicks ----
 function openDayQuickView(dateKey, kind){
   const d = new Date(dateKey + "T00:00:00");
   const dStr = d.toLocaleDateString(undefined,{weekday:"long", month:"short", day:"numeric", year:"numeric"});
@@ -6014,16 +5974,22 @@ function openPlanDayModal(wkKey, dayName){
       else if(WORKOUT_TYPES.includes(it.name)) sel = "cat:" + it.name;
       else sel = "custom";
     }
-    return `<div class="pde-row" data-i="${i}">
-      <select class="pde-sel">${optionsHtml(sel)}</select>
-      <input class="pde-custom" type="text" placeholder="Custom name" maxlength="30"
-        value="${sel === "custom" ? escape(it.name) : ""}" style="${sel === "custom" ? "" : "display:none"}">
-      <input class="pde-time" type="time" value="${escape(it.time || "")}" title="Time of day">
-      <button type="button" class="pde-del" title="Remove">×</button>
+    const moves = (it.exercises || []).map(e => e.name + (e.scheme ? " — " + e.scheme : "")).join("\n");
+    return `<div class="pde-row-wrap" data-i="${i}">
+      <div class="pde-row">
+        <select class="pde-sel">${optionsHtml(sel)}</select>
+        <input class="pde-custom" type="text" placeholder="Custom name (e.g. Legs — glute/ham focus)" maxlength="40"
+          value="${sel === "custom" ? escape(it.name) : ""}" style="${sel === "custom" ? "" : "display:none"}">
+        <input class="pde-time" type="time" value="${escape(it.time || "")}" title="Time of day">
+        <button type="button" class="pde-del" title="Remove">×</button>
+      </div>
+      <textarea class="pde-moves" rows="3" placeholder="Movements — one per line:\nthruster machine\nRDL\nkickback machine\nhamstring curls">${escape(moves)}</textarea>
     </div>`;
   };
 
   openModal(`${dayName.charAt(0).toUpperCase()+dayName.slice(1)} — workouts`, `
+    <label style="margin-bottom:8px;display:block"><span>Gym / location (optional)</span>
+      <input id="pdeGym" type="text" maxlength="40" placeholder="e.g. Planet Fitness" value="${escape(cur.gym || "")}"></label>
     <div class="pde-list" id="pdeList">${items.map(rowHtml).join("")}</div>
     <button type="button" class="btn btn-ghost btn-sm" id="pdeAdd" style="width:100%;margin-top:6px">+ ADD ANOTHER WORKOUT (double day)</button>
     <p class="wb-hint" style="margin-top:8px">Saved workouts bring their exercise list into the live session logger. Time is optional.</p>
@@ -6038,16 +6004,22 @@ function openPlanDayModal(wkKey, dayName){
     const wireRow = (row) => {
       const sel = row.querySelector(".pde-sel");
       const custom = row.querySelector(".pde-custom");
+      const moves = row.querySelector(".pde-moves");
       sel.addEventListener("change", () => {
         custom.style.display = sel.value === "custom" ? "" : "none";
         if(sel.value === "custom") custom.focus();
+        if(sel.value.startsWith("saved:")){
+          const w = lib.find(x => x.id === sel.value.slice(6));
+          if(w && moves && !moves.value.trim())
+            moves.value = w.exercises.map(e => e.name + (e.scheme ? " — " + e.scheme : "")).join("\n");
+        }
       });
       row.querySelector(".pde-del").addEventListener("click", () => {
         if(list.children.length > 1) row.remove();
-        else { sel.value = ""; custom.value = ""; custom.style.display = "none"; row.querySelector(".pde-time").value = ""; }
+        else { sel.value = ""; custom.value = ""; custom.style.display = "none"; row.querySelector(".pde-time").value = ""; if(moves) moves.value = ""; }
       });
     };
-    list.querySelectorAll(".pde-row").forEach(wireRow);
+    list.querySelectorAll(".pde-row-wrap").forEach(wireRow);
     document.getElementById("pdeAdd").addEventListener("click", () => {
       const div = document.createElement("div");
       div.innerHTML = rowHtml({ name:"", time:"", exercises:[] }, list.children.length);
@@ -6056,39 +6028,51 @@ function openPlanDayModal(wkKey, dayName){
       wireRow(row);
     });
     document.getElementById("pdeSave").addEventListener("click", () => {
-      const rows = Array.from(list.querySelectorAll(".pde-row"));
+      const rows = Array.from(list.querySelectorAll(".pde-row-wrap"));
+      const parseMoves = (row) => {
+        const ta = row.querySelector(".pde-moves");
+        if(!ta || !ta.value.trim()) return [];
+        return ta.value.split("\n").map(l => l.trim().replace(/^[-•*]\s*/, "")).filter(Boolean)
+          .map(l => {
+            const m = l.split("—");
+            return { name: m[0].trim(), scheme: (m[1] || "").trim() };
+          });
+      };
       const parsed = rows.map(row => {
         const v = row.querySelector(".pde-sel").value;
         const time = row.querySelector(".pde-time").value;
+        const moves = parseMoves(row);
         if(v.startsWith("saved:")){
           const w = lib.find(x => x.id === v.slice(6));
           if(!w) return null;
-          return { name: w.name, time, exercises: w.exercises.map(e => ({ name: e.name, scheme: e.scheme || "" })) };
+          return { name: w.name, time, exercises: moves.length ? moves : w.exercises.map(e => ({ name: e.name, scheme: e.scheme || "" })) };
         }
-        if(v.startsWith("cat:")) return { name: v.slice(4), time, exercises: [] };
+        if(v.startsWith("cat:")) return { name: v.slice(4), time, exercises: moves };
         if(v === "custom"){
           const name = row.querySelector(".pde-custom").value.trim();
-          return name ? { name, time, exercises: [] } : null;
+          return name ? { name, time, exercises: moves } : null;
         }
         return null;
       }).filter(Boolean);
       if(!parsed.length){ toast("Pick at least one workout (or Clear day)", "pink"); return; }
       const main = parsed[0];
+      const gym = (document.getElementById("pdeGym") || {}).value || "";
       plan[wkKey][dayName] = {
         type: main.name,
         time: main.time || undefined,
+        gym: gym.trim() || undefined,
         exercises: main.exercises.length ? main.exercises : undefined,
         extra: parsed.length > 1 ? parsed.slice(1) : undefined,
       };
       save(); closeModal();
-      renderPlan(); renderDashWorkList(); renderDeck();
+      renderAll();
       toast(`${dayName.toUpperCase()}: ${parsed.map(x => x.name).join(" + ")}`, "cyan");
     });
     const clear = document.getElementById("pdeClear");
     if(clear) clear.addEventListener("click", () => {
       delete plan[wkKey][dayName];
       save(); closeModal();
-      renderPlan(); renderDashWorkList(); renderDeck();
+      renderAll();
     });
   });
 }
@@ -6116,38 +6100,7 @@ function renderPlanStep_RenderPlan(){
   });
 }
 
-// ---- Today's Plan mini box on Fitness tab ----
-function renderPlanMiniBase(){
-  const box = document.getElementById("planMini");
-  if(!box) return;
-  const dayNames = ["sun","mon","tue","wed","thu","fri","sat"];
-  const today = new Date();
-  const dayName = dayNames[today.getDay()];
-  const wkKey_ = weekKey(weekStart(today));
-  const planData = (state.plan && state.plan[wkKey_] && state.plan[wkKey_][dayName]) || null;
-  const typeEl = document.getElementById("planMiniType");
-  if(planData && planData.type){
-    typeEl.innerHTML = `${escape(planData.type)}${planData.exercises && planData.exercises.length ? ` <span class="pm-ex-count">· ${planData.exercises.length} exercise${planData.exercises.length===1?"":"s"}</span>` : ""}`;
-    box.classList.add("has-plan");
-  } else {
-    typeEl.textContent = "No plan set for today";
-    box.classList.remove("has-plan");
-  }
-}
-
-onReady(() => {
-  const go = document.getElementById("planMiniGo");
-  if(go) go.addEventListener("click", () => {
-    const t = document.querySelector('.tab[data-tab="plan"], .mtab[data-tab="plan"]');
-    if(t) t.click();
-  });
-  const box = document.getElementById("planMini");
-  if(box) box.addEventListener("click", (e) => {
-    if(e.target.closest("button")) return;
-    const t = document.querySelector('.tab[data-tab="plan"], .mtab[data-tab="plan"]');
-    if(t) t.click();
-  });
-});
+// (planMini removed — fitWeekList + fitDayCard replaced it)
 
 
 // =================================================================
@@ -6285,6 +6238,7 @@ function renderWorkoutSession(overlay, dateKey, planned){
             <div class="ws-ex-prev">${escape(prevTxt)}</div>
           </div>
           <div class="ws-ex-actions">
+            <button class="ws-fav ${(state.favLifts||[]).includes(ex.name) ? "on" : ""}" data-fav-lift="${escape(ex.name)}" title="Favorite this lift">♥</button>
             <a class="ws-howto" href="${ytUrl}" target="_blank" rel="noopener" title="How-To video">▶ How-To</a>
             <button class="ws-add-set" data-add-set>+ Set</button>
           </div>
@@ -6304,6 +6258,7 @@ function renderWorkoutSession(overlay, dateKey, planned){
         <div class="wt-eyebrow">${fmtDate(dateKey)} · ${escape(planType)}</div>
         <div class="wt-name">Workout Session</div>
       </div>
+      <button class="wo-clock" id="woClock" title="Optional session timer — tap to start/pause">▶ 0:00</button>
       <button class="workout-done" id="woDone">Done</button>
     </header>
     <div class="workout-body">
@@ -6316,9 +6271,43 @@ function renderWorkoutSession(overlay, dateKey, planned){
   bindWorkoutSession(overlay, dateKey, planned);
 }
 
+let _woTimer = null, _woStart = null, _woElapsed = 0;
+function _woTick(){
+  const el = document.getElementById("woClock");
+  if(!el) return;
+  const total = _woElapsed + (_woStart ? Date.now() - _woStart : 0);
+  const m = Math.floor(total/60000), sec = Math.floor((total%60000)/1000);
+  el.textContent = `${_woStart ? "⏸" : "▶"} ${m}:${String(sec).padStart(2,"0")}`;
+}
 function bindWorkoutSession(overlay, dateKey, planned){
-  document.getElementById("woBack").onclick = closeWorkoutSession;
-  document.getElementById("woDone").onclick = closeWorkoutSession;
+  const finish = () => {
+    // save optional session duration once, then close
+    if(_woElapsed || _woStart){
+      if(_woStart){ _woElapsed += Date.now() - _woStart; _woStart = null; }
+      clearInterval(_woTimer); _woTimer = null;
+      const mins = Math.round(_woElapsed / 60000);
+      if(mins >= 1){
+        const day = dayObj(dateKey);
+        if(!day.workoutSession) day.workoutSession = { exercises: {} };
+        day.workoutSession.durationMin = (day.workoutSession.durationMin || 0) + mins;
+        save();
+        toast(`Session: ${mins} min`, "cyan");
+      }
+      _woElapsed = 0;
+    }
+    closeWorkoutSession();
+  };
+  document.getElementById("woBack").onclick = finish;
+  document.getElementById("woDone").onclick = finish;
+  const clock = document.getElementById("woClock");
+  if(clock){
+    _woTick();
+    clock.onclick = () => {
+      if(_woStart){ _woElapsed += Date.now() - _woStart; _woStart = null; clearInterval(_woTimer); _woTimer = null; }
+      else { _woStart = Date.now(); _woTimer = setInterval(_woTick, 1000); }
+      _woTick();
+    };
+  }
 
   // Cycle set kind on number-button tap
   overlay.querySelectorAll("[data-kind-cycle]").forEach(b => b.addEventListener("click", () => {
@@ -6378,6 +6367,16 @@ function bindWorkoutSession(overlay, dateKey, planned){
     toast(`${exName}: ${cur.weight}${unit()} × ${cur.reps}`, "cyan");
   }));
 
+  // Favorite lifts
+  overlay.querySelectorAll("[data-fav-lift]").forEach(b => b.addEventListener("click", () => {
+    const name = b.dataset.favLift;
+    const favs = getFavLifts();
+    const i = favs.indexOf(name);
+    if(i >= 0){ favs.splice(i, 1); b.classList.remove("on"); toast("Removed from favorite lifts", "pink"); }
+    else { favs.unshift(name); state.favLifts = favs.slice(0, 40); b.classList.add("on"); toast(`♥ ${name}`, "cyan"); }
+    save();
+  }));
+
   // Add set
   overlay.querySelectorAll("[data-add-set]").forEach(b => b.addEventListener("click", () => {
     const exEl = b.closest(".ws-ex");
@@ -6418,31 +6417,7 @@ function renderPlanStep_RenderPlanForWorkoutBtn(){
   });
 }
 
-// Add "Start Today's Workout" button on planner mini box (Fitness tab)
-// Pipeline step (extracted from a wrapper patch; composed at EOF).
-function renderPlanMiniStep_RenderPlanMini(){
-  const box = document.getElementById("planMini");
-  if(!box) return;
-  const dayName = ["sun","mon","tue","wed","thu","fri","sat"][new Date().getDay()];
-  const wkKey_ = weekKey(weekStart(new Date()));
-  const planned = (state.plan && state.plan[wkKey_] && state.plan[wkKey_][dayName] && state.plan[wkKey_][dayName].exercises) || [];
-  if(planned.length){
-    let row = box.querySelector(".pm-start-row");
-    if(!row){
-      row = document.createElement("div");
-      row.className = "pm-start-row";
-      row.innerHTML = `<button class="btn btn-cyan" id="pmStartWO">▶ Start today's workout (${planned.length} exercises)</button>`;
-      box.appendChild(row);
-      row.querySelector("#pmStartWO").addEventListener("click", (e) => { e.stopPropagation(); openWorkoutSession(todayKey()); });
-    } else {
-      row.querySelector("#pmStartWO").textContent = `▶ Start today's workout (${planned.length} exercises)`;
-    }
-  }
-}
 
-// =================================================================
-// HEVY-STYLE PER-EXERCISE STATS (Heaviest, 1RM, Best set vol, etc.)
-// =================================================================
 function getExerciseStats(liftName){
   const sets = [];
   Object.entries(state.days).forEach(([date, day]) => {
@@ -6638,9 +6613,8 @@ function renderBodyCoverage(){
     card = document.createElement("div");
     card.id = "bodyCoverageCard";
     card.className = "card span-12";
-    // Insert after the plan-mini box (top of fitness)
-    const planMini = document.getElementById("planMini");
-    if(planMini && planMini.nextSibling) grid.insertBefore(card, planMini.nextSibling);
+    const dayCard = document.getElementById("fitDayCard");
+    if(dayCard && dayCard.nextSibling) grid.insertBefore(card, dayCard.nextSibling);
     else grid.appendChild(card);
   }
 
@@ -8127,7 +8101,20 @@ function renderWorkoutLib(){
 function openWorkoutBuilder(existing){
   const w = existing || { name:"", style:"Lift Day", exercises:[] };
   const chosen = new Set(w.exercises.map(e => e.name));
-  const catHtml = LIFT_CATEGORIES.map(cat => `
+  const favLifts = getFavLifts();
+  const favCatHtml = favLifts.length ? `
+    <div class="wb-cat">
+      <div class="wb-cat-h">♥ Favorites</div>
+      <div class="wb-cat-list">
+        ${favLifts.map(l => `
+          <label class="wb-ex ${chosen.has(l)?"on":""}">
+            <input type="checkbox" data-wb-ex="${escape(l)}" ${chosen.has(l)?"checked":""}>
+            <span>${escape(l)}</span>
+          </label>
+        `).join("")}
+      </div>
+    </div>` : "";
+  const catHtml = favCatHtml + LIFT_CATEGORIES.map(cat => `
     <div class="wb-cat">
       <div class="wb-cat-h">${escape(cat.name)}</div>
       <div class="wb-cat-list">
@@ -8211,7 +8198,7 @@ function openWorkoutBuilder(existing){
 }
 
 function assignLibWorkout(w){
-  const names = ["mon","tue","wed","thu","fri","sat","sun"];
+  const names = ["sun","mon","tue","wed","thu","fri","sat"];
   const labels = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
   openModal(`Assign "${w.name}"`, `
     <p class="wb-hint">Pick the day(s) this week. It lands on the planner with the full exercise list — the session logger reads it from there.</p>
@@ -8274,15 +8261,15 @@ function partsForExercise(name){
   const n = (name || "").toLowerCase();
   if(BODY_PART_MAP[n]) return BODY_PART_MAP[n];
   const out = new Set();
-  if(/squat|lunge|leg press|leg extension|leg curl|calf|step.?up|sled/.test(n)){ out.add("legs"); }
-  if(/squat|deadlift|hip thrust|glute|kickback|abduct/.test(n)){ out.add("glutes"); }
-  if(/deadlift|row|pull.?down|pull.?up|chin.?up|pullover|back extension|shrug|face pull|t-bar/.test(n)){ out.add("back"); }
+  if(/squat|lunge|leg press|leg extension|leg curl|hamstring|quad|calf|step.?up|sled|thruster|\brdl\b/.test(n)){ out.add("legs"); }
+  if(/squat|deadlift|\brdl\b|hip thrust|thruster|glute|kick.?back|abduct|bridge/.test(n)){ out.add("glutes"); }
+  if(/deadlift|\brdl\b|row\b|pull.?down|pull.?up|chin.?up|pullover|back extension|shrug|face pull|t-bar|lat\b/.test(n)){ out.add("back"); }
   if(/bench|push.?up|chest|pec|fly|dip/.test(n)){ out.add("chest"); }
   if(/press$|overhead|shoulder|lateral raise|front raise|arnold|jerk|snatch/.test(n)){ out.add("shoulders"); }
   if(/curl|tricep|extension$|pushdown|skull|close.?grip|dip/.test(n)){ out.add("arms"); }
-  if(/ab |abs|crunch|plank|sit.?up|woodchop|core|hollow|l-sit|leg raise/.test(n)){ out.add("core"); }
-  // machine leg curl/extension shouldn't hit arms via "extension$"
-  if(/leg (curl|extension)/.test(n)){ out.delete("arms"); }
+  if(/ab |abs\b|crunch|plank|sit.?up|woodchop|core|hollow|l-sit|leg raise/.test(n)){ out.add("core"); }
+  // leg-machine names must not hit arms via "curl"/"extension$"
+  if(/leg (curl|extension)|hamstring/.test(n)){ out.delete("arms"); }
   return Array.from(out);
 }
 
@@ -8414,7 +8401,7 @@ function renderDashWorkList(){
   const mon = weekStart(new Date());
   const wk = weekKey(mon);
   const wkPlan = (state.plan && state.plan[wk]) || {};
-  const names = ["mon","tue","wed","thu","fri","sat","sun"];
+  const names = ["sun","mon","tue","wed","thu","fri","sat"];
   let html = "";
   for(let i = 0; i < 7; i++){
     const d = new Date(mon.getTime() + i*86400000);
@@ -8438,9 +8425,9 @@ function renderDashWorkList(){
     const label = done ? doneName : (p.type || "Rest / unplanned");
     const mark = done ? "✓" : (p.type ? (past ? "✕" : (isToday ? "▶" : "·")) : "");
     const cls = done ? "done" : (p.type ? (past ? "missed" : (isToday ? "today-up" : "planned")) : "empty");
-    const timeTag = p.time ? ` <em class="dw-time">${escape(p.time)}</em>` : "";
+    const timeTag = p.time ? ` <em class="dw-time">${escape(fmtTime12(p.time))}</em>` : "";
     const extras = (p.extra || []).map(x =>
-      `<small class="dw-extra">+ ${escape(x.name)}${x.time ? ` · ${escape(x.time)}` : ""}</small>`).join("");
+      `<small class="dw-extra">+ ${escape(x.name)}${x.time ? ` · ${escape(fmtTime12(x.time))}` : ""}</small>`).join("");
     html += `<button class="dw-row ${cls} ${isToday?"today":""}" data-day="${names[i]}" data-date="${k}">
       <span class="dw-day">${d.toLocaleDateString(undefined,{weekday:"short"}).toUpperCase()}<i>${d.getDate()}</i></span>
       <span class="dw-info">
@@ -8645,7 +8632,8 @@ function _tagFitnessSections(){
   // Assign each fitness card to a sub-section so chips can toggle them
   const tag = (sel, sec) => { const el = document.querySelector(sel); if(el){ const card = el.closest(".card, .plan-mini") || el; card.dataset.fsec = sec; } };
   tag("#muscleMapCard", "summary");
-  tag("#planMini", "summary");
+  tag("#fitWeekCard", "summary");
+  tag("#fitDayCard", "summary");
   tag("#todaySessions", "summary");
   tag("#liftsCard", "prs");
   tag("#heatmap", "progress");
@@ -9318,6 +9306,7 @@ function renderMacroSub(){
 }
 
 onReady(() => {
+  on("#fwOpenPlanner", "click", () => go("plan"));
   on("#dySelectBtn", "click", () => {
     _dySelectMode = !_dySelectMode;
     if(!_dySelectMode) _dySelected.clear();
@@ -9326,6 +9315,102 @@ onReady(() => {
   on("#dySaveMeal", "click", saveSelectionAsMeal);
   on("#dySelCancel", "click", () => { _dySelectMode = false; _dySelected.clear(); renderDiary(); });
 });
+
+
+
+// =================================================================
+// v12 FITNESS — week plan mini-list + day view + hearts
+// =================================================================
+function getFavLifts(){
+  if(!state.favLifts) state.favLifts = [];
+  return state.favLifts;
+}
+
+// Compact Sun–Sat plan list (mirrors the nutrition diary's density);
+// tapping a row selects that day (shared currentDate) and shows it below.
+function renderFitWeekList(){
+  const el = document.getElementById("fitWeekList");
+  if(!el) return;
+  const sun = weekStart(new Date(currentDate + "T12:00:00"));
+  const wk = weekKey(sun);
+  const wkPlan = (state.plan && state.plan[wk]) || {};
+  const names = ["sun","mon","tue","wed","thu","fri","sat"];
+  let html = "";
+  for(let i = 0; i < 7; i++){
+    const d = new Date(sun.getTime() + i*86400000);
+    const k = todayKey(d);
+    const p = wkPlan[names[i]] || {};
+    const done = ((state.days[k] || {}).sessions || []).length > 0;
+    const isSel = k === currentDate;
+    const label = p.type || "—";
+    const extras = (p.extra || []).length ? ` +${p.extra.length}` : "";
+    html += `<button class="fw-row ${isSel?"sel":""} ${done?"done":""}" data-date="${k}" data-day="${names[i]}">
+      <span class="fw-d">${d.toLocaleDateString(undefined,{weekday:"short"}).toUpperCase()}</span>
+      <b>${escape(label)}${extras}</b>
+      ${p.time ? `<em>${escape(fmtTime12(p.time))}</em>` : ""}
+      <span class="fw-mark">${done ? "✓" : ""}</span>
+    </button>`;
+  }
+  el.innerHTML = html;
+  el.querySelectorAll(".fw-row").forEach(r => {
+    r.addEventListener("click", () => { currentDate = r.dataset.date; renderAll(); });
+  });
+}
+
+// Day view: planned workout(s) for the selected day — movements, gym,
+// time — with START / EDIT / heart-to-save.
+function renderFitDayCard(){
+  const card = document.getElementById("fitDayCard");
+  if(!card) return;
+  const dt = new Date(currentDate + "T12:00:00");
+  const dayName = ["sun","mon","tue","wed","thu","fri","sat"][dt.getDay()];
+  const wk = weekKey(weekStart(dt));
+  const p = (state.plan && state.plan[wk] && state.plan[wk][dayName]) || null;
+  const sessions = ((state.days[currentDate] || {}).sessions || []);
+  const head = `
+    <div class="card-head">
+      <span class="card-eyebrow">${fmtDate(currentDate)}${p && p.gym ? " · " + escape(p.gym) : ""}</span>
+      <button class="link-btn-sm" id="fdEdit">${p ? "EDIT DAY" : "+ PLAN DAY"}</button>
+    </div>`;
+  if(!p || !p.type){
+    card.innerHTML = head + `<p class="wl-empty">Nothing planned. Tap + PLAN DAY — pick a saved workout or type your movements.</p>
+      ${sessions.length ? `<p class="fd-logged">✓ ${sessions.length} entr${sessions.length===1?"y":"ies"} logged anyway — nice.</p>` : ""}`;
+  } else {
+    const workouts = [{ name:p.type, time:p.time, exercises:p.exercises || [] }].concat(p.extra || []);
+    card.innerHTML = head + workouts.map((w, wi) => `
+      <div class="fd-workout">
+        <div class="fd-w-head">
+          <b>${escape(w.name)}</b>
+          ${w.time ? `<em>${escape(fmtTime12(w.time))}</em>` : ""}
+          <button class="fd-heart" data-fdw="${wi}" title="Save to My Workouts">♥</button>
+        </div>
+        ${(w.exercises || []).length
+          ? `<ul class="fd-moves">${w.exercises.map(e => `<li>${escape(e.name)}${e.scheme ? ` <i>${escape(e.scheme)}</i>` : ""}</li>`).join("")}</ul>`
+          : `<p class="fd-nomoves">No movements listed — EDIT DAY to add them.</p>`}
+      </div>`).join("") + `
+      <div class="fd-actions">
+        <button class="btn btn-lime" id="fdStart">▶ START WORKOUT</button>
+        <button class="btn btn-ghost" id="fdLogSet">+ QUICK SET</button>
+      </div>
+      ${sessions.length ? `<p class="fd-logged">✓ ${sessions.length} entr${sessions.length===1?"y":"ies"} logged</p>` : ""}`;
+    on2(card, "#fdStart", () => openWorkoutSession(currentDate));
+    on2(card, "#fdLogSet", () => openLiftModal());
+    card.querySelectorAll(".fd-heart").forEach(b => b.addEventListener("click", () => {
+      const w = workouts[parseInt(b.dataset.fdw, 10)];
+      if(!w || !(w.exercises || []).length){ toast("Add movements first, then save", "pink"); return; }
+      const lib = getWorkoutLib();
+      if(lib.find(x => x.name === w.name)){ toast("Already in My Workouts", "cyan"); return; }
+      lib.unshift({ id: uid(), name: w.name, style: "Lift Day", exercises: w.exercises.map(e => ({ name:e.name, scheme:e.scheme||"" })) });
+      save(); toast(`♥ Saved: ${w.name}`, "cyan");
+    }));
+  }
+  on2(card, "#fdEdit", () => openPlanDayModal(wk, dayName));
+}
+// bind inside a rerendered card without double-adding
+function on2(root, sel, fn){
+  const el = root.querySelector(sel);
+  if(el) el.addEventListener("click", fn);
+}
 
 
 // =================================================================
@@ -9351,8 +9436,9 @@ function renderBody(){
 function renderFitness(){
   renderFitnessBase();
   renderLiftsList();
-  renderPlanMini();
   renderBodyCoverage();
+  try{ renderFitWeekList(); }catch(e){ console.warn("fit week", e); }
+  try{ renderFitDayCard(); }catch(e){ console.warn("fit day", e); }
   try{ renderMuscleMap(); }catch(e){ console.warn("muscle map", e); }
   try{ renderFitProgress(); }catch(e){ console.warn("fit progress", e); }
   try{ renderFitRing(); }catch(e){ console.warn("fit ring", e); }
@@ -9378,11 +9464,6 @@ function renderDashboard(){
 function openLiftDetail(lift){
   openLiftDetailBase(lift);
   openLiftDetailStep_OpenLiftDetail(lift);
-}
-
-function renderPlanMini(){
-  renderPlanMiniBase();
-  renderPlanMiniStep_RenderPlanMini();
 }
 
 function renderPlan(){

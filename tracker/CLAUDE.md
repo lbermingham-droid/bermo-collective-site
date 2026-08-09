@@ -165,6 +165,23 @@ NUTRIENTS: Total/Goal/Left rows now with progress bars. Favorites
 meal-grid, nut-summary pills, ai-quick-row, quick chips, save-as-usual
 buttons (swept per hygiene rule; .meal-item CSS kept — custom foods
 list uses it). Old smoke food-step now uses [data-dy-add].
+v12 fitness rebuild (page-by-page pass, page 3): WEEKS START SUNDAY
+globally (weekStart() is the single source; plan keys are day-name
+based so data survived) + fmtTime12() for all displayed times (inputs
+stay type=time). Fitness Summary mirrors nutrition: THIS WEEK compact
+Sun-Sat list (tap row = select that day via currentDate) -> fitDayCard
+day view (title, gym, time, movement list, START WORKOUT -> session
+logger, + QUICK SET, EDIT DAY, heart saves workout to workoutLib).
+Day editor gained a GYM field + a MOVEMENTS textarea per workout (one
+per line, "name — scheme" supported; picking a saved workout prefills
+it); editor save calls renderAll() so every page refreshes. Session
+overlay: optional start/pause CLOCK in the header (saves durationMin
+on Done when >=1 min), per-exercise heart -> state.favLifts (favorites
+render as the first category in the workout builder). Rest-timer bar
+moved to the BOTTOM (was covering the header buttons — caught by e2e).
+partsForExercise extended with real gym vocabulary (thruster, RDL,
+hamstring, kickback, bridge, lat) + hamstring-curl no longer maps to
+arms. planMini + lift-mini-strip removed (dead). "1 entry" grammar.
 Cleanup (v9.1): dead code removed — legacy anatomy heatmap card (muscle
 map replaced it), hidden deck week-schedule strip (Workouts card replaced
 it), Customize-hubs menu item + dead dashboard header bindings. app.js

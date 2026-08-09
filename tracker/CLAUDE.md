@@ -20,8 +20,13 @@ Deliberately NOT linked from the main site nav — it's a standalone app.
   PWA meta. Has a visible BUILD version marker — bump it each deploy so the
   user can confirm cache refresh.
 - `tracker/app.js` (~8k lines) — ONE giant IIFE with all logic
-- `tracker/styles.css` — brand theme (cyan #00f5d4 / lime #c8f500 /
-  pink #ff2d7a on navy/dark), Inter + Inter Tight + Montserrat + JetBrains Mono
+- `tracker/styles.css` — BRAND theme (v13, matches bermocollective.com):
+  deep navy #0a0c12, rounded 16px cards, mint #2ee6c8 primary / light
+  blue #7ec8f5 / purple #b18cff / pink #ff5c8a alerts / amber #f5c542.
+  The BRAND LAYER at the bottom redefines the --iron-* variables; JS
+  ring/chart hexes use the same palette. The user approved this look
+  from her marketing site screenshots — do not revert to the older
+  red/volt IRON palette. Fonts: Inter + Inter Tight + JetBrains Mono
 - `tracker/data.js` — food DB (5x expanded), WOD library, movements,
   `programs` (StrongLifts/PPL/Upper-Lower/FullBody3x/BroSplit), activity levels
 - `tracker/manifest.json` + `tracker/sw.js` — PWA; SW is network-first for

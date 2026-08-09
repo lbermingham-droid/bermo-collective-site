@@ -767,7 +767,7 @@ function drawCalorieRing(consumed, goal){
       labels: over > 0 ? ["Eaten","Over"] : ["Eaten","Remaining"],
       datasets:[{
         data: over > 0 ? [goal, over] : [eaten, remaining],
-        backgroundColor: over > 0 ? ["#ff2d7a","#0a0a0a"] : ["#c8f500","#f0efe9"],
+        backgroundColor: over > 0 ? ["#ff5c8a","#0a0a0a"] : ["#c8f500","#f0efe9"],
         borderWidth:0, cutout:"75%"
       }]
     },
@@ -2531,7 +2531,7 @@ function renderCyclePanel(){
     </div>
     <div class="cycle-bar">
       ${[
-        ["menstrual","🌑","#ff2d7a","1-5"],
+        ["menstrual","🌑","#ff5c8a","1-5"],
         ["follicular","🌒","#c8f500","5-13"],
         ["ovulation","🌕","#00f5d4","13-16"],
         ["luteal","🌗","#888","16-"+cycle.avgLen],
@@ -4377,7 +4377,7 @@ const METRICS = {
     todaySub: () => `${totalsFor(todayKey()).c}g of ${state.goals.carbs}g goal`,
   },
   fat: {
-    eyebrow: "Fat", title: "Fat Intake", color: "#ff2d7a", unitLbl: "g",
+    eyebrow: "Fat", title: "Fat Intake", color: "#ff5c8a", unitLbl: "g",
     valueFor: (k) => totalsFor(k).f, goalFor: () => state.goals.fat,
     todaySub: () => `${totalsFor(todayKey()).f}g of ${state.goals.fat}g goal`,
   },
@@ -4916,7 +4916,7 @@ drawActivityRings = function(){
 
   // BERMO ring: gradient stroke + thick + segmented dots at the head
   const rings = [
-    { c1:"#ff2d7a", c2:"#ff6b35", track:"rgba(255,45,122,.10)", val:a.move,     goal:g.move,     r:80, lw:16 },
+    { c1:"#ff5c8a", c2:"#ff6b35", track:"rgba(255,45,122,.10)", val:a.move,     goal:g.move,     r:80, lw:16 },
     { c1:"#c8f500", c2:"#7be600", track:"rgba(200,245,0,.10)",  val:a.exercise, goal:g.exercise, r:60, lw:16 },
     { c1:"#00f5d4", c2:"#00b8a3", track:"rgba(0,245,212,.10)",  val:a.stand,    goal:g.stand,    r:40, lw:16 },
     { c1:"#ffb347", c2:"#ff8c1a", track:"rgba(255,179,71,.10)", val:calVal,     goal:calGoal,    r:20, lw:16 },
@@ -4988,7 +4988,7 @@ drawActivityRings = function(){
       const dayLetter = d.toLocaleDateString(undefined,{weekday:"narrow"});
       html += `<div class="rwk" title="${k}">
         <div class="rwk-stack">
-          <div class="rwk-bar rwk-move"><span style="height:${m}%;background:#ff2d7a"></span></div>
+          <div class="rwk-bar rwk-move"><span style="height:${m}%;background:#ff5c8a"></span></div>
           <div class="rwk-bar rwk-ex"><span style="height:${e}%;background:#c8f500"></span></div>
           <div class="rwk-bar rwk-st"><span style="height:${s}%;background:#00f5d4"></span></div>
           <div class="rwk-bar rwk-nut"><span style="height:${n}%;background:#ffb347"></span></div>
@@ -5729,7 +5729,7 @@ function ensureMetricTabs(){
   tabs.style.display = "flex";
   tabs.innerHTML = RING_METRICS.map(m => {
     const lbl = m === "nutrition" ? "Nutrition" : m.charAt(0).toUpperCase()+m.slice(1);
-    const dotColor = m === "move" ? "#ff2d7a" : m === "exercise" ? "#c8f500" : m === "stand" ? "#00f5d4" : "#ffb347";
+    const dotColor = m === "move" ? "#ff5c8a" : m === "exercise" ? "#c8f500" : m === "stand" ? "#00f5d4" : "#ffb347";
     return `<button class="dmt ${m===detailMetric?"on":""}" data-mt="${m}"><span class="dmt-dot" style="background:${dotColor}"></span>${lbl}</button>`;
   }).join("");
   tabs.querySelectorAll("[data-mt]").forEach(b => b.addEventListener("click", () => {
@@ -5893,7 +5893,7 @@ function openDayQuickView(dateKey, kind){
   if(kind === "activity"){
     body = `
       <div class="qv-rings">
-        <div class="qv-ring"><div class="qv-lbl">Move</div><div class="qv-val" style="color:#ff2d7a">${Math.round(a.move)}<i>/${g.move}</i></div></div>
+        <div class="qv-ring"><div class="qv-lbl">Move</div><div class="qv-val" style="color:#ff5c8a">${Math.round(a.move)}<i>/${g.move}</i></div></div>
         <div class="qv-ring"><div class="qv-lbl">Exercise</div><div class="qv-val" style="color:#a8c500">${Math.round(a.exercise)}<i>/${g.exercise}</i></div></div>
         <div class="qv-ring"><div class="qv-lbl">Stand</div><div class="qv-val" style="color:#00b89e">${Math.round(a.stand)}<i>/${g.stand}</i></div></div>
         <div class="qv-ring"><div class="qv-lbl">Nutrition</div><div class="qv-val" style="color:#d68a26">${t.cal}<i>/${state.goals.cal}</i></div></div>
@@ -6111,7 +6111,7 @@ const SET_KINDS = [
   {k:"normal",  lbl:"Normal",  c:"#00f5d4"},
   {k:"warmup",  lbl:"Warm-up", c:"#7cd9f1"},
   {k:"drop",    lbl:"Drop Set",c:"#ffb347"},
-  {k:"fail",    lbl:"Failure", c:"#ff2d7a"},
+  {k:"fail",    lbl:"Failure", c:"#ff5c8a"},
 ];
 
 let _restTimer = null;
@@ -7755,9 +7755,9 @@ function _drawDayMini(canvas, k){
   const cal = totalsFor(k).cal;
   const calG = state.goals.cal || 2200;
   const rings = [
-    { color:"#ff2231", track:"#2b090d", val:a.move,     goal:g.move,     r:13, lw:3.5 },
-    { color:"#d8ff00", track:"#20240a", val:a.exercise, goal:g.exercise, r:9,  lw:3.5 },
-    { color:"#00e5ff", track:"#0a2126", val:cal,        goal:calG,       r:5,  lw:3.5 },
+    { color:"#ff5c8a", track:"#2a1420", val:a.move,     goal:g.move,     r:13, lw:3.5 },
+    { color:"#2ee6c8", track:"#0e2b26", val:a.exercise, goal:g.exercise, r:9,  lw:3.5 },
+    { color:"#7ec8f5", track:"#16222e", val:cal,        goal:calG,       r:5,  lw:3.5 },
   ];
   const w = canvas.width, h = canvas.height, cx = w/2, cy = h/2;
   ctx.clearRect(0,0,w,h);
@@ -7805,32 +7805,32 @@ function renderDeck(){
   const a = getActivityForDay(currentDate);
   const lifted = _liftedLbFor(currentDate);
   drawRingStack("deckFitRings", [
-    { color:"#ff2231", track:"#2b090d", val:a.move,     goal:g.move,     r:56, lw:13 },
-    { color:"#d8ff00", track:"#20240a", val:a.exercise, goal:g.exercise, r:41, lw:13 },
-    { color:"#00e5ff", track:"#0a2126", val:a.stand,    goal:g.stand,    r:26, lw:13 },
+    { color:"#ff5c8a", track:"#2a1420", val:a.move,     goal:g.move,     r:56, lw:13 },
+    { color:"#2ee6c8", track:"#0e2b26", val:a.exercise, goal:g.exercise, r:41, lw:13 },
+    { color:"#7ec8f5", track:"#16222e", val:a.stand,    goal:g.stand,    r:26, lw:13 },
   ]);
   const fs = document.getElementById("deckFitStats");
   if(fs) fs.innerHTML = `
     <div class="dds-h">FITNESS</div>
-    <div class="dds"><i style="color:#ff2231">Move</i><b>${Math.round(a.move)}</b><s>/${g.move} cal</s></div>
-    <div class="dds"><i style="color:#d8ff00">Exercise</i><b>${Math.round(a.exercise)}</b><s>/${g.exercise} min</s></div>
-    <div class="dds"><i style="color:#00e5ff">Stand</i><b>${Math.round(a.stand)}</b><s>/${g.stand} hr</s></div>
+    <div class="dds"><i style="color:#ff5c8a">Move</i><b>${Math.round(a.move)}</b><s>/${g.move} cal</s></div>
+    <div class="dds"><i style="color:#2ee6c8">Exercise</i><b>${Math.round(a.exercise)}</b><s>/${g.exercise} min</s></div>
+    <div class="dds"><i style="color:#7ec8f5">Stand</i><b>${Math.round(a.stand)}</b><s>/${g.stand} hr</s></div>
     <div class="dds"><i style="color:#8b95a1">Lifted</i><b>${Math.round(lifted).toLocaleString()}</b><s>${unit()}</s></div>`;
 
   // ---- Nutrition ring stack + stats for the selected day ----
   const t = totalsFor(currentDate);
   drawRingStack("deckNutRings", [
-    { color:"#ff7a00", track:"#291503", val:t.cal, goal:calG,           r:56, lw:13 },
-    { color:"#00e5ff", track:"#0a2126", val:t.p,   goal:gl.protein||1,  r:41, lw:13 },
-    { color:"#d8ff00", track:"#20240a", val:t.c,   goal:gl.carbs||1,    r:26, lw:13 },
+    { color:"#f5c542", track:"#2b2415", val:t.cal, goal:calG,           r:56, lw:13 },
+    { color:"#7ec8f5", track:"#16222e", val:t.p,   goal:gl.protein||1,  r:41, lw:13 },
+    { color:"#2ee6c8", track:"#0e2b26", val:t.c,   goal:gl.carbs||1,    r:26, lw:13 },
   ]);
   const ns = document.getElementById("deckNutStats");
   if(ns) ns.innerHTML = `
     <div class="dds-h">NUTRITION</div>
-    <div class="dds"><i style="color:#ff7a00">Calories</i><b>${Math.round(t.cal)}</b><s>/${calG}</s></div>
-    <div class="dds"><i style="color:#00e5ff">Protein</i><b>${Math.round(t.p)}</b><s>/${gl.protein||0} g</s></div>
-    <div class="dds"><i style="color:#d8ff00">Carbs</i><b>${Math.round(t.c)}</b><s>/${gl.carbs||0} g</s></div>
-    <div class="dds"><i style="color:#ff2d7a">Fat</i><b>${Math.round(t.f)}</b><s>/${gl.fat||0} g</s></div>`;
+    <div class="dds"><i style="color:#f5c542">Calories</i><b>${Math.round(t.cal)}</b><s>/${calG}</s></div>
+    <div class="dds"><i style="color:#7ec8f5">Protein</i><b>${Math.round(t.p)}</b><s>/${gl.protein||0} g</s></div>
+    <div class="dds"><i style="color:#2ee6c8">Carbs</i><b>${Math.round(t.c)}</b><s>/${gl.carbs||0} g</s></div>
+    <div class="dds"><i style="color:#ff5c8a">Fat</i><b>${Math.round(t.f)}</b><s>/${gl.fat||0} g</s></div>`;
 
   // ---- Water row (one line, one-tap +8) ----
   const wr = document.getElementById("deckWaterRow");
@@ -7838,7 +7838,7 @@ function renderDeck(){
     const water = (state.days[currentDate] || {}).water || 0;
     wr.innerHTML = `
       <span class="dw-lbl">💧 WATER</span>
-      <div class="bar dw-bar"><div class="bar-fill" style="width:${Math.min(100,(water/watG)*100)}%;background:#00e5ff"></div></div>
+      <div class="bar dw-bar"><div class="bar-fill" style="width:${Math.min(100,(water/watG)*100)}%;background:#7ec8f5"></div></div>
       <b>${Math.round(water)}/${watG} oz</b>
       <button class="dn-w-add" id="deckWaterAdd">+8</button>`;
     wr.querySelector("#deckWaterAdd").addEventListener("click", () => {
@@ -8494,11 +8494,11 @@ function renderGoalsView(){
       const X = (i) => 6 + (i/(wts.length-1)) * (cv.width - 12);
       const Y = (v) => 6 + (1 - (v - min)/(max - min)) * (cv.height - 12);
       if(goalW){
-        ctx.strokeStyle = "#d8ff00"; ctx.setLineDash([4,4]); ctx.lineWidth = 1;
+        ctx.strokeStyle = "#2ee6c8"; ctx.setLineDash([4,4]); ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(0, Y(goalW)); ctx.lineTo(cv.width, Y(goalW)); ctx.stroke();
         ctx.setLineDash([]);
       }
-      ctx.strokeStyle = "#00e5ff"; ctx.lineWidth = 2;
+      ctx.strokeStyle = "#7ec8f5"; ctx.lineWidth = 2;
       ctx.beginPath();
       wts.forEach((w, i) => { i ? ctx.lineTo(X(i), Y(w.val)) : ctx.moveTo(X(i), Y(w.val)); });
       ctx.stroke();
@@ -8538,9 +8538,9 @@ function _daysSincePart(){
 }
 function _muscleFill(days){
   if(days === null) return "#20262e";       // never trained — neutral
-  if(days <= 2) return "#ff2231";           // just hit — recovering (red like Fitbod's worked)
-  if(days <= 5) return "#ff7a00";           // recently
-  if(days <= 8) return "#d8ff00";           // fresh — ready to train
+  if(days <= 2) return "#ff5c8a";           // just hit — recovering (red like Fitbod's worked)
+  if(days <= 5) return "#f5c542";           // recently
+  if(days <= 8) return "#2ee6c8";           // fresh — ready to train
   return "#5b6673";                          // stale — going cold
 }
 function renderMuscleMap(){
@@ -8604,9 +8604,9 @@ function renderMuscleMap(){
         <text x="170" y="196" font-size="8" fill="#8b95a1" text-anchor="middle" letter-spacing="2">BACK</text>
         <!-- legend -->
         <g font-size="7" fill="#8b95a1">
-          <rect x="18" y="214" width="8" height="8" fill="#ff2231"/><text x="30" y="221">Just hit (0-2d)</text>
-          <rect x="90" y="214" width="8" height="8" fill="#ff7a00"/><text x="102" y="221">Recent (3-5d)</text>
-          <rect x="162" y="214" width="8" height="8" fill="#d8ff00"/><text x="174" y="221">Fresh (6-8d)</text>
+          <rect x="18" y="214" width="8" height="8" fill="#ff5c8a"/><text x="30" y="221">Just hit (0-2d)</text>
+          <rect x="90" y="214" width="8" height="8" fill="#f5c542"/><text x="102" y="221">Recent (3-5d)</text>
+          <rect x="162" y="214" width="8" height="8" fill="#2ee6c8"/><text x="174" y="221">Fresh (6-8d)</text>
           <rect x="18" y="230" width="8" height="8" fill="#5b6673"/><text x="30" y="237">Going cold (9d+)</text>
           <rect x="90" y="230" width="8" height="8" fill="#20262e"/><text x="102" y="237">No data yet</text>
         </g>
@@ -8732,21 +8732,21 @@ function drawSectionRing(canvasId, pct, color){
 function renderFitRing(){
   const g = getActivityGoals();
   const a = getActivityForDay(currentDate);
-  drawSectionRing("fitRing", (a.exercise || 0) / Math.max(1, g.exercise), "#d8ff00");
+  drawSectionRing("fitRing", (a.exercise || 0) / Math.max(1, g.exercise), "#2ee6c8");
 }
 function renderNutRing(){
   const t = totalsFor(currentDate);
-  drawSectionRing("nutRing", t.cal / Math.max(1, state.goals.cal || 2200), "#ff7a00");
+  drawSectionRing("nutRing", t.cal / Math.max(1, state.goals.cal || 2200), "#f5c542");
 }
 function renderBodyRing(){
   const wts = state.weights || [];
   const goal = (state.goals || {}).weight;
-  if(!wts.length || !goal){ drawSectionRing("bodyRing", 0, "#00e5ff"); return; }
+  if(!wts.length || !goal){ drawSectionRing("bodyRing", 0, "#7ec8f5"); return; }
   const start = wts[0].val, cur = wts[wts.length-1].val;
   const total = Math.abs(start - goal);
   const done = Math.abs(start - cur);
   const movingRightWay = (start > goal && cur <= start) || (start < goal && cur >= start);
-  drawSectionRing("bodyRing", total < 0.1 ? 1 : (movingRightWay ? done/total : 0), "#00e5ff");
+  drawSectionRing("bodyRing", total < 0.1 ? 1 : (movingRightWay ? done/total : 0), "#7ec8f5");
 }
 
 // ---- Training volume progress (Fitbod Overall Strength style) ----
@@ -8814,7 +8814,7 @@ function renderFitProgress(){
     type: "bar",
     data: {
       labels: data.map(d => d.label),
-      datasets: [{ data: vols, backgroundColor: vols.map(v => v > 0 ? "#d8ff00" : "#20262e"), borderRadius: 2 }],
+      datasets: [{ data: vols, backgroundColor: vols.map(v => v > 0 ? "#2ee6c8" : "#20262e"), borderRadius: 2 }],
     },
     options: {
       responsive: true, maintainAspectRatio: false,
@@ -9020,11 +9020,11 @@ function renderNutTopStats(){
   const g = state.goals || {};
   const water = (state.days[currentDate]||{}).water || 0;
   el.innerHTML = `
-    <span><i style="color:#ff7a00">Cal</i> <b>${Math.round(t.cal)}</b>/${g.cal||0}</span>
-    <span><i style="color:#00e5ff">P</i> <b>${Math.round(t.p)}</b>/${g.protein||0}</span>
-    <span><i style="color:#d8ff00">C</i> <b>${Math.round(t.c)}</b>/${g.carbs||0}</span>
-    <span><i style="color:#ff2d7a">F</i> <b>${Math.round(t.f)}</b>/${g.fat||0}</span>
-    <span><i style="color:#00e5ff">💧</i> <b>${Math.round(water)}</b>/${g.water||64}</span>`;
+    <span><i style="color:#f5c542">Cal</i> <b>${Math.round(t.cal)}</b>/${g.cal||0}</span>
+    <span><i style="color:#7ec8f5">P</i> <b>${Math.round(t.p)}</b>/${g.protein||0}</span>
+    <span><i style="color:#2ee6c8">C</i> <b>${Math.round(t.c)}</b>/${g.carbs||0}</span>
+    <span><i style="color:#ff5c8a">F</i> <b>${Math.round(t.f)}</b>/${g.fat||0}</span>
+    <span><i style="color:#7ec8f5">💧</i> <b>${Math.round(water)}</b>/${g.water||64}</span>`;
 }
 function renderFitTopStats(){
   const el = document.getElementById("fitTopStats");
@@ -9033,9 +9033,9 @@ function renderFitTopStats(){
   const g = getActivityGoals();
   const lifted = _liftedLbFor(currentDate);
   el.innerHTML = `
-    <span><i style="color:#ff2231">Move</i> <b>${Math.round(a.move)}</b>/${g.move}</span>
-    <span><i style="color:#d8ff00">Ex</i> <b>${Math.round(a.exercise)}</b>/${g.exercise}m</span>
-    <span><i style="color:#00e5ff">Stand</i> <b>${Math.round(a.stand)}</b>/${g.stand}h</span>
+    <span><i style="color:#ff5c8a">Move</i> <b>${Math.round(a.move)}</b>/${g.move}</span>
+    <span><i style="color:#2ee6c8">Ex</i> <b>${Math.round(a.exercise)}</b>/${g.exercise}m</span>
+    <span><i style="color:#7ec8f5">Stand</i> <b>${Math.round(a.stand)}</b>/${g.stand}h</span>
     <span><i style="color:#8b95a1">Lifted</i> <b>${Math.round(lifted).toLocaleString()}</b> ${unit()}</span>`;
 }
 function renderBodyTopStats(){
@@ -9045,8 +9045,8 @@ function renderBodyTopStats(){
   const last = wts.length ? wts[wts.length-1] : null;
   const goal = (state.goals||{}).weight;
   el.innerHTML = last
-    ? `<span><i style="color:#00e5ff">Now</i> <b>${last.val}</b> ${unit()}</span>
-       <span><i style="color:#d8ff00">Goal</i> <b>${goal || "—"}</b>${goal ? " "+unit() : ""}</span>
+    ? `<span><i style="color:#7ec8f5">Now</i> <b>${last.val}</b> ${unit()}</span>
+       <span><i style="color:#2ee6c8">Goal</i> <b>${goal || "—"}</b>${goal ? " "+unit() : ""}</span>
        <span><i style="color:#8b95a1">To go</i> <b>${goal ? Math.abs(last.val-goal).toFixed(1) : "—"}</b></span>`
     : `<span><i style="color:#8b95a1">No weigh-ins yet</i></span>`;
 }
@@ -9280,7 +9280,7 @@ function renderMacroSub(){
   const totalMacroCal = calFrom.c + calFrom.f + calFrom.p;
   const goalCal = { c:(g.carbs||0)*4, f:(g.fat||0)*9, p:(g.protein||0)*4 };
   const goalTotal = goalCal.c + goalCal.f + goalCal.p || 1;
-  const COLORS = { c:"#2bc4a9", f:"#c77dde", p:"#f5a623" };
+  const COLORS = { c:"#2ee6c8", f:"#b18cff", p:"#f5c542" };
   if(_macroDonutRef){ _macroDonutRef.destroy(); _macroDonutRef = null; }
   _macroDonutRef = new Chart(cv.getContext("2d"), {
     type:"doughnut",

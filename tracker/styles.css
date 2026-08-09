@@ -1068,7 +1068,7 @@ a{color:inherit}
   transition:background .15s;line-height:1.2;
 }
 .dn-label:hover{background:var(--cream)}
-.dn-label::before{content:"📅 ";font-size:12px;opacity:.5}
+.dn-label::before{content:"";}
 .dn-picker{
   position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
   opacity:0;width:100%;height:100%;display:none;border:none;background:transparent;
@@ -2929,3 +2929,84 @@ input, select, textarea, .search-input, .dmt, .ds-btn, .dn-w-add,
 .qq-no.on{ background:var(--iron-red) !important; color:#fff !important; border-color:var(--iron-red) !important; }
 .qq-yes.on{ background:var(--iron-volt) !important; color:#062820 !important; border-color:var(--iron-volt) !important; }
 .detail-scale .ds-btn.on{ background:var(--iron-volt) !important; color:#062820 !important; }
+
+/* ============================================================
+   v16 — CONTRAST PASS: deeper ground, pure-white text, no washes
+   The "faded" look was low contrast, not wrong hues:
+   grey-blue text on grey-blue panels + milky tint fills.
+   ============================================================ */
+:root{
+  --iron-bg:#05060a;        /* deeper, near-black like the site */
+  --iron-panel:#0c0e15;     /* cards sit just above the ground */
+  --iron-panel-2:#11141d;
+  --iron-line:#252c3d;      /* visible but not loud */
+  --iron-text:#ffffff;      /* pure white — was #eef1f7 */
+  --iron-mute:#a7b1c6;      /* brighter secondary — was #8b93a7 */
+}
+
+/* Kill the milky tint fills — border + colored text carry the status */
+.dw-row.done, .fw-row.done,
+.dw-row.missed,
+.dw-row.planned, .dw-row.today-up, .fw-row.sel,
+.dy-item.cheat, .dy-item.watch, .dy-item.clean,
+.ws-set.logged{
+  background:var(--iron-panel-2) !important;
+}
+.smart-banner, .smart-banner.sb-aggr, .restart-card,
+.mm-callout, .bp-suggest,
+.ins-card.ins-good, .ins-card.ins-watch, .ins-card.ins-info,
+.hi-card.hi-good, .hi-card.hi-watch, .hi-card.hi-info,
+.adaptive-card{
+  background:var(--iron-panel) !important;
+}
+
+/* Values and headings: full white, heavier */
+.dds b, .page-stats b, .dn-big b, .fp-big, .mm-stat b,
+.bc-cell b, .gs-cell b, .cmp-row b, .nt-row b, .mfp-row b,
+.dy-item-cal, .stat-big, .view-h1, .dash-greet h1,
+.fw-row b, .dw-info b, .dy-item-info b{
+  color:#fff !important;
+}
+.dds b, .page-stats b{ font-weight:900 !important; }
+
+/* Section titles brighter (were grey) */
+.dds-h, .deck-strip-label, .dy-meal-head b, .fw-d, .dw-day,
+.mm-stat span, .bc-cell span, .gs-cell span{
+  color:#c3cbdb !important;
+}
+.dy-meal-head b{ color:#fff !important; }
+
+/* Accent text at full strength — no dimming */
+.card-eyebrow, .eyebrow{ color:var(--iron-cyan) !important; opacity:1 !important; }
+
+/* Brighter dividers so cards read crisp */
+.card, .hub, .deck, .wl-card, .usuals-row{
+  border:1px solid var(--iron-line) !important;
+  background:var(--iron-panel) !important;
+}
+
+/* Inputs/controls: readable, not washed */
+input, select, textarea{
+  background:var(--iron-panel-2) !important;
+  color:#fff !important;
+  border:1px solid var(--iron-line) !important;
+}
+::placeholder{ color:#7b8499 !important; }
+
+/* Empty/disabled rows shouldn't vanish */
+.dw-row.empty{ opacity:1 !important; }
+.dw-row.empty b{ color:#79839a !important; }
+.dw-row.empty .dw-day{ color:#79839a !important; }
+
+/* Bar troughs: dark, not cream (last washed-out surface) */
+.bar{ background:#111622 !important; }
+.nt-bar{ background:#111622 !important; }
+.bp-bar{ background:#111622 !important; }
+.dw-bar, .dn-w-bar, .dn-bar{ background:#111622 !important; }
+
+/* Accent text/values at full saturation on their own rows */
+.dw-row.done b{ color:#00f5d4 !important; }
+.dw-row.planned b, .dw-row.today-up b, .fw-row.sel b{ color:#c9a6ff !important; }
+.dw-row.missed b{ color:#ff4d9d !important; }
+.cmp-row .cmp-good{ color:#00f5d4 !important; }
+.cmp-row .cmp-bad{ color:#ff4d9d !important; }

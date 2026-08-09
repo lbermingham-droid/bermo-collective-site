@@ -7755,9 +7755,9 @@ function _drawDayMini(canvas, k){
   const cal = totalsFor(k).cal;
   const calG = state.goals.cal || 2200;
   const rings = [
-    { color:"#ff4d9d", track:"#151b29", val:a.move,     goal:g.move,     r:13, lw:3.5 },
-    { color:"#00f5d4", track:"#151b29", val:a.exercise, goal:g.exercise, r:9,  lw:3.5 },
-    { color:"#4db8ff", track:"#151b29", val:cal,        goal:calG,       r:5,  lw:3.5 },
+    { color:"#ff4d9d", track:"#111622", val:a.move,     goal:g.move,     r:13, lw:3.5 },
+    { color:"#00f5d4", track:"#111622", val:a.exercise, goal:g.exercise, r:9,  lw:3.5 },
+    { color:"#4db8ff", track:"#111622", val:cal,        goal:calG,       r:5,  lw:3.5 },
   ];
   const w = canvas.width, h = canvas.height, cx = w/2, cy = h/2;
   ctx.clearRect(0,0,w,h);
@@ -7805,9 +7805,9 @@ function renderDeck(){
   const a = getActivityForDay(currentDate);
   const lifted = _liftedLbFor(currentDate);
   drawRingStack("deckFitRings", [
-    { color:"#ff4d9d", track:"#151b29", val:a.move,     goal:g.move,     r:56, lw:13 },
-    { color:"#00f5d4", track:"#151b29", val:a.exercise, goal:g.exercise, r:41, lw:13 },
-    { color:"#4db8ff", track:"#151b29", val:a.stand,    goal:g.stand,    r:26, lw:13 },
+    { color:"#ff4d9d", track:"#111622", val:a.move,     goal:g.move,     r:56, lw:13 },
+    { color:"#00f5d4", track:"#111622", val:a.exercise, goal:g.exercise, r:41, lw:13 },
+    { color:"#4db8ff", track:"#111622", val:a.stand,    goal:g.stand,    r:26, lw:13 },
   ]);
   const fs = document.getElementById("deckFitStats");
   if(fs) fs.innerHTML = `
@@ -7820,9 +7820,9 @@ function renderDeck(){
   // ---- Nutrition ring stack + stats for the selected day ----
   const t = totalsFor(currentDate);
   drawRingStack("deckNutRings", [
-    { color:"#b788ff", track:"#151b29", val:t.cal, goal:calG,           r:56, lw:13 },
-    { color:"#4db8ff", track:"#151b29", val:t.p,   goal:gl.protein||1,  r:41, lw:13 },
-    { color:"#00f5d4", track:"#151b29", val:t.c,   goal:gl.carbs||1,    r:26, lw:13 },
+    { color:"#b788ff", track:"#111622", val:t.cal, goal:calG,           r:56, lw:13 },
+    { color:"#4db8ff", track:"#111622", val:t.p,   goal:gl.protein||1,  r:41, lw:13 },
+    { color:"#00f5d4", track:"#111622", val:t.c,   goal:gl.carbs||1,    r:26, lw:13 },
   ]);
   const ns = document.getElementById("deckNutStats");
   if(ns) ns.innerHTML = `

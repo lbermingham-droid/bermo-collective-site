@@ -21,7 +21,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Inter+Tight:wght@600;700;800;900&family=Montserrat:wght@600;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./styles.css?v=14">
+<link rel="stylesheet" href="./styles.css?v=15">
 </head>
 <body>
 
@@ -191,7 +191,7 @@
     <div class="tb-left">
       <div class="tb-logo">
         <span class="tb-top">BERMO<span class="c">.</span></span>
-        <span class="tb-bot">TRACKER <span style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v14</span></span>
+        <span class="tb-bot">TRACKER <span style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v15</span></span>
       </div>
     </div>
     <nav class="tb-nav" id="tabNav">
@@ -245,10 +245,10 @@
       <!-- BRAIN DUMP — one line: type / photo / speak -->
       <div class="brain-row">
         <button class="br-main js-brain" data-bmode="" title="Type your whole day — AI files everything">
-          <span>🧠</span><b>BRAIN DUMP</b>
+          <span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2l1.9 4.6 4.6 1.9-4.6 1.9L12 16.2l-1.9-4.6L5.5 9.7l4.6-1.9L12 3.2Z"/><path d="M18.5 15.4l.85 2.05 2.05.85-2.05.85-.85 2.05-.85-2.05-2.05-.85 2.05-.85.85-2.05Z"/></svg></span><b>BRAIN DUMP</b>
         </button>
-        <button class="br-side js-brain" data-bmode="photo" title="Snap food / watch / whiteboard">📸</button>
-        <button class="br-side js-brain" data-bmode="speak" title="Speak your day">🎤</button>
+        <button class="br-side js-brain" data-bmode="photo" title="Snap food / watch / whiteboard"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.4"/></svg></span></button>
+        <button class="br-side js-brain" data-bmode="speak" title="Speak your day"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/></svg></span></button>
       </div>
 
       <!-- RING DECK — Apple-style: day selector + fitness/nutrition rings -->
@@ -265,10 +265,7 @@
           </div>
         </div>
         <div class="deck-water" id="deckWaterRow"></div>
-        <div class="deck-strip-wrap">
-          <div class="deck-strip-label" id="deckMonthLabel">MONTH</div>
-          <div class="deck-strip deck-strip-month" id="deckMonthStrip"></div>
-        </div>
+        
       </div>
 
       <!-- WORKOUTS THIS WEEK — editable list, Fitbod/Apple style -->
@@ -522,9 +519,9 @@
       </header>
 
       <div class="brain-row brain-row--sm">
-        <button class="br-main js-brain" data-bmode="" title="Type your whole day — AI files everything"><span>🧠</span><b>BRAIN DUMP</b></button>
-        <button class="br-side js-brain" data-bmode="photo" title="Snap food / watch">📸</button>
-        <button class="br-side js-brain" data-bmode="speak" title="Speak your day">🎤</button>
+        <button class="br-main js-brain" data-bmode="" title="Type your whole day — AI files everything"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2l1.9 4.6 4.6 1.9-4.6 1.9L12 16.2l-1.9-4.6L5.5 9.7l4.6-1.9L12 3.2Z"/><path d="M18.5 15.4l.85 2.05 2.05.85-2.05.85-.85 2.05-.85-2.05-2.05-.85 2.05-.85.85-2.05Z"/></svg></span><b>BRAIN DUMP</b></button>
+        <button class="br-side js-brain" data-bmode="photo" title="Snap food / watch"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.4"/></svg></span></button>
+        <button class="br-side js-brain" data-bmode="speak" title="Speak your day"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/></svg></span></button>
       </div>
       <div class="page-stats" id="nutTopStats"></div>
 
@@ -614,9 +611,9 @@
         <button class="sub-chip" data-fsub="saved">SAVED</button>
       </div>
       <div class="brain-row brain-row--sm">
-        <button class="br-main js-brain" data-bmode=""><span>🧠</span><b>BRAIN DUMP</b></button>
-        <button class="br-side js-brain" data-bmode="photo">📸</button>
-        <button class="br-side js-brain" data-bmode="speak">🎤</button>
+        <button class="br-main js-brain" data-bmode=""><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2l1.9 4.6 4.6 1.9-4.6 1.9L12 16.2l-1.9-4.6L5.5 9.7l4.6-1.9L12 3.2Z"/><path d="M18.5 15.4l.85 2.05 2.05.85-2.05.85-.85 2.05-.85-2.05-2.05-.85 2.05-.85.85-2.05Z"/></svg></span><b>BRAIN DUMP</b></button>
+        <button class="br-side js-brain" data-bmode="photo"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.4"/></svg></span></button>
+        <button class="br-side js-brain" data-bmode="speak"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/></svg></span></button>
       </div>
       <div class="page-stats" id="fitTopStats"></div>
 
@@ -734,13 +731,13 @@
         <div class="view-head-actions">
           <button class="btn btn-cyan" id="weighInBtn">+ Weigh in</button>
           <button class="btn btn-ghost" id="measureBtn">+ Measurements</button>
-          <button class="btn btn-ghost" id="inbodyBtn">📸 InBody scan</button>
+          <button class="btn btn-ghost" id="inbodyBtn">InBody scan</button>
         </div>
       </header>
       <div class="brain-row brain-row--sm">
-        <button class="br-main js-brain" data-bmode=""><span>🧠</span><b>BRAIN DUMP</b></button>
-        <button class="br-side js-brain" data-bmode="photo">📸</button>
-        <button class="br-side js-brain" data-bmode="speak">🎤</button>
+        <button class="br-main js-brain" data-bmode=""><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2l1.9 4.6 4.6 1.9-4.6 1.9L12 16.2l-1.9-4.6L5.5 9.7l4.6-1.9L12 3.2Z"/><path d="M18.5 15.4l.85 2.05 2.05.85-2.05.85-.85 2.05-.85-2.05-2.05-.85 2.05-.85.85-2.05Z"/></svg></span><b>BRAIN DUMP</b></button>
+        <button class="br-side js-brain" data-bmode="photo"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.4"/></svg></span></button>
+        <button class="br-side js-brain" data-bmode="speak"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/></svg></span></button>
       </div>
       <div class="page-stats" id="bodyTopStats"></div>
 
@@ -801,9 +798,9 @@
         </div>
       </header>
       <div class="brain-row brain-row--sm">
-        <button class="br-main js-brain" data-bmode=""><span>🧠</span><b>BRAIN DUMP</b></button>
-        <button class="br-side js-brain" data-bmode="photo">📸</button>
-        <button class="br-side js-brain" data-bmode="speak">🎤</button>
+        <button class="br-main js-brain" data-bmode=""><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2l1.9 4.6 4.6 1.9-4.6 1.9L12 16.2l-1.9-4.6L5.5 9.7l4.6-1.9L12 3.2Z"/><path d="M18.5 15.4l.85 2.05 2.05.85-2.05.85-.85 2.05-.85-2.05-2.05-.85 2.05-.85.85-2.05Z"/></svg></span><b>BRAIN DUMP</b></button>
+        <button class="br-side js-brain" data-bmode="photo"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.4"/></svg></span></button>
+        <button class="br-side js-brain" data-bmode="speak"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/></svg></span></button>
       </div>
 
 <!-- Goal Contract card -->
@@ -830,7 +827,7 @@
 
       <!-- Restart card (only shows when struggling) -->
       <div class="restart-card hidden" id="restartCard">
-        <div class="rs-icon">🤍</div>
+        
         <div class="rs-body">
           <div class="rs-title" id="rsTitle">Last few days happened. No guilt.</div>
           <div class="rs-sub" id="rsSub">One small action restarts it. You don't have to be perfect.</div>
@@ -868,9 +865,9 @@
         </div>
       </header>
       <div class="brain-row brain-row--sm">
-        <button class="br-main js-brain" data-bmode=""><span>🧠</span><b>BRAIN DUMP</b></button>
-        <button class="br-side js-brain" data-bmode="photo">📸</button>
-        <button class="br-side js-brain" data-bmode="speak">🎤</button>
+        <button class="br-main js-brain" data-bmode=""><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2l1.9 4.6 4.6 1.9-4.6 1.9L12 16.2l-1.9-4.6L5.5 9.7l4.6-1.9L12 3.2Z"/><path d="M18.5 15.4l.85 2.05 2.05.85-2.05.85-.85 2.05-.85-2.05-2.05-.85 2.05-.85.85-2.05Z"/></svg></span><b>BRAIN DUMP</b></button>
+        <button class="br-side js-brain" data-bmode="photo"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.4"/></svg></span></button>
+        <button class="br-side js-brain" data-bmode="speak"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/></svg></span></button>
       </div>
 
 
@@ -1023,7 +1020,7 @@
             or <a href="https://platform.openai.com" target="_blank" style="color:var(--cyan)">platform.openai.com</a>.
           </p>
           <p style="font-size:12px;color:#888;line-height:1.5;margin:0 0 14px">
-            <b>⚠ Privacy:</b> The key is stored ONLY in this browser (localStorage). Photos and
+            <b>Privacy:</b> The key is stored ONLY in this browser (localStorage). Photos and
             text are sent directly from your browser to the AI provider for parsing. Set a spend
             limit on your account to cap monthly cost.
           </p>
@@ -1056,17 +1053,17 @@
             </label>
 
             <label style="display:flex;align-items:center;gap:8px;font-size:13px">
-              <input type="checkbox" id="remWorkoutOn" style="width:auto"> <span>🔥 Morning workout call</span>
+              <input type="checkbox" id="remWorkoutOn" style="width:auto"> <span>Morning workout call</span>
             </label>
             <label><span>Time</span><input type="time" id="remWorkout" value="05:30"></label>
 
             <label style="display:flex;align-items:center;gap:8px;font-size:13px">
-              <input type="checkbox" id="remWaterOn" style="width:auto"> <span>💧 Water-too-low check</span>
+              <input type="checkbox" id="remWaterOn" style="width:auto"> <span>Water-too-low check</span>
             </label>
             <label><span>Check at</span><input type="time" id="remWater" value="14:00"></label>
 
             <label style="display:flex;align-items:center;gap:8px;font-size:13px">
-              <input type="checkbox" id="remEodOn" style="width:auto"> <span>🌙 End-of-day untracked alert</span>
+              <input type="checkbox" id="remEodOn" style="width:auto"> <span>End-of-day untracked alert</span>
             </label>
             <label><span>Time</span><input type="time" id="remEod" value="21:00"></label>
           </div>
@@ -1097,7 +1094,7 @@
               <select id="setFoodMode">
                 <option value="search">Search bar</option>
                 <option value="quicklog">1-tap quick log</option>
-                <option value="ai">📸 AI photo</option>
+                <option value="ai">AI photo</option>
               </select>
             </label>
           </div>
@@ -1254,7 +1251,7 @@
 <div class="toast" id="toast" aria-live="polite"></div>
 
 <script src="/tracker/vendor/chart.umd.js"></script>
-<script src="./data.js?v=14"></script>
-<script src="./app.js?v=14"></script>
+<script src="./data.js?v=15"></script>
+<script src="./app.js?v=15"></script>
 </body>
 </html>

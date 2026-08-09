@@ -20,11 +20,17 @@ Deliberately NOT linked from the main site nav — it's a standalone app.
   PWA meta. Has a visible BUILD version marker — bump it each deploy so the
   user can confirm cache refresh.
 - `tracker/app.js` (~8k lines) — ONE giant IIFE with all logic
-- `tracker/styles.css` — BRAND theme (v14, matches bermocollective.com):
-  deep navy #0a0c12, rounded 16px cards, ELECTRIC teal #00f5d4 primary /
-  blue #6cc4ff / purple #b788ff / hot pink #ff4d9d alerts / amber
-  #f5c542. Ring + bar TRACKS are one neutral dark navy #151b29 (never
-  color-tinted — tinted tracks read "muddy"; user rejected that).
+- `tracker/styles.css` — BRAND theme (v15, matches bermocollective.com):
+  deep navy #0a0c12, rounded 16px cards. Palette is EXACTLY four
+  accents — electric teal #00f5d4 (primary), bright blue #4db8ff,
+  purple #b788ff, hot pink #ff4d9d. NO YELLOW/AMBER anywhere (user
+  rejected it) and no muted blues. Ring/bar TRACKS are one neutral
+  dark navy #151b29 — never color-tinted (reads "muddy").
+  BORDER RULE: status is shown with a FULL 1px colored border +
+  matching colored text (like the site's cards) — never a left-edge
+  accent rail; the user explicitly rejected left rails.
+  ICON RULE: no emoji in the UI — clean inline stroke SVGs only
+  (.bi wrapper). Emoji may remain in code comments/prompts.
   The BRAND LAYER at the bottom redefines the --iron-* variables; JS
   ring/chart hexes use the same palette. The user approved this look
   from her marketing site screenshots — do not revert to the older

@@ -430,11 +430,11 @@ function openFoodModal(meal){
   openModal(`Log food`, `
     <div class="meal-slot-row" role="radiogroup" aria-label="Meal slot">${slotPills}</div>
     <div class="food-tabs">
-      <button type="button" class="food-tab" data-fmode="quicklog">⚡ Quick log</button>
-      <button type="button" class="food-tab" data-fmode="search">🔍 Search</button>
-      <button type="button" class="food-tab" data-fmode="templates">📋 Templates</button>
-      <button type="button" class="food-tab" data-fmode="ai">📸 AI</button>
-      <button type="button" class="food-tab" data-fmode="barcode">📷 Barcode</button>
+      <button type="button" class="food-tab" data-fmode="quicklog">Quick log</button>
+      <button type="button" class="food-tab" data-fmode="search">Search</button>
+      <button type="button" class="food-tab" data-fmode="templates">Templates</button>
+      <button type="button" class="food-tab" data-fmode="ai">AI</button>
+      <button type="button" class="food-tab" data-fmode="barcode">Barcode</button>
     </div>
     <div class="food-pane" data-pane="search">
       <input type="search" id="foodSearch" class="search-input" placeholder="Search 200+ foods, restaurants, brands…" autocomplete="off">
@@ -454,13 +454,13 @@ function openFoodModal(meal){
     </div>
     <div class="food-pane" data-pane="ai">
       <p class="ql-hint" id="foodAIStatusHint">Use an AI key (Claude or OpenAI) to read a photo of your plate or parse a typed description.</p>
-      <button type="button" class="btn btn-cyan" id="foodAIPhotoBtn" style="width:100%;margin-bottom:8px">📸 Snap a photo of food</button>
-      <button type="button" class="btn btn-ghost" id="foodAITextBtn" style="width:100%;margin-bottom:8px">💬 Type what you ate</button>
+      <button type="button" class="btn btn-cyan" id="foodAIPhotoBtn" style="width:100%;margin-bottom:8px">Snap a photo of food</button>
+      <button type="button" class="btn btn-ghost" id="foodAITextBtn" style="width:100%;margin-bottom:8px">Type what you ate</button>
       <button type="button" class="btn btn-ghost btn-sm" id="foodAISetupBtn" style="width:100%;font-size:11px">⚙ Set up / change API key</button>
     </div>
     <div class="food-pane" data-pane="barcode">
-      <button type="button" class="btn btn-cyan" id="foodBarcodeBtn" style="width:100%;margin-bottom:8px">📷 Scan with camera</button>
-      <button type="button" class="btn btn-ghost" id="foodBarcodeManualBtn" style="width:100%">⌨ Type UPC manually</button>
+      <button type="button" class="btn btn-cyan" id="foodBarcodeBtn" style="width:100%;margin-bottom:8px">Scan with camera</button>
+      <button type="button" class="btn btn-ghost" id="foodBarcodeManualBtn" style="width:100%">Type UPC manually</button>
     </div>
   `, () => {
     // Meal-slot pills — let user switch slot inside the modal so they don't get locked in
@@ -1796,7 +1796,7 @@ function openActivityLogModal(){
     <p style="font-size:11px;color:#888;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin:0 0 4px">Source: ${sourceLabel}</p>
     <p style="font-size:12px;color:#888;line-height:1.5;margin:0 0 10px">Type the numbers from your watch, or snap a photo of the Activity / Health screen and AI will read it.</p>
     <div class="aw-snap-row">
-      <button type="button" class="btn btn-cyan" id="awSnapBtn" style="width:100%">📸 Snap Apple Watch / Health screen</button>
+      <button type="button" class="btn btn-cyan" id="awSnapBtn" style="width:100%">Snap Apple Watch / Health screen</button>
       <input type="file" id="awSnapFile" accept="image/*" capture="environment" style="display:none">
       <div id="awSnapStatus" style="font-size:12px;color:#666;text-align:center;margin-top:6px"></div>
     </div>
@@ -2343,12 +2343,12 @@ function renderDetail(){
     <div class="detail-pill ${t.fiber < fiberGoal*0.5 ? "over" : ""}">
       <div class="dp-lbl">Fiber</div>
       <div class="dp-val">${t.fiber}<i>g / ${fiberGoal}g</i></div>
-      <div class="dp-bar"><span style="width:${Math.min(100, (t.fiber/fiberGoal)*100)}%;background:#0a8538"></span></div>
+      <div class="dp-bar"><span style="width:${Math.min(100, (t.fiber/fiberGoal)*100)}%;background:#00f5d4"></span></div>
     </div>
     <div class="detail-pill ${t.sugar > sugarLimit ? "over" : ""}">
       <div class="dp-lbl">Sugar</div>
       <div class="dp-val">${t.sugar}<i>g / ${sugarLimit}g cap</i></div>
-      <div class="dp-bar"><span style="width:${Math.min(100, (t.sugar/sugarLimit)*100)}%;background:${t.sugar > sugarLimit ? 'var(--pink)' : '#ffb347'}"></span></div>
+      <div class="dp-bar"><span style="width:${Math.min(100, (t.sugar/sugarLimit)*100)}%;background:${t.sugar > sugarLimit ? 'var(--pink)' : '#b788ff'}"></span></div>
     </div>
     <div class="detail-pill">
       <div class="dp-lbl">Protein density</div>
@@ -2603,7 +2603,7 @@ function computeInsights(){
     const rWater = avg(restDays.map(k => state.days[k].water || 0));
     if(Math.abs(wWater - rWater) >= 4){
       insights.push({
-        icon: "💧",
+        icon: "",
         tier: "info",
         headline: `Workout days = ${Math.round(wWater)} oz water vs ${Math.round(rWater)} on rest days`,
         body: `${wWater > rWater ? "You hydrate more on training days." : "You actually drink less on training days — easy fix to log a couple more cups around your session."}`
@@ -2741,7 +2741,7 @@ function renderCtxGrid(){
   const energy = workoutDays.map(k => state.days[k].checkin && state.days[k].checkin.energy).filter(s=>s!=null);
   const cells = [
     ["💤 Sleep on training days", sleep.length ? avg(sleep).toFixed(1)+" h" : "—", "Goal: 7+ h"],
-    ["💧 Water on training days", Math.round(avg(water))+" oz", "Goal: 64+ oz"],
+    ["Water on training days", Math.round(avg(water))+" oz", "Goal: 64+ oz"],
     ["🥩 Protein on training days", Math.round(avg(protein))+" g", "Goal: " + state.goals.protein + "+ g"],
     ["⚡ Reported energy", energy.length ? (avg(energy).toFixed(1)+" / 5") : "—", "Log via daily check-in"],
   ];
@@ -3017,7 +3017,7 @@ function computeSymptomInsights(){
     const aw = avg(waterOnSym), bw = avg(waterOther);
     if(aw < bw - 12 && bw > 0){
       out.push({
-        icon:"💧", tier:"watch",
+        icon:"", tier:"watch",
         headline:`${name} happens on low-water days`,
         body:`On "${name}" days you average ${Math.round(aw)} oz water vs ${Math.round(bw)} oz other days. Hydration is a likely factor.`
       });
@@ -3339,10 +3339,10 @@ function openAIPhotoModal(){
     openAIKeyPrompt("Snap a photo of food → AI estimates calories + macros.");
     return;
   }
-  openModal("📸 Snap or upload food photo", `
+  openModal("Snap or upload food photo", `
     <p style="font-size:12px;color:#666;margin:0">Upload a photo of your food. Claude/GPT analyzes it and fills in calories + macros. You'll review before saving.</p>
     <input id="aiPhotoFile" type="file" accept="image/*" capture="environment" style="display:none">
-    <button id="aiPhotoPick" class="btn btn-cyan" style="width:100%;justify-content:center">📸 Choose photo</button>
+    <button id="aiPhotoPick" class="btn btn-cyan" style="width:100%;justify-content:center">Choose photo</button>
     <div id="aiPhotoPreview" style="display:none;margin-top:10px"></div>
     <div id="aiPhotoStatus" style="font-size:13px;color:#666;text-align:center;padding:14px"></div>
     <div class="modal-foot">
@@ -3380,7 +3380,7 @@ function openAITextModal(){
     openAIKeyPrompt("Type what you ate in plain English → AI parses it into items.");
     return;
   }
-  openModal("💬 Type what you ate", `
+  openModal("Type what you ate", `
     <p style="font-size:12px;color:#666;margin:0">Describe in plain English. Examples:<br>
       <i style="color:#888">• 2 scrambled eggs, oatmeal with blueberries, large coffee with cream</i><br>
       <i style="color:#888">• Chipotle bowl with double chicken, brown rice, fajita veg, mild salsa</i></p>
@@ -3497,7 +3497,7 @@ function openConfirmModal(parsed){
 let _brainImages = []; // base64 strings
 function openBrainDumpModal(mode){
   _brainImages = [];
-  openModal("🧠 Brain dump", `
+  openModal("Brain dump", `
     <p style="font-size:13px;color:#444;line-height:1.5;margin:0 0 8px">
       Type your day. Add a food photo or Apple Watch screenshot. AI parses it all
       and fills food + lifts + activity + water — you review before saving.
@@ -4919,7 +4919,7 @@ drawActivityRings = function(){
     { c1:"#ff4d9d", c2:"#ff6b35", track:"rgba(255,45,122,.10)", val:a.move,     goal:g.move,     r:80, lw:16 },
     { c1:"#c8f500", c2:"#7be600", track:"rgba(200,245,0,.10)",  val:a.exercise, goal:g.exercise, r:60, lw:16 },
     { c1:"#00f5d4", c2:"#00b8a3", track:"rgba(0,245,212,.10)",  val:a.stand,    goal:g.stand,    r:40, lw:16 },
-    { c1:"#ffb347", c2:"#ff8c1a", track:"rgba(255,179,71,.10)", val:calVal,     goal:calGoal,    r:20, lw:16 },
+    { c1:"#b788ff", c2:"#ff8c1a", track:"rgba(183,136,255,.10)", val:calVal,     goal:calGoal,    r:20, lw:16 },
   ];
   rings.forEach(ring => {
     // Track
@@ -4991,7 +4991,7 @@ drawActivityRings = function(){
           <div class="rwk-bar rwk-move"><span style="height:${m}%;background:#ff4d9d"></span></div>
           <div class="rwk-bar rwk-ex"><span style="height:${e}%;background:#c8f500"></span></div>
           <div class="rwk-bar rwk-st"><span style="height:${s}%;background:#00f5d4"></span></div>
-          <div class="rwk-bar rwk-nut"><span style="height:${n}%;background:#ffb347"></span></div>
+          <div class="rwk-bar rwk-nut"><span style="height:${n}%;background:#b788ff"></span></div>
         </div>
         <div class="rwk-day">${dayLetter}</div>
       </div>`;
@@ -5013,7 +5013,7 @@ function renderNutritionHubBase(){
     const pct = Math.min(100, t.cal/g.cal*100);
     bar.style.width = pct + "%";
     if(t.cal > g.cal) bar.style.background = "var(--pink)";
-    else if(t.cal > g.cal*0.9) bar.style.background = "#ffb347";
+    else if(t.cal > g.cal*0.9) bar.style.background = "#b788ff";
     else bar.style.background = "var(--cyan)";
   }
   // Macros bars are filled by existing applyRedFlags / dashboard render
@@ -5729,7 +5729,7 @@ function ensureMetricTabs(){
   tabs.style.display = "flex";
   tabs.innerHTML = RING_METRICS.map(m => {
     const lbl = m === "nutrition" ? "Nutrition" : m.charAt(0).toUpperCase()+m.slice(1);
-    const dotColor = m === "move" ? "#ff4d9d" : m === "exercise" ? "#c8f500" : m === "stand" ? "#00f5d4" : "#ffb347";
+    const dotColor = m === "move" ? "#ff4d9d" : m === "exercise" ? "#c8f500" : m === "stand" ? "#00f5d4" : "#b788ff";
     return `<button class="dmt ${m===detailMetric?"on":""}" data-mt="${m}"><span class="dmt-dot" style="background:${dotColor}"></span>${lbl}</button>`;
   }).join("");
   tabs.querySelectorAll("[data-mt]").forEach(b => b.addEventListener("click", () => {
@@ -6110,7 +6110,7 @@ function renderPlanStep_RenderPlan(){
 const SET_KINDS = [
   {k:"normal",  lbl:"Normal",  c:"#00f5d4"},
   {k:"warmup",  lbl:"Warm-up", c:"#7cd9f1"},
-  {k:"drop",    lbl:"Drop Set",c:"#ffb347"},
+  {k:"drop",    lbl:"Drop Set",c:"#b788ff"},
   {k:"fail",    lbl:"Failure", c:"#ff4d9d"},
 ];
 
@@ -7228,7 +7228,7 @@ function renderQuickLogPane(meal, allFoods, filter){
     const favs = (state.favFoods || []).filter(x =>
       !filter || x.name.toLowerCase().includes(filterLower));
     const favHtml = favs.length
-      ? `<li class="ql-section-inline">★ FAVORITES</li>` + favs.map(renderRow).join("")
+      ? `<li class="ql-section-inline">FAVORITES</li>` + favs.map(renderRow).join("")
       : "";
     const recHtml = recents.length
       ? recents.map(renderRow).join("")
@@ -7437,7 +7437,7 @@ function renderSmartBanners(){
     if(now >= t && now < t + 180 && !_todayHasWorkout() && !_bannerDismissed("workout")){
       banners.push({
         key: "workout",
-        title: "🔥 Get your ass to the gym.",
+        title: "GET TO THE GYM.",
         sub: "Workout window is open. Hit start — even 20 minutes counts. Future you is watching.",
         primary: { label: "Log a lift now", action: "lift" },
         secondary: { label: "Quick activity", action: "activity" },
@@ -7454,7 +7454,7 @@ function renderSmartBanners(){
       const cur = (state.days[currentDate] && state.days[currentDate].water) || 0;
       banners.push({
         key: "water",
-        title: "💧 Water is low.",
+        title: "WATER IS LOW.",
         sub: `${Math.round(cur)} of ${goal} ${unitVol()} so far · ${Math.round(pct*100)}% of goal. Crush a glass right now.`,
         primary: { label: "+ 16 oz", action: "water", oz: 16 },
         secondary: { label: "+ 8 oz", action: "water", oz: 8 },
@@ -7468,7 +7468,7 @@ function renderSmartBanners(){
     if(now >= t && !_todayHasAnyLog() && !_bannerDismissed("eod")){
       banners.push({
         key: "eod",
-        title: "🌙 Nothing tracked today.",
+        title: "NOTHING TRACKED TODAY.",
         sub: "30-day chain is about to break. Log ANYTHING — water, a walk, what you ate. 10 seconds.",
         primary: { label: "Log activity", action: "activity" },
         secondary: { label: "Log food", action: "food" },
@@ -7543,9 +7543,9 @@ function scheduleReminderNotifications(){
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const items = [];
-  if(r.workoutOn) items.push({ key:"workout", time:r.workout, title:"🔥 Workout time", body:"Get up. Get to the gym. 20 minutes minimum. No excuses." });
-  if(r.waterOn)   items.push({ key:"water",   time:r.water,   title:"💧 Water check",  body:"Half the day gone — how's your water? Tap to add a glass." });
-  if(r.eodOn)     items.push({ key:"eod",     time:r.eod,     title:"🌙 Don't break the chain", body:"You haven't tracked anything today. Log something — anything — before bed." });
+  if(r.workoutOn) items.push({ key:"workout", time:r.workout, title:"Workout time", body:"Get up. Get to the gym. 20 minutes minimum. No excuses." });
+  if(r.waterOn)   items.push({ key:"water",   time:r.water,   title:"Water check",  body:"Half the day gone — how's your water? Tap to add a glass." });
+  if(r.eodOn)     items.push({ key:"eod",     time:r.eod,     title:"Don't break the chain", body:"You haven't tracked anything today. Log something — anything — before bed." });
   for(const it of items){
     const [h, m] = (it.time || "00:00").split(":").map(n => parseInt(n,10));
     const target = new Date(today.getTime() + h*3600000 + m*60000);
@@ -7757,7 +7757,7 @@ function _drawDayMini(canvas, k){
   const rings = [
     { color:"#ff4d9d", track:"#151b29", val:a.move,     goal:g.move,     r:13, lw:3.5 },
     { color:"#00f5d4", track:"#151b29", val:a.exercise, goal:g.exercise, r:9,  lw:3.5 },
-    { color:"#6cc4ff", track:"#151b29", val:cal,        goal:calG,       r:5,  lw:3.5 },
+    { color:"#4db8ff", track:"#151b29", val:cal,        goal:calG,       r:5,  lw:3.5 },
   ];
   const w = canvas.width, h = canvas.height, cx = w/2, cy = h/2;
   ctx.clearRect(0,0,w,h);
@@ -7807,28 +7807,28 @@ function renderDeck(){
   drawRingStack("deckFitRings", [
     { color:"#ff4d9d", track:"#151b29", val:a.move,     goal:g.move,     r:56, lw:13 },
     { color:"#00f5d4", track:"#151b29", val:a.exercise, goal:g.exercise, r:41, lw:13 },
-    { color:"#6cc4ff", track:"#151b29", val:a.stand,    goal:g.stand,    r:26, lw:13 },
+    { color:"#4db8ff", track:"#151b29", val:a.stand,    goal:g.stand,    r:26, lw:13 },
   ]);
   const fs = document.getElementById("deckFitStats");
   if(fs) fs.innerHTML = `
     <div class="dds-h">FITNESS</div>
     <div class="dds"><i style="color:#ff4d9d">Move</i><b>${Math.round(a.move)}</b><s>/${g.move} cal</s></div>
     <div class="dds"><i style="color:#00f5d4">Exercise</i><b>${Math.round(a.exercise)}</b><s>/${g.exercise} min</s></div>
-    <div class="dds"><i style="color:#6cc4ff">Stand</i><b>${Math.round(a.stand)}</b><s>/${g.stand} hr</s></div>
+    <div class="dds"><i style="color:#4db8ff">Stand</i><b>${Math.round(a.stand)}</b><s>/${g.stand} hr</s></div>
     <div class="dds"><i style="color:#8b95a1">Lifted</i><b>${Math.round(lifted).toLocaleString()}</b><s>${unit()}</s></div>`;
 
   // ---- Nutrition ring stack + stats for the selected day ----
   const t = totalsFor(currentDate);
   drawRingStack("deckNutRings", [
-    { color:"#f5c542", track:"#151b29", val:t.cal, goal:calG,           r:56, lw:13 },
-    { color:"#6cc4ff", track:"#151b29", val:t.p,   goal:gl.protein||1,  r:41, lw:13 },
+    { color:"#b788ff", track:"#151b29", val:t.cal, goal:calG,           r:56, lw:13 },
+    { color:"#4db8ff", track:"#151b29", val:t.p,   goal:gl.protein||1,  r:41, lw:13 },
     { color:"#00f5d4", track:"#151b29", val:t.c,   goal:gl.carbs||1,    r:26, lw:13 },
   ]);
   const ns = document.getElementById("deckNutStats");
   if(ns) ns.innerHTML = `
     <div class="dds-h">NUTRITION</div>
-    <div class="dds"><i style="color:#f5c542">Calories</i><b>${Math.round(t.cal)}</b><s>/${calG}</s></div>
-    <div class="dds"><i style="color:#6cc4ff">Protein</i><b>${Math.round(t.p)}</b><s>/${gl.protein||0} g</s></div>
+    <div class="dds"><i style="color:#b788ff">Calories</i><b>${Math.round(t.cal)}</b><s>/${calG}</s></div>
+    <div class="dds"><i style="color:#4db8ff">Protein</i><b>${Math.round(t.p)}</b><s>/${gl.protein||0} g</s></div>
     <div class="dds"><i style="color:#00f5d4">Carbs</i><b>${Math.round(t.c)}</b><s>/${gl.carbs||0} g</s></div>
     <div class="dds"><i style="color:#ff4d9d">Fat</i><b>${Math.round(t.f)}</b><s>/${gl.fat||0} g</s></div>`;
 
@@ -7837,8 +7837,8 @@ function renderDeck(){
   if(wr){
     const water = (state.days[currentDate] || {}).water || 0;
     wr.innerHTML = `
-      <span class="dw-lbl">💧 WATER</span>
-      <div class="bar dw-bar"><div class="bar-fill" style="width:${Math.min(100,(water/watG)*100)}%;background:#6cc4ff"></div></div>
+      <span class="dw-lbl">WATER</span>
+      <div class="bar dw-bar"><div class="bar-fill" style="width:${Math.min(100,(water/watG)*100)}%;background:#4db8ff"></div></div>
       <b>${Math.round(water)}/${watG} oz</b>
       <button class="dn-w-add" id="deckWaterAdd">+8</button>`;
     wr.querySelector("#deckWaterAdd").addEventListener("click", () => {
@@ -7849,31 +7849,6 @@ function renderDeck(){
     });
   }
 
-  // ---- Month strip (kept: one-line month hit/fail) ----
-  const moStrip = document.getElementById("deckMonthStrip");
-  if(moStrip){
-    const now = new Date();
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
-    const lbl = document.getElementById("deckMonthLabel");
-    if(lbl) lbl.textContent = now.toLocaleDateString(undefined,{month:"short"}).toUpperCase();
-    let html = "";
-    for(let dnum = 1; dnum <= daysInMonth; dnum++){
-      const d = new Date(now.getFullYear(), now.getMonth(), dnum);
-      const k = todayKey(d);
-      const st = dayGoalStatus(k);
-      let cls = "off";
-      if(k > todayKey()) cls = "future";
-      else if(st.food === "hit" && (st.workout === "hit" || st.workout === "rest")) cls = "on";
-      else if(st.food === "hit" || st.workout === "hit") cls = "half";
-      else cls = "bad";
-      html += `<button class="dk-mdot ${cls} ${k===todayKey()?"today":""}" data-date="${k}" title="${k}"></button>`;
-    }
-    moStrip.innerHTML = html;
-    moStrip.querySelectorAll(".dk-mdot").forEach(b => b.addEventListener("click", () => {
-      currentDate = b.dataset.date;
-      renderAll();
-    }));
-  }
 }
 
 onReady(() => {
@@ -8104,7 +8079,7 @@ function openWorkoutBuilder(existing){
   const favLifts = getFavLifts();
   const favCatHtml = favLifts.length ? `
     <div class="wb-cat">
-      <div class="wb-cat-h">♥ Favorites</div>
+      <div class="wb-cat-h">Favorites</div>
       <div class="wb-cat-list">
         ${favLifts.map(l => `
           <label class="wb-ex ${chosen.has(l)?"on":""}">
@@ -8299,7 +8274,7 @@ function accountabilityCallouts(){
   if(yPlan && yPlan.type && !/rest|recov/i.test(yPlan.type) && !yWorked){
     out.push({
       key: "missed-" + yk,
-      title: `✕ You planned ${yPlan.type} yesterday. You didn't show.`,
+      title: `You planned ${yPlan.type} yesterday. You didn't show.`,
       sub: "Doesn't reset the week — run it today. Tap to start.",
       primary: { label: "RUN IT NOW", action: () => {
         const plan = getPlan();
@@ -8324,7 +8299,7 @@ function accountabilityCallouts(){
       if(days >= 8){
         out.push({
           key: "neglect-" + p,
-          title: `⚠ ${p.toUpperCase()}: ${days} days untouched.`,
+          title: `${p.toUpperCase()}: ${days} DAYS UNTOUCHED.`,
           sub: `Last trained ${fmtDate(lastHit[p])}. That's how imbalances start.`,
           primary: { label: "LOG " + p.toUpperCase(), action: () => openLiftModal() },
         });
@@ -8349,7 +8324,7 @@ function accountabilityCallouts(){
     if(prevAvg > 1000 && thisVol < prevAvg * 0.7){
       out.push({
         key: "backslide-" + weekKey(mon),
-        title: `▼ Volume down ${Math.round(100 - (thisVol/prevAvg)*100)}% vs your 3-week average.`,
+        title: `VOLUME DOWN ${Math.round(100 - (thisVol/prevAvg)*100)}% vs your 3-week average.`,
         sub: `${Math.round(thisVol).toLocaleString()} vs usual ${Math.round(prevAvg).toLocaleString()} ${unit()}·reps by this point in the week. Pick it up.`,
         primary: { label: "LOG A LIFT", action: () => openLiftModal() },
       });
@@ -8498,7 +8473,7 @@ function renderGoalsView(){
         ctx.beginPath(); ctx.moveTo(0, Y(goalW)); ctx.lineTo(cv.width, Y(goalW)); ctx.stroke();
         ctx.setLineDash([]);
       }
-      ctx.strokeStyle = "#6cc4ff"; ctx.lineWidth = 2;
+      ctx.strokeStyle = "#4db8ff"; ctx.lineWidth = 2;
       ctx.beginPath();
       wts.forEach((w, i) => { i ? ctx.lineTo(X(i), Y(w.val)) : ctx.moveTo(X(i), Y(w.val)); });
       ctx.stroke();
@@ -8539,7 +8514,7 @@ function _daysSincePart(){
 function _muscleFill(days){
   if(days === null) return "#20262e";       // never trained — neutral
   if(days <= 2) return "#ff4d9d";           // just hit — recovering (red like Fitbod's worked)
-  if(days <= 5) return "#f5c542";           // recently
+  if(days <= 5) return "#b788ff";           // recently
   if(days <= 8) return "#00f5d4";           // fresh — ready to train
   return "#3d4a63";                          // stale — going cold
 }
@@ -8605,14 +8580,14 @@ function renderMuscleMap(){
         <!-- legend -->
         <g font-size="7" fill="#8b95a1">
           <rect x="18" y="214" width="8" height="8" fill="#ff4d9d"/><text x="30" y="221">Just hit (0-2d)</text>
-          <rect x="90" y="214" width="8" height="8" fill="#f5c542"/><text x="102" y="221">Recent (3-5d)</text>
+          <rect x="90" y="214" width="8" height="8" fill="#b788ff"/><text x="102" y="221">Recent (3-5d)</text>
           <rect x="162" y="214" width="8" height="8" fill="#00f5d4"/><text x="174" y="221">Fresh (6-8d)</text>
           <rect x="18" y="230" width="8" height="8" fill="#3d4a63"/><text x="30" y="237">Going cold (9d+)</text>
           <rect x="90" y="230" width="8" height="8" fill="#20262e"/><text x="102" y="237">No data yet</text>
         </g>
       </svg>
     </div>
-    ${stale.length ? `<div class="mm-callout">⚠ GOING COLD: ${stale.map(p => p.toUpperCase()).join(" · ")} — ${ds[stale[0]]}+ days. Build them into this week.</div>` : ""}
+    ${stale.length ? `<div class="mm-callout">GOING COLD: ${stale.map(p => p.toUpperCase()).join(" · ")} — ${ds[stale[0]]}+ days. Build them into this week.</div>` : ""}
   `;
   card.querySelectorAll("[data-part]").forEach(el => {
     el.style.cursor = "pointer";
@@ -8736,17 +8711,17 @@ function renderFitRing(){
 }
 function renderNutRing(){
   const t = totalsFor(currentDate);
-  drawSectionRing("nutRing", t.cal / Math.max(1, state.goals.cal || 2200), "#f5c542");
+  drawSectionRing("nutRing", t.cal / Math.max(1, state.goals.cal || 2200), "#b788ff");
 }
 function renderBodyRing(){
   const wts = state.weights || [];
   const goal = (state.goals || {}).weight;
-  if(!wts.length || !goal){ drawSectionRing("bodyRing", 0, "#6cc4ff"); return; }
+  if(!wts.length || !goal){ drawSectionRing("bodyRing", 0, "#4db8ff"); return; }
   const start = wts[0].val, cur = wts[wts.length-1].val;
   const total = Math.abs(start - goal);
   const done = Math.abs(start - cur);
   const movingRightWay = (start > goal && cur <= start) || (start < goal && cur >= start);
-  drawSectionRing("bodyRing", total < 0.1 ? 1 : (movingRightWay ? done/total : 0), "#6cc4ff");
+  drawSectionRing("bodyRing", total < 0.1 ? 1 : (movingRightWay ? done/total : 0), "#4db8ff");
 }
 
 // ---- Training volume progress (Fitbod Overall Strength style) ----
@@ -9020,11 +8995,11 @@ function renderNutTopStats(){
   const g = state.goals || {};
   const water = (state.days[currentDate]||{}).water || 0;
   el.innerHTML = `
-    <span><i style="color:#f5c542">Cal</i> <b>${Math.round(t.cal)}</b>/${g.cal||0}</span>
-    <span><i style="color:#6cc4ff">P</i> <b>${Math.round(t.p)}</b>/${g.protein||0}</span>
+    <span><i style="color:#b788ff">Cal</i> <b>${Math.round(t.cal)}</b>/${g.cal||0}</span>
+    <span><i style="color:#4db8ff">P</i> <b>${Math.round(t.p)}</b>/${g.protein||0}</span>
     <span><i style="color:#00f5d4">C</i> <b>${Math.round(t.c)}</b>/${g.carbs||0}</span>
     <span><i style="color:#ff4d9d">F</i> <b>${Math.round(t.f)}</b>/${g.fat||0}</span>
-    <span><i style="color:#6cc4ff">💧</i> <b>${Math.round(water)}</b>/${g.water||64}</span>`;
+    <span><i style="color:#4db8ff">Water</i> <b>${Math.round(water)}</b>/${g.water||64}</span>`;
 }
 function renderFitTopStats(){
   const el = document.getElementById("fitTopStats");
@@ -9035,7 +9010,7 @@ function renderFitTopStats(){
   el.innerHTML = `
     <span><i style="color:#ff4d9d">Move</i> <b>${Math.round(a.move)}</b>/${g.move}</span>
     <span><i style="color:#00f5d4">Ex</i> <b>${Math.round(a.exercise)}</b>/${g.exercise}m</span>
-    <span><i style="color:#6cc4ff">Stand</i> <b>${Math.round(a.stand)}</b>/${g.stand}h</span>
+    <span><i style="color:#4db8ff">Stand</i> <b>${Math.round(a.stand)}</b>/${g.stand}h</span>
     <span><i style="color:#8b95a1">Lifted</i> <b>${Math.round(lifted).toLocaleString()}</b> ${unit()}</span>`;
 }
 function renderBodyTopStats(){
@@ -9045,7 +9020,7 @@ function renderBodyTopStats(){
   const last = wts.length ? wts[wts.length-1] : null;
   const goal = (state.goals||{}).weight;
   el.innerHTML = last
-    ? `<span><i style="color:#6cc4ff">Now</i> <b>${last.val}</b> ${unit()}</span>
+    ? `<span><i style="color:#4db8ff">Now</i> <b>${last.val}</b> ${unit()}</span>
        <span><i style="color:#00f5d4">Goal</i> <b>${goal || "—"}</b>${goal ? " "+unit() : ""}</span>
        <span><i style="color:#8b95a1">To go</i> <b>${goal ? Math.abs(last.val-goal).toFixed(1) : "—"}</b></span>`
     : `<span><i style="color:#8b95a1">No weigh-ins yet</i></span>`;
@@ -9280,7 +9255,7 @@ function renderMacroSub(){
   const totalMacroCal = calFrom.c + calFrom.f + calFrom.p;
   const goalCal = { c:(g.carbs||0)*4, f:(g.fat||0)*9, p:(g.protein||0)*4 };
   const goalTotal = goalCal.c + goalCal.f + goalCal.p || 1;
-  const COLORS = { c:"#00f5d4", f:"#b788ff", p:"#f5c542" };
+  const COLORS = { c:"#00f5d4", f:"#b788ff", p:"#b788ff" };
   if(_macroDonutRef){ _macroDonutRef.destroy(); _macroDonutRef = null; }
   _macroDonutRef = new Chart(cv.getContext("2d"), {
     type:"doughnut",

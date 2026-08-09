@@ -20,9 +20,11 @@ Deliberately NOT linked from the main site nav — it's a standalone app.
   PWA meta. Has a visible BUILD version marker — bump it each deploy so the
   user can confirm cache refresh.
 - `tracker/app.js` (~8k lines) — ONE giant IIFE with all logic
-- `tracker/styles.css` — BRAND theme (v13, matches bermocollective.com):
-  deep navy #0a0c12, rounded 16px cards, mint #2ee6c8 primary / light
-  blue #7ec8f5 / purple #b18cff / pink #ff5c8a alerts / amber #f5c542.
+- `tracker/styles.css` — BRAND theme (v14, matches bermocollective.com):
+  deep navy #0a0c12, rounded 16px cards, ELECTRIC teal #00f5d4 primary /
+  blue #6cc4ff / purple #b788ff / hot pink #ff4d9d alerts / amber
+  #f5c542. Ring + bar TRACKS are one neutral dark navy #151b29 (never
+  color-tinted — tinted tracks read "muddy"; user rejected that).
   The BRAND LAYER at the bottom redefines the --iron-* variables; JS
   ring/chart hexes use the same palette. The user approved this look
   from her marketing site screenshots — do not revert to the older

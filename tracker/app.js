@@ -333,7 +333,7 @@ function bindGlobal(){
   on("#fitWodPicker", "change", (e) => { dayObj(currentDate).wodId = parseInt(e.target.value,10); save(); renderAll(); });
 
   // Fitness logging
-  on("#fitNewLift", "click", openLiftModal);
+  on("#fitNewLift", "click", openLiftHub);
   on("#fitNewWod", "click", openWodResultModal);
   on("#fitLogResult", "click", openWodResultModal);
   on("#addPrBtn", "click", openPrModal);
@@ -833,27 +833,7 @@ function renderFitnessBase(){
 
   // Lift board is owned by renderLiftsList() (hooked below); nothing to do here.
 
-  // Today's sessions
-  const list = $("#todaySessions");
-  list.innerHTML = (day.sessions||[]).map(s => `
-    <li class="session-row">
-      <div>
-        <div class="s-name">${escape(s.name)}</div>
-        <div class="s-meta">${s.weight ? s.weight+unit()+" × "+s.reps+" × "+s.sets+"  " : ""}${s.notes ? "· "+escape(s.notes) : ""}</div>
-      </div>
-      <span class="s-tag t-${s.type}">${s.type}</span>
-    </li>`).join("");
-  s_meta: { const n = (day.sessions||[]).length; $("#todaySessionsMeta").textContent = n + (n === 1 ? " entry" : " entries"); }
-
-  if(day.wodResult){
-    list.innerHTML += `<li class="session-row">
-      <div>
-        <div class="s-name">${escape(wod.name)} · WOD result</div>
-        <div class="s-meta">${escape(day.wodResult.score)} ${day.wodResult.notes ? "· "+escape(day.wodResult.notes) : ""}</div>
-      </div>
-      <span class="s-tag t-wod">wod</span>
-    </li>`;
-  }
+  // (session list now rendered by renderSessionCard into #sessionCard)
 
   drawHeatmap();
 }
@@ -877,54 +857,100 @@ function renderWodCard(){
   $("#wodScript").textContent = wod.script;
 }
 
-function openLiftModal(){
+function openLiftModal(prefillName){
   const moves = [...DATA.movements, ...DATA.prLifts].filter((v,i,a)=>a.indexOf(v)===i);
+  const favs = getFavLifts();
+  clearInterval(_setTimer); _setTimer = null; _setStart = null; _setElapsed = 0;
   openModal("Log a lift", `
-    <label class="form-label">Movement</label>
-    <input list="movelist" id="liftName" class="search-input" placeholder="Back Squat" required>
-    <datalist id="movelist">${moves.map(m=>`<option value="${escape(m)}">`).join("")}</datalist>
     <div class="form-grid">
-      <label><span>Weight (${unit()})</span><input id="liftWeight" type="number" min="0" step="2.5" required></label>
-      <label><span>Reps</span><input id="liftReps" type="number" min="1" max="500" value="5" required></label>
-      <label><span>Sets</span><input id="liftSets" type="number" min="1" max="20" value="1" required></label>
+      <label><span>Date</span><input id="liftDate" type="date" value="${currentDate}"></label>
+      <label><span>Time of day <em style="font-style:normal;color:var(--iron-mute)">optional</em></span><input id="liftTime" type="time"></label>
+    </div>
+    <label class="form-label">Movement</label>
+    <input list="movelist" id="liftName" class="search-input" placeholder="Back Squat" value="${escape(prefillName||"")}" required>
+    <datalist id="movelist">${favs.map(m=>`<option value="${escape(m)}">`).join("")}${moves.map(m=>`<option value="${escape(m)}">`).join("")}</datalist>
+    <div class="form-grid">
+      <label><span>Weight (${unit()})</span><input id="liftWeight" type="number" min="0" step="2.5"></label>
+      <label><span>Reps</span><input id="liftReps" type="number" min="1" max="500" value="5"></label>
+      <label><span>Sets</span><input id="liftSets" type="number" min="1" max="20" value="1"></label>
       <label><span>Type</span>
         <select id="liftType">
           <option value="strength">Strength</option>
           <option value="oly">Olympic</option>
           <option value="accessory">Accessory</option>
-          <option value="cardio">Cardio</option>
         </select>
       </label>
+    </div>
+    <div class="sess-timer">
+      <div class="sess-clock" id="liftClock">0:00</div>
+      <button type="button" class="btn btn-ghost btn-sm" id="liftTimerBtn">START TIMER</button>
+      <span class="sess-timer-hint">optional</span>
     </div>
     <label><span>Notes</span><input id="liftNotes" type="text" placeholder="Felt strong, RPE 8"></label>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Cancel</button>
-      <button class="btn btn-cyan" id="liftSave">+ Save</button>
+      <button class="btn btn-cyan" id="liftSave">SAVE</button>
     </div>
   `, (root) => {
-    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => { clearInterval(_setTimer); closeModal(); }));
+    wireSessTimer("liftClock", "liftTimerBtn");
     $("#liftSave").addEventListener("click", () => {
       const name = $("#liftName").value.trim();
       const weight = parseFloat($("#liftWeight").value);
       const reps = parseInt($("#liftReps").value, 10);
-      const sets = parseInt($("#liftSets").value, 10);
+      const sets = parseInt($("#liftSets").value, 10) || 1;
       const type = $("#liftType").value;
       const notes = $("#liftNotes").value.trim();
+      const dateK = $("#liftDate").value || currentDate;
+      const timeV = $("#liftTime").value || "";
       if(!name || isNaN(weight) || isNaN(reps)) { toast("Fill in name, weight, reps","pink"); return; }
-      const day = dayObj(currentDate);
+      const mins = sessTimerMinutes();
+      const day = dayObj(dateK);
       day.sessions = day.sessions || [];
-      day.sessions.push({ id: uid(), name, weight, reps, sets, type, notes });
-      // PR auto-track: 1RM estimated via Epley for any strength/oly lift
+      day.sessions.push({ id: uid(), name, weight, reps, sets, type, notes,
+                          time: timeV || undefined, durationMin: mins || undefined });
       if((type === "strength" || type === "oly") && reps <= 10){
         const est = Math.round(weight * (1 + reps/30));
         const cur = state.prs[name];
         if(!cur || est > cur.val){
-          state.prs[name] = { val: est, date: currentDate, unit: unit() };
+          state.prs[name] = { val: est, date: dateK, unit: unit() };
           toast(`New PR: ${name} ~ ${est}${unit()}`, "cyan");
         }
       }
+      clearInterval(_setTimer);
       save(); closeModal(); renderAll();
+      toast(`Logged ${name} · ${fmtDate(dateK)}`, "cyan");
     });
+  });
+}
+
+// Shared optional timer used by lift + cardio modals
+let _setTimer = null, _setStart = null, _setElapsed = 0;
+function sessTimerMinutes(){
+  const total = _setElapsed + (_setStart ? Date.now() - _setStart : 0);
+  return Math.round(total / 60000);
+}
+function wireSessTimer(clockId, btnId){
+  const clock = document.getElementById(clockId);
+  const btn = document.getElementById(btnId);
+  if(!clock || !btn) return;
+  const tick = () => {
+    const total = _setElapsed + (_setStart ? Date.now() - _setStart : 0);
+    const m = Math.floor(total/60000), sec = Math.floor((total%60000)/1000);
+    clock.textContent = `${m}:${String(sec).padStart(2,"0")}`;
+  };
+  tick();
+  btn.addEventListener("click", () => {
+    if(_setStart){
+      _setElapsed += Date.now() - _setStart; _setStart = null;
+      clearInterval(_setTimer); _setTimer = null;
+      btn.textContent = "RESUME";
+    } else {
+      _setStart = Date.now();
+      _setTimer = setInterval(tick, 500);
+      btn.textContent = "PAUSE";
+    }
+    tick();
   });
 }
 
@@ -7892,6 +7918,10 @@ function openCardioModal(){
   clearInterval(_cardioTimer); _cardioTimer = null; _cardioStart = null; _cardioElapsed = 0;
   const opts = CARDIO_TYPES.map(t => `<option value="${t.id}">${t.name}</option>`).join("");
   openModal("Log cardio", `
+    <div class="form-grid">
+      <label><span>Date</span><input id="cdDate" type="date" value="${currentDate}"></label>
+      <label><span>Time of day <em style="font-style:normal;color:var(--iron-mute)">optional</em></span><input id="cdTime" type="time"></label>
+    </div>
     <label><span>Type</span><select id="cdType">${opts}</select></label>
     <div id="cdIncline" class="form-grid" style="display:none">
       <label><span>Speed (mph)</span><input id="cdMph" type="number" step="0.1" min="1" max="6" value="3.0"></label>
@@ -7985,7 +8015,9 @@ function openCardioModal(){
         const lvl = (document.getElementById("cdLevel")||{}).value || "5";
         name = `Uphill Walk · L${lvl} @ ${mph}mph`;
       }
-      const day = dayObj(currentDate);
+      const dateK = (document.getElementById("cdDate") || {}).value || currentDate;
+      const timeV = (document.getElementById("cdTime") || {}).value || "";
+      const day = dayObj(dateK);
       if(!day.sessions) day.sessions = [];
       day.sessions.push({
         id: uid(), name, lift: name,
@@ -7994,9 +8026,12 @@ function openCardioModal(){
         durationMin: mins,
         calories: kcal,
         cardioId: t.id,
+        time: timeV || undefined,
+        mph: t.incline ? ((document.getElementById("cdMph")||{}).value || "") : undefined,
+        level: t.incline ? ((document.getElementById("cdLevel")||{}).value || "") : undefined,
       });
       save(); closeModal(); renderAll();
-      toast(`${name} · ${mins} min · ~${kcal} kcal`, "cyan");
+      toast(`${name} · ${mins} min · ~${kcal} kcal · ${fmtDate(dateK)}`, "cyan");
     });
     recalc();
   });
@@ -8004,6 +8039,11 @@ function openCardioModal(){
 
 onReady(() => {
   on("#fitNewCardio", "click", openCardioModal);
+  on("#fitPlanDay", "click", () => {
+    const dt = new Date(currentDate + "T12:00:00");
+    const dayName = ["sun","mon","tue","wed","thu","fri","sat"][dt.getDay()];
+    openPlanDayModal(weekKey(weekStart(dt)), dayName);
+  });
 });
 
 
@@ -8438,6 +8478,7 @@ onReady(() => {
 // GOALS VIEW — contract + targets + weight-vs-goal
 // =================================================================
 function renderGoalsView(){
+  try{ renderMacroCalc("goalsMacroCalc"); }catch(e){ console.warn("goals macro calc", e); }
   const grid = document.getElementById("gsGrid");
   if(grid){
     const gl = state.goals || {};
@@ -8609,7 +8650,7 @@ function _tagFitnessSections(){
   tag("#muscleMapCard", "summary");
   tag("#fitWeekCard", "summary");
   tag("#fitDayCard", "summary");
-  tag("#todaySessions", "summary");
+  tag("#sessionCard", "summary");
   tag("#liftsCard", "prs");
   tag("#heatmap", "progress");
   tag("#fitWodTitle", "summary");
@@ -8649,7 +8690,7 @@ onReady(() => {
   const NUT_SECTIONS = {
     diary:     ["#diaryCard", "#usualsRow"],
     calories:  ["#calSubCard"],
-    nutrients: ["#nutSummaryCard", "#detailCard"],
+    nutrients: ["#nutSummaryCard", "#nutCalcCard", "#detailCard"],
     macros:    ["#macroSubCard"],
   };
   const applyNutSub = (sub) => {
@@ -8707,11 +8748,20 @@ function drawSectionRing(canvasId, pct, color){
 function renderFitRing(){
   const g = getActivityGoals();
   const a = getActivityForDay(currentDate);
-  drawSectionRing("fitRing", (a.exercise || 0) / Math.max(1, g.exercise), "#00f5d4");
+  drawRingStack("fitMiniRings", [
+    { color:"#ff4d9d", track:"#111622", val:a.move,     goal:g.move,     r:40, lw:9 },
+    { color:"#00f5d4", track:"#111622", val:a.exercise, goal:g.exercise, r:29, lw:9 },
+    { color:"#4db8ff", track:"#111622", val:a.stand,    goal:g.stand,    r:18, lw:9 },
+  ]);
 }
 function renderNutRing(){
   const t = totalsFor(currentDate);
-  drawSectionRing("nutRing", t.cal / Math.max(1, state.goals.cal || 2200), "#b788ff");
+  const g = state.goals || {};
+  drawRingStack("nutMiniRings", [
+    { color:"#b788ff", track:"#111622", val:t.cal, goal:g.cal || 2200,   r:40, lw:9 },
+    { color:"#00f5d4", track:"#111622", val:t.p,   goal:g.protein || 1,  r:29, lw:9 },
+    { color:"#4db8ff", track:"#111622", val:t.c,   goal:g.carbs || 1,    r:18, lw:9 },
+  ]);
 }
 function renderBodyRing(){
   const wts = state.weights || [];
@@ -9388,6 +9438,604 @@ function on2(root, sel, fn){
 }
 
 
+
+// =================================================================
+// v17 — unified TODAY'S SESSION (lift + cardio in one, editable),
+//        LIFT HUB (workouts, not single lifts), interval builder
+// =================================================================
+
+// ---- One session card for the selected day: lifts AND cardio ----
+function renderSessionCard(){
+  const card = document.getElementById("sessionCard");
+  if(!card) return;
+  const day = state.days[currentDate] || {};
+  const sessions = day.sessions || [];
+  const lifts = sessions.filter(s => s.type !== "cardio");
+  const cardio = sessions.filter(s => s.type === "cardio");
+  const vol = lifts.reduce((n,s) => n + (s.weight||0)*(s.reps||0)*(s.sets||1), 0);
+  const kcal = cardio.reduce((n,s) => n + (s.calories||0), 0);
+  const mins = sessions.reduce((n,s) => n + (s.durationMin||0), 0);
+
+  const row = (s) => {
+    const bits = [];
+    if(s.type === "cardio"){
+      if(s.durationMin) bits.push(`${s.durationMin} min`);
+      if(s.level) bits.push(`L${s.level}`);
+      if(s.mph) bits.push(`${s.mph} mph`);
+      if(s.calories) bits.push(`${Math.round(s.calories)} kcal`);
+    } else {
+      bits.push(`${s.weight||0} ${unit()} × ${s.reps||0}${(s.sets||1) > 1 ? ` × ${s.sets}` : ""}`);
+      if(s.durationMin) bits.push(`${s.durationMin} min`);
+    }
+    return `<button class="se-row ${s.type === "cardio" ? "se-cardio" : "se-lift"}" data-sid="${s.id}">
+      <span class="se-kind">${s.type === "cardio" ? "CARDIO" : "LIFT"}</span>
+      <span class="se-info">
+        <b>${escape(s.name || "Untitled")}</b>
+        <small>${escape(bits.join(" · "))}${s.notes ? " · " + escape(s.notes) : ""}</small>
+      </span>
+      ${s.time ? `<em class="se-time">${escape(fmtTime12(s.time))}</em>` : ""}
+      <span class="se-edit">EDIT</span>
+    </button>`;
+  };
+
+  card.innerHTML = `
+    <div class="card-head">
+      <span class="card-eyebrow">Today's session · ${fmtDate(currentDate)}</span>
+      <span class="card-meta">${sessions.length} ${sessions.length===1?"entry":"entries"}</span>
+    </div>
+    ${sessions.length ? `<div class="se-totals">
+      ${vol ? `<span><i>Volume</i><b>${Math.round(vol).toLocaleString()}</b> ${unit()}</span>` : ""}
+      ${kcal ? `<span><i>Burn</i><b>${Math.round(kcal)}</b> kcal</span>` : ""}
+      ${mins ? `<span><i>Time</i><b>${mins}</b> min</span>` : ""}
+    </div>` : ""}
+    <div class="se-list">${sessions.map(row).join("") || `<p class="wl-empty">Nothing logged for this day yet.</p>`}</div>
+    <div class="se-actions">
+      <button class="btn btn-cyan" id="seAddLift">+ LIFT</button>
+      <button class="btn btn-ghost" id="seAddCardio">+ CARDIO</button>
+      <button class="btn btn-ghost" id="seAddInterval">+ INTERVALS</button>
+    </div>`;
+
+  card.querySelectorAll(".se-row").forEach(r =>
+    r.addEventListener("click", () => openSessionEditor(r.dataset.sid)));
+  const on2 = (sel, fn) => { const el = card.querySelector(sel); if(el) el.addEventListener("click", fn); };
+  on2("#seAddLift", () => openLiftModal());
+  on2("#seAddCardio", () => openCardioModal());
+  on2("#seAddInterval", () => openIntervalModal());
+}
+
+// ---- Edit ANY logged entry: date, time, type, and type-specific fields ----
+function openSessionEditor(sid){
+  let srcDate = currentDate, item = null;
+  const d0 = state.days[currentDate];
+  if(d0) item = (d0.sessions || []).find(x => x.id === sid);
+  if(!item){
+    for(const k of Object.keys(state.days)){
+      const f = (state.days[k].sessions || []).find(x => x.id === sid);
+      if(f){ item = f; srcDate = k; break; }
+    }
+  }
+  if(!item) return;
+  const isCardio = item.type === "cardio";
+  const cardioOpts = CARDIO_TYPES.map(t =>
+    `<option value="${t.id}" ${item.cardioId === t.id ? "selected" : ""}>${t.name}</option>`).join("");
+
+  openModal("Edit entry", `
+    <div class="form-grid">
+      <label><span>Date</span><input id="seDate" type="date" value="${srcDate}"></label>
+      <label><span>Time of day</span><input id="seTime" type="time" value="${escape(item.time || "")}"></label>
+    </div>
+    <label><span>Kind</span>
+      <select id="seKind">
+        <option value="lift" ${!isCardio ? "selected" : ""}>Lift / strength</option>
+        <option value="cardio" ${isCardio ? "selected" : ""}>Cardio</option>
+      </select>
+    </label>
+    <div id="seCardioFields" style="${isCardio ? "" : "display:none"}">
+      <label><span>Cardio type</span><select id="seCardioType">${cardioOpts}</select></label>
+      <div class="form-grid">
+        <label><span>Minutes</span><input id="seMin" type="number" min="0" max="600" value="${item.durationMin || ""}"></label>
+        <label><span>Calories</span><input id="seKcal" type="number" min="0" max="3000" value="${Math.round(item.calories || 0)}"></label>
+        <label><span>Speed (mph)</span><input id="seMph" type="number" step="0.1" min="0" max="20" value="${escape(String(item.mph || ""))}"></label>
+        <label><span>Incline / level</span><input id="seLevel" type="number" step="1" min="0" max="30" value="${escape(String(item.level || ""))}"></label>
+      </div>
+    </div>
+    <div id="seLiftFields" style="${isCardio ? "display:none" : ""}">
+      <label><span>Movement</span><input id="seName" type="text" value="${escape(item.name || "")}"></label>
+      <div class="form-grid">
+        <label><span>Weight (${unit()})</span><input id="seWeight" type="number" step="2.5" min="0" value="${item.weight || ""}"></label>
+        <label><span>Reps</span><input id="seReps" type="number" min="0" max="500" value="${item.reps || ""}"></label>
+        <label><span>Sets</span><input id="seSets" type="number" min="1" max="30" value="${item.sets || 1}"></label>
+        <label><span>Minutes</span><input id="seLiftMin" type="number" min="0" max="600" value="${item.durationMin || ""}"></label>
+      </div>
+    </div>
+    <label><span>Notes</span><input id="seNotes" type="text" value="${escape(item.notes || "")}"></label>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-pink" id="seDel">DELETE</button>
+      <button class="btn btn-cyan" id="seSave">SAVE</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    const kind = document.getElementById("seKind");
+    kind.addEventListener("change", () => {
+      document.getElementById("seCardioFields").style.display = kind.value === "cardio" ? "" : "none";
+      document.getElementById("seLiftFields").style.display = kind.value === "cardio" ? "none" : "";
+    });
+    document.getElementById("seDel").addEventListener("click", () => {
+      const arr = state.days[srcDate].sessions;
+      state.days[srcDate].sessions = arr.filter(x => x.id !== sid);
+      save(); closeModal(); renderAll();
+      toast("Deleted", "pink");
+    });
+    document.getElementById("seSave").addEventListener("click", () => {
+      const newDate = document.getElementById("seDate").value || srcDate;
+      const time = document.getElementById("seTime").value || "";
+      const notes = document.getElementById("seNotes").value.trim();
+      const asCardio = kind.value === "cardio";
+      let updated;
+      if(asCardio){
+        const t = CARDIO_TYPES.find(x => x.id === document.getElementById("seCardioType").value) || CARDIO_TYPES[0];
+        const mph = document.getElementById("seMph").value;
+        const level = document.getElementById("seLevel").value;
+        let nm = t.name;
+        if(t.incline && (mph || level)) nm = `${t.name}${level ? ` · L${level}` : ""}${mph ? ` @ ${mph}mph` : ""}`;
+        updated = { ...item, name: nm, lift: nm, type: "cardio", cardioId: t.id,
+          durationMin: parseInt(document.getElementById("seMin").value,10) || 0,
+          calories: parseInt(document.getElementById("seKcal").value,10) || 0,
+          mph: mph || undefined, level: level || undefined,
+          weight: 0, reps: 0, sets: 1 };
+      } else {
+        updated = { ...item,
+          name: document.getElementById("seName").value.trim() || item.name,
+          type: item.type === "cardio" ? "strength" : item.type,
+          weight: parseFloat(document.getElementById("seWeight").value) || 0,
+          reps: parseInt(document.getElementById("seReps").value,10) || 0,
+          sets: parseInt(document.getElementById("seSets").value,10) || 1,
+          durationMin: parseInt(document.getElementById("seLiftMin").value,10) || undefined,
+          calories: undefined, cardioId: undefined, mph: undefined, level: undefined };
+      }
+      updated.time = time || undefined;
+      updated.notes = notes || undefined;
+      // remove from old day, add to (possibly new) day
+      state.days[srcDate].sessions = (state.days[srcDate].sessions || []).filter(x => x.id !== sid);
+      const target = dayObj(newDate);
+      target.sessions = target.sessions || [];
+      target.sessions.push(updated);
+      if(!asCardio && updated.reps && updated.reps <= 10 && updated.weight){
+        const est = Math.round(updated.weight * (1 + updated.reps/30));
+        const cur = state.prs[updated.name];
+        if(!cur || est > cur.val){
+          state.prs[updated.name] = { val: est, date: newDate, unit: unit() };
+          toast(`New PR: ${updated.name} ~ ${est}${unit()}`, "cyan");
+        }
+      }
+      save(); closeModal(); renderAll();
+      toast("Updated", "cyan");
+    });
+  });
+}
+
+// ---- Interval builder: several blocks logged as one session ----
+function openIntervalModal(){
+  const opts = CARDIO_TYPES.map(t => `<option value="${t.id}">${t.name}</option>`).join("");
+  const blockRow = (i) => `
+    <div class="iv-row" data-i="${i}">
+      <select class="iv-type">${opts}</select>
+      <input class="iv-min" type="number" min="1" max="240" placeholder="min">
+      <input class="iv-mph" type="number" step="0.1" min="0" max="20" placeholder="mph">
+      <input class="iv-lvl" type="number" step="1" min="0" max="30" placeholder="lvl">
+      <button type="button" class="iv-del">×</button>
+    </div>`;
+  openModal("Log intervals", `
+    <div class="form-grid">
+      <label><span>Date</span><input id="ivDate" type="date" value="${currentDate}"></label>
+      <label><span>Time of day <em style="font-style:normal;color:var(--iron-mute)">optional</em></span><input id="ivTime" type="time"></label>
+    </div>
+    <label><span>Session name</span><input id="ivName" type="text" maxlength="40" placeholder="e.g. Cardio intervals"></label>
+    <p class="wb-hint">One block per line — type, minutes, and (for walks/bikes) speed + incline. Each block is logged separately so calories are accurate.</p>
+    <div class="iv-list" id="ivList">${blockRow(0)}${blockRow(1)}${blockRow(2)}</div>
+    <button type="button" class="btn btn-ghost btn-sm" id="ivAdd" style="width:100%;margin-top:6px">+ ADD BLOCK</button>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-cyan" id="ivSave">SAVE ALL</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    const list = document.getElementById("ivList");
+    const wire = (r) => r.querySelector(".iv-del").addEventListener("click", () => {
+      if(list.children.length > 1) r.remove();
+    });
+    list.querySelectorAll(".iv-row").forEach(wire);
+    document.getElementById("ivAdd").addEventListener("click", () => {
+      const div = document.createElement("div");
+      div.innerHTML = blockRow(list.children.length);
+      const r = div.firstElementChild;
+      list.appendChild(r); wire(r);
+    });
+    document.getElementById("ivSave").addEventListener("click", () => {
+      const dateK = document.getElementById("ivDate").value || currentDate;
+      const timeV = document.getElementById("ivTime").value || "";
+      const label = document.getElementById("ivName").value.trim();
+      const day = dayObj(dateK);
+      day.sessions = day.sessions || [];
+      let added = 0;
+      list.querySelectorAll(".iv-row").forEach(r => {
+        const mins = parseInt(r.querySelector(".iv-min").value, 10);
+        if(!mins) return;
+        const t = CARDIO_TYPES.find(x => x.id === r.querySelector(".iv-type").value) || CARDIO_TYPES[0];
+        const mph = r.querySelector(".iv-mph").value;
+        const lvl = r.querySelector(".iv-lvl").value;
+        const met = _cardioMET(t, mph, lvl);
+        const kcal = Math.round(met * _userWeightKg() * (mins / 60));
+        let nm = t.name;
+        if(lvl) nm += ` · L${lvl}`;
+        if(mph) nm += ` @ ${mph}mph`;
+        if(label) nm = `${label} — ${nm}`;
+        day.sessions.push({ id: uid(), name: nm, lift: nm, type: "cardio",
+          weight:0, reps:0, sets:1, durationMin: mins, calories: kcal,
+          cardioId: t.id, mph: mph || undefined, level: lvl || undefined,
+          time: timeV || undefined });
+        added++;
+      });
+      if(!added){ toast("Add minutes to at least one block", "pink"); return; }
+      save(); closeModal(); renderAll();
+      toast(`Logged ${added} interval block${added===1?"":"s"}`, "cyan");
+    });
+  });
+}
+
+// ---- LIFT HUB: workouts first, not a single-lift form ----
+function openLiftHub(){
+  const lib = getWorkoutLib();
+  const favs = getFavLifts();
+  openModal("Add to your training", `
+    <div class="lh-sec">
+      <div class="lh-h">Saved workouts</div>
+      ${lib.length ? `<div class="lh-list">${lib.map(w => `
+        <button class="lh-row" data-lh-w="${w.id}">
+          <span class="lh-info"><b>${escape(w.name)}</b><small>${escape(w.style)} · ${w.exercises.length} movements</small></span>
+          <span class="lh-go">USE</span>
+        </button>`).join("")}</div>`
+        : `<p class="wl-empty">No saved workouts yet — build one in the Exercise Library.</p>`}
+    </div>
+    <div class="lh-sec">
+      <div class="lh-h">Add a single lift</div>
+      ${favs.length ? `<div class="lh-chips">${favs.slice(0,8).map(f =>
+        `<button class="lh-chip" data-lh-fav="${escape(f)}">${escape(f)}</button>`).join("")}</div>` : ""}
+      <button class="btn btn-ghost" id="lhAnyLift" style="width:100%">CHOOSE A MOVEMENT →</button>
+    </div>
+    <div class="lh-sec">
+      <div class="lh-h">Log a workout type</div>
+      <div class="lh-chips">${WORKOUT_TYPES.slice(0,14).map(t =>
+        `<button class="lh-chip" data-lh-type="${escape(t)}">${escape(t)}</button>`).join("")}</div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close>Close</button></div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    root.querySelectorAll("[data-lh-w]").forEach(b => b.addEventListener("click", () => {
+      const w = lib.find(x => x.id === b.dataset.lhW);
+      closeModal();
+      if(w) openScheduleWorkoutModal(w.name, w.exercises);
+    }));
+    root.querySelectorAll("[data-lh-fav]").forEach(b => b.addEventListener("click", () => {
+      closeModal(); openLiftModal(b.dataset.lhFav);
+    }));
+    root.querySelectorAll("[data-lh-type]").forEach(b => b.addEventListener("click", () => {
+      closeModal(); openScheduleWorkoutModal(b.dataset.lhType, []);
+    }));
+    const any = document.getElementById("lhAnyLift");
+    if(any) any.addEventListener("click", () => { closeModal(); openLiftModal(); });
+  });
+}
+
+// ---- Pick day + time for a chosen workout / type ----
+function openScheduleWorkoutModal(name, exercises){
+  openModal(`Schedule: ${name}`, `
+    <div class="form-grid">
+      <label><span>Day</span><input id="swDate" type="date" value="${currentDate}"></label>
+      <label><span>Time of day <em style="font-style:normal;color:var(--iron-mute)">optional</em></span><input id="swTime" type="time"></label>
+    </div>
+    <label><span>Gym / location <em style="font-style:normal;color:var(--iron-mute)">optional</em></span><input id="swGym" type="text" maxlength="40" placeholder="Planet Fitness"></label>
+    ${(exercises||[]).length ? `<p class="wb-hint">${exercises.length} movements come with it.</p>` : ""}
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-cyan" id="swSave">ADD TO DAY</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    document.getElementById("swSave").addEventListener("click", () => {
+      const dateK = document.getElementById("swDate").value || currentDate;
+      const time = document.getElementById("swTime").value || "";
+      const gym = document.getElementById("swGym").value.trim();
+      const dt = new Date(dateK + "T12:00:00");
+      const dayName = ["sun","mon","tue","wed","thu","fri","sat"][dt.getDay()];
+      const wk = weekKey(weekStart(dt));
+      const plan = getPlan();
+      if(!plan[wk]) plan[wk] = {};
+      const existing = plan[wk][dayName];
+      if(existing && existing.type){
+        existing.extra = existing.extra || [];
+        existing.extra.push({ name, time: time || undefined, exercises: exercises || [] });
+      } else {
+        plan[wk][dayName] = { type: name, time: time || undefined,
+          gym: gym || undefined, exercises: (exercises||[]).length ? exercises : undefined };
+      }
+      currentDate = dateK;
+      save(); closeModal(); renderAll();
+      toast(`${name} → ${fmtDate(dateK)}${time ? " · " + fmtTime12(time) : ""}`, "cyan");
+    });
+  });
+}
+
+
+
+// =================================================================
+// v17 — PR CALLOUTS + readable/editable PR list
+// =================================================================
+function _prsThisMonth(){
+  const now = new Date();
+  const ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+  const recent = [], stale = [];
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 30);
+  Object.keys(state.prs || {}).forEach(name => {
+    const pr = state.prs[name];
+    if(!pr || !pr.date) return;
+    if(pr.date >= todayKey(cutoff)) recent.push({ name, ...pr });
+  });
+  // Lifts trained this month but never within 10 lb of their PR
+  const bestThisMonth = {};
+  Object.keys(state.days).forEach(k => {
+    if(!k.startsWith(ym)) return;
+    ((state.days[k] || {}).sessions || []).forEach(s => {
+      if(s.type === "cardio" || !s.weight || !s.reps) return;
+      const est = Math.round(s.weight * (1 + s.reps/30));
+      if(!bestThisMonth[s.name] || est > bestThisMonth[s.name]) bestThisMonth[s.name] = est;
+    });
+  });
+  Object.keys(bestThisMonth).forEach(name => {
+    const pr = (state.prs || {})[name];
+    if(!pr || !pr.val) return;
+    const gap = pr.val - bestThisMonth[name];
+    if(gap > 10) stale.push({ name, gap: Math.round(gap), pr: pr.val, best: bestThisMonth[name] });
+  });
+  recent.sort((a,b) => b.date.localeCompare(a.date));
+  stale.sort((a,b) => b.gap - a.gap);
+  return { recent: recent.slice(0,6), stale: stale.slice(0,4) };
+}
+
+function renderPrCallout(){
+  const el = document.getElementById("prCallout");
+  if(!el) return;
+  const { recent, stale } = _prsThisMonth();
+  if(!recent.length && !stale.length){
+    el.innerHTML = `<div class="prc-empty">Log lifts with reps and weight — new PRs and lifts drifting off pace show up here.</div>`;
+    return;
+  }
+  el.innerHTML = `
+    ${recent.length ? `<div class="prc-block prc-win">
+      <div class="prc-h">NEW PRs · LAST 30 DAYS</div>
+      <div class="prc-rows">${recent.map(r => `
+        <div class="prc-row"><b>${escape(r.name)}</b><span>${r.val} ${r.unit || unit()}</span><em>${fmtDate(r.date)}</em></div>`).join("")}</div>
+    </div>` : ""}
+    ${stale.length ? `<div class="prc-block prc-warn">
+      <div class="prc-h">OFF PACE THIS MONTH</div>
+      <div class="prc-rows">${stale.map(r => `
+        <div class="prc-row"><b>${escape(r.name)}</b><span>${r.gap} ${unit()} under</span><em>best ${r.best} · PR ${r.pr}</em></div>`).join("")}</div>
+    </div>` : ""}`;
+}
+
+// ---- Readable, editable PR list (replaces the dark unreadable drill-down) ----
+function renderPrList(){
+  const el = document.getElementById("prSimpleList");
+  if(!el) return;
+  const entries = Object.keys(state.prs || {})
+    .map(name => ({ name, ...state.prs[name] }))
+    .filter(x => x.val)
+    .sort((a,b) => (b.date||"").localeCompare(a.date||""));
+  el.innerHTML = entries.length ? entries.map(e => `
+    <button class="prl-row" data-pr="${escape(e.name)}">
+      <span class="prl-name">${escape(e.name)}</span>
+      <span class="prl-val">${e.val} <i>${e.unit || unit()}</i></span>
+      <span class="prl-date">${e.date ? fmtDate(e.date) : ""}</span>
+      <span class="prl-edit">EDIT</span>
+    </button>`).join("")
+    : `<p class="wl-empty">No PRs yet. They fill in automatically when you log a lift with weight and reps, or add one manually.</p>`;
+  el.querySelectorAll(".prl-row").forEach(b =>
+    b.addEventListener("click", () => openPrEditModal(b.dataset.pr)));
+}
+
+function openPrEditModal(name){
+  const existing = name ? (state.prs || {})[name] : null;
+  const moves = [...DATA.movements, ...DATA.prLifts].filter((v,i,a)=>a.indexOf(v)===i);
+  openModal(existing ? `Edit PR: ${name}` : "Add a PR", `
+    <label><span>Movement</span>
+      <input list="prmovelist" id="prName" type="text" value="${escape(name || "")}" ${existing ? "readonly" : ""} placeholder="Back Squat">
+      <datalist id="prmovelist">${moves.map(m=>`<option value="${escape(m)}">`).join("")}</datalist>
+    </label>
+    <div class="form-grid">
+      <label><span>Best (${unit()})</span><input id="prVal" type="number" min="0" step="2.5" value="${existing ? existing.val : ""}"></label>
+      <label><span>Date</span><input id="prDate" type="date" value="${existing && existing.date ? existing.date : currentDate}"></label>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      ${existing ? `<button class="btn btn-pink" id="prDel">DELETE</button>` : ""}
+      <button class="btn btn-cyan" id="prSave">SAVE</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    const del = document.getElementById("prDel");
+    if(del) del.addEventListener("click", () => {
+      delete state.prs[name];
+      save(); closeModal(); renderAll();
+      toast("PR removed", "pink");
+    });
+    document.getElementById("prSave").addEventListener("click", () => {
+      const nm = document.getElementById("prName").value.trim();
+      const val = parseFloat(document.getElementById("prVal").value);
+      const date = document.getElementById("prDate").value || currentDate;
+      if(!nm || isNaN(val)){ toast("Name and weight required", "pink"); return; }
+      state.prs[nm] = { val: Math.round(val * 10) / 10, date, unit: unit() };
+      save(); closeModal(); renderAll();
+      toast(`PR saved: ${nm} ${val}${unit()}`, "cyan");
+    });
+  });
+}
+
+onReady(() => {
+  on("#prAddBtn", "click", () => openPrEditModal());
+});
+
+
+
+// =================================================================
+// v17 — INLINE MACRO ⇄ CALORIE CALCULATOR (lives on the page, no modal)
+// 4 kcal/g protein + carbs, 9 kcal/g fat. Editing macros updates
+// calories live; editing calories offers a split you can dial in.
+// =================================================================
+const KCAL = { p:4, c:4, f:9 };
+function macroCals(g){ return (g.p||0)*KCAL.p + (g.c||0)*KCAL.c + (g.f||0)*KCAL.f; }
+
+function renderMacroCalc(hostId){
+  const host = document.getElementById(hostId);
+  if(!host) return;
+  const g = state.goals || {};
+  const cur = { p:g.protein||0, c:g.carbs||0, f:g.fat||0 };
+  const fromMacros = macroCals(cur);
+  const calGoal = g.cal || fromMacros || 2000;
+  const diff = calGoal - fromMacros;
+  const pct = (grams, k) => fromMacros ? Math.round((grams*k/fromMacros)*100) : 0;
+
+  host.innerHTML = `
+    <div class="mc-top">
+      <div class="mc-cal">
+        <label>Calorie goal</label>
+        <input id="${hostId}_cal" type="number" min="800" max="6000" step="10" value="${Math.round(calGoal)}">
+      </div>
+      <div class="mc-from">from macros <b>${Math.round(fromMacros)}</b> kcal</div>
+    </div>
+    <div class="mc-grid">
+      ${[["p","Protein","#00f5d4"],["c","Carbs","#4db8ff"],["f","Fat","#ff4d9d"]].map(([k,label,col]) => `
+        <div class="mc-macro">
+          <div class="mc-m-head"><i style="background:${col}"></i><span>${label}</span><em>${pct(cur[k], KCAL[k])}%</em></div>
+          <input id="${hostId}_${k}" type="number" min="0" max="600" step="1" value="${Math.round(cur[k])}">
+          <div class="mc-m-cal">${Math.round(cur[k]*KCAL[k])} kcal</div>
+        </div>`).join("")}
+    </div>
+    <div class="mc-status ${Math.abs(diff) <= 5 ? "ok" : "off"}" id="${hostId}_status">
+      ${Math.abs(diff) <= 5
+        ? `Macros match your calorie goal.`
+        : `${diff > 0 ? "Add" : "Cut"} <b>${Math.abs(Math.round(diff))}</b> kcal — choose where:`}
+    </div>
+    <div class="mc-split ${Math.abs(diff) <= 5 ? "hidden" : ""}" id="${hostId}_split">
+      <div class="mc-split-row">
+        ${[["p","Protein"],["c","Carbs"],["f","Fat"]].map(([k,label]) => `
+          <label class="mc-check"><input type="checkbox" data-mcsplit="${k}" ${k === "c" ? "checked" : ""}><span>${label}</span></label>`).join("")}
+      </div>
+      <button class="btn btn-cyan btn-sm" id="${hostId}_apply">APPLY ${Math.abs(Math.round(diff))} KCAL</button>
+      <div class="mc-preview" id="${hostId}_preview"></div>
+    </div>
+    <button class="btn btn-cyan" id="${hostId}_save" style="width:100%;margin-top:10px">SAVE GOALS</button>
+  `;
+
+  const $$id = (suffix) => document.getElementById(hostId + suffix);
+  const read = () => ({
+    cal: parseFloat($$id("_cal").value) || 0,
+    p: parseFloat($$id("_p").value) || 0,
+    c: parseFloat($$id("_c").value) || 0,
+    f: parseFloat($$id("_f").value) || 0,
+  });
+  const refreshPreview = () => {
+    const v = read();
+    const d = v.cal - macroCals(v);
+    const picks = Array.from(host.querySelectorAll("[data-mcsplit]:checked")).map(x => x.dataset.mcsplit);
+    const prev = $$id("_preview");
+    if(!picks.length){ if(prev) prev.textContent = "Pick at least one macro to absorb the change."; return; }
+    const per = d / picks.length;
+    if(prev) prev.innerHTML = picks.map(k => {
+      const grams = per / KCAL[k];
+      const label = { p:"Protein", c:"Carbs", f:"Fat" }[k];
+      return `<span>${label} <b>${grams >= 0 ? "+" : ""}${grams.toFixed(1)}g</b></span>`;
+    }).join("");
+  };
+
+  // Live: editing any macro recomputes calories shown; editing calories shows the split
+  ["_p","_c","_f"].forEach(sfx => {
+    const el = $$id(sfx);
+    if(el) el.addEventListener("input", () => {
+      const v = read();
+      $$id("_cal").value = Math.round(macroCals(v));
+      renderMacroCalcSoft(hostId, v);
+    });
+  });
+  const calEl = $$id("_cal");
+  if(calEl) calEl.addEventListener("input", () => { refreshPreview(); updateStatus(); });
+  host.querySelectorAll("[data-mcsplit]").forEach(cb => cb.addEventListener("change", refreshPreview));
+
+  function updateStatus(){
+    const v = read();
+    const d = v.cal - macroCals(v);
+    const st = $$id("_status"), sp = $$id("_split");
+    if(!st) return;
+    if(Math.abs(d) <= 5){
+      st.className = "mc-status ok"; st.innerHTML = "Macros match your calorie goal.";
+      if(sp) sp.classList.add("hidden");
+    } else {
+      st.className = "mc-status off";
+      st.innerHTML = `${d > 0 ? "Add" : "Cut"} <b>${Math.abs(Math.round(d))}</b> kcal — choose where:`;
+      if(sp) sp.classList.remove("hidden");
+      const ap = $$id("_apply");
+      if(ap) ap.textContent = `APPLY ${Math.abs(Math.round(d))} KCAL`;
+      refreshPreview();
+    }
+  }
+
+  const applyBtn = $$id("_apply");
+  if(applyBtn) applyBtn.addEventListener("click", () => {
+    const v = read();
+    const d = v.cal - macroCals(v);
+    const picks = Array.from(host.querySelectorAll("[data-mcsplit]:checked")).map(x => x.dataset.mcsplit);
+    if(!picks.length){ toast("Pick a macro to absorb the change", "pink"); return; }
+    const per = d / picks.length;
+    picks.forEach(k => {
+      const el = $$id("_" + k);
+      el.value = Math.max(0, Math.round((parseFloat(el.value) || 0) + per / KCAL[k]));
+    });
+    updateStatus();
+    renderMacroCalcSoft(hostId, read());
+  });
+
+  const saveBtn = $$id("_save");
+  if(saveBtn) saveBtn.addEventListener("click", () => {
+    const v = read();
+    state.goals.protein = Math.round(v.p);
+    state.goals.carbs = Math.round(v.c);
+    state.goals.fat = Math.round(v.f);
+    state.goals.cal = Math.round(v.cal || macroCals(v));
+    save(); renderAll();
+    toast("Goals saved", "cyan");
+  });
+
+  updateStatus();
+}
+
+// Update just the % + kcal readouts without rebuilding (keeps focus in inputs)
+function renderMacroCalcSoft(hostId, v){
+  const host = document.getElementById(hostId);
+  if(!host) return;
+  const total = macroCals(v);
+  [["p",0],["c",1],["f",2]].forEach(([k, i]) => {
+    const box = host.querySelectorAll(".mc-macro")[i];
+    if(!box) return;
+    const pctEl = box.querySelector("em");
+    const calEl = box.querySelector(".mc-m-cal");
+    if(pctEl) pctEl.textContent = total ? Math.round((v[k]*KCAL[k]/total)*100) + "%" : "0%";
+    if(calEl) calEl.textContent = Math.round(v[k]*KCAL[k]) + " kcal";
+  });
+  const from = host.querySelector(".mc-from b");
+  if(from) from.textContent = Math.round(total);
+}
+
+
 // =================================================================
 
 // PIPELINES — explicit composition (replaces the old wrapper chains).
@@ -9414,6 +10062,9 @@ function renderFitness(){
   renderBodyCoverage();
   try{ renderFitWeekList(); }catch(e){ console.warn("fit week", e); }
   try{ renderFitDayCard(); }catch(e){ console.warn("fit day", e); }
+  try{ renderSessionCard(); }catch(e){ console.warn("session card", e); }
+  try{ renderPrCallout(); }catch(e){ console.warn("pr callout", e); }
+  try{ renderPrList(); }catch(e){ console.warn("pr list", e); }
   try{ renderMuscleMap(); }catch(e){ console.warn("muscle map", e); }
   try{ renderFitProgress(); }catch(e){ console.warn("fit progress", e); }
   try{ renderFitRing(); }catch(e){ console.warn("fit ring", e); }
@@ -9492,6 +10143,7 @@ function renderNutrition(){
   try{ renderNutRing(); }catch(e){ console.warn("nut ring", e); }
   try{ renderNutTopStats(); }catch(e){ console.warn("nut top", e); }
   try{ renderNutrientsTable(); }catch(e){ console.warn("nutrients", e); }
+  try{ renderMacroCalc("nutMacroCalc"); }catch(e){ console.warn("macro calc", e); }
   try{
     if(window._nutSub === "calories") renderCalSub();
     else if(window._nutSub === "macros") renderMacroSub();

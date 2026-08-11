@@ -125,7 +125,9 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
     await page.click(`${tabSel}[data-tab="fitness"]`).catch(()=>{});
     await page.click(`${tabSel}[data-tab="lift"]`).catch(()=>{});
     await page.waitForTimeout(400);
-    await page.click("#fitNewLift", { timeout: 4000 });
+    await page.click("#fitNewLift", { timeout: 4000 });   // opens the Lift Hub
+    await page.waitForTimeout(500);
+    await page.click("#lhAnyLift", { timeout: 4000 });     // -> single-lift form
     await page.waitForTimeout(500);
     await page.fill("#liftName", "Back Squat");
     await page.fill("#liftWeight", "135");

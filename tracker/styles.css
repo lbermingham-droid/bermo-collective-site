@@ -3010,3 +3010,158 @@ input, select, textarea{
 .dw-row.missed b{ color:#ff4d9d !important; }
 .cmp-row .cmp-good{ color:#00f5d4 !important; }
 .cmp-row .cmp-bad{ color:#ff4d9d !important; }
+
+/* ============================================================
+   v17 — session card, lift hub, intervals, PRs, page rings,
+   inline macro calculator
+   ============================================================ */
+
+/* Page top: mini ring stack + stat row side by side */
+.page-rings{ display:flex; align-items:center; gap:12px; margin:0 0 10px; }
+.page-rings canvas{ flex-shrink:0; }
+.page-stats--rings{ flex:1; margin:0 !important; flex-direction:column; gap:3px; align-items:flex-start; }
+.page-stats--rings span{ width:100%; }
+
+/* Unified session card */
+.se-totals{ display:flex; gap:14px; margin:2px 0 8px; flex-wrap:wrap; }
+.se-totals span{ display:flex; align-items:baseline; gap:4px; font-size:10px; color:var(--iron-mute); }
+.se-totals i{ font-style:normal; }
+.se-totals b{ font-family:'Inter Tight',sans-serif; font-weight:900; font-size:15px; color:#fff; }
+.se-list{ display:flex; flex-direction:column; gap:3px; }
+.se-row{
+  display:flex; align-items:center; gap:8px; width:100%; text-align:left;
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  border-radius:10px; padding:8px 10px; cursor:pointer;
+}
+.se-row:hover{ border-color:var(--iron-volt); }
+.se-kind{
+  flex-shrink:0; font-size:8px; font-weight:900; letter-spacing:1px;
+  padding:3px 6px; border-radius:6px;
+}
+.se-row.se-lift .se-kind{ background:rgba(0,245,212,.15); color:#00f5d4; }
+.se-row.se-cardio .se-kind{ background:rgba(77,184,255,.15); color:#4db8ff; }
+.se-info{ flex:1; min-width:0; display:flex; flex-direction:column; }
+.se-info b{ font-size:12px; font-weight:800; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.se-info small{ font-size:10px; color:var(--iron-mute); }
+.se-time{ font-style:normal; font-size:10px; font-weight:800; color:#4db8ff; flex-shrink:0; }
+.se-edit{ font-size:8px; font-weight:900; letter-spacing:1px; color:var(--iron-mute); flex-shrink:0; }
+.se-actions{ display:flex; gap:6px; margin-top:10px; }
+.se-actions .btn{ flex:1; justify-content:center; }
+
+/* Optional timer inside modals */
+.sess-timer{ display:flex; align-items:center; gap:10px; margin:10px 0; }
+.sess-clock{ font-family:'JetBrains Mono',monospace; font-size:24px; font-weight:800; color:var(--iron-volt); }
+.sess-timer-hint{ font-size:10px; color:var(--iron-mute); }
+
+/* Interval builder */
+.iv-list{ display:flex; flex-direction:column; gap:4px; }
+.iv-row{ display:grid; grid-template-columns:1.5fr .7fr .7fr .6fr auto; gap:4px; align-items:center; }
+.iv-row select, .iv-row input{ font-size:11px; padding:8px 6px; min-width:0; }
+.iv-del{
+  width:28px; height:32px; background:transparent; border:1px solid var(--iron-line);
+  color:var(--iron-red); border-radius:8px; cursor:pointer;
+}
+
+/* Lift hub */
+.lh-sec{ margin-bottom:14px; }
+.lh-h{ font-size:9px; font-weight:900; letter-spacing:1.5px; color:var(--iron-cyan); margin-bottom:6px; }
+.lh-list{ display:flex; flex-direction:column; gap:3px; }
+.lh-row{
+  display:flex; align-items:center; gap:8px; width:100%; text-align:left;
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  border-radius:10px; padding:9px 10px; cursor:pointer;
+}
+.lh-row:hover{ border-color:var(--iron-volt); }
+.lh-info{ flex:1; min-width:0; display:flex; flex-direction:column; }
+.lh-info b{ font-size:12px; font-weight:800; color:#fff; }
+.lh-info small{ font-size:10px; color:var(--iron-mute); }
+.lh-go{ font-size:9px; font-weight:900; letter-spacing:1px; color:var(--iron-volt); }
+.lh-chips{ display:flex; flex-wrap:wrap; gap:4px; margin-bottom:8px; }
+.lh-chip{
+  font-size:11px; font-weight:700; padding:7px 10px;
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  color:#fff; border-radius:8px; cursor:pointer;
+}
+.lh-chip:hover{ border-color:var(--iron-volt); color:var(--iron-volt); }
+
+/* PR callout + list */
+.prc-block{ border:1px solid var(--iron-line); border-radius:12px; padding:10px 12px; margin-bottom:8px; }
+.prc-win{ border-color:var(--iron-volt); }
+.prc-warn{ border-color:var(--brand-purple); }
+.prc-h{ font-size:9px; font-weight:900; letter-spacing:1.5px; margin-bottom:6px; }
+.prc-win .prc-h{ color:var(--iron-volt); }
+.prc-warn .prc-h{ color:var(--brand-purple); }
+.prc-rows{ display:flex; flex-direction:column; gap:3px; }
+.prc-row{ display:flex; align-items:baseline; gap:8px; font-size:12px; }
+.prc-row b{ flex:1; min-width:0; color:#fff; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.prc-row span{ font-family:'JetBrains Mono',monospace; font-weight:800; color:#fff; }
+.prc-row em{ font-style:normal; font-size:10px; color:var(--iron-mute); }
+.prc-empty{ font-size:12px; color:var(--iron-mute); line-height:1.5; }
+
+.prl-list{ display:flex; flex-direction:column; gap:3px; }
+.prl-row{
+  display:flex; align-items:center; gap:10px; width:100%; text-align:left;
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  border-radius:10px; padding:10px; cursor:pointer;
+}
+.prl-row:hover{ border-color:var(--iron-volt); }
+.prl-name{ flex:1; min-width:0; font-size:13px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.prl-val{ font-family:'Inter Tight',sans-serif; font-weight:900; font-size:16px; color:var(--iron-volt); flex-shrink:0; }
+.prl-val i{ font-style:normal; font-size:10px; color:var(--iron-mute); }
+.prl-date{ font-size:10px; color:var(--iron-mute); flex-shrink:0; }
+.prl-edit{ font-size:8px; font-weight:900; letter-spacing:1px; color:var(--iron-mute); flex-shrink:0; }
+
+/* Inline macro <-> calorie calculator */
+.macro-calc{ display:flex; flex-direction:column; }
+.mc-top{ display:flex; align-items:flex-end; justify-content:space-between; gap:10px; margin-bottom:10px; }
+.mc-cal label{ display:block; font-size:9px; font-weight:900; letter-spacing:1.5px; color:var(--iron-mute); margin-bottom:3px; }
+.mc-cal input{ font-family:'Inter Tight',sans-serif; font-size:24px; font-weight:900; padding:6px 10px; width:130px; }
+.mc-from{ font-size:11px; color:var(--iron-mute); padding-bottom:8px; }
+.mc-from b{ color:#fff; font-weight:800; }
+.mc-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+.mc-macro{ background:var(--iron-panel-2); border:1px solid var(--iron-line); border-radius:10px; padding:8px; }
+.mc-m-head{ display:flex; align-items:center; gap:5px; margin-bottom:5px; }
+.mc-m-head i{ width:8px; height:8px; border-radius:2px; flex-shrink:0; }
+.mc-m-head span{ font-size:10px; font-weight:800; color:#fff; flex:1; }
+.mc-m-head em{ font-style:normal; font-size:10px; color:var(--iron-mute); font-weight:800; }
+.mc-macro input{ width:100%; font-size:16px; font-weight:800; padding:6px 8px; }
+.mc-m-cal{ font-size:9px; color:var(--iron-mute); margin-top:3px; text-align:right; }
+.mc-status{ font-size:12px; margin:10px 0 6px; font-weight:700; }
+.mc-status.ok{ color:var(--iron-volt); }
+.mc-status.off{ color:var(--brand-purple); }
+.mc-status b{ font-weight:900; }
+.mc-split{ background:var(--iron-panel-2); border:1px solid var(--iron-line); border-radius:10px; padding:10px; }
+.mc-split.hidden{ display:none; }
+.mc-split-row{ display:flex; gap:10px; margin-bottom:8px; flex-wrap:wrap; }
+.mc-check{ display:flex; align-items:center; gap:5px; font-size:12px; color:#fff; cursor:pointer; }
+.mc-check input{ width:auto !important; }
+.mc-preview{ display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; font-size:11px; color:var(--iron-mute); }
+.mc-preview b{ color:#fff; font-weight:800; }
+
+/* PR / lift panes must scroll inside themselves, not move the page */
+#liftsCard, #prCalloutCard{ max-height:none; }
+.prl-list{ max-height:none; }
+
+/* Force dark on the last legacy-white surfaces (v17) */
+.mc-macro{ background:var(--iron-panel-2) !important; border:1px solid var(--iron-line) !important; }
+.mc-macro input, .mc-cal input{
+  background:#0a0d14 !important; color:#fff !important;
+  border:1px solid var(--iron-line) !important;
+}
+.detail-card, .detail-card[open]{
+  background:var(--iron-panel) !important;
+  border:1px solid var(--iron-line) !important;
+  color:#fff !important;
+}
+.detail-card summary, .detail-card summary *{ color:#fff !important; }
+.detail-card .detail-sub{ color:var(--iron-mute) !important; }
+.detail-grid > *, .detail-card .detail-grid > *{
+  background:var(--iron-panel-2) !important;
+  border:1px solid var(--iron-line) !important;
+  color:#fff !important;
+}
+.detail-grid b, .detail-grid strong{ color:#fff !important; }
+.detail-note{ color:var(--iron-mute) !important; }
+
+/* Page-top rings: give the empty state visible troughs */
+.page-rings canvas{ opacity:1; }

@@ -87,8 +87,14 @@ percentages + Hevy-style summary stats, Fitbod-style Workout Session overlay
 (inline set logger, set kinds, rest timer, previous-performance, YouTube
 How-To), Body Part Coverage (14-day, missing/under-trained suggestions),
 anatomy heatmap, 12-wk heatmap, WOD suggestion (bottom).
-Plan: Mon–Sun weekly planner, 28 types + custom, per-day exercise lists w/
-schemes, auto-fill from prior week, past weeks locked, pre-built programs.
+Library (v18, replaced the weekly Planner page): #view-library —
+searchable/filterable movement list (body part + equipment chips,
+A-Z/Z-A), per-exercise PHOTOS (compressed to 240px thumbs in
+state.exPhotos, guarded against quota), favorites hearts, exercise
+detail sheet (photo, equipment, muscles, PR, LOG THIS LIFT), and the
+workout builder (MY WORKOUTS tab). Reached via Fitness > SAVED.
+Calendar (v18): month grid on Fitness > CALENDAR — Sunday-first, two
+dots per day (food/workout), tap a date to select it app-wide.
 Body: weigh-ins, measurements, InBody scan parse, adaptive macros
 (Macrofactor-style TDEE recalc), smart onboarding wizard (sex/age/activity →
 TDEE → macros + program), macro calculator (Mifflin-St Jeor / Katch-McArdle).

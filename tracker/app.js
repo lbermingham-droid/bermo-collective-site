@@ -617,6 +617,7 @@ function renderAll(){
   else if(currentTab === "history") renderHistory();
   else if(currentTab === "settings") renderSettings();
   else if(currentTab === "goals") renderGoalsView();
+  else if(currentTab === "library") renderLibrary();
 }
 
 // ---------- DASHBOARD ----------
@@ -4187,128 +4188,6 @@ function fmtTime12(hm){
   return `${h12}:${String(m).padStart(2, "0")} ${ap}`;
 }
 
-let planViewDate = new Date();
-
-function renderPlanBase(){
-  const grid = document.getElementById("planGrid");
-  if(!grid) return;
-  const wkStart = weekStart(planViewDate);
-  const wkKey = weekKey(wkStart);
-  const plan = getPlan();
-  const weekData = plan[wkKey] || {};
-  const isPast = wkKey < weekKey(weekStart(new Date()));
-  const isFuture = wkKey > weekKey(weekStart(new Date()));
-
-  document.getElementById("planWeekLabel").innerHTML = `
-    <b>${wkStart.toLocaleDateString(undefined,{month:"short",day:"numeric"})} – ${new Date(wkStart.getTime()+6*86400000).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"})}</b>
-    <span class="plan-week-tag">${wkKey}${isPast?" · locked":isFuture?" · future":" · this week"}</span>
-  `;
-
-  const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-  let html = "";
-  for(let i=0;i<7;i++){
-    const date = new Date(wkStart.getTime() + i*86400000);
-    const dayKey = todayKey(date);
-    const dayPlan = weekData[dayNames[i].toLowerCase()] || {};
-    const planType = dayPlan.type || null;
-    const sessions = (state.days[dayKey] && state.days[dayKey].sessions) || [];
-    const wodResult = state.days[dayKey] && state.days[dayKey].wodResult;
-    const isToday = dayKey === todayKey();
-    const logged = sessions.length > 0 || !!wodResult;
-
-    html += `<div class="plan-day ${isToday?"today":""} ${isPast?"past":""}" data-day="${dayNames[i].toLowerCase()}" data-date="${dayKey}">
-      <div class="pd-head">
-        <span class="pd-name">${dayNames[i]}</span>
-        <span class="pd-date">${date.toLocaleDateString(undefined,{month:"short",day:"numeric"})}</span>
-      </div>
-      ${planType
-        ? `<div class="pd-type ${typeColor(planType)}">${escape(planType)}${dayPlan.time ? ` <em class="pd-time">${escape(fmtTime12(dayPlan.time))}</em>` : ""}</div>`
-          + ((dayPlan.extra || []).map(x => `<div class="pd-type pd-type-extra ${typeColor(x.name)}">${escape(x.name)}${x.time ? ` <em class="pd-time">${escape(fmtTime12(x.time))}</em>` : ""}</div>`).join(""))
-        : `<button class="pd-add ${isPast?"hidden":""}">+ Plan</button>`}
-      ${logged
-        ? `<div class="pd-logged">✓ ${sessions.length}${sessions.length?" set"+(sessions.length===1?"":"s"):""}${wodResult?" · WOD":""}</div>`
-        : `<div class="pd-empty">${isPast?"":(isToday?"Log when done":"")}</div>`}
-    </div>`;
-  }
-  grid.innerHTML = html;
-
-  grid.querySelectorAll(".plan-day").forEach(d => {
-    d.addEventListener("click", (e) => {
-      if(e.target.closest(".pd-add")) return;
-      // Click → log workout for that date
-      const dk = d.dataset.date;
-      currentDate = dk;
-      const t = document.querySelector('.tab[data-tab="fitness"]');
-      if(t) t.click();
-    });
-  });
-  grid.querySelectorAll(".pd-add").forEach(b => b.addEventListener("click", (e) => {
-    e.stopPropagation();
-    const dayName = b.closest(".plan-day").dataset.day;
-    openPlanDayModal(wkKey, dayName);
-  }));
-}
-
-function typeColor(t){
-  const lower = t.toLowerCase();
-  if(/leg|squat|lower|glute/.test(lower)) return "pt-cyan";
-  if(/push|chest|shoulder|press/.test(lower)) return "pt-pink";
-  if(/pull|back|row/.test(lower)) return "pt-lime";
-  if(/cross|wod|hiit|olym|power/.test(lower)) return "pt-orange";
-  if(/run|cycl|swim|row|cardio/.test(lower)) return "pt-blue";
-  if(/yoga|pilat|barre|mobil|stretch|recov|rest/.test(lower)) return "pt-purple";
-  return "pt-gray";
-}
-
-function autofillFromLastWeek(){
-  const plan = getPlan();
-  const wkStart_ = weekStart(planViewDate);
-  const wkKey_ = weekKey(wkStart_);
-  const prevDate = new Date(wkStart_.getTime() - 7*86400000);
-  const prevKey = weekKey(prevDate);
-  const prev = plan[prevKey];
-  if(!prev || !Object.keys(prev).length){ toast("No previous week to copy","pink"); return; }
-  if(!plan[wkKey_]) plan[wkKey_] = {};
-  let copied = 0;
-  ["sun","mon","tue","wed","thu","fri","sat"].forEach(d => {
-    if(prev[d] && !plan[wkKey_][d]){
-      plan[wkKey_][d] = { ...prev[d] };
-      copied++;
-    }
-  });
-  save(); renderPlan();
-  toast(copied ? `Copied ${copied} day${copied===1?"":"s"} from last week` : "No empty days to fill","cyan");
-}
-
-// Hook tab routing
-// Pipeline step (extracted from a wrapper patch; composed at EOF).
-function goStep_GoForPlan(tab){
-  if(tab === "plan") renderPlan();
-}
-
-// Wire planner buttons
-onReady(() => {
-  const p = document.getElementById("planPrevWeek");
-  if(p) p.addEventListener("click", () => { planViewDate = new Date(weekStart(planViewDate).getTime() - 7*86400000); renderPlan(); });
-  const n = document.getElementById("planNextWeek");
-  if(n) n.addEventListener("click", () => { planViewDate = new Date(weekStart(planViewDate).getTime() + 7*86400000); renderPlan(); });
-  const a = document.getElementById("planAutofill");
-  if(a) a.addEventListener("click", autofillFromLastWeek);
-});
-
-// Hook openLiftModal to also update rep PRs (intercept its save)
-// We attach a delegated listener so once a session is added, we update PRs.
-// (The original openLiftModal already pushes the session to day.sessions.)
-document.addEventListener("click", (e) => {
-  if(e.target && e.target.id === "liftSave"){
-    setTimeout(() => {
-      const day = dayObj(currentDate);
-      const last = (day.sessions||[])[(day.sessions||[]).length-1];
-      if(last && last.weight && last.reps) updateRepPRsFromSet(last);
-    }, 80);
-  }
-});
-
 
 // =================================================================
 // PWA — Service worker registration + install-to-home-screen helper
@@ -6104,45 +5983,6 @@ function openPlanDayModal(wkKey, dayName){
 }
 
 // Update plan day rendering to show planned exercises preview
-// Pipeline step (extracted from a wrapper patch; composed at EOF).
-function renderPlanStep_RenderPlan(){
-  // Add exercise preview to each plan-day card
-  document.querySelectorAll(".plan-day").forEach(d => {
-    const dayKey = d.dataset.date;
-    const dayName = d.dataset.day;
-    const wkKey_ = weekKey(weekStart(new Date(dayKey + "T00:00:00")));
-    const data = (state.plan && state.plan[wkKey_] && state.plan[wkKey_][dayName]) || {};
-    if(data.exercises && data.exercises.length && !d.querySelector(".pd-exercises")){
-      const ex = document.createElement("div");
-      ex.className = "pd-exercises";
-      ex.innerHTML = data.exercises.slice(0,3).map(e =>
-        `<div class="pd-ex">• ${escape(e.name)}${e.scheme?` <i>${escape(e.scheme)}</i>`:""}</div>`
-      ).join("") + (data.exercises.length > 3 ? `<div class="pd-ex pd-ex-more">+${data.exercises.length-3} more</div>` : "");
-      // Insert before pd-logged
-      const after = d.querySelector(".pd-logged, .pd-empty");
-      if(after) d.insertBefore(ex, after);
-      else d.appendChild(ex);
-    }
-  });
-}
-
-// (planMini removed — fitWeekList + fitDayCard replaced it)
-
-
-// =================================================================
-// WORKOUT SESSION — Fitbod/Hevy-style inline logger + rest timer
-// =================================================================
-
-const SET_KINDS = [
-  {k:"normal",  lbl:"Normal",  c:"#00f5d4"},
-  {k:"warmup",  lbl:"Warm-up", c:"#7cd9f1"},
-  {k:"drop",    lbl:"Drop Set",c:"#b788ff"},
-  {k:"fail",    lbl:"Failure", c:"#ff4d9d"},
-];
-
-let _restTimer = null;
-let _restEndAt = 0;
-
 function startRestTimer(seconds){
   clearInterval(_restTimer);
   _restEndAt = Date.now() + seconds*1000;
@@ -6425,25 +6265,6 @@ function closeWorkoutSession(){
 }
 
 // ---- Wire "Start workout" button on planner day cards ----
-// Pipeline step (extracted from a wrapper patch; composed at EOF).
-function renderPlanStep_RenderPlanForWorkoutBtn(){
-  document.querySelectorAll(".plan-day").forEach(d => {
-    const dayKey = d.dataset.date;
-    const dayName = d.dataset.day;
-    const wkKey_ = weekKey(weekStart(new Date(dayKey+"T12:00:00")));
-    const planned = (state.plan && state.plan[wkKey_] && state.plan[wkKey_][dayName] && state.plan[wkKey_][dayName].exercises) || [];
-    if(planned.length && !d.querySelector(".pd-start")){
-      const btn = document.createElement("button");
-      btn.className = "pd-start";
-      btn.textContent = "▶ Start";
-      btn.title = "Start workout session";
-      btn.addEventListener("click", (e) => { e.stopPropagation(); openWorkoutSession(dayKey); });
-      d.appendChild(btn);
-    }
-  });
-}
-
-
 function getExerciseStats(liftName){
   const sets = [];
   Object.entries(state.days).forEach(([date, day]) => {
@@ -7176,7 +6997,6 @@ function applyProgram(prog, startDateStr, nWeeks){
   }
   save();
   closeModal();
-  if(typeof renderPlan === "function") renderPlan();
   toast(`Scheduled ${scheduled} workouts${conflicts ? " ("+conflicts+" days kept)" : ""}`, "ok");
 }
 
@@ -8236,7 +8056,6 @@ function assignLibWorkout(w){
         plan[wk][d] = { type: w.name, exercises: w.exercises.map(e => ({ name: e.name, scheme: e.scheme || "" })) };
       });
       save(); closeModal();
-      renderPlan();
       renderDeck();
       toast(`${w.name} → ${days.length} day${days.length===1?"":"s"}`, "cyan");
     });
@@ -8651,6 +8470,7 @@ function _tagFitnessSections(){
   tag("#fitWeekCard", "summary");
   tag("#fitDayCard", "summary");
   tag("#sessionCard", "summary");
+  tag("#calCard", "calendar");
   tag("#liftsCard", "prs");
   tag("#heatmap", "progress");
   tag("#fitWodTitle", "summary");
@@ -8672,15 +8492,7 @@ onReady(() => {
   document.querySelectorAll("#fitSubnav .sub-chip").forEach(c => {
     c.addEventListener("click", () => {
       const sub = c.dataset.fsub;
-      if(sub === "calendar"){ go("plan"); return; }
-      if(sub === "saved"){
-        go("plan");
-        setTimeout(() => {
-          const lib = document.getElementById("workoutLibCard");
-          if(lib) lib.scrollIntoView({ behavior:"smooth", block:"start" });
-        }, 200);
-        return;
-      }
+      if(sub === "saved"){ go("library"); return; }
       _fitSub = sub;
       applyFitSub();
     });
@@ -10036,6 +9848,270 @@ function renderMacroCalcSoft(hostId, v){
 }
 
 
+
+// =================================================================
+// v18 — EXERCISE LIBRARY: search, filter, photos, favorites
+// Replaces the old Planner page (its editing lives on day cards).
+// Photos are compressed to ~240px thumbnails so localStorage holds.
+// =================================================================
+const EQUIP_TAGS = { machine:"Machine", barbell:"Barbell", dumbbell:"Dumbbell", bodyweight:"Bodyweight", cable:"Cable", other:"Other" };
+function equipFor(name){
+  const n = (name || "").toLowerCase();
+  if(/machine|press$|pulldown|extension|curl machine|smith|hack|pec deck|leg press/.test(n) && !/barbell|dumbbell/.test(n)) return "machine";
+  if(/cable|pushdown|woodchop|fly/.test(n)) return "cable";
+  if(/barbell|squat|deadlift|clean|snatch|jerk|bench press|rdl|thruster/.test(n)) return "barbell";
+  if(/dumbbell|db |curl|lateral raise/.test(n)) return "dumbbell";
+  if(/push.?up|pull.?up|chin.?up|dip|plank|sit.?up|box jump|burpee|air squat|lunge/.test(n)) return "bodyweight";
+  return "other";
+}
+function getExPhotos(){ if(!state.exPhotos) state.exPhotos = {}; return state.exPhotos; }
+
+function allLibraryExercises(){
+  const set = new Set();
+  LIFT_CATEGORIES.forEach(c => c.lifts.forEach(l => set.add(l)));
+  MACHINE_LIST.forEach(m => set.add(m));
+  (DATA.movements || []).forEach(m => set.add(m));
+  (state.favLifts || []).forEach(m => set.add(m));
+  Object.keys(getExPhotos()).forEach(m => set.add(m));
+  (state.customExercises || []).forEach(m => set.add(m));
+  return Array.from(set);
+}
+
+let _libSub = "all", _libQuery = "", _libFilters = { part:"", equip:"" }, _libSortAZ = true;
+
+function renderLibraryFilters(){
+  const host = document.getElementById("libFilters");
+  if(!host) return;
+  const parts = ["legs","glutes","back","chest","shoulders","arms","core"];
+  host.innerHTML = `
+    <div class="lf-row">
+      <button class="lf-chip ${!_libFilters.part ? "on" : ""}" data-lfpart="">All body parts</button>
+      ${parts.map(p => `<button class="lf-chip ${_libFilters.part===p?"on":""}" data-lfpart="${p}">${p}</button>`).join("")}
+    </div>
+    <div class="lf-row">
+      <button class="lf-chip ${!_libFilters.equip ? "on" : ""}" data-lfeq="">All equipment</button>
+      ${Object.keys(EQUIP_TAGS).map(k => `<button class="lf-chip ${_libFilters.equip===k?"on":""}" data-lfeq="${k}">${EQUIP_TAGS[k]}</button>`).join("")}
+    </div>`;
+  host.querySelectorAll("[data-lfpart]").forEach(b => b.addEventListener("click", () => {
+    _libFilters.part = b.dataset.lfpart; renderLibrary();
+  }));
+  host.querySelectorAll("[data-lfeq]").forEach(b => b.addEventListener("click", () => {
+    _libFilters.equip = b.dataset.lfeq; renderLibrary();
+  }));
+}
+
+function renderLibrary(){
+  const listEl = document.getElementById("libList");
+  if(!listEl) return;
+  renderLibraryFilters();
+  const wcard = document.getElementById("libWorkoutsCard");
+  const lcard = document.getElementById("libListCard");
+  const filtersEl = document.getElementById("libFilters");
+  const searchEl = document.querySelector(".lib-search");
+  const showWorkouts = _libSub === "workouts";
+  if(wcard) wcard.classList.toggle("nsec-hide", !showWorkouts);
+  if(lcard) lcard.classList.toggle("nsec-hide", showWorkouts);
+  if(filtersEl) filtersEl.classList.toggle("nsec-hide", showWorkouts);
+  if(searchEl) searchEl.classList.toggle("nsec-hide", showWorkouts);
+  if(showWorkouts){ renderWorkoutLib(); return; }
+
+  const favs = state.favLifts || [];
+  const photos = getExPhotos();
+  let items = allLibraryExercises();
+  if(_libSub === "favs") items = items.filter(x => favs.includes(x));
+  if(_libQuery){
+    const q = _libQuery.toLowerCase();
+    items = items.filter(x => x.toLowerCase().includes(q));
+  }
+  if(_libFilters.part) items = items.filter(x => partsForExercise(x).includes(_libFilters.part));
+  if(_libFilters.equip) items = items.filter(x => equipFor(x) === _libFilters.equip);
+  items.sort((a,b) => _libSortAZ ? a.localeCompare(b) : b.localeCompare(a));
+
+  const cnt = document.getElementById("libCount");
+  if(cnt) cnt.textContent = `${items.length} movement${items.length===1?"":"s"}`;
+
+  listEl.innerHTML = items.length ? items.map(name => {
+    const parts = partsForExercise(name);
+    const ph = photos[name];
+    return `<div class="lx-row" data-lx="${escape(name)}">
+      <span class="lx-thumb">${ph ? `<img src="${ph}" alt="">` : `<i>+</i>`}</span>
+      <span class="lx-info">
+        <b>${escape(name)}</b>
+        <small>${escape(EQUIP_TAGS[equipFor(name)])}${parts.length ? " · " + parts.join(", ") : ""}</small>
+      </span>
+      <button class="lx-fav ${favs.includes(name) ? "on" : ""}" data-lxfav="${escape(name)}" title="Favorite">${favs.includes(name) ? "♥" : "♡"}</button>
+    </div>`;
+  }).join("") : `<p class="wl-empty">Nothing matches. Clear a filter or search for something else.</p>`;
+
+  listEl.querySelectorAll(".lx-row").forEach(r => {
+    r.addEventListener("click", (e) => {
+      if(e.target.closest("[data-lxfav]")) return;
+      openExerciseSheet(r.dataset.lx);
+    });
+  });
+  listEl.querySelectorAll("[data-lxfav]").forEach(b => b.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const name = b.dataset.lxfav;
+    const f = getFavLifts();
+    const i = f.indexOf(name);
+    if(i >= 0) f.splice(i,1); else f.unshift(name);
+    state.favLifts = f.slice(0,60);
+    save(); renderLibrary();
+  }));
+}
+
+// ---- Exercise detail: photo, body parts, PR, add to a day ----
+function openExerciseSheet(name){
+  const photos = getExPhotos();
+  const ph = photos[name];
+  const parts = partsForExercise(name);
+  const pr = (state.prs || {})[name];
+  const favs = getFavLifts();
+  openModal(name, `
+    <div class="ex-sheet">
+      <div class="ex-photo ${ph ? "has" : ""}" id="exPhotoBox">
+        ${ph ? `<img src="${ph}" alt="">` : `<span>No photo yet</span>`}
+      </div>
+      <div class="ex-photo-actions">
+        <button class="btn btn-ghost btn-sm" id="exSnap">${ph ? "REPLACE PHOTO" : "ADD PHOTO"}</button>
+        ${ph ? `<button class="btn btn-ghost btn-sm" id="exRmPhoto">REMOVE</button>` : ""}
+        <input type="file" id="exFile" accept="image/*" capture="environment" style="display:none">
+      </div>
+      <div class="ex-meta">
+        <span><i>Equipment</i><b>${escape(EQUIP_TAGS[equipFor(name)])}</b></span>
+        <span><i>Works</i><b>${parts.length ? escape(parts.join(", ")) : "—"}</b></span>
+        <span><i>Your PR</i><b>${pr ? `${pr.val} ${pr.unit || unit()}` : "—"}</b></span>
+      </div>
+      <div class="ex-actions">
+        <button class="btn btn-cyan" id="exLog">LOG THIS LIFT</button>
+        <button class="btn btn-ghost" id="exFav">${favs.includes(name) ? "♥ FAVORITED" : "♡ FAVORITE"}</button>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close>Close</button></div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    const file = document.getElementById("exFile");
+    document.getElementById("exSnap").addEventListener("click", () => file.click());
+    file.addEventListener("change", async () => {
+      if(!file.files[0]) return;
+      try{
+        // small thumbnail so localStorage survives many photos
+        const b64 = await compressImage(file.files[0], 240);
+        const dataUrl = "data:image/jpeg;base64," + b64;
+        try{
+          getExPhotos()[name] = dataUrl;
+          save();
+        }catch(err){
+          delete getExPhotos()[name];
+          toast("Storage full — remove some photos first", "pink");
+          return;
+        }
+        closeModal(); renderLibrary();
+        toast("Photo saved", "cyan");
+      }catch(err){ toast("Couldn't read that photo", "pink"); }
+    });
+    const rm = document.getElementById("exRmPhoto");
+    if(rm) rm.addEventListener("click", () => {
+      delete getExPhotos()[name];
+      save(); closeModal(); renderLibrary();
+      toast("Photo removed", "pink");
+    });
+    document.getElementById("exLog").addEventListener("click", () => {
+      closeModal(); openLiftModal(name);
+    });
+    document.getElementById("exFav").addEventListener("click", () => {
+      const f = getFavLifts();
+      const i = f.indexOf(name);
+      if(i >= 0) f.splice(i,1); else f.unshift(name);
+      state.favLifts = f.slice(0,60);
+      save(); closeModal(); renderLibrary();
+    });
+  });
+}
+
+onReady(() => {
+  document.querySelectorAll("#libSubnav .sub-chip").forEach(c => c.addEventListener("click", () => {
+    document.querySelectorAll("#libSubnav .sub-chip").forEach(x => x.classList.toggle("active", x === c));
+    _libSub = c.dataset.lsub;
+    renderLibrary();
+  }));
+  const srch = document.getElementById("libSearch");
+  if(srch) srch.addEventListener("input", () => { _libQuery = srch.value.trim(); renderLibrary(); });
+  on("#libSort", "click", () => {
+    _libSortAZ = !_libSortAZ;
+    const b = document.getElementById("libSort");
+    if(b) b.textContent = _libSortAZ ? "A–Z" : "Z–A";
+    renderLibrary();
+  });
+  on("#libNewWorkout", "click", () => openWorkoutBuilder());
+});
+
+
+
+// =================================================================
+// v18 — MONTH CALENDAR (replaces the old week Planner page)
+// UX call: one readable month grid like the MFP/MacroFactor sheets.
+// Each cell = date + two dots (food / workout). Tap = go to that day.
+// =================================================================
+let _calMonth = null; // Date anchored to the 1st of the shown month
+function renderMonthCalendar(){
+  const host = document.getElementById("calGrid");
+  if(!host) return;
+  if(!_calMonth){
+    const d = new Date(currentDate + "T12:00:00");
+    _calMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+  }
+  const label = document.getElementById("calLabel");
+  if(label) label.textContent = _calMonth.toLocaleDateString(undefined,{month:"long", year:"numeric"});
+
+  const first = new Date(_calMonth.getFullYear(), _calMonth.getMonth(), 1);
+  const daysInMonth = new Date(_calMonth.getFullYear(), _calMonth.getMonth()+1, 0).getDate();
+  const lead = first.getDay(); // Sunday-first
+  const head = ["S","M","T","W","T","F","S"]
+    .map(d => `<div class="cal-hd">${d}</div>`).join("");
+  let cells = "";
+  for(let i = 0; i < lead; i++) cells += `<div class="cal-cell cal-blank"></div>`;
+  for(let dnum = 1; dnum <= daysInMonth; dnum++){
+    const d = new Date(_calMonth.getFullYear(), _calMonth.getMonth(), dnum);
+    const k = todayKey(d);
+    const st = dayGoalStatus(k);
+    const isToday = k === todayKey();
+    const isSel = k === currentDate;
+    const future = k > todayKey();
+    const dot = (v) => v === "hit" ? "hit" : v === "fail" ? "miss" : v === "rest" ? "rest" : "none";
+    cells += `<button class="cal-cell ${isToday?"today":""} ${isSel?"sel":""} ${future?"future":""}" data-date="${k}">
+      <span class="cal-n">${dnum}</span>
+      <span class="cal-dots">
+        <i class="cal-dot food ${dot(st.food)}"></i>
+        <i class="cal-dot work ${dot(st.workout)}"></i>
+      </span>
+    </button>`;
+  }
+  host.innerHTML = `<div class="cal-head">${head}</div><div class="cal-body">${cells}</div>`;
+  host.querySelectorAll("[data-date]").forEach(b => b.addEventListener("click", () => {
+    currentDate = b.dataset.date;
+    renderAll();
+    toast(fmtDate(b.dataset.date), "cyan");
+  }));
+}
+onReady(() => {
+  on("#calPrev", "click", () => {
+    _calMonth = new Date(_calMonth.getFullYear(), _calMonth.getMonth()-1, 1);
+    renderMonthCalendar();
+  });
+  on("#calNext", "click", () => {
+    _calMonth = new Date(_calMonth.getFullYear(), _calMonth.getMonth()+1, 1);
+    renderMonthCalendar();
+  });
+  on("#calToday", "click", () => {
+    currentDate = todayKey();
+    _calMonth = new Date();
+    _calMonth = new Date(_calMonth.getFullYear(), _calMonth.getMonth(), 1);
+    renderAll();
+  });
+});
+
+
 // =================================================================
 
 // PIPELINES — explicit composition (replaces the old wrapper chains).
@@ -10069,6 +10145,7 @@ function renderFitness(){
   try{ renderFitProgress(); }catch(e){ console.warn("fit progress", e); }
   try{ renderFitRing(); }catch(e){ console.warn("fit ring", e); }
   try{ renderFitTopStats(); }catch(e){ console.warn("fit top", e); }
+  try{ renderMonthCalendar(); }catch(e){ console.warn("calendar", e); }
   try{ applyFitSub(); }catch(e){ console.warn("fit subnav", e); }
 }
 
@@ -10090,13 +10167,6 @@ function renderDashboard(){
 function openLiftDetail(lift){
   openLiftDetailBase(lift);
   openLiftDetailStep_OpenLiftDetail(lift);
-}
-
-function renderPlan(){
-  renderPlanBase();
-  renderPlanStep_RenderPlan();
-  renderPlanStep_RenderPlanForWorkoutBtn();
-  try{ renderWorkoutLib(); }catch(e){ console.warn("workout lib", e); }
 }
 
 function renderNutritionWeek(){
@@ -10127,7 +10197,6 @@ function renderHubsAll(){
 function go(tab){
   goBase(tab);
   goStep_GoForTrends(tab);
-  goStep_GoForPlan(tab);
 }
 
 function renderTrends(){

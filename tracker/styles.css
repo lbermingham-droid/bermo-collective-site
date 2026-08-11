@@ -3165,3 +3165,106 @@ input, select, textarea{
 
 /* Page-top rings: give the empty state visible troughs */
 .page-rings canvas{ opacity:1; }
+
+/* ============================================================
+   v18 — bottom scroll clearance (content was hidden under the nav)
+   ============================================================ */
+@media (max-width: 720px), (pointer: coarse) and (max-width: 1100px){
+  .main{
+    padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+.detail-body{ padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px)) !important; }
+.workout-body{ padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px)) !important; }
+.modal-card{ max-height: 86vh; }
+.modal-body{ padding-bottom: 18px; }
+
+/* ============================================================
+   v18 — Exercise Library + month calendar
+   ============================================================ */
+.lib-search{ margin:0 0 8px; }
+.lib-search input{ width:100%; padding:11px 14px; font-size:14px; }
+.lib-filters{ display:flex; flex-direction:column; gap:5px; margin:0 0 10px; }
+.lf-row{ display:flex; gap:4px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; }
+.lf-row::-webkit-scrollbar{ display:none; }
+.lf-chip{
+  flex:0 0 auto; padding:6px 11px; font-size:10px; font-weight:800;
+  letter-spacing:.4px; text-transform:capitalize;
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  color:var(--iron-mute); border-radius:8px; cursor:pointer;
+}
+.lf-chip.on{ background:var(--iron-volt); color:#062820; border-color:var(--iron-volt); }
+.lib-list{ display:flex; flex-direction:column; gap:3px; max-height:none; }
+.lx-row{
+  display:flex; align-items:center; gap:10px;
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  border-radius:10px; padding:8px 10px; cursor:pointer;
+}
+.lx-row:hover{ border-color:var(--iron-volt); }
+.lx-thumb{
+  width:42px; height:42px; flex-shrink:0; border-radius:8px; overflow:hidden;
+  background:#0a0d14; border:1px solid var(--iron-line);
+  display:flex; align-items:center; justify-content:center;
+}
+.lx-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+.lx-thumb i{ font-style:normal; font-size:18px; color:var(--iron-mute); }
+.lx-info{ flex:1; min-width:0; display:flex; flex-direction:column; }
+.lx-info b{ font-size:13px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.lx-info small{ font-size:10px; color:var(--iron-mute); text-transform:capitalize; }
+.lx-fav{
+  flex-shrink:0; width:34px; height:34px; background:transparent;
+  border:1px solid var(--iron-line); border-radius:8px;
+  color:var(--iron-mute); font-size:15px; cursor:pointer;
+}
+.lx-fav.on{ color:var(--iron-red); border-color:var(--iron-red); }
+
+/* Exercise detail sheet */
+.ex-photo{
+  width:100%; height:170px; border-radius:12px; overflow:hidden;
+  background:#0a0d14; border:1px solid var(--iron-line);
+  display:flex; align-items:center; justify-content:center;
+  color:var(--iron-mute); font-size:12px;
+}
+.ex-photo img{ width:100%; height:100%; object-fit:cover; }
+.ex-photo-actions{ display:flex; gap:6px; margin:8px 0 12px; }
+.ex-photo-actions .btn{ flex:1; justify-content:center; }
+.ex-meta{ display:flex; flex-direction:column; gap:3px; margin-bottom:12px; }
+.ex-meta span{
+  display:flex; justify-content:space-between; align-items:baseline;
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  border-radius:8px; padding:8px 10px; font-size:12px;
+}
+.ex-meta i{ font-style:normal; color:var(--iron-mute); font-size:10px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
+.ex-meta b{ color:#fff; text-transform:capitalize; }
+.ex-actions{ display:flex; gap:6px; }
+.ex-actions .btn{ flex:1; justify-content:center; }
+
+/* Month calendar */
+.cal-nav{ display:flex; align-items:center; gap:10px; }
+.cal-arrow{
+  width:30px; height:30px; background:var(--iron-panel-2);
+  border:1px solid var(--iron-line); border-radius:8px;
+  color:#fff; font-size:16px; cursor:pointer;
+}
+.cal-label{ font-size:13px; font-weight:800; color:#fff; min-width:120px; }
+.cal-grid{ margin-top:6px; }
+.cal-head, .cal-body{ display:grid; grid-template-columns:repeat(7,1fr); gap:3px; }
+.cal-hd{ text-align:center; font-size:9px; font-weight:900; color:var(--iron-mute); padding:4px 0; }
+.cal-cell{
+  aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:3px; background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  border-radius:8px; cursor:pointer; padding:0;
+}
+.cal-cell.cal-blank{ background:transparent; border-color:transparent; cursor:default; }
+.cal-cell.today{ border-color:var(--iron-volt); }
+.cal-cell.sel{ background:rgba(0,245,212,.10); border-color:var(--iron-volt); }
+.cal-cell.future{ opacity:.45; }
+.cal-n{ font-size:12px; font-weight:800; color:#fff; }
+.cal-dots{ display:flex; gap:3px; }
+.cal-dot{ width:5px; height:5px; border-radius:50%; background:#232a3a; display:block; }
+.cal-dot.hit{ background:var(--iron-volt); }
+.cal-dot.work.hit{ background:var(--iron-cyan); }
+.cal-dot.miss{ background:var(--iron-red); }
+.cal-dot.rest{ background:#3d4a63; }
+.cal-key{ display:flex; gap:12px; flex-wrap:wrap; margin-top:10px; font-size:10px; color:var(--iron-mute); }
+.cal-key span{ display:flex; align-items:center; gap:5px; }

@@ -102,6 +102,18 @@ dots per day (food/workout), tap a date to select it app-wide.
 Body: weigh-ins, measurements, InBody scan parse, adaptive macros
 (Macrofactor-style TDEE recalc), smart onboarding wizard (sex/age/activity →
 TDEE → macros + program), macro calculator (Mifflin-St Jeor / Katch-McArdle).
+DATA SAFETY (v25). save() was one line: `localStorage.setItem(...)`.
+  Browser storage is 5-10MB and exercise photos live as base64 in the
+  same blob. On quota, setItem THROWS — the write is lost and the
+  exception unwinds whatever render was in flight, so the user gets a
+  half-dead screen and no idea the day didn't save. save() now returns
+  a boolean, never throws, sheds state.exPhotos as the first recovery
+  (photos are always the cause), and if that isn't enough opens a modal
+  that pushes an export before anything is deleted. Guarded by a smoke
+  test that monkey-patches Storage.prototype.setItem to throw.
+  THIS IS STILL THE #1 ARCHITECTURAL RISK: all data is in one browser on
+  one device. No account, no server, no sync. Clearing site data loses
+  everything. Any investor-grade version needs a backend first.
 SURFACE + DEPTH + FLOW (v24). Her words: "no 3d depth, it's flat",
   "the edges and bottom show a box", "lack of consistency and flow from
   section to section". All three were real and all three had a root
@@ -396,7 +408,7 @@ export/import, PWA install.
   food + lift logging end-to-end, modal close, dashboard re-render,
   cross-page date sync, and the v20 health engines (seeds a quad-free
   leg week and asserts the gap is named WITH a fix).
-  Expected: 25/25 + zero page errors.
+  Expected: 26/26 + zero page errors.
   Also always `node --check tracker/app.js`. The user additionally
   tests on iPhone — when something breaks there, ask for a screenshot
   + the exact element tapped.

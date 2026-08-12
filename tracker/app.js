@@ -58,7 +58,63 @@ function load(){
   try{ const raw = localStorage.getItem(KEY); if(raw) return JSON.parse(raw); }catch(e){}
   return defaultState();
 }
-function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+// A bare setItem was the single most dangerous line in this app. Browser
+// storage is 5-10MB; exercise photos are base64 inside the same blob. When
+// it fills, setItem THROWS — the write is lost, the exception unwinds
+// whatever render was in flight, and the user gets a half-dead screen with
+// no idea their day didn't save. Now: never throw, never silently lose,
+// and offer the one fix that actually frees space.
+let _saveWarned = false;
+function save(){
+  try{
+    localStorage.setItem(KEY, JSON.stringify(state));
+    _saveWarned = false;
+    return true;
+  }catch(err){
+    const quota = err && (err.name === "QuotaExceededError"
+      || err.name === "NS_ERROR_DOM_QUOTA_REACHED" || err.code === 22 || err.code === 1014);
+    if(!quota){
+      console.error("[bermo] save failed:", err);
+      if(!_saveWarned){ _saveWarned = true; try{ toast("Couldn't save — check your browser's storage settings", "err"); }catch(e){} }
+      return false;
+    }
+    // Storage is full. Photos are always the cause — shed them, keep the log.
+    const photos = state.exPhotos ? Object.keys(state.exPhotos).length : 0;
+    if(photos){
+      state.exPhotos = {};
+      try{
+        localStorage.setItem(KEY, JSON.stringify(state));
+        try{ toast(`Storage was full — removed ${photos} exercise photo${photos===1?"":"s"} to save your log`, "pink"); }catch(e){}
+        return true;
+      }catch(e2){ /* still full — fall through */ }
+    }
+    if(!_saveWarned){
+      _saveWarned = true;
+      try{ openStorageFullModal(); }catch(e){ try{ toast("Storage is full — export your data from Settings", "err"); }catch(e3){} }
+    }
+    return false;
+  }
+}
+
+function _storageBytes(){
+  try{ return new Blob([localStorage.getItem(KEY) || ""]).size; }catch(e){ return 0; }
+}
+
+function openStorageFullModal(){
+  const mb = (_storageBytes() / 1048576).toFixed(1);
+  openModal("Storage is full", `
+    <p class="hn-intro">Your browser gives this app a fixed amount of space and it's used up (${mb} MB). <b>Today's changes did not save.</b></p>
+    <p class="hn-intro">Export a backup first — that file is your whole history and it never expires. Then clear out older days to make room.</p>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Close</button>
+      <button class="btn btn-cyan" id="sfExport">EXPORT A BACKUP</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    const e = document.getElementById("sfExport");
+    if(e) e.addEventListener("click", () => { try{ exportData(); }catch(err){} });
+  });
+}
 function defaultState(){
   return {
     profile:{ name:"", units:"imperial", onboarded:false },
@@ -12477,6 +12533,7 @@ function renderNotesCard(){
 // Never put state mutators here.
 // =================================================================
 window.__bermo = {
+  save,
   parseHealthNote,
   designGoalPlan,
   subMusclesForExercise,

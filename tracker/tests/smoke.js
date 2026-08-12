@@ -437,6 +437,22 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
          : fail("v24 header flow", JSON.stringify(heads));
   } catch (e) { fail("v24 header flow", e); }
 
+  // 17. save() must survive a full disk. A bare setItem threw, lost the
+  //     write, and unwound whatever render was in flight.
+  try {
+    const res = await page.evaluate(() => {
+      const real = Storage.prototype.setItem;
+      let threw = false;
+      Storage.prototype.setItem = function(){ const e = new Error("full"); e.name = "QuotaExceededError"; throw e; };
+      try { window.__bermo.save(); } catch(e){ threw = true; }
+      Storage.prototype.setItem = real;
+      return { threw, alive: !!document.querySelector(".view.active") };
+    });
+    (!res.threw && res.alive)
+      ? ok("v25 save() survives a full storage quota without throwing")
+      : fail("v25 quota safety", JSON.stringify(res));
+  } catch (e) { fail("v25 quota safety", e); }
+
   await browser.close();
   print();
 })();

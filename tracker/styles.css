@@ -3653,3 +3653,212 @@ input, select, textarea{
 .note-find.note-watch b{ color:var(--brand-purple); }
 .note-find.note-good{ border-color:var(--iron-volt); }
 .note-find.note-good b{ color:var(--iron-volt); }
+
+/* ============================================================
+   v23 — DESIGN SYSTEM
+   One segmented nav, one list row, one search field, one
+   multi-select. Every existing tab-strip class is mapped onto the
+   same component so the app reads as one product, not five.
+   ============================================================ */
+
+/* ---- SEGMENTED NAV (modal tabs, sub-navs, scope toggles, meal slots) ---- */
+.seg,
+.food-tabs,
+.subnav,
+.sm-scope,
+.meal-slot-row{
+  display:flex !important; gap:4px !important;
+  padding:3px !important; margin:0 0 14px !important;
+  background:var(--iron-panel-2) !important;
+  border:1px solid var(--iron-line) !important;
+  border-radius:12px !important;
+  overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
+}
+.seg::-webkit-scrollbar, .food-tabs::-webkit-scrollbar,
+.subnav::-webkit-scrollbar, .sm-scope::-webkit-scrollbar,
+.meal-slot-row::-webkit-scrollbar{ display:none; }
+
+.seg-btn,
+.food-tab,
+.sub-chip,
+.sm-tab,
+.meal-slot{
+  flex:1 0 auto !important;
+  padding:9px 14px !important;
+  border:0 !important; border-radius:9px !important;
+  background:transparent !important;
+  color:var(--iron-mute) !important;
+  font-family:inherit !important;
+  font-size:11.5px !important; font-weight:800 !important;
+  letter-spacing:.02em !important; text-transform:none !important;
+  white-space:nowrap; cursor:pointer;
+  transition:background .12s ease, color .12s ease;
+}
+.seg-btn.active, .seg-btn.on,
+.food-tab.active,
+.sub-chip.active, .sub-chip.on,
+.sm-tab.on,
+.meal-slot.on{
+  background:var(--iron-volt) !important;
+  color:#04120f !important;
+  font-weight:900 !important;
+}
+.seg-btn:active, .food-tab:active, .sub-chip:active, .meal-slot:active{ transform:none; }
+
+/* ---- SEARCH FIELD ---- */
+.sfield{
+  display:flex; align-items:center; gap:9px;
+  padding:0 12px; margin-bottom:12px;
+  background:var(--iron-panel-2);
+  border:1px solid var(--iron-line); border-radius:12px;
+}
+.sfield svg{ width:16px; height:16px; color:var(--iron-mute); flex-shrink:0; }
+.sfield input{
+  flex:1; background:transparent !important; border:0 !important;
+  padding:12px 0 !important; color:#fff !important;
+  font-family:inherit; font-size:15px; /* 15px+ stops iOS zooming on focus */
+  outline:none;
+}
+.sfield input::placeholder{ color:#6b7488; }
+.sfield:focus-within{ border-color:var(--iron-volt); }
+
+/* ---- LIST ROWS ---- */
+.lrows{ list-style:none; margin:0; padding:0; max-height:46vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.lgroup{
+  font-size:9.5px; font-weight:900; letter-spacing:.09em; text-transform:uppercase;
+  color:#6b7488; padding:12px 2px 6px;
+}
+.lrow{
+  display:flex; align-items:center; gap:10px;
+  padding:11px 12px; margin-bottom:4px;
+  background:var(--iron-panel-2);
+  border:1px solid var(--iron-line); border-radius:12px;
+  cursor:pointer; transition:border-color .12s ease;
+}
+.lrow:active{ border-color:var(--iron-volt); }
+.lrow-main{ flex:1; min-width:0; }
+.lrow-title{
+  font-size:13.5px; font-weight:700; color:#fff; line-height:1.3;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.lrow-sub{
+  font-size:11px; color:var(--iron-mute); margin-top:2px;
+  font-family:'JetBrains Mono',monospace;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.lrow-fav{
+  flex-shrink:0; width:34px; height:34px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:transparent; border:1px solid var(--iron-line);
+  color:#5a6478; cursor:pointer;
+}
+.lrow-fav svg{ width:16px; height:16px; }
+.lrow-fav.on{ border-color:var(--iron-red); color:var(--iron-red); }
+.lrow-add{
+  flex-shrink:0; width:34px; height:34px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:transparent; border:1px solid var(--iron-volt);
+  color:var(--iron-volt); font-size:19px; font-weight:700; line-height:1; cursor:pointer;
+}
+.lrow-add.added{ background:var(--iron-volt); color:#04120f; }
+.lrow-del{
+  flex-shrink:0; width:30px; height:30px; border-radius:50%;
+  background:transparent; border:1px solid var(--iron-line);
+  color:#6b7488; font-size:17px; line-height:1; cursor:pointer;
+}
+.lrow-empty{
+  list-style:none; padding:18px 14px; text-align:center;
+  font-size:12.5px; color:var(--iron-mute); line-height:1.6;
+}
+.lrow-empty b{ color:#fff; }
+
+/* search-specific states — every one of them is actionable */
+.sr-hint, .sr-loading{
+  list-style:none; padding:16px 14px; text-align:center;
+  font-size:12px; color:#6b7488; font-style:italic;
+}
+.sr-loading{ color:var(--iron-cyan); font-style:normal; }
+.sr-divider{
+  list-style:none; font-size:9.5px; font-weight:900; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--iron-cyan); padding:12px 2px 6px;
+}
+.sr-empty{
+  list-style:none; padding:18px 14px; text-align:center;
+  border:1px solid var(--iron-line); border-radius:12px; margin-top:6px;
+}
+.sr-empty.sr-err{ border-color:var(--brand-purple); }
+.sr-empty-h{ font-size:13px; font-weight:800; color:#fff; margin-bottom:5px; }
+.sr-err .sr-empty-h{ color:var(--brand-purple); }
+.sr-empty-b{ font-size:11.5px; color:var(--iron-mute); line-height:1.55; margin-bottom:12px; }
+.sr-empty-acts{ display:flex; gap:6px; }
+.sr-empty-acts .btn{ flex:1; }
+.sr-tail{ list-style:none; padding:8px 0 2px; }
+.sr-tail .btn{ width:100%; }
+.qaf-calc{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  margin-top:10px; font-size:11.5px; color:var(--iron-mute);
+}
+.qaf-calc b{ color:var(--iron-volt); font-family:'JetBrains Mono',monospace; }
+
+/* the modal is a list surface now — let it breathe on a phone */
+.food-pane{ display:none; }
+.food-pane.active{ display:block; }
+
+/* ---- MULTI-SELECT (My gym; reusable for any grouped pick-many list) ---- */
+.msel{ max-height:52vh; overflow-y:auto; -webkit-overflow-scrolling:touch; margin:0 -2px; padding:0 2px; }
+.msel-group{ margin-bottom:14px; }
+.msel-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 2px 7px;
+}
+.msel-head span{
+  font-size:9.5px; font-weight:900; letter-spacing:.09em; text-transform:uppercase; color:#6b7488;
+}
+.msel-all{
+  background:transparent; border:0; cursor:pointer; padding:2px 4px;
+  font-family:inherit; font-size:10px; font-weight:900; letter-spacing:.05em;
+  color:var(--iron-cyan); text-transform:uppercase;
+}
+.msel-row{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  width:100%; padding:11px 12px; margin-bottom:4px;
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  border-radius:12px; cursor:pointer; text-align:left;
+}
+.msel-label{ font-family:inherit; font-size:13.5px; font-weight:700; color:var(--iron-mute); }
+.msel-check{
+  flex-shrink:0; width:24px; height:24px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  border:1.5px solid var(--iron-line); color:transparent;
+}
+.msel-check svg{ width:13px; height:13px; }
+.msel-row.on{ border-color:var(--iron-volt); }
+.msel-row.on .msel-label{ color:#fff; }
+.msel-row.on .msel-check{ background:var(--iron-volt); border-color:var(--iron-volt); color:#04120f; }
+
+/* library rows now use the shared row, keep the thumbnail */
+.lx-row .lx-thumb{
+  flex-shrink:0; width:42px; height:42px; border-radius:10px; overflow:hidden;
+  background:#111622; border:1px solid var(--iron-line);
+  display:flex; align-items:center; justify-content:center;
+}
+.lx-row .lx-thumb img{ width:100%; height:100%; object-fit:cover; }
+.lx-row .lx-thumb i{ font-style:normal; color:#5a6478; font-size:16px; }
+.lx-row .lrow-main{ display:flex; flex-direction:column; }
+/* numbered step headers read as a real form, not a template */
+.gd-h{ display:flex; align-items:center; gap:8px; }
+.gd-h i{
+  font-style:normal; flex-shrink:0;
+  width:19px; height:19px; border-radius:50%;
+  display:inline-flex; align-items:center; justify-content:center;
+  background:var(--iron-volt); color:#04120f; font-size:10px; font-weight:900;
+}
+/* seg: one scrolling row, never wrap onto a second line */
+.seg, .food-tabs, .subnav, .sm-scope, .meal-slot-row{ flex-wrap:nowrap !important; }
+.seg-btn, .food-tab, .sub-chip, .sm-tab, .meal-slot{ padding:9px 11px !important; font-size:11px !important; }
+/* fade the right edge so a scrollable strip reads as scrollable */
+.seg, .food-tabs, .meal-slot-row{
+  -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 18px), transparent);
+  mask-image:linear-gradient(90deg,#000 calc(100% - 18px), transparent);
+}
+.lrow-sub{ font-size:10.5px; letter-spacing:-.2px; }

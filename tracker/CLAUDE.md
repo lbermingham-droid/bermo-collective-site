@@ -102,6 +102,44 @@ dots per day (food/workout), tap a date to select it app-wide.
 Body: weigh-ins, measurements, InBody scan parse, adaptive macros
 (Macrofactor-style TDEE recalc), smart onboarding wizard (sex/age/activity →
 TDEE → macros + program), macro calculator (Mifflin-St Jeor / Katch-McArdle).
+DESIGN SYSTEM + food search (v23):
+  THE BUG: food search silently dead-ended. When the OpenFoodFacts call
+  failed, the .catch() only removed the spinner and left an EMPTY <ul>
+  with no message and no way forward. render() now ALWAYS ends in an
+  actionable state — results, "no match + add it", or "couldn't reach
+  the database + RETRY + add it". _searchOpenFoodFacts() also has an 8s
+  timeout and falls back from the v2 API to the legacy CGI endpoint.
+  openQuickAddFood() is the escape hatch every dead-end points at; it
+  saves to customFoods so it's a one-time cost.
+  FOOD DB doubled to ~355 items — the gap that made search feel broken
+  was breads/bakery (English muffin, bagels), cereal, dairy, produce,
+  snacks, drinks, condiments.
+  ONE DESIGN SYSTEM (styles.css v23 block). Four components, and every
+  legacy class maps onto them so the app reads as one product:
+    .seg / .seg-btn  — every tab strip. .food-tabs, .subnav/.sub-chip,
+                       .sm-scope/.sm-tab and .meal-slot-row all inherit
+                       it, so the nav looks identical everywhere.
+                       Guarded by a smoke test comparing border-radius
+                       across all four selectors.
+    .sfield          — search input w/ icon; 15px font so iOS doesn't
+                       zoom on focus.
+    .lrow            — ONE list row (title / mono sub / heart / +).
+                       Used by search results, recents, favourites,
+                       saved meals and the exercise library.
+    .msel            — grouped multi-select w/ check circles + per-group
+                       All toggle (the Fitbod pattern she referenced).
+  FOOD MODAL relabelled to the words people use: Search · Recent ·
+  Favorites · My meals · Scan (was Quick log / Search / Templates / AI /
+  Barcode). AI photo + text moved inside Scan. Favourites are a real
+  pane backed by state.favFoods, and every food row anywhere has the
+  heart. foodRowHtml() / wireFoodRows() are the shared renderer.
+  MY GYM — openEquipmentModal(): 35 pieces of equipment in 6 groups,
+  state.equipment (null = everything). equipIdsFor() maps an exercise to
+  the kit it needs — deliberately generous, since a false hide is worse
+  than a false show. Library gains "Only my gym" + "Set up my gym".
+  GOAL DESIGNER relabelled — "Where you're going" was vague. Now
+  numbered steps: Your goal / Your numbers today / Your target / Your
+  limits, with pill step markers.
 Nutrients + goals + notes (v22):
   MICRONUTRIENTS — MICROS table (sat fat, sodium, potassium, calcium,
   iron, magnesium, vit C/D/A, cholesterol). Captured from OpenFoodFacts
@@ -327,7 +365,7 @@ export/import, PWA install.
   food + lift logging end-to-end, modal close, dashboard re-render,
   cross-page date sync, and the v20 health engines (seeds a quad-free
   leg week and asserts the gap is named WITH a fix).
-  Expected: 21/21 + zero page errors.
+  Expected: 23/23 + zero page errors.
   Also always `node --check tracker/app.js`. The user additionally
   tests on iPhone — when something breaks there, ask for a screenshot
   + the exact element tapped.

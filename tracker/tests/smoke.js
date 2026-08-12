@@ -102,7 +102,7 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
     else {
       await page.fill("#foodSearch", "egg");
       await page.waitForTimeout(350);
-      await page.click(".search-result", { timeout: 4000 });
+      await page.click("#searchResults .lrow", { timeout: 4000 });
       await page.waitForTimeout(500);
       const logged = await page.evaluate(() => {
         const s = JSON.parse(localStorage.getItem("bermo.tracker.v1"));
@@ -333,6 +333,65 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
     micro ? ok("v22 micronutrient card present")
           : fail("v22 micronutrients", "no #microTable");
   } catch (e) { fail("v22 micronutrients", e); }
+
+  // 14. v23: food search must NEVER dead-end. This is the bug she hit —
+  //     when OpenFoodFacts failed, the list silently emptied with no
+  //     explanation and no way forward. Simulate the outage.
+  try {
+    await page.click(`${tabSel}[data-tab="nutrition"]`).catch(()=>{});
+    await page.waitForTimeout(400);
+    // test 13 left the NUTRIENTS sub-tab open — go back to DIARY
+    await page.evaluate(() => {
+      const c = [...document.querySelectorAll(".sub-chip")].find(x => /DIARY/i.test(x.textContent));
+      if(c) c.click();
+    });
+    await page.waitForTimeout(500);
+    await page.click('[data-dy-add="breakfast"]', { timeout: 6000 });
+    await page.waitForTimeout(400);
+    // the modal opens on Recent for a returning user — switch to Search
+    await page.evaluate(() => {
+      const t = document.querySelector('.food-tab[data-fmode="search"]');
+      if(t) t.click();
+    });
+    await page.waitForTimeout(300);
+    // (a) a food that only exists in the expanded local DB
+    await page.fill("#foodSearch", "english muffin");
+    await page.waitForTimeout(400);
+    const localHit = await page.evaluate(() =>
+      [...document.querySelectorAll("#searchResults .lrow-title")].some(e => /english muffin/i.test(e.textContent)));
+    // (b) kill the network and confirm we get an actionable error, not a blank list
+    await page.route("**/openfoodfacts.org/**", r => r.abort());
+    await page.fill("#foodSearch", "zzzznotafood");
+    await page.waitForTimeout(1200);
+    const state14 = await page.evaluate(() => {
+      const l = document.getElementById("searchResults");
+      return {
+        empty: !l || l.children.length === 0,
+        actionable: !!(l && l.querySelector("[data-create], [data-retry]")),
+        text: l ? l.innerText.slice(0, 80) : "",
+      };
+    });
+    await page.unroute("**/openfoodfacts.org/**");
+    (localHit && !state14.empty && state14.actionable)
+      ? ok("v23 food search never dead-ends (local hit + actionable offline state)")
+      : fail("v23 food search", JSON.stringify({ localHit, ...state14 }));
+  } catch (e) { fail("v23 food search", e); }
+
+  // 15. v23: one nav component — every tab strip resolves to the same styling.
+  try {
+    const consistent = await page.evaluate(() => {
+      const sel = [".food-tab", ".sub-chip", ".sm-tab", ".meal-slot"];
+      const radii = new Set();
+      sel.forEach(s2 => {
+        const el = document.querySelector(s2);
+        if(el) radii.add(getComputedStyle(el).borderRadius);
+      });
+      return { radii:[...radii], count:radii.size };
+    });
+    consistent.count <= 1
+      ? ok("v23 nav components render identically across the app")
+      : fail("v23 nav consistency", JSON.stringify(consistent));
+  } catch (e) { fail("v23 nav consistency", e); }
 
   await browser.close();
   print();

@@ -428,28 +428,38 @@ function openFoodModal(meal){
   ).join("");
   openModal(`Log food`, `
     <div class="meal-slot-row" role="radiogroup" aria-label="Meal slot">${slotPills}</div>
-    <div class="food-tabs">
-      <button type="button" class="food-tab" data-fmode="quicklog">Quick log</button>
-      <button type="button" class="food-tab" data-fmode="search">Search</button>
-      <button type="button" class="food-tab" data-fmode="templates">Templates</button>
-      <button type="button" class="food-tab" data-fmode="ai">AI</button>
-      <button type="button" class="food-tab" data-fmode="barcode">Barcode</button>
+    <div class="seg seg-scroll food-tabs">
+      <button type="button" class="seg-btn food-tab" data-fmode="search">Search</button>
+      <button type="button" class="seg-btn food-tab" data-fmode="quicklog">Recent</button>
+      <button type="button" class="seg-btn food-tab" data-fmode="favorites">Favorites</button>
+      <button type="button" class="seg-btn food-tab" data-fmode="templates">My meals</button>
+      <button type="button" class="seg-btn food-tab" data-fmode="barcode">Scan</button>
     </div>
     <div class="food-pane" data-pane="search">
-      <input type="search" id="foodSearch" class="search-input" placeholder="Search 200+ foods, restaurants, brands…" autocomplete="off">
-      <ul class="search-results" id="searchResults"></ul>
+      <div class="sfield">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="search" id="foodSearch" placeholder="Search foods, brands, restaurants" autocomplete="off">
+      </div>
+      <ul class="lrows search-results" id="searchResults"></ul>
     </div>
     <div class="food-pane" data-pane="quicklog">
-      <input type="search" id="qlFilter" class="search-input" placeholder="Filter list…" autocomplete="off">
-      <div class="ql-section-label">Recents</div>
-      <ul class="ql-list" id="qlRecents"></ul>
-      <div class="ql-section-label">All foods</div>
-      <ul class="ql-list" id="qlAll"></ul>
+      <div class="sfield">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="search" id="qlFilter" placeholder="Filter your foods" autocomplete="off">
+      </div>
+      <div class="lgroup">Recently logged</div>
+      <ul class="lrows ql-list" id="qlRecents"></ul>
+      <div class="lgroup">All foods</div>
+      <ul class="lrows ql-list" id="qlAll"></ul>
+    </div>
+    <div class="food-pane" data-pane="favorites">
+      <p class="ql-hint">Tap the heart on any food to keep it here.</p>
+      <ul class="lrows ql-list" id="favList"></ul>
     </div>
     <div class="food-pane" data-pane="templates">
-      <p class="ql-hint">Save this meal as a template, or apply a saved one.</p>
-      <ul class="ql-list" id="tplList"></ul>
-      <button type="button" class="btn btn-ghost btn-sm" id="tplSaveCurrent" style="margin-top:8px">+ Save current ${capitalize(meal)} as template</button>
+      <p class="ql-hint">Meals you've saved — a whole plate in one tap.</p>
+      <ul class="lrows ql-list" id="tplList"></ul>
+      <button type="button" class="btn btn-ghost btn-sm" id="tplSaveCurrent" style="margin-top:10px;width:100%">+ SAVE TODAY'S ${escape(meal.toUpperCase())} AS A MEAL</button>
     </div>
     <div class="food-pane" data-pane="ai">
       <p class="ql-hint" id="foodAIStatusHint">Use an AI key (Claude or OpenAI) to read a photo of your plate or parse a typed description.</p>
@@ -458,8 +468,12 @@ function openFoodModal(meal){
       <button type="button" class="btn btn-ghost btn-sm" id="foodAISetupBtn" style="width:100%;font-size:11px"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.77-.32 1.6 1.6 0 0 0-1 1.47V21a2 2 0 1 1-4 0v-.11a1.6 1.6 0 0 0-1.05-1.46 1.6 1.6 0 0 0-1.77.32l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.6 1.6 0 0 0 .32-1.77 1.6 1.6 0 0 0-1.47-1H3a2 2 0 1 1 0-4h.11A1.6 1.6 0 0 0 4.57 8.8a1.6 1.6 0 0 0-.32-1.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.6 1.6 0 0 0 1.77.32H9a1.6 1.6 0 0 0 1-1.47V3a2 2 0 1 1 4 0v.11a1.6 1.6 0 0 0 1 1.47 1.6 1.6 0 0 0 1.77-.32l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.6 1.6 0 0 0-.32 1.77V9a1.6 1.6 0 0 0 1.47 1H21a2 2 0 1 1 0 4h-.11a1.6 1.6 0 0 0-1.47 1Z"/></svg></span> Set up / change API key</button>
     </div>
     <div class="food-pane" data-pane="barcode">
-      <button type="button" class="btn btn-cyan" id="foodBarcodeBtn" style="width:100%;margin-bottom:8px">Scan with camera</button>
-      <button type="button" class="btn btn-ghost" id="foodBarcodeManualBtn" style="width:100%">Type UPC manually</button>
+      <button type="button" class="btn btn-cyan" id="foodBarcodeBtn" style="width:100%;margin-bottom:8px">SCAN A BARCODE</button>
+      <button type="button" class="btn btn-ghost" id="foodBarcodeManualBtn" style="width:100%;margin-bottom:14px">Type the UPC instead</button>
+      <div class="lgroup">Or describe it</div>
+      <button type="button" class="btn btn-ghost" id="foodAIPhotoBtn2" style="width:100%;margin-bottom:8px">Photo of the plate</button>
+      <button type="button" class="btn btn-ghost" id="foodAITextBtn2" style="width:100%;margin-bottom:8px">Type what you ate</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="foodQuickAddBtn" style="width:100%">+ Add a food by hand</button>
     </div>
   `, () => {
     // Meal-slot pills — let user switch slot inside the modal so they don't get locked in
@@ -468,7 +482,9 @@ function openFoodModal(meal){
         _activeFoodMeal = b.dataset.mealSlot;
         document.querySelectorAll("[data-meal-slot]").forEach(x => x.classList.toggle("on", x === b));
         const tplSaveBtn = document.getElementById("tplSaveCurrent");
-        if(tplSaveBtn) tplSaveBtn.textContent = `+ Save current ${capitalize(_activeFoodMeal)} as template`;
+        if(tplSaveBtn) tplSaveBtn.textContent = `+ SAVE TODAY'S ${_activeFoodMeal.toUpperCase()} AS A MEAL`;
+        if(typeof renderQuickLogPane === "function") renderQuickLogPane(_activeFoodMeal, allFoods);
+        if(typeof renderFavoritesPane === "function") renderFavoritesPane(_activeFoodMeal, allFoods);
       });
     });
 
@@ -508,76 +524,241 @@ function openFoodModal(meal){
     const qlf = $("#qlFilter");
     if(qlf) qlf.addEventListener("input", () => renderQuickLogPane(_activeFoodMeal, allFoods, qlf.value));
 
-    // TEMPLATES pane
+    // FAVORITES pane
+    renderFavoritesPane(_activeFoodMeal, allFoods);
+    const aip2 = $("#foodAIPhotoBtn2");
+    if(aip2) aip2.addEventListener("click", () => { closeModal(); if(typeof openAIPhotoModal === "function") openAIPhotoModal(_activeFoodMeal); });
+    const ait2 = $("#foodAITextBtn2");
+    if(ait2) ait2.addEventListener("click", () => { closeModal(); if(typeof openAITextModal === "function") openAITextModal(_activeFoodMeal); });
+    const qab = $("#foodQuickAddBtn");
+    if(qab) qab.addEventListener("click", () => { const m = _activeFoodMeal; closeModal(); setTimeout(() => openQuickAddFood("", m), 120); });
+
+    // SAVED MEALS pane
     renderTemplatesPane(_activeFoodMeal);
     const tplSave = $("#tplSaveCurrent");
     if(tplSave) tplSave.addEventListener("click", () => saveCurrentMealAsTemplate(_activeFoodMeal));
     let _searchAbort = null;
     let _searchSeq = 0;
-    const renderRow = (x, badge) => `
-      <li class="search-result" data-key="${escape(x.id)}">
-        <div>
-          <div class="sr-name">${escape(x.name)}${badge || ""}</div>
-          <div class="sr-meta">${escape(x.serving||"")} · P${x.p} C${x.c} F${x.f}</div>
-        </div>
-        <div class="sr-cal">${x.cal} kcal</div>
+    const renderRow = (x) => foodRowHtml(x, { key: x.id });
+    const wireRows = (items) => wireFoodRows(list, (k) => items.find(x => String(x.id) === String(k)));
+    const emptyState = (q) => `
+      <li class="sr-empty">
+        <div class="sr-empty-h">No match for "${escape(q)}"</div>
+        <div class="sr-empty-b">Add it once with its macros and it's in your list from then on.</div>
+        <button type="button" class="btn btn-cyan btn-sm" data-create="${escape(q)}">+ ADD "${escape(q.toUpperCase())}"</button>
       </li>`;
-    const wireRows = (items) => {
-      list.querySelectorAll(".search-result").forEach(li => {
-        li.addEventListener("click", () => {
-          const food = items.find(x => x.id === li.dataset.key);
-          if(!food) return;
-          dayObj(currentDate).meals[_activeFoodMeal].push(mealItemFrom(food));
-          if(typeof _trackRecent === "function") _trackRecent(food);
-          save(); closeModal(); renderAll();
-          toast(`Added ${food.name} to ${_activeFoodMeal}`, "cyan");
-        });
-      });
+    const errorState = (q) => `
+      <li class="sr-empty sr-err">
+        <div class="sr-empty-h">Couldn't reach the online food database</div>
+        <div class="sr-empty-b">Your connection or their server. Your ${allFoods.length} saved + built-in foods still search fine — or add this one by hand.</div>
+        <div class="sr-empty-acts">
+          <button type="button" class="btn btn-ghost btn-sm" data-retry="${escape(q)}">RETRY</button>
+          <button type="button" class="btn btn-cyan btn-sm" data-create="${escape(q)}">+ ADD IT</button>
+        </div>
+      </li>`;
+    const wireEmpty = () => {
+      list.querySelectorAll("[data-create]").forEach(b => b.addEventListener("click", () => {
+        openQuickAddFood(b.getAttribute("data-create"), _activeFoodMeal);
+      }));
+      list.querySelectorAll("[data-retry]").forEach(b => b.addEventListener("click", () => {
+        render(b.getAttribute("data-retry"));
+      }));
     };
     const render = (q="") => {
-      const local = allFoods.filter(x => x.name.toLowerCase().includes(q.toLowerCase())).slice(0, 30);
-      let html = local.map(x => renderRow(x)).join("");
-      // If the query is meaningful, search OpenFoodFacts in the background
-      if(q && q.trim().length >= 3){
-        if(_searchAbort) _searchAbort.abort();
-        _searchAbort = new AbortController();
-        const seq = ++_searchSeq;
-        if(local.length === 0){
-          html += `<li class="off-loading" style="padding:10px;font-size:11px;color:#888;font-style:italic">Searching OpenFoodFacts (2M items)…</li>`;
-        } else {
-          html += `<li class="off-loading" style="padding:8px;font-size:10px;color:#888;text-align:center;font-style:italic">+ searching OpenFoodFacts…</li>`;
-        }
-        list.innerHTML = html;
+      const term = q.trim().toLowerCase();
+      const local = term
+        ? allFoods.filter(x => x.name.toLowerCase().includes(term)).slice(0, 30)
+        : allFoods.slice(0, 25);
+      const localHtml = local.map(x => renderRow(x)).join("");
+
+      if(!term){
+        list.innerHTML = localHtml || `<li class="sr-hint">Start typing — ${allFoods.length} foods here, plus 2M+ packaged items online.</li>`;
         wireRows(local);
-        _searchOpenFoodFacts(q, _searchAbort.signal).then(off => {
-          if(seq !== _searchSeq) return;
-          // Dedupe: drop OFF items that match a local name
-          const localNames = new Set(local.map(x => x.name.toLowerCase()));
-          const offUnique = off.filter(o => !localNames.has(o.name.toLowerCase()));
-          const merged = [...local, ...offUnique];
-          let h = local.map(x => renderRow(x)).join("");
-          if(offUnique.length){
-            h += `<li class="off-divider" style="padding:6px 10px;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--cyan);font-weight:700">From OpenFoodFacts</li>`;
-            h += offUnique.map(x => renderRow(x, ` <span style="font-size:9px;color:var(--cyan);font-weight:600">OFF</span>`)).join("");
-          } else if(local.length === 0){
-            h = `<li style="padding:14px;color:#bbb;font-style:italic">No matches in local DB or OpenFoodFacts.</li>`;
-          }
-          list.innerHTML = h;
-          wireRows(merged);
-        }).catch(err => {
-          if(err.name === "AbortError") return;
-          // Silent fail — local results still shown
-          const loading = list.querySelector(".off-loading");
-          if(loading) loading.remove();
-        });
-      } else {
-        list.innerHTML = html || `<li style="padding:14px;color:#bbb;font-style:italic">Type to search 200 local + 2M OpenFoodFacts items.</li>`;
-        wireRows(local);
+        return;
       }
+      if(term.length < 3){
+        list.innerHTML = localHtml || `<li class="sr-hint">Keep typing…</li>`;
+        wireRows(local);
+        return;
+      }
+
+      if(_searchAbort) _searchAbort.abort();
+      _searchAbort = new AbortController();
+      const seq = ++_searchSeq;
+      list.innerHTML = localHtml + `<li class="sr-loading">Searching online food database…</li>`;
+      wireRows(local);
+
+      _searchOpenFoodFacts(q, _searchAbort.signal).then(off => {
+        if(seq !== _searchSeq) return;
+        const localNames = new Set(local.map(x => x.name.toLowerCase()));
+        const offUnique = off.filter(o => !localNames.has(o.name.toLowerCase()));
+        const merged = [...local, ...offUnique];
+        let h = localHtml;
+        if(offUnique.length){
+          h += `<li class="sr-divider">Packaged foods online</li>`;
+          h += offUnique.map(x => renderRow(x)).join("");
+        }
+        // ALWAYS end in a state the user can act on.
+        if(!merged.length) h = emptyState(q);
+        else h += `<li class="sr-tail"><button type="button" class="btn btn-ghost btn-sm" data-create="${escape(q)}">NOT HERE? + ADD "${escape(q.toUpperCase())}"</button></li>`;
+        list.innerHTML = h;
+        wireRows(merged);
+        wireEmpty();
+      }).catch(err => {
+        if(err.name === "AbortError" || seq !== _searchSeq) return;
+        // The old code removed the spinner and left an EMPTY list — a dead
+        // end with no explanation. Never again.
+        list.innerHTML = localHtml + errorState(q);
+        wireRows(local);
+        wireEmpty();
+      });
     };
     render();
     input.addEventListener("input", () => render(input.value));
     if(startMode === "search") input.focus();
+  });
+}
+
+// Add a food that isn't in any database, log it, and keep it. This is the
+// escape hatch every search dead-end now points at.
+// ONE list row for every food list in the app — search results, recents,
+// favourites, saved meals. Same markup, same behaviour, everywhere.
+function foodRowHtml(food, opts){
+  const o = opts || {};
+  const fav = isFavFood(food.name);
+  const meta = [food.serving, `${Math.round(food.cal || 0)} cal`,
+                `P${Math.round(food.p||0)} C${Math.round(food.c||0)} F${Math.round(food.f||0)}`]
+    .filter(Boolean).join(" · ");
+  return `<li class="lrow" data-key="${escape(String(o.key != null ? o.key : food.id || food.name))}">
+    <div class="lrow-main">
+      <div class="lrow-title">${escape(food.name)}</div>
+      <div class="lrow-sub">${escape(meta)}</div>
+    </div>
+    ${o.noFav ? "" : `<button type="button" class="lrow-fav ${fav ? "on" : ""}" data-fav="${escape(food.name)}" aria-label="Favourite">
+      <svg viewBox="0 0 24 24" fill="${fav ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.8"><path d="M12 20.4 4.6 13a4.6 4.6 0 0 1 6.5-6.5l.9.9.9-.9A4.6 4.6 0 0 1 19.4 13Z"/></svg>
+    </button>`}
+    <button type="button" class="lrow-add" aria-label="Add">+</button>
+  </li>`;
+}
+function isFavFood(name){
+  return (state.favFoods || []).some(f => (f.name || "").toLowerCase() === String(name).toLowerCase());
+}
+function toggleFavFood(food){
+  if(!state.favFoods) state.favFoods = [];
+  const i = state.favFoods.findIndex(f => (f.name || "").toLowerCase() === (food.name || "").toLowerCase());
+  if(i > -1){ state.favFoods.splice(i, 1); save(); return false; }
+  state.favFoods.unshift({ name:food.name, serving:food.serving, cal:food.cal, p:food.p, c:food.c, f:food.f,
+                           fiber:food.fiber, sugar:food.sugar, micros:food.micros });
+  state.favFoods = state.favFoods.slice(0, 60);
+  save();
+  return true;
+}
+// Wire a rendered list: heart toggles the favourite, the rest adds the food.
+function wireFoodRows(listEl, lookup, onAdded){
+  if(!listEl) return;
+  listEl.querySelectorAll(".lrow").forEach(li => {
+    const favBtn = li.querySelector(".lrow-fav");
+    if(favBtn) favBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const food = lookup(li.dataset.key);
+      if(!food) return;
+      const now = toggleFavFood(food);
+      favBtn.classList.toggle("on", now);
+      const svg = favBtn.querySelector("svg");
+      if(svg) svg.setAttribute("fill", now ? "currentColor" : "none");
+      toast(now ? `Saved ${food.name} to favourites` : `Removed ${food.name}`, "cyan");
+    });
+    li.addEventListener("click", () => {
+      const food = lookup(li.dataset.key);
+      if(!food) return;
+      const targetMeal = (typeof _activeFoodMeal === "string") ? _activeFoodMeal : "breakfast";
+      dayObj(currentDate).meals[targetMeal].push(mealItemFrom(food));
+      if(typeof _trackRecent === "function") _trackRecent(food);
+      save();
+      if(onAdded) onAdded(food, li);
+      else { closeModal(); renderAll(); toast(`Added ${food.name} to ${targetMeal}`, "cyan"); }
+    });
+  });
+}
+
+function renderFavoritesPane(meal, allFoods){
+  const list = $("#favList");
+  if(!list) return;
+  const favs = state.favFoods || [];
+  if(!favs.length){
+    list.innerHTML = `<li class="lrow-empty">Nothing saved yet. Tap the heart on any food — in Search, Recent, or your diary — and it lands here for one-tap logging.</li>`;
+    return;
+  }
+  list.innerHTML = favs.map((f, i) => foodRowHtml(f, { key: i })).join("");
+  wireFoodRows(list, (k) => (state.favFoods || [])[parseInt(k, 10)], (food, li) => {
+    const b = li.querySelector(".lrow-add");
+    if(b){ b.textContent = "✓"; b.classList.add("added"); setTimeout(() => { b.textContent = "+"; b.classList.remove("added"); }, 700); }
+    toast(`Added ${food.name}`, "cyan");
+    renderAll();
+  });
+}
+
+function openQuickAddFood(prefillName, meal){
+  const slot = meal || _activeFoodMeal || "breakfast";
+  openModal("Add a food", `
+    <p class="hn-intro">Straight off the label or your best estimate. It saves to your foods, so you only ever do this once.</p>
+    <div class="form-grid">
+      <label class="span-2"><span>Name</span><input id="qafName" type="text" maxlength="60" value="${escape(prefillName || "")}"></label>
+      <label class="span-2"><span>Serving</span><input id="qafServing" type="text" maxlength="30" placeholder="1 muffin, 4 oz, 1 cup…"></label>
+      <label><span>Calories</span><input id="qafCal" type="number" min="0" max="4000" inputmode="numeric"></label>
+      <label><span>Protein (g)</span><input id="qafP" type="number" min="0" max="300" step="0.1" inputmode="decimal"></label>
+      <label><span>Carbs (g)</span><input id="qafC" type="number" min="0" max="500" step="0.1" inputmode="decimal"></label>
+      <label><span>Fat (g)</span><input id="qafF" type="number" min="0" max="300" step="0.1" inputmode="decimal"></label>
+      <label><span>Fiber (g) <em>optional</em></span><input id="qafFib" type="number" min="0" max="100" step="0.1" inputmode="decimal"></label>
+      <label><span>Sugar (g) <em>optional</em></span><input id="qafSug" type="number" min="0" max="300" step="0.1" inputmode="decimal"></label>
+    </div>
+    <div id="qafCalc" class="qaf-calc"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-cyan" id="qafSave">ADD TO ${escape(slot.toUpperCase())}</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    const num = (id) => { const v = parseFloat((document.getElementById(id)||{}).value); return isNaN(v) ? 0 : v; };
+    const calcEl = document.getElementById("qafCalc");
+    const refresh = () => {
+      const p = num("qafP"), c = num("qafC"), f = num("qafF");
+      const fromMacros = Math.round(p*4 + c*4 + f*9);
+      const stated = num("qafCal");
+      if(!fromMacros){ calcEl.innerHTML = ""; return; }
+      const off = stated ? Math.abs(stated - fromMacros) : 0;
+      calcEl.innerHTML = `<span>Macros work out to <b>${fromMacros} kcal</b>${stated ? ` · you entered ${stated}` : ""}</span>
+        ${!stated || off > 25 ? `<button type="button" class="btn btn-ghost btn-sm" id="qafUse">USE ${fromMacros}</button>` : ""}`;
+      const u = document.getElementById("qafUse");
+      if(u) u.addEventListener("click", () => { document.getElementById("qafCal").value = fromMacros; refresh(); });
+    };
+    ["qafCal","qafP","qafC","qafF"].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.addEventListener("input", refresh);
+    });
+    setTimeout(() => { const n = document.getElementById("qafName"); if(n && !n.value) n.focus(); else { const s2 = document.getElementById("qafServing"); if(s2) s2.focus(); } }, 100);
+
+    document.getElementById("qafSave").addEventListener("click", () => {
+      const name = (document.getElementById("qafName").value || "").trim();
+      if(!name){ toast("Give it a name", "pink"); return; }
+      const p = num("qafP"), c = num("qafC"), f = num("qafF");
+      let cal = num("qafCal");
+      if(!cal) cal = Math.round(p*4 + c*4 + f*9);
+      if(!cal){ toast("Add calories or macros", "pink"); return; }
+      const fib = num("qafFib"), sug = num("qafSug");
+      const food = {
+        id: "f-c-" + Math.random().toString(36).slice(2,8),
+        name, serving: (document.getElementById("qafServing").value || "").trim(),
+        cal, p, c, f, custom: true,
+      };
+      if(fib) food.fiber = fib;
+      if(sug) food.sugar = sug;
+      state.customFoods.push(food);
+      dayObj(currentDate).meals[slot].push(mealItemFrom(food));
+      if(typeof _trackRecent === "function") _trackRecent(food);
+      save(); closeModal(); renderAll();
+      toast(`Added ${name} — saved to your foods`, "cyan");
+    });
   });
 }
 
@@ -6822,10 +7003,26 @@ async function _searchOpenFoodFacts(query, signal){
   if(q.length < 3) return [];
   const cached = _offSearchCache.get(q);
   if(cached && (Date.now() - cached.ts) < _OFF_TTL_MS) return cached.items;
-  const url = `https://world.openfoodfacts.org/api/v2/search?search_terms=${encodeURIComponent(q)}&fields=code,product_name,brands,serving_size,nutriments&page_size=20&sort_by=popularity_key`;
-  const r = await fetch(url, { signal });
-  if(!r.ok) throw new Error("OFF search failed");
-  const j = await r.json();
+  // OFF's v2 search is frequently slow or rate-limited; fall back to the
+  // long-standing CGI endpoint before giving up, and always time out so a
+  // hanging request can't leave the list empty forever.
+  const withTimeout = (url) => {
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 8000);
+    if(signal) signal.addEventListener("abort", () => ctl.abort(), { once:true });
+    return fetch(url, { signal: ctl.signal }).finally(() => clearTimeout(timer));
+  };
+  const FIELDS = "code,product_name,brands,serving_size,nutriments";
+  let j = null;
+  try {
+    const r = await withTimeout(`https://world.openfoodfacts.org/api/v2/search?search_terms=${encodeURIComponent(q)}&fields=${FIELDS}&page_size=20&sort_by=popularity_key`);
+    if(r.ok) j = await r.json();
+  } catch(e){ if(e.name === "AbortError" && signal && signal.aborted) throw e; }
+  if(!j || !(j.products || []).length){
+    const r2 = await withTimeout(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=20&fields=${FIELDS}`);
+    if(!r2.ok) throw new Error("Food database unreachable");
+    j = await r2.json();
+  }
   const items = (j.products || [])
     .filter(p => p.product_name && p.nutriments && (p.nutriments["energy-kcal_100g"] || p.nutriments["energy-kcal_serving"]))
     .slice(0, 12)
@@ -7158,69 +7355,49 @@ function renderQuickLogPane(meal, allFoods, filter){
   const recents = (state.recentFoods || []).slice(0, 8);
   const filterLower = (filter || "").toLowerCase();
   const matchAll = filter ? allFoods.filter(x => x.name.toLowerCase().includes(filterLower)) : allFoods;
-  const renderRow = (food) => `
-    <li class="ql-row" data-food='${escape(JSON.stringify({name:food.name,serving:food.serving,cal:food.cal,p:food.p,c:food.c,f:food.f}))}'>
-      <div class="ql-info">
-        <div class="ql-name">${escape(food.name)}</div>
-        <div class="ql-meta">${escape(food.serving||"")} · ${food.cal} cal · P${food.p}</div>
-      </div>
-      <button class="ql-add" type="button">+</button>
-    </li>
-  `;
+  const recFiltered = recents.filter(x => !filter || x.name.toLowerCase().includes(filterLower));
+  const flash = (food, li) => {
+    const b = li.querySelector(".lrow-add");
+    if(b){ b.textContent = "✓"; b.classList.add("added"); setTimeout(() => { b.textContent = "+"; b.classList.remove("added"); }, 700); }
+    toast(`Added ${food.name}`, "cyan");
+    if(typeof renderAll === "function") renderAll();
+  };
   const recList = $("#qlRecents");
   if(recList){
-    const favs = (state.favFoods || []).filter(x =>
-      !filter || x.name.toLowerCase().includes(filterLower));
-    const favHtml = favs.length
-      ? `<li class="ql-section-inline">FAVORITES</li>` + favs.map(renderRow).join("")
-      : "";
-    const recHtml = recents.length
-      ? recents.map(renderRow).join("")
-      : `<li class="ql-empty">No recents yet — log a few items to populate.</li>`;
-    recList.innerHTML = favHtml + recHtml;
+    recList.innerHTML = recFiltered.length
+      ? recFiltered.map((f, i) => foodRowHtml(f, { key: i })).join("")
+      : `<li class="lrow-empty">Nothing logged yet. Anything you add shows up here for one tap next time.</li>`;
+    wireFoodRows(recList, (k) => recFiltered[parseInt(k, 10)], flash);
   }
   const allList = $("#qlAll");
   if(allList){
-    allList.innerHTML = matchAll.slice(0, 100).map(renderRow).join("") || `<li class="ql-empty">No matches.</li>`;
+    const shown = matchAll.slice(0, 120);
+    allList.innerHTML = shown.length
+      ? shown.map((f, i) => foodRowHtml(f, { key: i })).join("")
+      : `<li class="lrow-empty">No matches in your foods. Try the Search tab — it also looks online.</li>`;
+    wireFoodRows(allList, (k) => shown[parseInt(k, 10)], flash);
   }
-  document.querySelectorAll(".ql-row").forEach(li => {
-    li.addEventListener("click", () => {
-      const food = JSON.parse(li.dataset.food);
-      const targetMeal = (typeof _activeFoodMeal === "string") ? _activeFoodMeal : meal;
-      dayObj(currentDate).meals[targetMeal].push(mealItemFrom(food));
-      _trackRecent(food);
-      save();
-      // Brief feedback then re-render quick log so user can keep tapping
-      const btn = li.querySelector(".ql-add");
-      if(btn){ btn.textContent = "✓"; btn.classList.add("added"); setTimeout(() => { btn.textContent = "+"; btn.classList.remove("added"); }, 600); }
-      toast(`Added ${food.name} to ${targetMeal}`, "cyan");
-      // Update day totals in background
-      if(typeof renderAll === "function") renderAll();
-    });
-  });
 }
 function renderTemplatesPane(meal){
   const list = $("#tplList");
   if(!list) return;
   const tpls = state.mealTemplates || [];
   if(!tpls.length){
-    list.innerHTML = `<li class="ql-empty">No templates yet. Build a meal in this slot, then save it as a template.</li>`;
+    list.innerHTML = `<li class="lrow-empty">No saved meals yet. Build a plate in your diary, tap <b>SELECT</b>, pick the items, then <b>SAVE AS MEAL</b> — or use the button below to save what you've already logged today.</li>`;
     return;
   }
   list.innerHTML = tpls.map(t => `
-    <li class="ql-row tpl-row" data-id="${t.id}">
-      <div class="ql-info">
-        <div class="ql-name">${escape(t.name)}</div>
-        <div class="ql-meta">${t.items.length} items · ${t.totals.cal} cal · P${t.totals.p}</div>
+    <li class="lrow tpl-row" data-id="${t.id}">
+      <div class="lrow-main">
+        <div class="lrow-title">${escape(t.name)}</div>
+        <div class="lrow-sub">${t.items.length} item${t.items.length===1?"":"s"} · ${t.totals.cal} cal · P${t.totals.p} C${t.totals.c} F${t.totals.f}</div>
       </div>
-      <div class="tpl-actions">
-        <button class="ql-add" type="button" data-act="apply">Apply</button>
-        <button class="ql-del" type="button" data-act="del" title="Delete">×</button>
-      </div>
+      <button class="lrow-del" type="button" data-act="del" aria-label="Delete">×</button>
+      <button class="lrow-add" type="button" data-act="apply">+</button>
     </li>
   `).join("");
   list.querySelectorAll(".tpl-row").forEach(row => {
-    row.querySelector("[data-act='apply']").addEventListener("click", () => {
+    const applyIt = () => {
       const tpl = (state.mealTemplates || []).find(x => x.id === row.dataset.id);
       if(!tpl) return;
       const targetMeal = (typeof _activeFoodMeal === "string") ? _activeFoodMeal : meal;
@@ -7228,11 +7405,13 @@ function renderTemplatesPane(meal){
         dayObj(currentDate).meals[targetMeal].push(mealItemFrom(it));
       });
       save();
-      toast(`Applied ${tpl.name} to ${targetMeal}`, "cyan");
+      toast(`Added ${tpl.name} to ${targetMeal}`, "cyan");
       closeModal();
       if(typeof renderAll === "function") renderAll();
-    });
-    row.querySelector("[data-act='del']").addEventListener("click", () => {
+    };
+    row.addEventListener("click", applyIt);
+    row.querySelector("[data-act='del']").addEventListener("click", (e) => {
+      e.stopPropagation();
       state.mealTemplates = (state.mealTemplates || []).filter(x => x.id !== row.dataset.id);
       save();
       renderTemplatesPane(meal);
@@ -10013,7 +10192,147 @@ function allLibraryExercises(){
   return Array.from(set);
 }
 
-let _libSub = "all", _libQuery = "", _libFilters = { part:"", equip:"" }, _libSortAZ = true;
+// =================================================================
+// MY GYM — equipment multi-select.
+// Grouped sections, check circles, select-all per group. Once she sets
+// it, the Library only shows movements she can actually do.
+// =================================================================
+const EQUIP_GROUPS = [
+  { group:"Free weights", items:[
+    ["barbell","Barbell"], ["dumbbell","Dumbbells"], ["kettlebell","Kettlebells"],
+    ["ezbar","EZ bar"], ["plates","Weight plates"], ["bench","Adjustable bench"],
+  ]},
+  { group:"Racks + bars", items:[
+    ["squatrack","Squat rack"], ["smith","Smith machine"], ["pullupbar","Pull-up bar"],
+    ["dipbar","Dip bar / power tower"], ["landmine","Landmine"],
+  ]},
+  { group:"Plated machines", items:[
+    ["legpress","Leg press"], ["hacksquat","Hack squat"], ["chestpress","Chest press"],
+    ["rowmachine","Row machine"], ["legext","Leg extension"], ["legcurl","Leg curl"],
+    ["hipthrust","Hip thrust machine"], ["abduction","Abduction / adduction"],
+  ]},
+  { group:"Cables", items:[
+    ["cable","Cable stack"], ["latpulldown","Lat pulldown"], ["cablerow","Seated cable row"],
+  ]},
+  { group:"Cardio", items:[
+    ["treadmill","Treadmill"], ["bike","Stationary bike"], ["rower","Rower"],
+    ["elliptical","Elliptical"], ["stairs","Stair climber"], ["assaultbike","Assault bike"],
+  ]},
+  { group:"Other", items:[
+    ["bands","Resistance bands"], ["trx","TRX / suspension"], ["medball","Med ball"],
+    ["box","Plyo box"], ["sled","Sled"], ["ropes","Battle ropes"], ["bodyweight","Bodyweight only"],
+  ]},
+];
+
+// Which equipment ids satisfy an exercise. Deliberately generous — a false
+// hide is worse than a false show.
+function equipIdsFor(name){
+  const n = " " + (name || "").toLowerCase().replace(/[-_\/]+/g," ") + " ";
+  const ids = new Set();
+  const has = (re) => re.test(n);
+  if(has(/barbell|squat|deadlift|bench press|clean|snatch|jerk|\brdl\b|thruster|good morning|shrug|row\b/)) ids.add("barbell");
+  if(has(/dumbbell|\bdb\b|lateral raise|arnold|hammer|goblet|farmer/)) ids.add("dumbbell");
+  if(has(/kettlebell|\bkb\b|swing|turkish/)) ids.add("kettlebell");
+  if(has(/preacher|ez bar|skull/)) ids.add("ezbar");
+  if(has(/bench|incline|decline|chest press|fly|flye/)) ids.add("bench");
+  if(has(/squat|rack pull|overhead press|strict press/)) ids.add("squatrack");
+  if(has(/smith/)) ids.add("smith");
+  if(has(/pull ?up|chin ?up|hanging|toes to bar|muscle ?up/)) ids.add("pullupbar");
+  if(has(/\bdips?\b|leg raise/)) ids.add("dipbar");
+  if(has(/landmine/)) ids.add("landmine");
+  if(has(/leg press/)) ids.add("legpress");
+  if(has(/hack/)) ids.add("hacksquat");
+  if(has(/chest press|pec deck/)) ids.add("chestpress");
+  if(has(/row machine|seated row|t bar/)) ids.add("rowmachine");
+  if(has(/leg extension/)) ids.add("legext");
+  if(has(/leg curl|hamstring curl/)) ids.add("legcurl");
+  if(has(/hip thrust/)) ids.add("hipthrust");
+  if(has(/abduct|adduct/)) ids.add("abduction");
+  if(has(/cable|pushdown|woodchop|face pull|pallof|kick ?back/)) ids.add("cable");
+  if(has(/pull ?down/)) ids.add("latpulldown");
+  if(has(/cable row|seated row/)) ids.add("cablerow");
+  if(has(/treadmill|walk|run|incline walk/)) ids.add("treadmill");
+  if(has(/bike|cycling|spin/)) ids.add("bike");
+  if(has(/row(ing)? erg|rower/)) ids.add("rower");
+  if(has(/elliptical/)) ids.add("elliptical");
+  if(has(/stair|step ?mill/)) ids.add("stairs");
+  if(has(/assault|air bike/)) ids.add("assaultbike");
+  if(has(/band/)) ids.add("bands");
+  if(has(/trx|suspension/)) ids.add("trx");
+  if(has(/med ?ball|wall ball/)) ids.add("medball");
+  if(has(/box jump|step ?up/)) ids.add("box");
+  if(has(/sled|prowler/)) ids.add("sled");
+  if(has(/battle rope/)) ids.add("ropes");
+  if(has(/push ?up|plank|sit ?up|air squat|burpee|lunge|crunch|hollow|bird ?dog|dead ?bug|glute bridge|superman/)) ids.add("bodyweight");
+  return Array.from(ids);
+}
+
+function getMyGym(){
+  if(!Array.isArray(state.equipment)) state.equipment = null;
+  return state.equipment;   // null = "everything", array = her list
+}
+function gymHasExercise(name){
+  const eq = getMyGym();
+  if(!eq || !eq.length) return true;              // not set up = show everything
+  const need = equipIdsFor(name);
+  if(!need.length) return true;                   // can't tell = don't hide it
+  return need.some(id => eq.includes(id));
+}
+
+function openEquipmentModal(){
+  const sel = new Set(getMyGym() || EQUIP_GROUPS.flatMap(g => g.items.map(i => i[0])));
+  openModal("My gym", `
+    <p class="hn-intro">Tick what you can actually get to. The Library and workout builder then only offer movements you can do — everything stays available if you skip this.</p>
+    <div class="msel" id="eqList">
+      ${EQUIP_GROUPS.map(g => `
+        <div class="msel-group" data-group="${escape(g.group)}">
+          <div class="msel-head">
+            <span>${escape(g.group)}</span>
+            <button type="button" class="msel-all" data-all="${escape(g.group)}">All</button>
+          </div>
+          ${g.items.map(([id, label]) => `
+            <button type="button" class="msel-row ${sel.has(id) ? "on" : ""}" data-eq="${id}">
+              <span class="msel-label">${escape(label)}</span>
+              <span class="msel-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+            </button>`).join("")}
+        </div>`).join("")}
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="eqClear">USE EVERYTHING</button>
+      <button class="btn btn-cyan" id="eqSave">SAVE <span id="eqCount"></span></button>
+    </div>
+  `, (root) => {
+    const count = () => { const c = document.getElementById("eqCount"); if(c) c.textContent = `(${sel.size})`; };
+    count();
+    root.querySelectorAll("[data-eq]").forEach(b => b.addEventListener("click", () => {
+      const id = b.getAttribute("data-eq");
+      if(sel.has(id)) sel.delete(id); else sel.add(id);
+      b.classList.toggle("on", sel.has(id));
+      count();
+    }));
+    root.querySelectorAll("[data-all]").forEach(b => b.addEventListener("click", () => {
+      const g = EQUIP_GROUPS.find(x => x.group === b.getAttribute("data-all"));
+      if(!g) return;
+      const ids = g.items.map(i => i[0]);
+      const allOn = ids.every(id => sel.has(id));
+      ids.forEach(id => { if(allOn) sel.delete(id); else sel.add(id); });
+      root.querySelectorAll("[data-eq]").forEach(x => x.classList.toggle("on", sel.has(x.getAttribute("data-eq"))));
+      b.textContent = allOn ? "All" : "None";
+      count();
+    }));
+    document.getElementById("eqClear").addEventListener("click", () => {
+      state.equipment = null; save(); closeModal(); renderAll();
+      toast("Showing every movement", "cyan");
+    });
+    document.getElementById("eqSave").addEventListener("click", () => {
+      state.equipment = Array.from(sel);
+      save(); closeModal(); renderAll();
+      toast(`My gym: ${sel.size} item${sel.size===1?"":"s"}`, "cyan");
+    });
+  });
+}
+
+let _libSub = "all", _libQuery = "", _libFilters = { part:"", equip:"", gym:false }, _libSortAZ = true;
 
 function renderLibraryFilters(){
   const host = document.getElementById("libFilters");
@@ -10027,6 +10346,10 @@ function renderLibraryFilters(){
     <div class="lf-row">
       <button class="lf-chip ${!_libFilters.equip ? "on" : ""}" data-lfeq="">All equipment</button>
       ${Object.keys(EQUIP_TAGS).map(k => `<button class="lf-chip ${_libFilters.equip===k?"on":""}" data-lfeq="${k}">${EQUIP_TAGS[k]}</button>`).join("")}
+    </div>
+    <div class="lf-row">
+      <button class="lf-chip ${_libFilters.gym ? "on" : ""}" data-lfgym="1">Only my gym${(getMyGym()||[]).length ? ` · ${getMyGym().length}` : ""}</button>
+      <button class="lf-chip" data-lfsetgym="1">Set up my gym</button>
     </div>`;
   host.querySelectorAll("[data-lfpart]").forEach(b => b.addEventListener("click", () => {
     _libFilters.part = b.dataset.lfpart; renderLibrary();
@@ -10034,6 +10357,13 @@ function renderLibraryFilters(){
   host.querySelectorAll("[data-lfeq]").forEach(b => b.addEventListener("click", () => {
     _libFilters.equip = b.dataset.lfeq; renderLibrary();
   }));
+  const gymBtn = host.querySelector("[data-lfgym]");
+  if(gymBtn) gymBtn.addEventListener("click", () => {
+    if(!(getMyGym() || []).length){ openEquipmentModal(); return; }
+    _libFilters.gym = !_libFilters.gym; renderLibrary();
+  });
+  const setGym = host.querySelector("[data-lfsetgym]");
+  if(setGym) setGym.addEventListener("click", openEquipmentModal);
 }
 
 function renderLibrary(){
@@ -10061,6 +10391,7 @@ function renderLibrary(){
   }
   if(_libFilters.part) items = items.filter(x => partsForExercise(x).includes(_libFilters.part));
   if(_libFilters.equip) items = items.filter(x => equipFor(x) === _libFilters.equip);
+  if(_libFilters.gym) items = items.filter(gymHasExercise);
   items.sort((a,b) => _libSortAZ ? a.localeCompare(b) : b.localeCompare(a));
 
   const cnt = document.getElementById("libCount");
@@ -10069,13 +10400,16 @@ function renderLibrary(){
   listEl.innerHTML = items.length ? items.map(name => {
     const parts = partsForExercise(name);
     const ph = photos[name];
-    return `<div class="lx-row" data-lx="${escape(name)}">
+    const on = favs.includes(name);
+    return `<div class="lrow lx-row" data-lx="${escape(name)}">
       <span class="lx-thumb">${ph ? `<img src="${ph}" alt="">` : `<i>+</i>`}</span>
-      <span class="lx-info">
-        <b>${escape(name)}</b>
-        <small>${escape(EQUIP_TAGS[equipFor(name)])}${parts.length ? " · " + parts.join(", ") : ""}</small>
+      <span class="lrow-main">
+        <span class="lrow-title">${escape(name)}</span>
+        <span class="lrow-sub">${escape(EQUIP_TAGS[equipFor(name)])}${parts.length ? " · " + parts.join(", ") : ""}</span>
       </span>
-      <button class="lx-fav ${favs.includes(name) ? "on" : ""}" data-lxfav="${escape(name)}" title="Favorite">${favs.includes(name) ? "♥" : "♡"}</button>
+      <button class="lrow-fav ${on ? "on" : ""}" data-lxfav="${escape(name)}" aria-label="Favourite">
+        <svg viewBox="0 0 24 24" fill="${on ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.8"><path d="M12 20.4 4.6 13a4.6 4.6 0 0 1 6.5-6.5l.9.9.9-.9A4.6 4.6 0 0 1 19.4 13Z"/></svg>
+      </button>
     </div>`;
   }).join("") : `<p class="wl-empty">Nothing matches. Clear a filter or search for something else.</p>`;
 
@@ -11626,55 +11960,55 @@ function openGoalDesigner(){
   const age = state.profile.birthYear ? (new Date().getFullYear() - state.profile.birthYear) : "";
 
   openModal("Design my plan", `
-    <p class="gd-intro">Tell it what you actually want and what you're not willing to do. It designs around both — and shows its work, so you can change any number before it saves.</p>
+    <p class="gd-intro">Four questions. It designs around your answers, shows its working, and lets you change any number before it saves.</p>
 
     <div class="gd-sec">
-      <div class="gd-h">1 · What are you after</div>
+      <div class="gd-h"><i>1</i> Your goal</div>
       <div class="gd-modes">
         <button type="button" class="gd-mode ${(saved.mode||"lose")==="lose"?"on":""}" data-mode="lose">
-          <b>Lose fat</b><span>Drop fat, hold the muscle you have</span></button>
+          <b>Lose fat</b><span>Drop fat, keep the muscle you have</span></button>
         <button type="button" class="gd-mode ${saved.mode==="recomp"?"on":""}" data-mode="recomp">
-          <b>Lean out / recomp</b><span>Slow fat loss while building — scale barely moves</span></button>
+          <b>Lean out</b><span>Build while slowly losing fat. The scale barely moves</span></button>
         <button type="button" class="gd-mode ${saved.mode==="build"?"on":""}" data-mode="build">
-          <b>Build muscle</b><span>Small surplus, accept a little fat</span></button>
+          <b>Build muscle</b><span>Eat a little over, accept some fat gain</span></button>
         <button type="button" class="gd-mode ${saved.mode==="maintain"?"on":""}" data-mode="maintain">
-          <b>Maintain</b><span>Hold where you are</span></button>
+          <b>Maintain</b><span>Stay exactly where you are</span></button>
       </div>
     </div>
 
     <div class="gd-sec">
-      <div class="gd-h">2 · Where you are</div>
+      <div class="gd-h"><i>2</i> Your numbers today</div>
       <div class="form-grid">
         <label><span>Weight (${unit()})</span><input id="gdW" type="number" step="0.1" value="${w0}"></label>
-        <label><span>Body fat %<i class="gd-hint" data-explain="bf">?</i></span><input id="gdBF" type="number" step="0.1" value="${bf0 != null ? bf0 : ""}" placeholder="from InBody"></label>
+        <label><span>Body fat %<i class="gd-hint" data-explain="bf">?</i></span><input id="gdBF" type="number" step="0.1" inputmode="decimal" value="${bf0 != null ? bf0 : ""}" placeholder="from your InBody"></label>
         <label><span>Age</span><input id="gdAge" type="number" min="14" max="90" value="${age}"></label>
         <label><span>Height (in)</span><input id="gdHt" type="number" step="0.5" value="${state.profile.height || ""}"></label>
       </div>
     </div>
 
     <div class="gd-sec">
-      <div class="gd-h">3 · Where you're going</div>
+      <div class="gd-h"><i>3</i> Your target</div>
       <div class="form-grid">
         <label><span>Goal body fat %<i class="gd-hint" data-explain="bf">?</i></span>
           <input id="gdTargetBF" type="number" step="0.5" value="${saved.targetBf != null ? saved.targetBf : (bf0 != null ? Math.max(15, Math.round(bf0 - 5)) : "")}" placeholder="e.g. 24"></label>
-        <label><span>Or goal weight (${unit()})</span>
+        <label><span>Goal weight (${unit()})</span>
           <input id="gdTargetW" type="number" step="0.1" value="${saved.targetWeight || g.weight || ""}" placeholder="optional"></label>
       </div>
-      <p class="gd-note">Body fat % is the better target — it holds your lean mass constant and works out the weight that implies. Fill either one.</p>
+      <p class="gd-note">Fill in <b>either one</b>. Body fat % is the better target — it keeps your muscle in the maths and works out what weight that actually lands you at, which is usually higher than people expect.</p>
     </div>
 
     <div class="gd-sec">
-      <div class="gd-h">4 · What you're not willing to do</div>
+      <div class="gd-h"><i>4</i> Your limits</div>
       <div class="form-grid">
-        <label><span>Never eat below (kcal)</span><input id="gdFloor" type="number" step="10" value="${saved.floor || 1400}"></label>
-        <label><span>Training days / week</span><input id="gdDays" type="number" min="0" max="7" value="${saved.days != null ? saved.days : 4}"></label>
+        <label><span>Lowest calories you'll accept</span><input id="gdFloor" type="number" step="10" inputmode="numeric" value="${saved.floor || 1400}"></label>
+        <label><span>Training days a week</span><input id="gdDays" type="number" min="0" max="7" inputmode="numeric" value="${saved.days != null ? saved.days : 4}"></label>
       </div>
       <label class="gd-check"><input type="checkbox" id="gdLifts" ${saved.lifts === false ? "" : "checked"}> I lift weights (raises your protein target)</label>
-      <label><span>Pace</span>
+      <label><span>How fast</span>
         <select id="gdRate">
-          <option value="0.35" ${saved.ratePct==0.35?"selected":""}>Gentle — 0.35% of bodyweight a week</option>
-          <option value="0.6" ${(saved.ratePct||0.6)==0.6?"selected":""}>Steady — 0.6% a week (best for holding muscle)</option>
-          <option value="0.85" ${saved.ratePct==0.85?"selected":""}>Faster — 0.85% a week</option>
+          <option value="0.35" ${saved.ratePct==0.35?"selected":""}>Gentle — easiest to stick to</option>
+          <option value="0.6" ${(saved.ratePct||0.6)==0.6?"selected":""}>Steady — best for holding muscle</option>
+          <option value="0.85" ${saved.ratePct==0.85?"selected":""}>Faster — expect to feel it</option>
         </select>
       </label>
     </div>
@@ -11723,7 +12057,7 @@ function openGoalDesigner(){
       const res = document.getElementById("gdResult");
       res.classList.remove("hidden");
       res.innerHTML = `
-        <div class="gd-h">Your plan</div>
+        <div class="gd-h"><i>✓</i> Your plan</div>
         <div class="gd-grid">
           <div><span>BMR<i class="gd-hint" data-explain="bmr">?</i></span><b>${plan.bmr}</b><em>${escape(plan.formula)}</em></div>
           <div><span>Maintenance</span><b>${plan.tdee}</b><em>×${plan.act} for ${num("gdDays")||0} training days</em></div>
@@ -11742,7 +12076,7 @@ function openGoalDesigner(){
           ${eta ? `<div><span>Gets you there around</span><b>${eta}</b></div>` : ""}
         </div>` : ""}
         ${plan.notes.length ? `<ul class="gd-notes">${plan.notes.map(n => `<li>${escape(n)}</li>`).join("")}</ul>` : ""}
-        <div class="gd-h" style="margin-top:14px">Adjust anything before you save</div>
+        <div class="gd-h" style="margin-top:16px"><i>✎</i> Change anything before you save</div>
         <div class="form-grid">
           <label><span>Calories</span><input id="gdFinalCal" type="number" step="10" value="${plan.cal}"></label>
           <label><span>Protein (g)</span><input id="gdFinalP" type="number" value="${plan.protein}"></label>

@@ -5751,8 +5751,8 @@ function openPlanDayModal(wkKey, dayName){
   const plan = getPlan();
   if(!plan[wkKey]) plan[wkKey] = {};
   const cur = plan[wkKey][dayName] || {};
-  const items = [{ name: cur.type || "", time: cur.time || "", exercises: cur.exercises || [] }]
-    .concat((cur.extra || []).map(x => ({ name: x.name || "", time: x.time || "", exercises: x.exercises || [] })));
+  const items = [{ name: cur.type || "", time: cur.time || "", why: cur.why || "", exercises: cur.exercises || [] }]
+    .concat((cur.extra || []).map(x => ({ name: x.name || "", time: x.time || "", why: x.why || "", exercises: x.exercises || [] })));
 
   const lib = getWorkoutLib();
   const optionsHtml = (sel) => {
@@ -5773,6 +5773,7 @@ function openPlanDayModal(wkKey, dayName){
       else sel = "custom";
     }
     const moves = (it.exercises || []).map(e => e.name + (e.scheme ? " — " + e.scheme : "")).join("\n");
+    const whyChips = WHY_PRESETS.map(w => `<button type="button" class="pde-chip" data-why="${escape(w)}">${escape(w)}</button>`).join("");
     return `<div class="pde-row-wrap" data-i="${i}">
       <div class="pde-row">
         <select class="pde-sel">${optionsHtml(sel)}</select>
@@ -5782,6 +5783,12 @@ function openPlanDayModal(wkKey, dayName){
         <button type="button" class="pde-del" title="Remove">×</button>
       </div>
       <textarea class="pde-moves" rows="3" placeholder="Movements — one per line:\nthruster machine\nRDL\nkickback machine\nhamstring curls">${escape(moves)}</textarea>
+      <div class="pde-why">
+        <span class="pde-why-lbl">Why this one today? <i>optional — it feeds your health patterns</i></span>
+        <input class="pde-whytxt" type="text" maxlength="70" value="${escape(it.why || "")}"
+          placeholder="e.g. hungover, so cardio">
+        <div class="pde-chips">${whyChips}</div>
+      </div>
     </div>`;
   };
 
@@ -5812,6 +5819,19 @@ function openPlanDayModal(wkKey, dayName){
             moves.value = w.exercises.map(e => e.name + (e.scheme ? " — " + e.scheme : "")).join("\n");
         }
       });
+      const whyTxt = row.querySelector(".pde-whytxt");
+      row.querySelectorAll(".pde-chip").forEach(chip => {
+        chip.addEventListener("click", () => {
+          const w = chip.getAttribute("data-why");
+          const cur = whyTxt.value.trim();
+          const parts = cur ? cur.split(/\s*,\s*/) : [];
+          const i = parts.indexOf(w);
+          if(i > -1) parts.splice(i, 1); else parts.push(w);
+          whyTxt.value = parts.join(", ");
+          chip.classList.toggle("on", i === -1);
+        });
+        if((whyTxt.value || "").split(/\s*,\s*/).includes(chip.getAttribute("data-why"))) chip.classList.add("on");
+      });
       row.querySelector(".pde-del").addEventListener("click", () => {
         if(list.children.length > 1) row.remove();
         else { sel.value = ""; custom.value = ""; custom.style.display = "none"; row.querySelector(".pde-time").value = ""; if(moves) moves.value = ""; }
@@ -5820,13 +5840,18 @@ function openPlanDayModal(wkKey, dayName){
     list.querySelectorAll(".pde-row-wrap").forEach(wireRow);
     document.getElementById("pdeAdd").addEventListener("click", () => {
       const div = document.createElement("div");
-      div.innerHTML = rowHtml({ name:"", time:"", exercises:[] }, list.children.length);
+      div.innerHTML = rowHtml({ name:"", time:"", why:"", exercises:[] }, list.children.length);
       const row = div.firstElementChild;
       list.appendChild(row);
       wireRow(row);
     });
     document.getElementById("pdeSave").addEventListener("click", () => {
       const rows = Array.from(list.querySelectorAll(".pde-row-wrap"));
+      const parseWhy = (row) => {
+        const el = row.querySelector(".pde-whytxt");
+        const v = el ? el.value.trim() : "";
+        return v || undefined;
+      };
       const parseMoves = (row) => {
         const ta = row.querySelector(".pde-moves");
         if(!ta || !ta.value.trim()) return [];
@@ -5843,12 +5868,12 @@ function openPlanDayModal(wkKey, dayName){
         if(v.startsWith("saved:")){
           const w = lib.find(x => x.id === v.slice(6));
           if(!w) return null;
-          return { name: w.name, time, exercises: moves.length ? moves : w.exercises.map(e => ({ name: e.name, scheme: e.scheme || "" })) };
+          return { name: w.name, time, why: parseWhy(row), exercises: moves.length ? moves : w.exercises.map(e => ({ name: e.name, scheme: e.scheme || "" })) };
         }
-        if(v.startsWith("cat:")) return { name: v.slice(4), time, exercises: moves };
+        if(v.startsWith("cat:")) return { name: v.slice(4), time, why: parseWhy(row), exercises: moves };
         if(v === "custom"){
           const name = row.querySelector(".pde-custom").value.trim();
-          return name ? { name, time, exercises: moves } : null;
+          return name ? { name, time, why: parseWhy(row), exercises: moves } : null;
         }
         return null;
       }).filter(Boolean);
@@ -5858,6 +5883,7 @@ function openPlanDayModal(wkKey, dayName){
       plan[wkKey][dayName] = {
         type: main.name,
         time: main.time || undefined,
+        why: main.why,
         gym: gym.trim() || undefined,
         exercises: main.exercises.length ? main.exercises : undefined,
         extra: parsed.length > 1 ? parsed.slice(1) : undefined,
@@ -8145,12 +8171,13 @@ function renderDashWorkList(){
     const cls = done ? "done" : (p.type ? (past ? "missed" : (isToday ? "today-up" : "planned")) : "empty");
     const timeTag = p.time ? ` <em class="dw-time">${escape(fmtTime12(p.time))}</em>` : "";
     const extras = (p.extra || []).map(x =>
-      `<small class="dw-extra">+ ${escape(x.name)}${x.time ? ` · ${escape(fmtTime12(x.time))}` : ""}</small>`).join("");
+      `<small class="dw-extra">+ ${escape(x.name)}${x.time ? ` · ${escape(fmtTime12(x.time))}` : ""}${x.why ? ` — ${escape(x.why)}` : ""}</small>`).join("");
     html += `<button class="dw-row ${cls} ${isToday?"today":""}" data-day="${names[i]}" data-date="${k}">
       <span class="dw-day">${d.toLocaleDateString(undefined,{weekday:"short"}).toUpperCase()}<i>${d.getDate()}</i></span>
       <span class="dw-info">
         <b>${escape(String(label))}${timeTag}</b>
         ${statParts.length ? `<small>${escape(statParts.join(" · "))}</small>` : ""}${extras}
+        ${p.why ? `<small class="dw-why">why: ${escape(p.why)}</small>` : ""}
       </span>
       <span class="dw-mark">${mark}</span>
     </button>`;
@@ -9098,7 +9125,7 @@ function renderFitDayCard(){
     card.innerHTML = head + `<p class="wl-empty">Nothing planned. Tap + PLAN DAY — pick a saved workout or type your movements.</p>
       ${sessions.length ? `<p class="fd-logged">✓ ${sessions.length} entr${sessions.length===1?"y":"ies"} logged anyway — nice.</p>` : ""}`;
   } else {
-    const workouts = [{ name:p.type, time:p.time, exercises:p.exercises || [] }].concat(p.extra || []);
+    const workouts = [{ name:p.type, time:p.time, why:p.why, exercises:p.exercises || [] }].concat(p.extra || []);
     card.innerHTML = head + workouts.map((w, wi) => `
       <div class="fd-workout">
         <div class="fd-w-head">
@@ -9106,6 +9133,7 @@ function renderFitDayCard(){
           ${w.time ? `<em>${escape(fmtTime12(w.time))}</em>` : ""}
           <button class="fd-heart" data-fdw="${wi}" title="Save to My Workouts">♥</button>
         </div>
+        ${w.why ? `<p class="fd-why">Why: ${escape(w.why)}</p>` : ""}
         ${(w.exercises || []).length
           ? `<ul class="fd-moves">${w.exercises.map(e => `<li>${escape(e.name)}${e.scheme ? ` <i>${escape(e.scheme)}</i>` : ""}</li>`).join("")}</ul>`
           : `<p class="fd-nomoves">No movements listed — EDIT DAY to add them.</p>`}
@@ -11041,6 +11069,243 @@ onReady(() => {
 });
 
 
+
+// =================================================================
+// v21 — THE "WHY" LAYER
+// She writes a one-line reason on a planned workout ("hungover, so
+// cardio"). That line is the missing variable: it explains the days
+// the numbers alone can't. This reads every why she has written,
+// classifies it, and — the point — profiles what the DAY BEFORE
+// looked like for her most common reason.
+// =================================================================
+const WHY_PRESETS = ["hungover","tired","sore","sick","period","no time","traveling","stressed","injured","feeling great"];
+
+const WHY_MAP = [
+  ["hungover", "Hungover",       /hung ?over|hangover|drank|drinking|too many|wine|tequila|vodka|beers?\b|booze|bar\b|party|cocktail/i],
+  ["tired",    "Tired",          /tired|exhaust|no sleep|slept (bad|badly|like)|wiped|drained|fatigue|late night|up all night|zonked/i],
+  ["sore",     "Sore",           /sore|doms|beat ?up|achy|wrecked from/i],
+  ["sick",     "Sick",           /sick|cold\b|flu\b|fever|sinus|strep|covid|throat|congest|cough/i],
+  ["injured",  "Injured",        /injur|tweak|hurt|strain|pulled|sprain|knee|shoulder pain|back pain|flare/i],
+  ["period",   "Period / cycle", /period|cramp|pms\b|menstr|cycle day|time of the month/i],
+  ["notime",   "No time",        /no time|busy|rushed|short on time|slammed|meetings?|packed|work ran|late for/i],
+  ["travel",   "Traveling",      /travel|flight|airport|hotel|away|road trip|vacation|out of town/i],
+  ["stress",   "Stressed",       /stress|anxious|anxiety|overwhelm|burn(ed|t)? out|mental|rough day|emotional/i],
+  ["weather",  "Weather",        /weather|snow|storm|rain|ice\b|heat wave|too cold|too hot/i],
+  ["good",     "Feeling good",   /feel(ing)? (great|good|amazing|strong)|energiz|fresh|pumped|fired up|ready/i],
+  ["deload",   "Deload / easy",  /deload|easy day|recovery|light day|back off/i],
+];
+
+function whyTags(text){
+  const t = String(text || "");
+  if(!t.trim()) return [];
+  const out = [];
+  WHY_MAP.forEach(([id, label, re]) => { if(re.test(t)) out.push({ id, label }); });
+  return out;
+}
+function whyLabel(id){
+  const row = WHY_MAP.find(r => r[0] === id);
+  return row ? row[1] : id;
+}
+
+// Walk real dates back through the plan so a why can be tied to a day.
+// Returns [{ date, why, tags, planned, trained, vol, mins, cardioOnly }]
+function whyEntries(daysBack){
+  const out = [];
+  const plan = state.plan || {};
+  const names = ["sun","mon","tue","wed","thu","fri","sat"];
+  const today = new Date(); today.setHours(0,0,0,0);
+  for(let i = daysBack; i >= 0; i--){
+    const d = new Date(today.getTime() - i*86400000);
+    const k = todayKey(d);
+    const wk = weekKey(weekStart(d));
+    const p = (plan[wk] || {})[names[d.getDay()]];
+    if(!p) continue;
+    const whys = [];
+    if(p.why) whys.push({ why: p.why, planned: p.type });
+    (p.extra || []).forEach(x => { if(x.why) whys.push({ why: x.why, planned: x.name }); });
+    if(!whys.length) continue;
+    const day = state.days[k] || {};
+    const sessions = day.sessions || [];
+    const vol = sessions.reduce((n,s) => n + (s.weight||0)*(s.reps||0)*(s.sets||1), 0);
+    whys.forEach(w => out.push({
+      date: k,
+      why: w.why,
+      planned: w.planned,
+      tags: whyTags(w.why),
+      trained: sessions.length > 0,
+      vol,
+      mins: sessions.reduce((n,s) => n + (s.durationMin||0), 0),
+      cardioOnly: sessions.length > 0 && sessions.every(s => s.type === "cardio"),
+      dow: d.getDay(),
+    }));
+  }
+  return out;
+}
+
+// What did the day BEFORE a given set of dates look like? This is where
+// a reason turns into a pattern she can act on.
+function _nightBefore(dates){
+  const rows = [];
+  dates.forEach(k => {
+    const d = new Date(k + "T12:00:00");
+    d.setDate(d.getDate() - 1);
+    const pk = todayKey(d);
+    if(!state.days[pk]) return;
+    const t = totalsDetailFor(pk);
+    const q = dayFoodQuality(pk);
+    const ci = (state.days[pk].checkin) || {};
+    rows.push({
+      cal: t.cal, ultraPct: q.ultraPct, water: state.days[pk].water || 0,
+      sleep: ci.sleep != null ? +ci.sleep : null,
+      // Alcohol rarely gets logged as a food, so read it from the diary text too.
+      booze: ["breakfast","lunch","dinner","snacks"].some(m =>
+        (state.days[pk].meals[m] || []).some(it => /wine|beer|vodka|tequila|whiskey|seltzer|cocktail|margarita|liquor|alcohol|prosecco|champagne/i.test(it.name || ""))),
+    });
+  });
+  if(!rows.length) return null;
+  const mean = (f) => {
+    const v = rows.map(f).filter(x => x != null);
+    return v.length ? v.reduce((a,b)=>a+b,0)/v.length : null;
+  };
+  return {
+    n: rows.length,
+    cal: mean(r => r.cal), ultraPct: mean(r => r.ultraPct),
+    water: mean(r => r.water), sleep: mean(r => r.sleep),
+    boozeNights: rows.filter(r => r.booze).length,
+  };
+}
+
+// Baseline for comparison: every logged day that ISN'T in the given set.
+function _baselineDays(excludeKeys){
+  const ex = new Set(excludeKeys);
+  const rows = _dailyRows(90).filter(r => !ex.has(r.key) && r.cal > 0);
+  if(rows.length < 3) return null;
+  const mean = (f) => {
+    const v = rows.map(f).filter(x => x != null);
+    return v.length ? v.reduce((a,b)=>a+b,0)/v.length : null;
+  };
+  return { n: rows.length, cal: mean(r => r.cal), ultraPct: mean(r => r.ultraPct),
+           water: mean(r => r.water), sleep: mean(r => r.sleep),
+           vol: mean(r => r.trained ? r.vol : null) };
+}
+
+function whyAnalysis(){
+  const entries = whyEntries(90);
+  if(!entries.length) return { ready:false, n:0 };
+
+  // Tally by reason
+  const counts = {};
+  entries.forEach(e => e.tags.forEach(t => {
+    if(!counts[t.id]) counts[t.id] = { id:t.id, label:t.label, n:0, dates:[], trained:0, cardioOnly:0, vols:[] };
+    const c = counts[t.id];
+    c.n++; c.dates.push(e.date);
+    if(e.trained) c.trained++;
+    if(e.cardioOnly) c.cardioOnly++;
+    if(e.trained && e.vol > 0) c.vols.push(e.vol);
+  }));
+  const untagged = entries.filter(e => !e.tags.length).length;
+  const ranked = Object.values(counts).sort((a,b) => b.n - a.n);
+
+  // Deep-dive the most frequent reason (needs at least 3 to say anything)
+  let top = null;
+  if(ranked.length && ranked[0].n >= 3){
+    const r = ranked[0];
+    const before = _nightBefore(r.dates);
+    const base = _baselineDays(r.dates);
+    const dows = {};
+    entries.filter(e => e.tags.some(t => t.id === r.id)).forEach(e => { dows[e.dow] = (dows[e.dow]||0)+1; });
+    const topDow = Object.entries(dows).sort((a,b)=>b[1]-a[1])[0];
+    const avgVol = r.vols.length ? r.vols.reduce((a,b)=>a+b,0)/r.vols.length : null;
+    top = {
+      id:r.id, label:r.label, n:r.n, trained:r.trained, cardioOnly:r.cardioOnly,
+      before, base, avgVol,
+      dowName: topDow ? ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][topDow[0]] : null,
+      dowCount: topDow ? topDow[1] : 0,
+      volDelta: (avgVol != null && base && base.vol) ? Math.round((avgVol - base.vol) / base.vol * 100) : null,
+    };
+  }
+
+  return { ready:true, n:entries.length, ranked, untagged, top, entries: entries.slice(-6).reverse() };
+}
+
+function renderWhy(){
+  const host = document.getElementById("whyList");
+  if(!host) return;
+  const d = whyAnalysis();
+  const meta = document.getElementById("whyMeta");
+  if(meta) meta.textContent = d.ready ? `${d.n} logged` : "—";
+
+  if(!d.ready){
+    host.innerHTML = `<p class="wl-empty">When you change a planned workout, write one line of <b>why</b> in the day editor — "hungover, so cardio", "no time", "sore". Fitness &gt; tap a day &gt; EDIT DAY. Those lines are the variable the numbers can't see, and this card turns them into a pattern.</p>`;
+    return;
+  }
+
+  const max = Math.max(1, ...d.ranked.map(r => r.n));
+  let html = `<div class="bp-lead">The line you write when you swap a workout is the variable the numbers can't see. Read back over 90 days${d.untagged ? `, ${d.untagged} of them uncategorised (still counted below)` : ""}.</div>`;
+
+  if(d.ranked.length){
+    html += `<div class="bp-block">
+      <div class="bp-h">Reasons, ranked</div>
+      ${d.ranked.map(r => `<div class="bp-row">
+        <span class="bp-lbl">${escape(r.label)}</span>
+        <span class="bp-bar"><i style="width:${Math.round(r.n/max*100)}%"></i></span>
+        <span class="bp-val">${r.n}×</span>
+        <span class="bp-n">${r.trained}/${r.n} trained</span>
+      </div>`).join("")}
+    </div>`;
+  }
+
+  if(d.top){
+    const t = d.top;
+    const b = t.before, base = t.base;
+    const lines = [];
+    if(t.dowCount >= 2 && t.dowName) lines.push(`${t.dowCount} of ${t.n} landed on a ${t.dowName}.`);
+    if(b && b.n >= 2){
+      const bits = [];
+      if(b.sleep != null && base && base.sleep != null)
+        bits.push(`${b.sleep.toFixed(1)}h sleep the night before vs ${base.sleep.toFixed(1)}h normally`);
+      if(b.ultraPct != null && base && base.ultraPct != null)
+        bits.push(`${Math.round(b.ultraPct)}% processed calories vs ${Math.round(base.ultraPct)}%`);
+      if(b.boozeNights > 0) bits.push(`alcohol logged on ${b.boozeNights} of those ${b.n} nights`);
+      if(bits.length) lines.push(`Those days followed: ${bits.join(", ")}.`);
+    }
+    if(t.trained === t.n) lines.push(`You still trained every one of them — that's the part worth knowing.`);
+    else if(t.trained > 0) lines.push(`You still trained on ${t.trained} of ${t.n}.`);
+    else lines.push(`None of those days ended in a session.`);
+    if(t.cardioOnly > 0) lines.push(`${t.cardioOnly} became cardio instead of a lift.`);
+    if(t.volDelta != null) lines.push(`Volume on those days ran ${t.volDelta > 0 ? "+" : ""}${t.volDelta}% vs your normal training day.`);
+
+    html += `<div class="bp-block why-top">
+      <div class="bp-h">${escape(t.label)} — ${t.n}× in 90 days</div>
+      <div class="bp-note">${lines.map(escape).join(" ")}</div>
+      ${t.id === "hungover" && b && b.boozeNights > 0
+        ? `<div class="corr-act">Your own log says this one is upstream of the gym, not at the gym. The lever is the night before.</div>`
+        : ""}
+      ${t.id === "tired" && b && b.sleep != null && base && base.sleep != null && b.sleep < base.sleep - 0.5
+        ? `<div class="corr-act">Short nights are showing up as skipped lifts a day later. Guard the night before a heavy day.</div>`
+        : ""}
+      ${t.id === "notime"
+        ? `<div class="corr-act">Time is the reason you swap most. A saved 30-minute version of your main lift days would take this off the table.</div>`
+        : ""}
+    </div>`;
+  }
+
+  if(d.entries.length){
+    html += `<div class="bp-block">
+      <div class="bp-h">Most recent</div>
+      ${d.entries.map(e => `<div class="why-row">
+        <span class="why-date">${new Date(e.date + "T12:00:00").toLocaleDateString(undefined,{month:"short",day:"numeric"})}</span>
+        <span class="why-txt">${escape(e.why)}</span>
+        <span class="why-plan">${escape(e.planned || "")}</span>
+      </div>`).join("")}
+    </div>`;
+  }
+
+  html += `<p class="corr-foot">Reasons are read from what you typed. Anything it can't categorise still counts and still shows here.</p>`;
+  host.innerHTML = html;
+}
+
+
 // =================================================================
 
 // PIPELINES — explicit composition (replaces the old wrapper chains).
@@ -11131,6 +11396,7 @@ function go(tab){
 function renderTrends(){
   renderTrendsBase();
   try{ renderBigPicture(); }catch(e){ console.warn("big picture", e); }
+  try{ renderWhy(); }catch(e){ console.warn("why", e); }
   try{ renderSubMuscles(); }catch(e){ console.warn("sub muscles", e); }
   try{ renderFoodQuality(); }catch(e){ console.warn("food quality", e); }
   try{ renderBodyPartTrends(); }catch(e){ console.warn("bp trends", e); }

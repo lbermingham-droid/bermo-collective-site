@@ -3486,3 +3486,28 @@ input, select, textarea{
 /* v20: cycle phase pills use a colored dot, not a moon emoji */
 .cph-dot{ display:block; width:9px; height:9px; border-radius:50%; background:var(--cc); margin:0 auto 4px; }
 .cph.on .cph-dot{ box-shadow:0 0 0 3px color-mix(in srgb, var(--cc) 25%, transparent); }
+
+/* ============================================================
+   v21 — the WHY layer (reason on a planned workout)
+   ============================================================ */
+.pde-why{ margin-top:6px; }
+.pde-whytxt{ width:100%; }
+.pde-chips{ display:flex; flex-wrap:wrap; gap:4px; margin-top:6px; }
+.pde-chip{
+  padding:4px 8px; border-radius:8px; cursor:pointer;
+  background:transparent; border:1px solid var(--iron-line); color:var(--iron-mute);
+  font-size:10px; font-weight:800;
+}
+.pde-chip.on{ border-color:var(--iron-volt); color:var(--iron-volt); }
+.dw-why{ display:block; color:var(--iron-cyan) !important; font-style:italic; }
+.fd-why{ margin:2px 0 6px; font-size:11.5px; color:var(--iron-cyan); font-style:italic; }
+
+.why-wrap{ display:flex; flex-direction:column; gap:12px; }
+.bp-block.why-top{ border-color:var(--iron-volt); }
+.why-row{ display:grid; grid-template-columns:52px 1fr auto; gap:8px; align-items:baseline; padding:5px 0; border-top:1px solid var(--iron-line); }
+.why-row:first-of-type{ border-top:0; }
+.why-date{ font-family:'JetBrains Mono',monospace; font-size:10px; color:#7b8499; }
+.why-txt{ font-size:12px; color:#fff; }
+.why-plan{ font-size:10px; color:var(--iron-mute); text-align:right; }
+.pde-why-lbl{ display:block; font-size:10px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:var(--iron-mute); margin-bottom:5px; }
+.pde-why-lbl i{ font-style:normal; font-weight:600; text-transform:none; letter-spacing:0; color:#7b8499; }

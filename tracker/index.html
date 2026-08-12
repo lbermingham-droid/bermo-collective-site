@@ -21,7 +21,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Inter+Tight:wght@600;700;800;900&family=Montserrat:wght@600;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./styles.css?v=20">
+<link rel="stylesheet" href="./styles.css?v=21">
 </head>
 <body>
 
@@ -191,7 +191,7 @@
     <div class="tb-left">
       <div class="tb-logo">
         <span class="tb-top">BERMO<span class="c">.</span></span>
-        <span class="tb-bot">TRACKER <span style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v20</span></span>
+        <span class="tb-bot">TRACKER <span style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v21</span></span>
       </div>
     </div>
     <nav class="tb-nav" id="tabNav">
@@ -213,10 +213,10 @@
         <svg class="tb-chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>
         <div class="tb-menu" id="tbMenu">
           <button class="tbm-item" data-tab="settings"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.77-.32 1.6 1.6 0 0 0-1 1.47V21a2 2 0 1 1-4 0v-.11a1.6 1.6 0 0 0-1.05-1.46 1.6 1.6 0 0 0-1.77.32l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.6 1.6 0 0 0 .32-1.77 1.6 1.6 0 0 0-1.47-1H3a2 2 0 1 1 0-4h.11A1.6 1.6 0 0 0 4.57 8.8a1.6 1.6 0 0 0-.32-1.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.6 1.6 0 0 0 1.77.32H9a1.6 1.6 0 0 0 1-1.47V3a2 2 0 1 1 4 0v.11a1.6 1.6 0 0 0 1 1.47 1.6 1.6 0 0 0 1.77-.32l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.6 1.6 0 0 0-.32 1.77V9a1.6 1.6 0 0 0 1.47 1H21a2 2 0 1 1 0 4h-.11a1.6 1.6 0 0 0-1.47 1Z"/></svg></span> Profile + Goals</button>
-          <button class="tbm-item" data-tab="history">📊 History + Export</button>
-          <button class="tbm-item" id="pwaInstallBtn" style="display:none">📱 Install on phone</button>
+          <button class="tbm-item" data-tab="history"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg></span> History + Export</button>
+          <button class="tbm-item" id="pwaInstallBtn" style="display:none"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg></span> Install on phone</button>
           <div class="tbm-sep"></div>
-          <button class="tbm-item tbm-pink" id="tbmSignOut">↩ Sign out</button>
+          <button class="tbm-item tbm-pink" id="tbmSignOut"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4.5h3.5A1.5 1.5 0 0 1 20 6v12a1.5 1.5 0 0 1-1.5 1.5H15"/><path d="M10 16l-4-4 4-4"/><path d="M6 12h10"/></svg></span> Sign out</button>
         </div>
       </div>
     </div>
@@ -940,6 +940,15 @@
           <div class="bp-wrap" id="bigPicList"></div>
         </div>
 
+        <!-- WHY — the reason line she writes on a planned workout -->
+        <div class="card span-12" id="whyCard">
+          <div class="card-head">
+            <span class="card-eyebrow">Why you changed the plan</span>
+            <span class="card-meta" id="whyMeta">—</span>
+          </div>
+          <div class="why-wrap" id="whyList"></div>
+        </div>
+
         <!-- FOOD QUALITY — gluten / processed vs real / fat / dairy -->
         <div class="card span-12" id="fqCard">
           <div class="card-head">
@@ -1350,7 +1359,7 @@
 <div class="toast" id="toast" aria-live="polite"></div>
 
 <script src="/tracker/vendor/chart.umd.js"></script>
-<script src="./data.js?v=20"></script>
-<script src="./app.js?v=20"></script>
+<script src="./data.js?v=21"></script>
+<script src="./app.js?v=21"></script>
 </body>
 </html>

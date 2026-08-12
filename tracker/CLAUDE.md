@@ -98,6 +98,22 @@ dots per day (food/workout), tap a date to select it app-wide.
 Body: weigh-ins, measurements, InBody scan parse, adaptive macros
 (Macrofactor-style TDEE recalc), smart onboarding wizard (sex/age/activity →
 TDEE → macros + program), macro calculator (Mifflin-St Jeor / Katch-McArdle).
+The WHY layer (v21): the plan-day editor takes a one-line reason per
+  workout (`why` on the plan entry + on each `extra`), with 10 one-tap
+  preset chips (WHY_PRESETS) that toggle into the same free-text field.
+  The why renders on the dashboard week row, the fitness day card, and
+  the editor. whyTags() classifies the text against WHY_MAP into 12
+  reasons (hungover / tired / sore / sick / injured / period / no time /
+  travel / stress / weather / feeling good / deload); anything it can't
+  classify still counts and still displays. whyEntries(90) walks real
+  dates back through the plan so a reason ties to a day. #whyCard on
+  Health ranks the reasons, then deep-dives the most frequent one: the
+  day-of-week concentration, whether she still trained, how many became
+  cardio, the volume delta vs a normal training day, and — the point —
+  _nightBefore() profiles the PREVIOUS day (sleep, processed %, water,
+  and alcohol read from the diary item names, since booze rarely gets
+  logged as a food). That is what turns "hungover" from a note into a
+  pattern with a lever.
 Health/Deep signal (v20): three cards above the v19 ones.
   #bigPicCard "The bigger picture" — every day with a check-in is scored
   0-100 on how it FELT (energy + mood - symptoms); the card then ranks
@@ -271,7 +287,7 @@ export/import, PWA install.
   food + lift logging end-to-end, modal close, dashboard re-render,
   cross-page date sync, and the v20 health engines (seeds a quad-free
   leg week and asserts the gap is named WITH a fix).
-  Expected: 16/16 + zero page errors.
+  Expected: 17/17 + zero page errors.
   Also always `node --check tracker/app.js`. The user additionally
   tests on iPhone — when something breaks there, ask for a screenshot
   + the exact element tapped.

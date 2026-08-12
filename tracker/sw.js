@@ -1,5 +1,5 @@
 /* BERMO TRACKER service worker — offline support + notifications */
-const CACHE = "bermo-tracker-v20";
+const CACHE = "bermo-tracker-v21";
 const ASSETS = [
   "/tracker/",
   "/tracker/index.html",

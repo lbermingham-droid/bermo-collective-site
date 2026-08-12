@@ -229,6 +229,58 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       : fail("v20 health engines", JSON.stringify(health));
   } catch (e) { fail("v20 health engines", e); }
 
+  // 12. v21 "why" layer: the reason line on a planned workout feeds Health.
+  //     Seeds hungover Sundays that follow wine-and-chips Saturdays and
+  //     asserts the app names the reason AND the night before it.
+  try {
+    await page.evaluate(() => {
+      const KEY = "bermo.tracker.v1";
+      const st = JSON.parse(localStorage.getItem(KEY));
+      const names = ["sun","mon","tue","wed","thu","fri","sat"];
+      const wkStart = (d) => { const x = new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate()-x.getDay()); return x; };
+      const wkKey = (date) => { const d = new Date(date); d.setHours(0,0,0,0);
+        d.setDate(d.getDate() + 4 - (d.getDay()||7));
+        const y0 = new Date(d.getFullYear(),0,1);
+        const w = Math.ceil(((d - y0) / 86400000 + 1)/7);
+        return `${d.getFullYear()}-W${String(w).padStart(2,"0")}`; };
+      st.plan = st.plan || {};
+      for(let i = 1; i <= 42; i++){
+        const d = new Date(); d.setDate(d.getDate()-i); d.setHours(0,0,0,0);
+        const k = d.toISOString().slice(0,10);
+        const wk = wkKey(wkStart(d));
+        st.plan[wk] = st.plan[wk] || {};
+        const sun = d.getDay() === 0, sat = d.getDay() === 6;
+        st.plan[wk][names[d.getDay()]] = sun
+          ? { type:"Cardio", why:"hungover, so cardio" }
+          : { type:"Legs" };
+        const meals = { breakfast:[{id:"wm"+i,name:"Eggs",serving:"2",cal:180,p:12,c:1,f:14}], lunch:[], dinner:[], snacks:[] };
+        if(sat) meals.dinner.push({ id:"ww"+i, name:"Red wine", serving:"3 glasses", cal:375, p:0, c:12, f:0 });
+        st.days[k] = { meals, water: sat ? 30 : 80,
+          sessions: sun ? [{id:"wc"+i,name:"Treadmill",type:"cardio",durationMin:35}]
+                        : [{id:"wl"+i,name:"Back Squat",weight:135,reps:8,sets:4,type:"strength"}],
+          checkin: { sleep: sat ? 4.9 : 7.6, energy: sun ? 3 : 8, mood: sun ? 4 : 8 }, symptoms: [] };
+      }
+      localStorage.setItem(KEY, JSON.stringify(st));
+    });
+    await page.reload({ waitUntil: "domcontentloaded", timeout: 20000 });
+    await page.waitForTimeout(1200);
+    await page.click(`${tabSel}[data-tab="trends"]`);
+    await page.waitForTimeout(1000);
+    const why = await page.evaluate(() => {
+      const el = document.getElementById("whyList");
+      const t = el ? el.innerText : "";
+      return {
+        reason: /hungover/i.test(t),
+        sunday: /Sunday/i.test(t),
+        night: /night before/i.test(t),
+        booze: /alcohol logged/i.test(t),
+      };
+    });
+    (why.reason && why.sunday && why.night && why.booze)
+      ? ok("v21 why layer (reason ranked + night-before profile)")
+      : fail("v21 why layer", JSON.stringify(why));
+  } catch (e) { fail("v21 why layer", e); }
+
   await browser.close();
   print();
 })();

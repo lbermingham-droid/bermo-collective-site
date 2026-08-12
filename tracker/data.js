@@ -266,6 +266,7 @@ const DEFAULT_GOALS = {
   carbs: 240,
   fat: 73,
   fiber: 30,
+  sugar: 25,            // soft cap — AHA added-sugar guidance for women
   water: 64,            // oz (imperial)
   weight: null
 };

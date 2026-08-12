@@ -281,6 +281,59 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       : fail("v21 why layer", JSON.stringify(why));
   } catch (e) { fail("v21 why layer", e); }
 
+  // 13. v22: health-note parser (no AI), goal designer, micronutrients.
+  try {
+    const note = await page.evaluate(() => {
+      const n = window.__bermo.parseHealthNote("5 hours sleep, bloated all day, ate gluten at lunch, drank wine last night, twisted my knee, smoke from the fires");
+      return { sleep:n.sleep, symptoms:n.symptoms, exposures:n.exposures.map(e => e.id) };
+    });
+    const okNote = note.sleep === 5
+      && note.symptoms.includes("Bloating") && note.symptoms.includes("Knee pain")
+      && note.exposures.includes("alcohol") && note.exposures.includes("gluten")
+      && note.exposures.includes("airquality");
+    okNote ? ok("v22 health note parses sleep + symptoms + exposures with no AI")
+           : fail("v22 health note", JSON.stringify(note));
+  } catch (e) { fail("v22 health note", e); }
+
+  try {
+    const plan = await page.evaluate(() => window.__bermo.designGoalPlan({
+      weightLb:168, bfPct:31, targetBfPct:24, mode:"lose",
+      floorCal:1460, days:4, lifts:true, ratePctPerWk:0.6,
+      sex:"f", ageYears:35, heightIn:66,
+    }));
+    // lean mass held constant => goal weight must exceed a naive guess,
+    // protein must come off LEAN mass, and the floor must be respected.
+    const okPlan = plan.lean > 110 && plan.lean < 120
+      && plan.goalWeight > 150 && plan.goalWeight < 156
+      && plan.cal >= 1460
+      && plan.protein >= Math.round(plan.lean) && plan.protein <= Math.round(plan.lean * 1.4);
+    okPlan ? ok(`v22 goal designer (lean ${plan.lean}, goal ${plan.goalWeight}, eat ${plan.cal}, protein ${plan.protein})`)
+           : fail("v22 goal designer", JSON.stringify(plan));
+  } catch (e) { fail("v22 goal designer", e); }
+
+  try {
+    const floored = await page.evaluate(() => window.__bermo.designGoalPlan({
+      weightLb:168, bfPct:31, targetBfPct:24, mode:"lose",
+      floorCal:1900, days:4, lifts:true, ratePctPerWk:0.85,
+      sex:"f", ageYears:35, heightIn:66,
+    }));
+    (floored.cal >= 1900 && floored.floored)
+      ? ok("v22 calorie floor holds (plan stretches the timeline, not the food)")
+      : fail("v22 calorie floor", JSON.stringify({ cal:floored.cal, floored:floored.floored }));
+  } catch (e) { fail("v22 calorie floor", e); }
+
+  try {
+    await page.click(`${tabSel}[data-tab="nutrition"]`);
+    await page.waitForTimeout(500);
+    const micro = await page.evaluate(() => {
+      const chip = [...document.querySelectorAll(".sub-chip")].find(c => /NUTRIENTS/i.test(c.textContent));
+      if(chip) chip.click();
+      return !!document.getElementById("microTable");
+    });
+    micro ? ok("v22 micronutrient card present")
+          : fail("v22 micronutrients", "no #microTable");
+  } catch (e) { fail("v22 micronutrients", e); }
+
   await browser.close();
   print();
 })();

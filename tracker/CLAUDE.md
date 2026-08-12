@@ -64,6 +64,10 @@ Deliberately NOT linked from the main site nav — it's a standalone app.
   named steps in order. To extend a render, add a call in its composed
   function there. Do NOT reintroduce `const _orig = f; f = function(){...}`
   monkey-patching — it is banned.
+- **Test seam**: `window.__bermo` at the end of the IIFE exposes PURE
+  functions only (parseHealthNote, designGoalPlan, subMusclesForExercise,
+  whyTags, foodTags, _pearson) so the smoke suite can assert on the maths
+  without driving the UI. Never put state mutators on it.
 - **Single init**: modules register startup code with `onReady(fn)`; one
   DOMContentLoaded listener runs the queue with each step isolated, so a
   throw in one step cannot kill the rest. Bind static elements with
@@ -98,6 +102,42 @@ dots per day (food/workout), tap a date to select it app-wide.
 Body: weigh-ins, measurements, InBody scan parse, adaptive macros
 (Macrofactor-style TDEE recalc), smart onboarding wizard (sex/age/activity →
 TDEE → macros + program), macro calculator (Mifflin-St Jeor / Katch-McArdle).
+Nutrients + goals + notes (v22):
+  MICRONUTRIENTS — MICROS table (sat fat, sodium, potassium, calcium,
+  iron, magnesium, vit C/D/A, cholesterol). Captured from OpenFoodFacts
+  on BOTH the barcode and the search path via _microsFromOFF(); the
+  built-in whole-food list has macros only. #microCard on Nutrition >
+  NUTRIENTS always reports its own COVERAGE ("based on 3 of 7 items,
+  ~62% of today's calories") instead of implying a total. Real bug
+  fixed here: every food-add path was rebuilding the item by hand and
+  DROPPING fiber/sugar — mealItemFrom() is now the one constructor.
+  Fiber + sugar goals are editable in Settings; sugar default is 25g.
+  GOAL DESIGNER — openGoalDesigner() / designGoalPlan(). Asks what she
+  wants (lose / recomp / build / maintain), where she is (weight + body
+  fat %), where she's going (GOAL BODY FAT %, which holds lean mass
+  constant and solves for the weight that implies), and what she won't
+  do (a calorie FLOOR + pace). Katch-McArdle when body fat is known.
+  Protein is prescribed per lb of LEAN mass (1.15 g/lb in a deficit
+  while lifting) — that's the muscle-sparing lever. Deficit is clamped
+  by her floor first and 25% of TDEE second; when the floor binds, the
+  TIMELINE stretches, not the food. Every output is editable before
+  save. Writes state.goals.plan, rendered by renderPlanCard() on Goals
+  with progress toward the body-fat target.
+  EXPLAINERS — openExplainer("bmr"|"bf"): plain-language BMR-vs-BMI and
+  body-fat-% panels, reachable from the "?" pips and the plan card.
+  HEALTH NOTES — parseHealthNote() runs LOCALLY (no AI, no key, no
+  credits). Pulls sleep hours, energy/mood/water, ~45 symptoms mapped
+  onto COMMON_SYMPTOMS, and 10 exposures (alcohol, gluten, dairy,
+  sugar, caffeine, air quality, travel, stress, poor sleep, late meal).
+  applyHealthNote() is non-destructive — it won't overwrite a sleep
+  number already logged or duplicate a symptom. Reachable from Health >
+  + NOTE and from inside Brain Dump (SAVE HEALTH NOTE works with the AI
+  down). Exposures land on day.exposures, flow into _dailyRows, and
+  exposureFindings() mean-splits each one against symptoms and energy
+  in #notesCard.
+  BODY COMP — openInBodyManualModal(): type the numbers off an InBody /
+  DEXA / scale printout. The photo parser used to dead-end without an
+  AI key; that path now falls through to manual entry.
 The WHY layer (v21): the plan-day editor takes a one-line reason per
   workout (`why` on the plan entry + on each `extra`), with 10 one-tap
   preset chips (WHY_PRESETS) that toggle into the same free-text field.
@@ -287,7 +327,7 @@ export/import, PWA install.
   food + lift logging end-to-end, modal close, dashboard re-render,
   cross-page date sync, and the v20 health engines (seeds a quad-free
   leg week and asserts the gap is named WITH a fix).
-  Expected: 17/17 + zero page errors.
+  Expected: 21/21 + zero page errors.
   Also always `node --check tracker/app.js`. The user additionally
   tests on iPhone — when something breaks there, ask for a screenshot
   + the exact element tapped.

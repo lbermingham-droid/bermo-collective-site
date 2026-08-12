@@ -527,10 +527,7 @@ function openFoodModal(meal){
         li.addEventListener("click", () => {
           const food = items.find(x => x.id === li.dataset.key);
           if(!food) return;
-          dayObj(currentDate).meals[_activeFoodMeal].push({
-            id: uid(), name:food.name, serving:food.serving,
-            cal:food.cal, p:food.p, c:food.c, f:food.f
-          });
+          dayObj(currentDate).meals[_activeFoodMeal].push(mealItemFrom(food));
           if(typeof _trackRecent === "function") _trackRecent(food);
           save(); closeModal(); renderAll();
           toast(`Added ${food.name} to ${_activeFoodMeal}`, "cyan");
@@ -1217,6 +1214,8 @@ function renderSettingsBase(){
   $("#setP").value = state.goals.protein;
   $("#setC").value = state.goals.carbs;
   $("#setF").value = state.goals.fat;
+  $("#setFiber").value = state.goals.fiber != null ? state.goals.fiber : 30;
+  $("#setSugar").value = state.goals.sugar != null ? state.goals.sugar : 25;
   $("#setWater").value = state.goals.water;
   $("#setGoalWeight").value = state.goals.weight || "";
   // Layout card
@@ -1251,6 +1250,8 @@ function saveGoals(e){
   state.goals.protein = parseInt($("#setP").value,10) || 0;
   state.goals.carbs = parseInt($("#setC").value,10) || 0;
   state.goals.fat = parseInt($("#setF").value,10) || 0;
+  state.goals.fiber = parseInt($("#setFiber").value,10) || 30;
+  state.goals.sugar = parseInt($("#setSugar").value,10) || 25;
   state.goals.water = parseInt($("#setWater").value,10) || 64;
   const gw = parseFloat($("#setGoalWeight").value);
   state.goals.weight = isNaN(gw) ? null : gw;
@@ -2362,6 +2363,114 @@ function totalsDetailFor(key){
   };
 }
 
+// One place that turns a food record into a diary item, so fiber, sugar
+// and micronutrients stop being dropped on the way in (they were).
+function mealItemFrom(food, mult){
+  const m = mult || 1;
+  const r1 = (v) => Math.round(v * m * 10) / 10;
+  const out = {
+    id: uid(),
+    name: food.name,
+    serving: m === 1 ? (food.serving || "") : `${m} × ${food.serving || "serving"}`,
+    cal: Math.round((+food.cal || 0) * m),
+    p: r1(+food.p || 0), c: r1(+food.c || 0), f: r1(+food.f || 0),
+  };
+  if(food.fiber != null) out.fiber = r1(+food.fiber);
+  if(food.sugar != null) out.sugar = r1(+food.sugar);
+  if(food.micros){
+    const mi = {};
+    Object.keys(food.micros).forEach(k => { mi[k] = Math.round((+food.micros[k] || 0) * m * 10) / 10; });
+    out.micros = mi;
+  }
+  if(food.upc || food._upc) out.upc = food.upc || food._upc;
+  return out;
+}
+
+// =================================================================
+// MICRONUTRIENTS
+// Only ever shows numbers that came from a real source: a scanned or
+// searched OpenFoodFacts product, or values typed on a custom food.
+// The built-in whole-food list carries macros only, so the card always
+// reports its own COVERAGE rather than pretending a total is complete.
+// =================================================================
+const MICROS = [
+  { key:"satfat",  label:"Saturated fat", unit:"g",   goal:20,   cap:true,  off:"saturated-fat", mult:1 },
+  { key:"sodium",  label:"Sodium",        unit:"mg",  goal:2300, cap:true,  off:"sodium",        mult:1000 },
+  { key:"potassium",label:"Potassium",    unit:"mg",  goal:2600, cap:false, off:"potassium",     mult:1000 },
+  { key:"calcium", label:"Calcium",       unit:"mg",  goal:1000, cap:false, off:"calcium",       mult:1000 },
+  { key:"iron",    label:"Iron",          unit:"mg",  goal:18,   cap:false, off:"iron",          mult:1000 },
+  { key:"magnesium",label:"Magnesium",    unit:"mg",  goal:320,  cap:false, off:"magnesium",     mult:1000 },
+  { key:"vitc",    label:"Vitamin C",     unit:"mg",  goal:75,   cap:false, off:"vitamin-c",     mult:1000 },
+  { key:"vitd",    label:"Vitamin D",     unit:"mcg", goal:20,   cap:false, off:"vitamin-d",     mult:1000000 },
+  { key:"vita",    label:"Vitamin A",     unit:"mcg", goal:700,  cap:false, off:"vitamin-a",     mult:1000000 },
+  { key:"chol",    label:"Cholesterol",   unit:"mg",  goal:300,  cap:true,  off:"cholesterol",   mult:1000 },
+];
+
+// Pull whatever micronutrients an OpenFoodFacts product actually carries.
+function _microsFromOFF(n, preferServing){
+  if(!n) return null;
+  const out = {};
+  MICROS.forEach(m => {
+    const v = preferServing
+      ? (n[m.off + "_serving"] != null ? n[m.off + "_serving"] : n[m.off + "_100g"])
+      : (n[m.off + "_100g"] != null ? n[m.off + "_100g"] : n[m.off + "_serving"]);
+    if(v == null || isNaN(v)) return;
+    const scaled = v * m.mult;
+    if(scaled > 0) out[m.key] = Math.round(scaled * 10) / 10;
+  });
+  return Object.keys(out).length ? out : null;
+}
+
+// Sum a day's micronutrients and report how much of the day they cover.
+function microsFor(key){
+  const day = dayObj(key);
+  const totals = {};
+  let items = 0, withData = 0, calWith = 0, calAll = 0;
+  ["breakfast","lunch","dinner","snacks"].forEach(m => {
+    (day.meals[m] || []).forEach(it => {
+      items++; calAll += (+it.cal || 0);
+      const mi = it.micros;
+      if(!mi || !Object.keys(mi).length) return;
+      withData++; calWith += (+it.cal || 0);
+      Object.keys(mi).forEach(k => { totals[k] = (totals[k] || 0) + (+mi[k] || 0); });
+    });
+  });
+  return { totals, items, withData, calWith, calAll,
+           coverage: calAll ? Math.round(calWith / calAll * 100) : 0 };
+}
+
+function renderMicros(){
+  const host = document.getElementById("microTable");
+  if(!host) return;
+  const m = microsFor(currentDate);
+  const meta = document.getElementById("microMeta");
+  if(meta) meta.textContent = m.items ? `${m.withData}/${m.items} items` : "—";
+
+  if(!m.items){
+    host.innerHTML = `<p class="wl-empty">Log food and any micronutrients your items carry show up here.</p>`;
+    return;
+  }
+  const rows = MICROS.filter(x => m.totals[x.key] != null);
+  if(!rows.length){
+    host.innerHTML = `<p class="wl-empty">None of today's ${m.items} item${m.items===1?"":"s"} carry micronutrient data. Scanned barcodes and searched packaged foods usually do; the built-in whole-food list is macros only. You can also type these onto a custom food.</p>`;
+    return;
+  }
+  host.innerHTML = `<div class="micro-cov">Based on <b>${m.withData} of ${m.items}</b> items — about <b>${m.coverage}%</b> of today's calories. Anything below is a floor, not a total.</div>`
+    + rows.map(x => {
+      const val = Math.round(m.totals[x.key] * 10) / 10;
+      const pct = Math.min(100, (val / x.goal) * 100);
+      const over = x.cap && val > x.goal;
+      const low  = !x.cap && pct < 50;
+      return `<div class="micro-row ${over ? "over" : (low ? "low" : "")}">
+        <span class="micro-name">${x.label}</span>
+        <span class="micro-bar"><i style="width:${pct}%"></i></span>
+        <span class="micro-val">${val}<em>${x.unit}</em></span>
+        <span class="micro-goal">${x.cap ? "max " : ""}${x.goal}</span>
+      </div>`;
+    }).join("")
+    + `<p class="corr-foot">Targets are general adult reference values (${MICROS.filter(x=>x.cap).map(x=>x.label.toLowerCase()).join(", ")} are ceilings, the rest are floors) — not medical advice.</p>`;
+}
+
 function renderDetail(){
   const card = document.getElementById("detailCard");
   if(!card) return;
@@ -2369,7 +2478,7 @@ function renderDetail(){
   const note = document.getElementById("detailNote");
   const t = totalsDetailFor(currentDate);
   const fiberGoal = state.goals.fiber || 30;
-  const sugarLimit = state.goals.sugar || 50; // soft cap (AHA: <25g women, <36g men, plus natural fruit sugar)
+  const sugarLimit = state.goals.sugar || 25; // soft cap — AHA added-sugar guidance for women
   const proteinDensity = t.cal ? (t.p / t.cal * 100).toFixed(1) : "0.0";
   const carbDensity    = t.cal ? (t.c / t.cal * 100).toFixed(1) : "0.0";
 
@@ -3556,13 +3665,15 @@ function openBrainDumpModal(mode){
     </p>
     <textarea id="bdText" rows="6" class="search-input" style="resize:vertical;min-height:120px;font-size:14px;width:100%" placeholder="What did you eat / lift / do today?" autofocus></textarea>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-      <button type="button" class="btn btn-ghost btn-sm" id="bdAddPhoto">📸 Add photo (food / watch)</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="bdAddPhoto">+ Add photo (food / watch)</button>
       <input type="file" id="bdFile" accept="image/*" multiple style="display:none">
     </div>
     <div id="bdThumbs" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
     <div id="bdStatus" style="font-size:12px;color:#666;text-align:center;padding:10px"></div>
+    <div id="bdNote" class="bd-note"></div>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-ghost" id="bdNoteSave">SAVE HEALTH NOTE</button>
       <button class="btn btn-cyan" id="bdGo">Parse with AI</button>
     </div>
   `, (root) => {
@@ -3616,7 +3727,7 @@ function openBrainDumpModal(mode){
           rec.onerror = () => { ta.focus(); };
           rec.start();
           const status = document.getElementById("bdStatus");
-          if(status) status.innerHTML = '<span style="color:var(--iron-volt)">🎤 Listening — just talk. Tap Parse when done.</span>';
+          if(status) status.innerHTML = '<span style="color:var(--iron-volt)">Listening — just talk. Tap Parse when done.</span>';
           // stop dictation when modal closes or parse starts
           const stopRec = () => { try{ rec.stop(); }catch(e){} };
           document.getElementById("bdGo").addEventListener("click", stopRec, { once:true });
@@ -3626,9 +3737,31 @@ function openBrainDumpModal(mode){
         // iOS Safari: no Web Speech — focus the box so the keyboard mic works
         ta.focus();
         const status = document.getElementById("bdStatus");
-        if(status) status.innerHTML = '<span style="color:var(--iron-mute)">Tap the 🎤 on your keyboard and just talk.</span>';
+        if(status) status.innerHTML = '<span style="color:var(--iron-mute)">Tap the mic on your keyboard and just talk.</span>';
       }
     }
+    // Local health-note pass — runs on every keystroke, needs no AI.
+    const bdTa = document.getElementById("bdText");
+    const bdNote = document.getElementById("bdNote");
+    const bdRefreshNote = () => {
+      const n = parseHealthNote(bdTa.value);
+      if(!_noteHasAnything(n)){ bdNote.innerHTML = ""; return; }
+      const bits = [];
+      if(n.sleep != null) bits.push(`<span class="hn-chip">sleep ${n.sleep}h</span>`);
+      if(n.water != null) bits.push(`<span class="hn-chip">water ${n.water}</span>`);
+      n.symptoms.forEach(x => bits.push(`<span class="hn-chip sym">${escape(x)}</span>`));
+      n.exposures.forEach(e => bits.push(`<span class="hn-chip exp">${escape(e.label)}</span>`));
+      bdNote.innerHTML = `<div class="hn-h">Health note found — savable without AI</div><div class="hn-chips">${bits.join("")}</div>`;
+    };
+    bdTa.addEventListener("input", bdRefreshNote);
+    document.getElementById("bdNoteSave").addEventListener("click", () => {
+      const n = parseHealthNote(bdTa.value);
+      if(!n.raw){ toast("Type something first", "pink"); return; }
+      const applied = applyHealthNote(currentDate, n);
+      closeModal(); renderAll();
+      toast(applied.length ? `Logged: ${applied.slice(0,3).join(", ")}` : "Note saved", "cyan");
+    });
+
     document.getElementById("bdGo").addEventListener("click", async () => {
       const text = document.getElementById("bdText").value.trim();
       if(!text && _brainImages.length === 0){ toast("Type something or add a photo","pink"); return; }
@@ -3637,6 +3770,8 @@ function openBrainDumpModal(mode){
       document.getElementById("bdGo").disabled = true;
       try {
         const parsed = await aiBrainDump(text, _brainImages);
+        const hn = parseHealthNote(text);
+        if(_noteHasAnything(hn)) applyHealthNote(currentDate, hn);
         closeModal();
         openBrainDumpReview(parsed);
       } catch(err){
@@ -6458,15 +6593,58 @@ function _readImageAsBase64(file, maxSize){
   });
 }
 
+// Manual InBody / DEXA / smart-scale entry. This is the path that always
+// works; the photo parser is the convenience on top of it.
+function openInBodyManualModal(){
+  const lastW = _latestWeight() || "";
+  openModal("Body composition", `
+    <p class="hn-intro">Type the numbers straight off your InBody, DEXA or scale printout. Body fat % is the one that matters most — it unlocks lean-mass protein targets and body-fat goals in <b>Design my plan</b>.</p>
+    <div class="form-grid">
+      <label><span>Date</span><input id="ibmDate" type="date" value="${todayKey()}"></label>
+      <label><span>Weight (${unit()})</span><input id="ibmW" type="number" step="0.1" value="${lastW}"></label>
+      <label><span>Body fat %</span><input id="ibmBF" type="number" step="0.1" placeholder="e.g. 28.4"></label>
+      <label><span>Lean / muscle mass (${unit()})</span><input id="ibmLean" type="number" step="0.1" placeholder="optional"></label>
+      <label><span>Visceral fat level</span><input id="ibmVisc" type="number" step="0.1" placeholder="optional"></label>
+      <label><span>Body water (${unit()})</span><input id="ibmWater" type="number" step="0.1" placeholder="optional"></label>
+    </div>
+    <p class="gd-note">If lean mass is blank it's worked out from weight and body fat %.</p>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      ${(state.ai && state.ai.key) ? `<button class="btn btn-ghost" id="ibmPhoto">USE A PHOTO INSTEAD</button>` : ""}
+      <button class="btn btn-cyan" id="ibmSave">SAVE</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    const ph = document.getElementById("ibmPhoto");
+    if(ph) ph.addEventListener("click", () => { closeModal(); setTimeout(openInBodyModal, 120); });
+    document.getElementById("ibmSave").addEventListener("click", () => {
+      const num = (id) => { const v = parseFloat((document.getElementById(id)||{}).value); return isNaN(v) ? null : v; };
+      const date = document.getElementById("ibmDate").value || todayKey();
+      const w = num("ibmW"), bf = num("ibmBF");
+      let lean = num("ibmLean");
+      if(lean == null && w != null && bf != null) lean = Math.round(w * (1 - bf/100) * 10) / 10;
+      if(w == null && bf == null){ toast("Enter at least weight or body fat %", "pink"); return; }
+      const added = [];
+      if(w != null){ state.weights.push({ date, val: w, source:"scan" }); added.push("weight"); }
+      if(bf != null){ state.measurements.push({ date, type:"bodyfat", val: bf }); added.push("body fat %"); }
+      if(lean != null){ state.measurements.push({ date, type:"lean", val: lean }); added.push("lean mass"); }
+      const visc = num("ibmVisc");
+      if(visc != null){ state.measurements.push({ date, type:"visceral", val: visc }); added.push("visceral fat"); }
+      const bw = num("ibmWater");
+      if(bw != null){ state.measurements.push({ date, type:"bodywater", val: bw }); added.push("body water"); }
+      state.weights.sort((a,b) => a.date.localeCompare(b.date));
+      save(); closeModal(); renderAll();
+      toast(`Saved ${added.join(", ")}`, "cyan");
+    });
+  });
+}
+
 // ---------- FEATURE 2: InBody scan ----------
 function openInBodyModal(){
   if(!state.ai || !state.ai.key){
-    openModal("InBody scan",
-      `<p style="line-height:1.6;color:#555">You need an AI key to parse scans automatically.</p>
-       <p style="line-height:1.6;color:#888;font-size:13px">Add a Claude or OpenAI key in Settings → AI Setup, then come back.</p>
-       <button type="button" class="btn btn-cyan" data-go="settings" id="ibToSettings" style="margin-top:12px">Go to Settings</button>`,
-      () => { $("#ibToSettings").addEventListener("click", closeModal); }
-    );
+    // No AI key — don't dead-end. Typing four numbers off the printout
+    // takes twenty seconds and gives the app everything it needs.
+    openInBodyManualModal();
     return;
   }
   openModal("Upload InBody scan",
@@ -6630,6 +6808,7 @@ async function _fetchOpenFoodFacts(upc){
     f: Math.round((n.fat_serving || n.fat_100g || 0) * 10) / 10,
     fiber: Math.round((n.fiber_serving || n.fiber_100g || 0) * 10) / 10,
     sugar: Math.round((n.sugars_serving || n.sugars_100g || 0) * 10) / 10,
+    micros: _microsFromOFF(n, true),
   };
   _barcodeCacheSet(upc, food);
   return food;
@@ -6662,6 +6841,9 @@ async function _searchOpenFoodFacts(query, signal){
         name: ((p.brands ? p.brands.split(",")[0].trim() + " · " : "") + p.product_name).slice(0,70),
         serving: hasServing ? p.serving_size : "100 g",
         cal, p: pr, c: cb, f: ft,
+        fiber: (() => { const v = hasServing ? n.fiber_serving : n.fiber_100g; return v != null ? Math.round(v*10)/10 : undefined; })(),
+        sugar: (() => { const v = hasServing ? n.sugars_serving : n.sugars_100g; return v != null ? Math.round(v*10)/10 : undefined; })(),
+        micros: _microsFromOFF(n, hasServing),
         _source: "off", _upc: p.code,
       };
     });
@@ -6791,12 +6973,7 @@ function _barcodeAddFlow(meal, food){
     () => {
       $("#bcAddBtn").addEventListener("click", () => {
         const mult = parseFloat($("#bcServings").value) || 1;
-        dayObj(currentDate).meals[meal].push({
-          id: uid(),
-          name: food.name, serving: `${mult} × ${food.serving}`,
-          cal: Math.round(food.cal*mult), p: Math.round(food.p*mult*10)/10,
-          c: Math.round(food.c*mult*10)/10, f: Math.round(food.f*mult*10)/10
-        });
+        dayObj(currentDate).meals[meal].push(mealItemFrom(food, mult));
         save(); closeModal(); renderAll();
         toast(`Added ${food.name}`, "cyan");
       });
@@ -6804,7 +6981,9 @@ function _barcodeAddFlow(meal, food){
         const id = "f-bc-" + food.upc;
         if(!state.customFoods.find(x => x.id === id)){
           state.customFoods.push({ id, name: food.name, serving: food.serving,
-            cal: food.cal, p: food.p, c: food.c, f: food.f, custom:true, upc: food.upc });
+            cal: food.cal, p: food.p, c: food.c, f: food.f,
+            fiber: food.fiber, sugar: food.sugar, micros: food.micros,
+            custom:true, upc: food.upc });
           save(); toast("Saved to custom foods", "ok");
         }else{ toast("Already saved", "ok"); }
       });
@@ -7008,11 +7187,7 @@ function renderQuickLogPane(meal, allFoods, filter){
     li.addEventListener("click", () => {
       const food = JSON.parse(li.dataset.food);
       const targetMeal = (typeof _activeFoodMeal === "string") ? _activeFoodMeal : meal;
-      dayObj(currentDate).meals[targetMeal].push({
-        id: uid(),
-        name: food.name, serving: food.serving,
-        cal: food.cal, p: food.p, c: food.c, f: food.f
-      });
+      dayObj(currentDate).meals[targetMeal].push(mealItemFrom(food));
       _trackRecent(food);
       save();
       // Brief feedback then re-render quick log so user can keep tapping
@@ -7050,7 +7225,7 @@ function renderTemplatesPane(meal){
       if(!tpl) return;
       const targetMeal = (typeof _activeFoodMeal === "string") ? _activeFoodMeal : meal;
       tpl.items.forEach(it => {
-        dayObj(currentDate).meals[targetMeal].push({ id: uid(), name:it.name, serving:it.serving, cal:it.cal, p:it.p, c:it.c, f:it.f });
+        dayObj(currentDate).meals[targetMeal].push(mealItemFrom(it));
       });
       save();
       toast(`Applied ${tpl.name} to ${targetMeal}`, "cyan");
@@ -7086,6 +7261,8 @@ function saveCurrentMealAsTemplate(meal){
 (function wireFeatures(){
   const ib = document.getElementById("inbodyBtn");
   if(ib) ib.addEventListener("click", openInBodyModal);
+  const ibm = document.getElementById("inbodyManualBtn");
+  if(ibm) ibm.addEventListener("click", openInBodyManualModal);
   const rerun = document.getElementById("rerunSetupBtn");
   if(rerun) rerun.addEventListener("click", window.bermoRerunSetup);
   const pb = document.getElementById("planBrowsePrograms");
@@ -8208,6 +8385,7 @@ onReady(() => {
 // GOALS VIEW — contract + targets + weight-vs-goal
 // =================================================================
 function renderGoalsView(){
+  try{ renderPlanCard(); }catch(e){ console.warn("plan card", e); }
   try{ renderMacroCalc("goalsMacroCalc"); }catch(e){ console.warn("goals macro calc", e); }
   const grid = document.getElementById("gsGrid");
   if(grid){
@@ -8598,7 +8776,7 @@ function renderNutrientsTable(){
     ["Protein", Math.round(p), g.protein || 0, "g"],
     ["Carbohydrates", Math.round(c), g.carbs || 0, "g"],
     ["Fiber", Math.round(fiber), g.fiber || 25, "g"],
-    ["Sugar", Math.round(sugar), g.sugar || 50, "g"],
+    ["Sugar", Math.round(sugar), g.sugar || 25, "g"],
     ["Fat", Math.round(f), g.fat || 0, "g"],
   ];
   el.innerHTML = `
@@ -10181,6 +10359,7 @@ function _dailyRows(daysBack){
       fiber: t.fiber, sugar: t.sugar,
       knownFib: t.knownFib, knownSug: t.knownSug, items: t.count,
       glutenItems: q.glutenItems, dairyItems: q.dairyItems,
+      exposures: day.exposures || [],
       ultraPct: q.ultraPct, wholePct: q.wholePct, fatPct: q.fatPct,
       water: day.water || 0,
       vol, trained,
@@ -11306,6 +11485,673 @@ function renderWhy(){
 }
 
 
+
+// =================================================================
+// GOAL DESIGNER
+// The old calculator asked "lose / maintain / gain" and handed back a
+// number. This asks what she actually wants — lean out to a body-fat
+// target while holding muscle — and designs around three constraints
+// she sets herself: a calorie FLOOR she won't go under, a rate she can
+// live with, and protein high enough to defend lean mass in a deficit.
+// Every output is editable before it's applied.
+// =================================================================
+
+// Katch-McArdle when body fat is known (it beats Mifflin once you have
+// a real body-comp number), Mifflin-St Jeor when it isn't.
+function _bmrFor(weightLb, bfPct, sex, ageYears, heightIn){
+  const kg = weightLb * 0.4536;
+  if(bfPct != null && bfPct > 3 && bfPct < 60){
+    const leanKg = kg * (1 - bfPct/100);
+    return { bmr: Math.round(370 + 21.6 * leanKg), formula: "Katch-McArdle (uses your body fat %)" };
+  }
+  const cm = (heightIn || 66) * 2.54;
+  const age = ageYears || 35;
+  return {
+    bmr: Math.round(10*kg + 6.25*cm - 5*age + (sex === "m" ? 5 : -161)),
+    formula: "Mifflin-St Jeor (no body fat % logged yet)",
+  };
+}
+
+// Activity multiplier from training days rather than a vague dropdown.
+function _activityFor(days, lifts){
+  const d = Math.max(0, Math.min(7, days || 0));
+  const base = 1.2 + d * 0.055;
+  return Math.round((base + (lifts ? 0.03 : 0)) * 1000) / 1000;
+}
+
+// The plan itself. Returns every intermediate number so the UI can show
+// its work instead of asking her to trust it.
+function designGoalPlan(input){
+  const {
+    weightLb, bfPct, targetBfPct, targetWeightLb, mode,
+    floorCal, days, lifts, ratePctPerWk, sex, ageYears, heightIn,
+  } = input;
+
+  const { bmr, formula } = _bmrFor(weightLb, bfPct, sex, ageYears, heightIn);
+  const act  = _activityFor(days, lifts);
+  const tdee = Math.round(bmr * act);
+
+  const lean = bfPct != null ? Math.round(weightLb * (1 - bfPct/100) * 10) / 10 : null;
+  const fatMass = lean != null ? Math.round((weightLb - lean) * 10) / 10 : null;
+
+  // Where she's going. A body-fat target is the honest one — it holds
+  // lean mass constant and solves for the weight that implies.
+  let goalWeight = targetWeightLb || null;
+  let goalFat = null;
+  if(targetBfPct != null && lean != null){
+    goalWeight = Math.round((lean / (1 - targetBfPct/100)) * 10) / 10;
+    goalFat = Math.round((goalWeight - lean) * 10) / 10;
+  }
+  const toLose = goalWeight != null ? Math.round((weightLb - goalWeight) * 10) / 10 : null;
+
+  // Rate: a share of bodyweight per week, capped at 1% (above that you
+  // start paying in muscle, which is the whole thing she's avoiding).
+  const ratePct = Math.min(1.0, Math.max(0.15, ratePctPerWk || 0.6));
+  const wantedLbWk = Math.round(weightLb * ratePct / 100 * 100) / 100;
+
+  let dailyDelta = 0;
+  if(mode === "lose")        dailyDelta = -Math.round(wantedLbWk * 3500 / 7);
+  else if(mode === "recomp") dailyDelta = -Math.round(tdee * 0.08);   // small, deliberate
+  else if(mode === "build")  dailyDelta =  Math.round(tdee * 0.10);
+  else                       dailyDelta = 0;
+
+  // The floor is hers, not the formula's.
+  const floor = floorCal || 1400;
+  let cal = tdee + dailyDelta;
+  let floored = false;
+  if(dailyDelta < 0 && cal < floor){ cal = floor; floored = true; }
+  // Never design a deficit steeper than 25% of maintenance.
+  const maxDeficit = Math.round(tdee * 0.75);
+  let capped = false;
+  if(dailyDelta < 0 && cal < maxDeficit){ cal = maxDeficit; capped = true; }
+  cal = Math.round(cal / 10) * 10;
+
+  const actualDelta = cal - tdee;
+  const actualLbWk = Math.round(Math.abs(actualDelta) * 7 / 3500 * 100) / 100;
+  const weeks = (toLose != null && actualLbWk > 0.05 && actualDelta < 0)
+    ? Math.ceil(toLose / actualLbWk) : null;
+
+  // PROTEIN is the muscle-sparing lever. Per pound of LEAN mass, not
+  // total weight — that's why body fat % matters here.
+  const proteinBase = lean != null ? lean : weightLb * 0.75;
+  let gPerLbLean = 1.0;
+  if(actualDelta < 0 && lifts) gPerLbLean = 1.15;      // deficit + lifting = the highest need
+  else if(actualDelta < 0)     gPerLbLean = 1.05;
+  else if(mode === "build")    gPerLbLean = 1.0;
+  let protein = Math.round(proteinBase * gPerLbLean);
+
+  // FAT floor — hormones, and she said low fat, so this is the guard rail.
+  let fat = Math.round(weightLb * 0.35);
+  let carbs = Math.round((cal - protein*4 - fat*9) / 4);
+  if(carbs < 60){                                       // squeeze fat first, then protein
+    fat = Math.max(Math.round(weightLb * 0.28), Math.round((cal - protein*4 - 60*4) / 9));
+    carbs = Math.round((cal - protein*4 - fat*9) / 4);
+  }
+  if(carbs < 40){
+    protein = Math.round((cal - fat*9 - 40*4) / 4);
+    carbs = Math.round((cal - protein*4 - fat*9) / 4);
+  }
+  carbs = Math.max(0, carbs);
+
+  const notes = [];
+  if(floored) notes.push(`Your ${floor} kcal floor is holding — the math wanted lower, so the timeline stretched instead of the food shrinking. That's the right trade.`);
+  if(capped)  notes.push(`Capped at a 25% deficit. Steeper than that and you start paying in muscle.`);
+  if(lean == null) notes.push(`No body fat % logged, so protein is set from total weight. Log an InBody or a body fat estimate and this gets sharper.`);
+  if(mode === "recomp") notes.push(`Recomp runs a small deficit with protein high and lifting hard. The scale barely moves — body fat % and the mirror are the read, not weight.`);
+  if(lifts && actualDelta < 0) notes.push(`${protein}g protein is ${gPerLbLean.toFixed(2)}g per lb of lean mass — that's the number that decides whether the weight you lose is fat or muscle.`);
+
+  return {
+    bmr, formula, act, tdee, lean, fatMass,
+    goalWeight, goalFat, toLose, weeks,
+    cal, protein, carbs, fat,
+    actualDelta, actualLbWk, ratePct, floored, capped, notes,
+    gPerLbLean,
+  };
+}
+
+function _latestBodyFat(){
+  const m = (state.measurements || []).slice().reverse().find(x => x.type === "bodyfat");
+  return m ? +m.val : null;
+}
+function _latestWeight(){
+  const w = (state.weights || [])[state.weights.length - 1];
+  return w ? +w.val : (state.profile.weightLb || null);
+}
+
+function openGoalDesigner(){
+  const w0  = _latestWeight() || 150;
+  const bf0 = _latestBodyFat();
+  const g   = state.goals || {};
+  const saved = g.plan || {};
+  const age = state.profile.birthYear ? (new Date().getFullYear() - state.profile.birthYear) : "";
+
+  openModal("Design my plan", `
+    <p class="gd-intro">Tell it what you actually want and what you're not willing to do. It designs around both — and shows its work, so you can change any number before it saves.</p>
+
+    <div class="gd-sec">
+      <div class="gd-h">1 · What are you after</div>
+      <div class="gd-modes">
+        <button type="button" class="gd-mode ${(saved.mode||"lose")==="lose"?"on":""}" data-mode="lose">
+          <b>Lose fat</b><span>Drop fat, hold the muscle you have</span></button>
+        <button type="button" class="gd-mode ${saved.mode==="recomp"?"on":""}" data-mode="recomp">
+          <b>Lean out / recomp</b><span>Slow fat loss while building — scale barely moves</span></button>
+        <button type="button" class="gd-mode ${saved.mode==="build"?"on":""}" data-mode="build">
+          <b>Build muscle</b><span>Small surplus, accept a little fat</span></button>
+        <button type="button" class="gd-mode ${saved.mode==="maintain"?"on":""}" data-mode="maintain">
+          <b>Maintain</b><span>Hold where you are</span></button>
+      </div>
+    </div>
+
+    <div class="gd-sec">
+      <div class="gd-h">2 · Where you are</div>
+      <div class="form-grid">
+        <label><span>Weight (${unit()})</span><input id="gdW" type="number" step="0.1" value="${w0}"></label>
+        <label><span>Body fat %<i class="gd-hint" data-explain="bf">?</i></span><input id="gdBF" type="number" step="0.1" value="${bf0 != null ? bf0 : ""}" placeholder="from InBody"></label>
+        <label><span>Age</span><input id="gdAge" type="number" min="14" max="90" value="${age}"></label>
+        <label><span>Height (in)</span><input id="gdHt" type="number" step="0.5" value="${state.profile.height || ""}"></label>
+      </div>
+    </div>
+
+    <div class="gd-sec">
+      <div class="gd-h">3 · Where you're going</div>
+      <div class="form-grid">
+        <label><span>Goal body fat %<i class="gd-hint" data-explain="bf">?</i></span>
+          <input id="gdTargetBF" type="number" step="0.5" value="${saved.targetBf != null ? saved.targetBf : (bf0 != null ? Math.max(15, Math.round(bf0 - 5)) : "")}" placeholder="e.g. 24"></label>
+        <label><span>Or goal weight (${unit()})</span>
+          <input id="gdTargetW" type="number" step="0.1" value="${saved.targetWeight || g.weight || ""}" placeholder="optional"></label>
+      </div>
+      <p class="gd-note">Body fat % is the better target — it holds your lean mass constant and works out the weight that implies. Fill either one.</p>
+    </div>
+
+    <div class="gd-sec">
+      <div class="gd-h">4 · What you're not willing to do</div>
+      <div class="form-grid">
+        <label><span>Never eat below (kcal)</span><input id="gdFloor" type="number" step="10" value="${saved.floor || 1400}"></label>
+        <label><span>Training days / week</span><input id="gdDays" type="number" min="0" max="7" value="${saved.days != null ? saved.days : 4}"></label>
+      </div>
+      <label class="gd-check"><input type="checkbox" id="gdLifts" ${saved.lifts === false ? "" : "checked"}> I lift weights (raises your protein target)</label>
+      <label><span>Pace</span>
+        <select id="gdRate">
+          <option value="0.35" ${saved.ratePct==0.35?"selected":""}>Gentle — 0.35% of bodyweight a week</option>
+          <option value="0.6" ${(saved.ratePct||0.6)==0.6?"selected":""}>Steady — 0.6% a week (best for holding muscle)</option>
+          <option value="0.85" ${saved.ratePct==0.85?"selected":""}>Faster — 0.85% a week</option>
+        </select>
+      </label>
+    </div>
+
+    <div id="gdResult" class="gd-result hidden"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-cyan" id="gdBuild">BUILD MY PLAN</button>
+      <button class="btn btn-lime hidden" id="gdApply">SAVE AS MY GOALS</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    let mode = saved.mode || "lose";
+    let plan = null;
+
+    root.querySelectorAll(".gd-mode").forEach(b => b.addEventListener("click", () => {
+      root.querySelectorAll(".gd-mode").forEach(x => x.classList.remove("on"));
+      b.classList.add("on");
+      mode = b.getAttribute("data-mode");
+    }));
+    root.querySelectorAll("[data-explain]").forEach(b =>
+      b.addEventListener("click", () => openExplainer(b.getAttribute("data-explain"))));
+
+    const num = (id) => { const v = parseFloat((document.getElementById(id)||{}).value); return isNaN(v) ? null : v; };
+
+    document.getElementById("gdBuild").addEventListener("click", () => {
+      const weightLb = num("gdW");
+      if(!weightLb){ toast("Enter your weight", "pink"); return; }
+      plan = designGoalPlan({
+        weightLb,
+        bfPct: num("gdBF"),
+        targetBfPct: num("gdTargetBF"),
+        targetWeightLb: num("gdTargetW"),
+        mode,
+        floorCal: num("gdFloor"),
+        days: num("gdDays"),
+        lifts: document.getElementById("gdLifts").checked,
+        ratePctPerWk: parseFloat(document.getElementById("gdRate").value),
+        sex: state.profile.sex === "male" || state.profile.sex === "m" ? "m" : "f",
+        ageYears: num("gdAge"),
+        heightIn: num("gdHt"),
+      });
+      const eta = plan.weeks
+        ? new Date(Date.now() + plan.weeks*7*86400000).toLocaleDateString(undefined,{month:"long",year:"numeric"})
+        : null;
+      const res = document.getElementById("gdResult");
+      res.classList.remove("hidden");
+      res.innerHTML = `
+        <div class="gd-h">Your plan</div>
+        <div class="gd-grid">
+          <div><span>BMR<i class="gd-hint" data-explain="bmr">?</i></span><b>${plan.bmr}</b><em>${escape(plan.formula)}</em></div>
+          <div><span>Maintenance</span><b>${plan.tdee}</b><em>×${plan.act} for ${num("gdDays")||0} training days</em></div>
+          <div class="gd-hi"><span>Eat</span><b>${plan.cal}</b><em>${plan.actualDelta === 0 ? "at maintenance" : `${plan.actualDelta > 0 ? "+" : ""}${plan.actualDelta} · ~${plan.actualLbWk} ${unit()}/wk`}</em></div>
+        </div>
+        <div class="gd-macros">
+          <div><span>Protein</span><b>${plan.protein}g</b><em>${plan.lean ? plan.gPerLbLean.toFixed(2) + "g per lb lean" : "from bodyweight"}</em></div>
+          <div><span>Carbs</span><b>${plan.carbs}g</b><em>the rest of the fuel</em></div>
+          <div><span>Fat</span><b>${plan.fat}g</b><em>floor for hormones</em></div>
+        </div>
+        ${plan.lean != null ? `<div class="gd-body">
+          <div><span>Lean mass now</span><b>${plan.lean} ${unit()}</b></div>
+          <div><span>Fat mass now</span><b>${plan.fatMass} ${unit()}</b></div>
+          ${plan.goalWeight ? `<div><span>Goal weight at that body fat</span><b>${plan.goalWeight} ${unit()}</b></div>` : ""}
+          ${plan.toLose != null ? `<div><span>Fat to lose</span><b>${plan.toLose} ${unit()}</b></div>` : ""}
+          ${eta ? `<div><span>Gets you there around</span><b>${eta}</b></div>` : ""}
+        </div>` : ""}
+        ${plan.notes.length ? `<ul class="gd-notes">${plan.notes.map(n => `<li>${escape(n)}</li>`).join("")}</ul>` : ""}
+        <div class="gd-h" style="margin-top:14px">Adjust anything before you save</div>
+        <div class="form-grid">
+          <label><span>Calories</span><input id="gdFinalCal" type="number" step="10" value="${plan.cal}"></label>
+          <label><span>Protein (g)</span><input id="gdFinalP" type="number" value="${plan.protein}"></label>
+          <label><span>Carbs (g)</span><input id="gdFinalC" type="number" value="${plan.carbs}"></label>
+          <label><span>Fat (g)</span><input id="gdFinalF" type="number" value="${plan.fat}"></label>
+        </div>
+      `;
+      res.querySelectorAll("[data-explain]").forEach(b =>
+        b.addEventListener("click", () => openExplainer(b.getAttribute("data-explain"))));
+      document.getElementById("gdApply").classList.remove("hidden");
+    });
+
+    document.getElementById("gdApply").addEventListener("click", () => {
+      if(!plan) return;
+      const gi = (id, fb) => { const v = parseInt((document.getElementById(id)||{}).value, 10); return isNaN(v) ? fb : v; };
+      state.goals.cal     = gi("gdFinalCal", plan.cal);
+      state.goals.protein = gi("gdFinalP", plan.protein);
+      state.goals.carbs   = gi("gdFinalC", plan.carbs);
+      state.goals.fat     = gi("gdFinalF", plan.fat);
+      if(plan.goalWeight) state.goals.weight = plan.goalWeight;
+      // Keep the top-level energy numbers in step — adaptive macros reads them.
+      state.goals.bmr = plan.bmr;
+      state.goals.tdee = plan.tdee;
+      state.goals.plan = {
+        mode,
+        targetBf: num("gdTargetBF"),
+        targetWeight: plan.goalWeight,
+        floor: num("gdFloor"),
+        days: num("gdDays"),
+        lifts: document.getElementById("gdLifts").checked,
+        ratePct: parseFloat(document.getElementById("gdRate").value),
+        tdee: plan.tdee,
+        startWeight: num("gdW"),
+        startBf: num("gdBF"),
+        createdAt: todayKey(),
+      };
+      save(); closeModal(); renderAll();
+      toast("Plan saved as your goals", "cyan");
+    });
+  });
+}
+
+// The plan card on Goals — what she's eating, why, and how far along.
+function renderPlanCard(){
+  const host = document.getElementById("planBody");
+  if(!host) return;
+  const g = state.goals || {};
+  const p = g.plan;
+  const meta = document.getElementById("planMeta");
+
+  if(!p){
+    if(meta) meta.textContent = "not set";
+    host.innerHTML = `<p class="wl-empty">Your targets are set to defaults. Tap <b>DESIGN MY PLAN</b> and it'll build one around a body fat target, a calorie floor you won't go under, and protein set from your lean mass — then show its work so you can change any number.</p>`;
+    return;
+  }
+
+  const MODE = { lose:"Lose fat", recomp:"Lean out / recomp", build:"Build muscle", maintain:"Maintain" };
+  if(meta) meta.textContent = MODE[p.mode] || p.mode;
+
+  const nowW  = _latestWeight();
+  const nowBf = _latestBodyFat();
+  const rows = [];
+  rows.push(["Eating", `${g.cal} kcal`, p.tdee ? `maintenance ~${p.tdee}` : ""]);
+  rows.push(["Protein", `${g.protein}g`, "set from lean mass"]);
+  rows.push(["Carbs / Fat", `${g.carbs}g / ${g.fat}g`, ""]);
+  if(p.floor) rows.push(["Your floor", `${p.floor} kcal`, "never designed below this"]);
+
+  let progress = "";
+  if(p.targetBf != null && nowBf != null && p.startBf != null){
+    const done = p.startBf - nowBf, need = p.startBf - p.targetBf;
+    const pct = need > 0 ? Math.max(0, Math.min(100, Math.round(done / need * 100))) : 0;
+    progress = `<div class="plan-prog">
+      <div class="plan-prog-h"><span>Body fat ${p.startBf}% → ${p.targetBf}%</span><b>${nowBf}% now</b></div>
+      <div class="plan-prog-bar"><i style="width:${pct}%"></i></div>
+      <div class="plan-prog-sub">${done > 0 ? `${done.toFixed(1)} points down, ${(need-done).toFixed(1)} to go` : `Starting point. Log an InBody or a scale body fat % to move this.`}</div>
+    </div>`;
+  } else if(p.targetWeight && nowW){
+    const done = (p.startWeight || nowW) - nowW, need = (p.startWeight || nowW) - p.targetWeight;
+    const pct = need > 0 ? Math.max(0, Math.min(100, Math.round(done / need * 100))) : 0;
+    progress = `<div class="plan-prog">
+      <div class="plan-prog-h"><span>${p.startWeight || nowW} → ${p.targetWeight} ${unit()}</span><b>${nowW} now</b></div>
+      <div class="plan-prog-bar"><i style="width:${pct}%"></i></div>
+      <div class="plan-prog-sub">${p.targetBf != null ? `Log a body fat % and this switches to tracking fat, not just weight.` : ""}</div>
+    </div>`;
+  }
+
+  host.innerHTML = progress + `<div class="plan-rows">
+    ${rows.map(([k,v,sub]) => `<div class="plan-row"><span>${escape(k)}</span><b>${escape(v)}</b><em>${escape(sub||"")}</em></div>`).join("")}
+  </div>
+  <div class="plan-acts">
+    <button type="button" class="btn btn-ghost btn-sm" id="planRedo">REDESIGN</button>
+    <button type="button" class="btn btn-ghost btn-sm" id="planWhatIs">WHAT IS BMR VS BMI?</button>
+  </div>`;
+  const redo = document.getElementById("planRedo");
+  if(redo) redo.addEventListener("click", openGoalDesigner);
+  const wi = document.getElementById("planWhatIs");
+  if(wi) wi.addEventListener("click", () => openExplainer("bmr"));
+}
+
+onReady(() => {
+  const n = document.getElementById("trNoteBtn");
+  if(n) n.addEventListener("click", () => openHealthNoteModal());
+  const a = document.getElementById("goalPlanBtn");
+  if(a) a.addEventListener("click", openGoalDesigner);
+  const b = document.getElementById("goalPlanBtn2");
+  if(b) b.addEventListener("click", openGoalDesigner);
+});
+
+// ---------- Plain-language explainers ----------
+// She asked what BMR is vs BMI. The answer belongs in the app, next to
+// the numbers, not in a chat she has to go find again.
+const EXPLAINERS = {
+  bmr: {
+    title: "BMR vs BMI — they measure completely different things",
+    body: `<p><b>BMR — Basal Metabolic Rate.</b> The calories your body burns doing nothing at all: breathing, pumping blood, keeping you warm, running your brain. If you slept for 24 hours straight, this is roughly what you'd burn. It's measured in calories.</p>
+      <p>It's the floor your whole food plan is built on. Your <b>maintenance</b> (TDEE) is BMR multiplied by how much you move — so a heavier, more muscular person has a higher BMR, which is one reason muscle is worth defending in a deficit.</p>
+      <p><b>BMI — Body Mass Index.</b> Just your weight compared to your height. One formula, no idea what you're made of. A lean athlete and someone with much more body fat at the same height and weight get the identical BMI. It's a population statistic, not a description of you.</p>
+      <p class="ex-key">The short version: <b>BMR is about energy</b> — how much you burn, so how much to eat. <b>BMI is about size</b> — and it can't tell muscle from fat, which is exactly the difference you're training for. Body fat % is the number worth tracking instead.</p>`,
+  },
+  bf: {
+    title: "Body fat % — and why the plan is built on it",
+    body: `<p>Body fat % splits your weight into <b>fat mass</b> and <b>lean mass</b> (muscle, bone, organs, water). It's the number that tells you whether the scale moving is good news.</p>
+      <p>Setting a body fat <i>target</i> lets the app hold your lean mass constant and work out what weight that implies. Drop from 30% to 24% while keeping every pound of muscle and it can tell you the exact weight that lands you at — usually higher than people guess, which is the point.</p>
+      <p>It also sets your protein. Protein is prescribed per pound of <b>lean</b> mass, not total weight, because muscle is what you're feeding.</p>
+      <p><b>Getting the number:</b> an InBody or DEXA scan is the accurate route — log it under Body. A smart scale is roughly right and consistent enough to track a trend. Without one the app falls back to a formula that only knows height and weight.</p>`,
+  },
+};
+function openExplainer(key){
+  const e = EXPLAINERS[key];
+  if(!e) return;
+  openModal(e.title, `<div class="explainer">${e.body}</div>
+    <div class="modal-foot"><button class="btn btn-cyan" data-close>Got it</button></div>`,
+    (root) => root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal)));
+}
+
+
+
+// =================================================================
+// HEALTH NOTES — parsed LOCALLY, no AI, no key, no credits.
+// "no sleep, bloated, ate gluten, drank last night, twisted my knee,
+//  air is bad from the fires" — all of that becomes structured data:
+// sleep hours on the check-in, symptoms with a suspected trigger, and
+// exposure tags the Health page can correlate against.
+// =================================================================
+
+// Exposures — things that happen TO her, not symptoms she feels.
+const NOTE_EXPOSURES = [
+  ["alcohol",   "Alcohol",        /\b(drank|drinking|hungover|hung ?over|wine|beers?|vodka|tequila|whiskey|cocktails?|margarita|seltzers?|prosecco|champagne|booze|bar\b|happy hour)\b/i],
+  ["gluten",    "Gluten",         /\b(gluten|bread|pasta|bagel|pizza|beer|cracker|tortilla|pastry|donut|cake|cookie)\b/i],
+  ["dairy",     "Dairy",          /\b(dairy|milk|cheese|yogurt|ice cream|latte|cream)\b/i],
+  ["sugar",     "Sugar",          /\b(sugar|sweets|candy|dessert|soda|chocolate)\b/i],
+  ["caffeine",  "Caffeine",       /\b(caffeine|coffee|espresso|energy drink|pre.?workout)\b/i],
+  ["airquality","Air quality",    /\b(smoke|smoky|wildfire|fire pollution|air quality|aqi|pollution|smog|pollen|allergens?)\b/i],
+  ["travel",    "Travel",         /\b(flight|flew|airport|travel|hotel|jet ?lag|road trip)\b/i],
+  ["stress",    "Stress",         /\b(stress|stressed|anxious|overwhelmed|rough day|burn(ed|t)? out)\b/i],
+  ["poorsleep", "Poor sleep",     /\b(no sleep|barely slept|couldn'?t sleep|bad sleep|slept (badly|like crap|terrible)|insomnia|up all night|tossed and turned)\b/i],
+  ["latemeal",  "Late meal",      /\b(ate late|late dinner|midnight snack|ate at \d)/i],
+];
+
+// Symptoms — mapped onto the app's existing vocabulary so they land in
+// the same place as a manually logged symptom and feed the same engine.
+const NOTE_SYMPTOMS = [
+  [/\bbloat(ed|ing)?\b/i,                          "Bloating"],
+  [/\b(stomach ache|stomachache|tummy|gut hurts?)\b/i, "Stomach ache"],
+  [/\bnause(a|ous|ated)\b/i,                       "Nausea"],
+  [/\bheart ?burn|acid reflux|reflux\b/i,          "Heartburn"],
+  [/\bconstipat/i,                                 "Constipation"],
+  [/\bdiarrh?ea|the runs\b/i,                      "Diarrhea"],
+  [/\bmigraine\b/i,                                "Migraine"],
+  [/\bhead ?ache\b/i,                              "Headache"],
+  [/\bbrain fog|foggy\b/i,                         "Brain fog"],
+  [/\bdizzy|dizziness|light ?headed\b/i,           "Dizziness"],
+  [/\banxi(ous|ety)\b/i,                           "Anxiety"],
+  [/\b(weepy|crying|emotional)\b/i,                "Emotional / weepy"],
+  [/\birritab(le|ility)|snappy\b/i,                "Irritability"],
+  [/\b(low energy|no energy|drained|wiped|zapped)\b/i, "Low energy"],
+  [/\b(exhausted|fatigue[d]?|knackered)\b/i,       "Fatigue"],
+  [/\b(insomnia|couldn'?t fall asleep)\b/i,        "Insomnia"],
+  [/\b(restless sleep|tossed and turned|kept waking)\b/i, "Restless sleep"],
+  [/\bcraving(s)?\b/i,                             "Cravings"],
+  [/\bsore throat|throat hurts?\b/i,               "Sore throat"],
+  [/\blaryngitis|lost my voice\b/i,                "Laryngitis"],
+  [/\bcough(ing)?\b/i,                             "Cough"],
+  [/\brunny nose\b/i,                              "Runny nose"],
+  [/\b(stuffy|congested|congestion)\b/i,           "Stuffy nose"],
+  [/\bsinus\b/i,                                   "Sinus pressure"],
+  [/\b(feel sick|feeling sick|getting sick|came down with|cold\b|the flu|flu\b)\b/i, "Sick (cold/flu)"],
+  [/\bfever\b/i,                                   "Fever"],
+  [/\bchills\b/i,                                  "Chills"],
+  [/\b(acne|breakout|broke out)\b/i,               "Acne"],
+  [/\b(canker|mouth ulcer)\b/i,                    "Mouth ulcer / canker sore"],
+  [/\brash|hives\b/i,                              "Rash"],
+  [/\braynaud/i,                                   "Raynaud's flare"],
+  [/\bcold hands|cold feet\b/i,                    "Cold hands/feet"],
+  [/\b(twisted|tweaked|hurt|strained|jacked up) (my )?knee|knee (pain|hurts?)\b/i, "Knee pain"],
+  [/\b(twisted|tweaked|hurt|strained) (my )?(lower )?back|back (pain|hurts?)\b/i,  "Back pain"],
+  [/\bshoulder (pain|hurts?)|tweaked (my )?shoulder\b/i, "Shoulder pain"],
+  [/\bneck (pain|hurts?)|stiff neck\b/i,           "Neck pain"],
+  [/\b(sore|doms|beat ?up)\b/i,                    "Sore muscles"],
+  [/\bjoint(s)? (pain|ache|hurt)\b/i,              "Joint pain"],
+  [/\b(period cramps|cramping|cramps)\b/i,         "Period cramps"],
+  [/\bpms\b/i,                                     "PMS"],
+  [/\bnight sweats\b/i,                            "Night sweats"],
+  [/\ballerg(y|ies|ic)\b/i,                        "Allergies"],
+  [/\bpuffy|water retention|swollen\b/i,           "Water retention"],
+  [/\beye strain|eyes hurt\b/i,                    "Eye strain"],
+];
+
+// Which exposure best explains a symptom, for the trigger field.
+const NOTE_TRIGGER_FOR = { alcohol:"alcohol", gluten:"gluten", dairy:"dairy", sugar:"sugar",
+  caffeine:"caffeine", poorsleep:"poor sleep", stress:"stress", airquality:"weather" };
+
+function parseHealthNote(text){
+  const t = String(text || "");
+  const out = { sleep:null, energy:null, mood:null, water:null,
+                symptoms:[], exposures:[], raw:t.trim() };
+  if(!out.raw) return out;
+
+  // Sleep: "5 hours sleep", "slept 6.5", "6h sleep", "4 hrs"
+  let m = t.match(/\bslept\s*(?:for\s*)?(\d{1,2}(?:\.\d)?)\s*(?:hours?|hrs?|h)?\b/i)
+       || t.match(/\b(\d{1,2}(?:\.\d)?)\s*(?:hours?|hrs?|h)\b[^.,;]{0,14}\bsleep\b/i)
+       || t.match(/\bsleep[^.,;]{0,10}?(\d{1,2}(?:\.\d)?)\s*(?:hours?|hrs?|h)\b/i);
+  if(m){
+    const v = parseFloat(m[1]);
+    if(v >= 0 && v <= 16) out.sleep = v;
+  }
+  // Energy / mood if stated as "energy 3/5" or "felt like a 2"
+  m = t.match(/\benergy\s*(?:was\s*)?(\d)(?:\s*\/\s*5)?\b/i);
+  if(m) out.energy = Math.max(1, Math.min(5, parseInt(m[1], 10)));
+  m = t.match(/\bmood\s*(?:was\s*)?(\d)(?:\s*\/\s*5)?\b/i);
+  if(m) out.mood = Math.max(1, Math.min(5, parseInt(m[1], 10)));
+  // Water: "80 oz water"
+  m = t.match(/(\d{2,3})\s*(?:oz|ounces)\b[^.,;]{0,10}\bwater\b/i)
+   || t.match(/\bwater[^.,;]{0,10}?(\d{2,3})\s*(?:oz|ounces)\b/i);
+  if(m) out.water = parseInt(m[1], 10);
+
+  NOTE_EXPOSURES.forEach(([id, label, re]) => { if(re.test(t)) out.exposures.push({ id, label }); });
+  const seen = new Set();
+  NOTE_SYMPTOMS.forEach(([re, name]) => {
+    if(re.test(t) && !seen.has(name)){ seen.add(name); out.symptoms.push(name); }
+  });
+  // "no sleep" is a symptom AND a sleep signal, but never a number.
+  if(out.exposures.some(e => e.id === "poorsleep") && !out.symptoms.includes("Restless sleep") && !out.symptoms.includes("Insomnia")){
+    out.symptoms.push("Restless sleep");
+  }
+  return out;
+}
+
+function _noteHasAnything(n){
+  return !!(n.sleep != null || n.energy != null || n.mood != null || n.water != null
+            || n.symptoms.length || n.exposures.length);
+}
+
+// Write a parsed note onto a day. Non-destructive: it won't overwrite a
+// sleep number she already entered, and it won't duplicate a symptom.
+function applyHealthNote(dateKey, n){
+  const day = dayObj(dateKey);
+  if(!day.checkin) day.checkin = {};
+  const applied = [];
+  if(n.sleep != null && day.checkin.sleep == null){ day.checkin.sleep = n.sleep; applied.push(`sleep ${n.sleep}h`); }
+  else if(n.sleep != null){ applied.push(`sleep already logged (${day.checkin.sleep}h) — kept`); }
+  if(n.energy != null && day.checkin.energy == null){ day.checkin.energy = n.energy; applied.push(`energy ${n.energy}/5`); }
+  if(n.mood != null && day.checkin.mood == null){ day.checkin.mood = n.mood; applied.push(`mood ${n.mood}/5`); }
+  if(n.water != null){ day.water = Math.max(day.water || 0, n.water); applied.push(`water ${n.water} ${unitVol()}`); }
+
+  if(!day.symptoms) day.symptoms = [];
+  const trigger = (n.exposures.map(e => NOTE_TRIGGER_FOR[e.id]).filter(Boolean))[0] || null;
+  n.symptoms.forEach(name => {
+    if(day.symptoms.some(s => (s.name || "").toLowerCase() === name.toLowerCase())) return;
+    day.symptoms.push({ id: uid(), name, severity: 3, time: "all-day",
+                        trigger, note: n.raw.slice(0, 120), loggedAt: Date.now(), fromNote: true });
+    applied.push(name);
+  });
+
+  if(n.exposures.length){
+    if(!day.exposures) day.exposures = [];
+    n.exposures.forEach(e => { if(!day.exposures.includes(e.id)) day.exposures.push(e.id); });
+    applied.push(n.exposures.map(e => e.label).join(", "));
+  }
+  if(!day.notes) day.notes = [];
+  day.notes.push({ id: uid(), text: n.raw, at: Date.now() });
+  save();
+  return applied;
+}
+
+function openHealthNoteModal(prefill){
+  openModal("Health note · " + fmtDate(currentDate), `
+    <p class="hn-intro">Type it how you'd say it. This runs on your phone — no AI, no key, nothing to pay for. It pulls out sleep hours, symptoms and exposures and files them where the Health page can use them.</p>
+    <textarea id="hnText" rows="4" class="search-input" style="resize:vertical;min-height:96px;font-size:14px;width:100%"
+      placeholder="5 hours sleep, bloated all day, ate gluten at lunch, drank last night, air is bad from the fires">${escape(prefill || "")}</textarea>
+    <div class="hn-ex">Try: <i>no sleep · bloated · ate gluten · drank wine · twisted my knee · feel sick · smoke from the fires · stressed · 80 oz water</i></div>
+    <div id="hnPreview" class="hn-preview"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-cyan" id="hnSave" disabled>SAVE TO TODAY</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    const ta = document.getElementById("hnText");
+    const prev = document.getElementById("hnPreview");
+    const btn = document.getElementById("hnSave");
+    const refresh = () => {
+      const n = parseHealthNote(ta.value);
+      if(!_noteHasAnything(n)){
+        prev.innerHTML = ta.value.trim()
+          ? `<div class="hn-none">Nothing recognised yet — it still saves as a plain note, but sleep hours, symptoms and exposures are what make it show up in patterns.</div>`
+          : "";
+        btn.disabled = !ta.value.trim();
+        return;
+      }
+      const bits = [];
+      if(n.sleep != null) bits.push(`<span class="hn-chip">sleep ${n.sleep}h</span>`);
+      if(n.energy != null) bits.push(`<span class="hn-chip">energy ${n.energy}/5</span>`);
+      if(n.mood != null) bits.push(`<span class="hn-chip">mood ${n.mood}/5</span>`);
+      if(n.water != null) bits.push(`<span class="hn-chip">water ${n.water}</span>`);
+      n.symptoms.forEach(s => bits.push(`<span class="hn-chip sym">${escape(s)}</span>`));
+      n.exposures.forEach(e => bits.push(`<span class="hn-chip exp">${escape(e.label)}</span>`));
+      prev.innerHTML = `<div class="hn-h">It read this</div><div class="hn-chips">${bits.join("")}</div>`;
+      btn.disabled = false;
+    };
+    ta.addEventListener("input", refresh);
+    refresh();
+    setTimeout(() => ta.focus(), 100);
+
+    btn.addEventListener("click", () => {
+      const n = parseHealthNote(ta.value);
+      const applied = applyHealthNote(currentDate, n);
+      closeModal(); renderAll();
+      toast(applied.length ? `Logged: ${applied.slice(0,3).join(", ")}` : "Note saved", "cyan");
+    });
+  });
+}
+
+// Exposures logged in health notes ("drank", "smoke from the fires",
+// "no sleep") tested against how the day went. Mean split, not a
+// correlation — an exposure is a yes/no, so that's the honest test.
+function exposureFindings(){
+  const rows = _dailyRows(90);
+  const withNotes = rows.filter(r => (r.exposures || []).length);
+  if(withNotes.length < 3) return [];
+  const ids = {};
+  rows.forEach(r => (r.exposures || []).forEach(id => { ids[id] = (ids[id] || 0) + 1; }));
+  const out = [];
+  Object.keys(ids).forEach(id => {
+    const label = (NOTE_EXPOSURES.find(e => e[0] === id) || [id, id])[1];
+    const has = (r) => (r.exposures || []).includes(id);
+    const sym = _splitCompare(rows, has, "symptoms");
+    const en  = _splitCompare(rows, has, "energy");
+    const bits = [];
+    if(sym && Math.abs(sym.diff) >= 0.3)
+      bits.push(`${sym.aAvg.toFixed(1)} symptoms vs ${sym.bAvg.toFixed(1)} without`);
+    if(en && Math.abs(en.diff) >= 0.4)
+      bits.push(`energy ${en.aAvg.toFixed(1)} vs ${en.bAvg.toFixed(1)}`);
+    if(!bits.length) return;
+    const bad = (sym && sym.diff > 0) || (en && en.diff < 0);
+    out.push({
+      id, label, n: ids[id], tone: bad ? "watch" : "good",
+      body: `On the ${ids[id]} days you logged ${label.toLowerCase()}: ${bits.join(", ")}.`,
+    });
+  });
+  return out.sort((a,b) => b.n - a.n).slice(0, 4);
+}
+
+// Recent notes, shown on Health so they aren't write-only.
+function renderNotesCard(){
+  const host = document.getElementById("notesList");
+  if(!host) return;
+  const rows = [];
+  Object.keys(state.days).sort().reverse().forEach(k => {
+    (state.days[k].notes || []).forEach(n => rows.push({ key:k, ...n }));
+  });
+  const meta = document.getElementById("notesMeta");
+  if(meta) meta.textContent = rows.length ? `${rows.length} note${rows.length===1?"":"s"}` : "—";
+  if(!rows.length){
+    host.innerHTML = `<p class="wl-empty">Tap <b>+ NOTE</b> at the top of this page and type how the day actually went — "5 hours sleep, bloated, ate gluten, air is bad." It runs on your phone, files the sleep and symptoms for you, and everything above starts using it.</p>`;
+    return;
+  }
+  let head = "";
+  try{
+    const fx = exposureFindings();
+    if(fx.length){
+      head = `<div class="bp-block" style="margin-bottom:10px">
+        <div class="bp-h">What your notes line up with</div>
+        ${fx.map(f => `<div class="note-find note-${f.tone}"><b>${escape(f.label)}</b> · ${escape(f.body)}</div>`).join("")}
+      </div>`;
+    }
+  }catch(e){ console.warn("exposures", e); }
+  host.innerHTML = head + rows.slice(0, 12).map(n => `<div class="note-row">
+    <span class="note-date">${new Date(n.key + "T12:00:00").toLocaleDateString(undefined,{month:"short",day:"numeric"})}</span>
+    <span class="note-txt">${escape(n.text)}</span>
+  </div>`).join("");
+}
+
+
+// =================================================================
+// TEST SEAM — the only thing this IIFE exposes. Pure functions only, so
+// the smoke suite can assert on the maths without the UI in the way.
+// Never put state mutators here.
+// =================================================================
+window.__bermo = {
+  parseHealthNote,
+  designGoalPlan,
+  subMusclesForExercise,
+  whyTags,
+  foodTags,
+  _pearson,
+};
+
+
 // =================================================================
 
 // PIPELINES — explicit composition (replaces the old wrapper chains).
@@ -11397,6 +12243,7 @@ function renderTrends(){
   renderTrendsBase();
   try{ renderBigPicture(); }catch(e){ console.warn("big picture", e); }
   try{ renderWhy(); }catch(e){ console.warn("why", e); }
+  try{ renderNotesCard(); }catch(e){ console.warn("notes", e); }
   try{ renderSubMuscles(); }catch(e){ console.warn("sub muscles", e); }
   try{ renderFoodQuality(); }catch(e){ console.warn("food quality", e); }
   try{ renderBodyPartTrends(); }catch(e){ console.warn("bp trends", e); }
@@ -11412,6 +12259,7 @@ function renderNutrition(){
   try{ renderNutRing(); }catch(e){ console.warn("nut ring", e); }
   try{ renderNutTopStats(); }catch(e){ console.warn("nut top", e); }
   try{ renderNutrientsTable(); }catch(e){ console.warn("nutrients", e); }
+  try{ renderMicros(); }catch(e){ console.warn("micros", e); }
   try{ renderMacroCalc("nutMacroCalc"); }catch(e){ console.warn("macro calc", e); }
   try{
     if(window._nutSub === "calories") renderCalSub();

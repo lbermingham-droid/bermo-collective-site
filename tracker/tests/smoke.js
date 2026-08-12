@@ -185,6 +185,47 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       : fail("calendars connected", JSON.stringify({ tapped, nutDate, prev, deckSel }));
   } catch (e) { fail("calendars connected", e); }
 
+  // 11. v20 Health engines: sub-muscle gap detection + food quality + big picture.
+  //     Seeds a leg day that hits hams/glutes/calves but NEVER quads, plus a
+  //     gluten day, and asserts the app names the gap instead of a checkmark.
+  try {
+    await page.evaluate(() => {
+      const KEY = "bermo.tracker.v1";
+      const st = JSON.parse(localStorage.getItem(KEY));
+      const dk = (o) => { const d = new Date(); d.setDate(d.getDate()-o); return d.toISOString().slice(0,10); };
+      for(let i = 0; i < 3; i++){
+        const k = dk(i);
+        st.days[k] = st.days[k] || { meals:{breakfast:[],lunch:[],dinner:[],snacks:[]}, water:0, sessions:[] };
+        st.days[k].sessions = [
+          { id:"sm"+i, name:"Hip Thrust",          weight:185, reps:10, sets:4, type:"strength" },
+          { id:"sn"+i, name:"Lying Leg Curl",      weight:70,  reps:12, sets:3, type:"strength" },
+          { id:"so"+i, name:"Standing Calf Raise", weight:120, reps:15, sets:3, type:"strength" },
+        ];
+        st.days[k].meals.breakfast = [{ id:"sf"+i, name:"Bagel", serving:"1", cal:280, p:11, c:55, f:2 }];
+      }
+      localStorage.setItem(KEY, JSON.stringify(st));
+    });
+    await page.reload({ waitUntil: "domcontentloaded", timeout: 20000 });
+    await page.waitForTimeout(1200);
+    await page.click(`${tabSel}[data-tab="trends"]`);
+    await page.waitForTimeout(900);
+    const health = await page.evaluate(() => {
+      const sm = document.getElementById("smList");
+      const txt = sm ? sm.innerText.toLowerCase() : "";
+      return {
+        legs: /legs/.test(txt),
+        quadGap: /missing:[^\n]*quads/.test(txt),
+        hamHit: /hamstrings/.test(txt),
+        fix: /leg extension|front squat/i.test(txt),
+        fq: !!document.querySelector("#fqList .fq-bar"),
+        bp: !!document.getElementById("bigPicList") && document.getElementById("bigPicList").innerText.length > 20,
+      };
+    });
+    (health.legs && health.quadGap && health.hamHit && health.fix && health.fq && health.bp)
+      ? ok("v20 health engines (quad gap named + fix + food quality + big picture)")
+      : fail("v20 health engines", JSON.stringify(health));
+  } catch (e) { fail("v20 health engines", e); }
+
   await browser.close();
   print();
 })();

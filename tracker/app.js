@@ -10211,7 +10211,8 @@ function _dailyRows(daysBack){
     const k = todayKey(d);
     const day = state.days[k];
     if(!day) continue;
-    const t = totalsFor(k);
+    const t = totalsDetailFor(k);
+    const q = dayFoodQuality(k);
     const sessions = day.sessions || [];
     const vol = sessions.reduce((n,s) => n + (s.weight||0)*(s.reps||0)*(s.sets||1), 0);
     const trained = sessions.length > 0;
@@ -10219,6 +10220,10 @@ function _dailyRows(daysBack){
     rows.push({
       key: k,
       cal: t.cal, p: t.p, c: t.c, f: t.f,
+      fiber: t.fiber, sugar: t.sugar,
+      knownFib: t.knownFib, knownSug: t.knownSug, items: t.count,
+      glutenItems: q.glutenItems, dairyItems: q.dairyItems,
+      ultraPct: q.ultraPct, wholePct: q.wholePct, fatPct: q.fatPct,
       water: day.water || 0,
       vol, trained,
       mins: sessions.reduce((n,s) => n + (s.durationMin||0), 0),
@@ -10248,6 +10253,7 @@ function foodCorrelations(){
       tone: rpv > 0 ? "good" : "watch",
       title: `Protein ${rpv > 0 ? "tracks with" : "runs against"} your training volume`,
       body: `On the ${pv.length} training days you logged food, higher-protein days line up with ${rpv > 0 ? "heavier" : "lighter"} sessions (${_strength(rpv)} link).`,
+      action: rpv > 0 ? "Eat protein BEFORE the session, not just after — that's the day this shows up in." : "",
       n: pv.length, r: rpv,
     });
   }
@@ -10264,6 +10270,7 @@ function foodCorrelations(){
       tone: rf > 0 ? "good" : "watch",
       title: `Yesterday's calories ${rf > 0 ? "show up in" : "drag on"} today's session`,
       body: `Across ${fuel.length} back-to-back day pairs, eating more the day before lines up with ${rf > 0 ? "more" : "less"} volume the next day (${_strength(rf)} link).`,
+      action: rf > 0 ? "Fuel the day BEFORE a heavy lift, not the morning of." : "",
       n: fuel.length, r: rf,
     });
   }
@@ -10275,6 +10282,7 @@ function foodCorrelations(){
       tone: rw > 0 ? "good" : "watch",
       title: `Water ${rw > 0 ? "tracks with" : "runs against"} how much you lift`,
       body: `${wv.length} training days compared — ${_strength(rw)} link between hydration and session volume.`,
+      action: rw > 0 ? "Get half your water in before you walk into the gym." : "",
       n: wv.length, r: rw,
     });
   }
@@ -10286,6 +10294,7 @@ function foodCorrelations(){
       tone: rs > 0 ? "good" : "watch",
       title: `Sleep ${rs > 0 ? "lifts" : "isn't lifting"} your training`,
       body: `${sv.length} nights matched to the next session — ${_strength(rs)} ${rs > 0 ? "positive" : "negative"} link.`,
+      action: rs > 0 ? "Sleep is training. Protect the night before a heavy day like you'd protect the session." : "",
       n: sv.length, r: rs,
     });
   }
@@ -10311,6 +10320,7 @@ function foodCorrelations(){
         tone: diff > 0 ? "good" : "watch",
         title: `You feel ${diff > 0 ? "better" : "worse"} on days you train`,
         body: `Energy averages ${avg(tE).toFixed(1)} on ${tE.length} training days vs ${avg(nE).toFixed(1)} on ${nE.length} rest days.`,
+        action: diff > 0 ? "On a low day, the workout is the fix, not the thing to skip." : "",
         n: tE.length + nE.length, r: null,
       });
     }
@@ -10350,6 +10360,7 @@ function renderCorrelations(){
     <div class="corr-card corr-${it.tone}">
       <div class="corr-title">${escape(it.title)}</div>
       <div class="corr-body">${escape(it.body)}</div>
+      ${it.action ? `<div class="corr-act">${escape(it.action)}</div>` : ""}
       <div class="corr-meta">
         <span>${it.n} days</span>
         ${it.r !== null ? `<span>r = ${it.r.toFixed(2)} · ${_strength(it.r)}</span>` : ""}
@@ -10357,6 +10368,747 @@ function renderCorrelations(){
     </div>`).join("")
     + `<p class="corr-foot">Correlation is not causation — these are patterns in your own log, strongest first.</p>`;
 }
+
+
+
+// =================================================================
+// v20 — DEEP SIGNAL
+//   (a) SUB-MUSCLE resolution + week-to-week gap detection
+//       "I did back — did I actually hit lats AND lower back?"
+//   (b) FOOD QUALITY tagging (gluten / processed / whole / fat / dairy)
+//       correlated against symptoms, energy, mood and training
+//   (c) BIGGER PICTURE — every factor looked at together, not in pairs
+// All of it is computed from logged data only. Nothing is invented.
+// =================================================================
+
+// ---------- (a) SUB-MUSCLE MAP ----------
+// Each parent body part breaks into the regions a program can miss.
+const SUB_MUSCLES = {
+  back:      [["lats","lats"],["midback","mid-back / rhomboids"],["traps","upper traps"],["reardelt","rear delts"],["erectors","lower back / erectors"]],
+  legs:      [["quads","quads"],["adductors","inner thigh / adductors"],["hams","hamstrings"],["calves","calves"]],
+  glutes:    [["glutemax","glute max"],["glutemed","glute med / abductors"]],
+  chest:     [["upperchest","upper chest"],["midchest","mid chest"],["lowerchest","lower chest"]],
+  shoulders: [["frontdelt","front delts"],["sidedelt","side delts"],["reardelt","rear delts"]],
+  arms:      [["biceps","biceps"],["triceps","triceps"],["forearms","forearms / grip"]],
+  core:      [["abs","abs"],["obliques","obliques"],["deepcore","deep core / anti-extension"]],
+};
+
+// One concrete fix per region — a gap is only useful with the answer attached.
+const SUB_FIX = {
+  "back.lats":        "Lat Pulldown or Pull-up",
+  "back.midback":     "Seated Cable Row or Chest-Supported Row",
+  "back.traps":       "Barbell Shrug or Farmer Carry",
+  "back.reardelt":    "Face Pull or Reverse Pec Deck",
+  "back.erectors":    "Back Extension or Romanian Deadlift",
+  "legs.quads":       "Leg Extension or Front Squat",
+  "legs.adductors":   "Adductor Machine or Cossack Squat",
+  "legs.hams":        "Lying Leg Curl or Romanian Deadlift",
+  "legs.calves":      "Standing Calf Raise",
+  "glutes.glutemax":  "Hip Thrust or Bulgarian Split Squat",
+  "glutes.glutemed":  "Cable Abduction or Banded Lateral Walk",
+  "chest.upperchest": "Incline Dumbbell Press",
+  "chest.midchest":   "Flat Bench Press or Push-up",
+  "chest.lowerchest": "Dip or Decline Press",
+  "shoulders.frontdelt": "Overhead Press",
+  "shoulders.sidedelt":  "Lateral Raise",
+  "shoulders.reardelt":  "Face Pull or Rear Delt Fly",
+  "arms.biceps":      "Dumbbell Curl or Chin-up",
+  "arms.triceps":     "Cable Pushdown or Close-Grip Bench",
+  "arms.forearms":    "Farmer Carry or Wrist Curl",
+  "core.abs":         "Hanging Leg Raise or Cable Crunch",
+  "core.obliques":    "Pallof Press or Russian Twist",
+  "core.deepcore":    "Plank or Ab Wheel Rollout",
+};
+
+function subLabel(id){
+  const [part, sub] = String(id).split(".");
+  const row = (SUB_MUSCLES[part] || []).find(r => r[0] === sub);
+  return row ? row[1] : sub;
+}
+
+// Resolve an exercise name down to the REGIONS it actually trains.
+// Returns ids like "back.lats". Empty array = name too vague to tell.
+function subMusclesForExercise(name){
+  const raw = (name || "").toLowerCase();
+  const n = " " + raw.replace(/[-_\/,+]+/g, " ").replace(/\s+/g, " ").trim() + " ";
+  const s = new Set();
+  const has = (re) => re.test(n);
+  const tri = has(/tricep/);
+  const incline = has(/incline/);
+  const decline = has(/decline/);
+
+  /* BACK */
+  if(has(/pull ?down|pull ?up|chin ?up|pullover|straight ?arm| lats? |lat pull|muscle ?up|chest to bar/)) s.add("back.lats");
+  if(has(/ rows? |seated row|cable row|t bar|inverted row|meadows|pendlay|bent (over )?row|rhomboid|chest supported/)) s.add("back.midback");
+  if(has(/shrug|upright row|rack pull|high pull|farmer|trap bar|carry/)) s.add("back.traps");
+  if(has(/face pull|rear delt|reverse fly|reverse flye|reverse pec|bent over fly/)){ s.add("back.reardelt"); s.add("shoulders.reardelt"); }
+  if(has(/deadlift|\brdl\b|romanian|good morning|back extension|hyperextension|superman|erector|clean pull|snatch pull/)) s.add("back.erectors");
+
+  /* LEGS */
+  if(has(/squat|leg press|leg extension|lunge|split squat|step ?up|sissy|wall sit|hack|pistol|thruster|wall ball|box jump/)) s.add("legs.quads");
+  if(has(/adduct|inner thigh|copenhagen|cossack|sumo|wide stance/)) s.add("legs.adductors");
+  if(has(/leg curl|hamstring|\brdl\b|romanian|good morning|nordic|glute ham|stiff ?leg|deadlift/)) s.add("legs.hams");
+  if(has(/calf|calves|donkey raise|toe raise|jump rope|double under/)) s.add("legs.calves");
+
+  /* GLUTES */
+  if(has(/hip thrust|glute bridge|\bbridge\b|glute|squat|lunge|step ?up|deadlift|\brdl\b|romanian|thruster|good morning/)) s.add("glutes.glutemax");
+  if(has(/kick ?back/) && !tri) s.add("glutes.glutemax");
+  if(has(/abduct|clam ?shell|curtsy|monster walk|fire hydrant|side ?lying|lateral (band|walk|step)|banded walk/)) s.add("glutes.glutemed");
+
+  /* CHEST */
+  if(incline && has(/bench|press|fly|flye|chest|dumbbell|barbell/)) s.add("chest.upperchest");
+  if((decline || has(/\bdips?\b/)) && !tri) s.add("chest.lowerchest");
+  if(has(/bench press|chest press|push ?up|pec deck|chest fly|cable fly|\bflye?\b|floor press|db bench/) && !incline && !decline && !has(/shoulder|overhead/)) s.add("chest.midchest");
+
+  /* SHOULDERS */
+  if(has(/overhead press|shoulder press|military|arnold|push press|\bjerk\b|front raise|landmine press|\bohp\b|strict press|\bpress\b.*shoulder|handstand|snatch|overhead squat/)) s.add("shoulders.frontdelt");
+  if(has(/lateral raise|side raise|upright row|lateral delt|\bhalo\b|\by raise\b/)) s.add("shoulders.sidedelt");
+
+  /* ARMS */
+  if(has(/curl/) && !has(/leg curl|hamstring|nordic|wrist curl|reverse curl/)) s.add("arms.biceps");
+  if(has(/chin ?up/)) s.add("arms.biceps");
+  if(tri || has(/pushdown|push down|skull|close ?grip bench|overhead extension|jm press|\bdips?\b|kick ?back/)) s.add("arms.triceps");
+  if(has(/kick ?back/) && !tri) s.delete("arms.triceps");
+  if(has(/wrist curl|reverse curl|hammer curl|farmer|\bgrip\b|dead ?hang|plate pinch|carry/)) s.add("arms.forearms");
+
+  /* CORE */
+  if(has(/crunch|sit ?up|leg raise|knee raise|toes to bar|\bv ?ups?\b|hollow|\babs?\b|\bttb\b|gh ?d/)) s.add("core.abs");
+  if(has(/russian twist|side plank|wood ?chop|oblique|side bend|windmill|pallof|anti ?rotation|landmine twist/)) s.add("core.obliques");
+  if(has(/plank|dead ?bug|roll ?out|ab wheel|hollow hold|\bl ?sit\b|bird ?dog|suitcase|farmer|front squat|zercher/)) s.add("core.deepcore");
+
+  return Array.from(s);
+}
+
+// Every logged lift in a date range, resolved to regions.
+// Returns { subs:{id:{sets,vol,names:Set}}, parts:{part:{sets,vol,subs:Set}}, vague:[names] }
+function subCoverageForRange(startKey, endKey){
+  const subs = {}, parts = {}, vague = [];
+  Object.keys(state.days).forEach(k => {
+    if(k < startKey || k > endKey) return;
+    ((state.days[k] || {}).sessions || []).forEach(s => {
+      if(s.type === "cardio") return;
+      const nm = s.name || "";
+      if(!nm) return;
+      const sets = s.sets || 1;
+      const vol  = (s.weight||0) * (s.reps||0) * sets;
+      const ids  = subMusclesForExercise(nm);
+      if(!ids.length){
+        // Not resolvable to a region — still credit the parent part if we can.
+        const pp = partsForExercise(nm);
+        if(!pp.length){ vague.push(nm); return; }
+        pp.forEach(p => {
+          if(!parts[p]) parts[p] = { sets:0, vol:0, subs:new Set(), unresolved:0 };
+          parts[p].sets += sets; parts[p].vol += vol; parts[p].unresolved++;
+        });
+        return;
+      }
+      ids.forEach(id => {
+        const p = id.split(".")[0];
+        if(!subs[id]) subs[id] = { sets:0, vol:0, names:new Set() };
+        subs[id].sets += sets; subs[id].vol += vol; subs[id].names.add(nm);
+        if(!parts[p]) parts[p] = { sets:0, vol:0, subs:new Set(), unresolved:0 };
+        parts[p].sets += sets; parts[p].vol += vol; parts[p].subs.add(id);
+      });
+    });
+  });
+  return { subs, parts, vague };
+}
+
+// Sunday-start week windows, newest first. n = how many weeks back.
+function _weekWindows(n){
+  const out = [];
+  const thisStart = weekStart(new Date());
+  for(let i = 0; i < n; i++){
+    const s = new Date(thisStart); s.setDate(s.getDate() - i*7);
+    const e = new Date(s); e.setDate(e.getDate() + 6);
+    out.push({
+      startKey: todayKey(s), endKey: todayKey(e),
+      label: i === 0 ? "This week" : (i === 1 ? "Last week" : `${i} weeks ago`),
+    });
+  }
+  return out;
+}
+
+// The headline feature: per body part, what got hit and what got skipped.
+// Scope: "week" = current Sunday-start week, "month" = last 28 days.
+function subMuscleGaps(scope){
+  const weeks = _weekWindows(4);
+  const win = scope === "month"
+    ? { startKey: todayKey(new Date(Date.now() - 27*86400000)), endKey: todayKey(new Date()), label:"Last 4 weeks" }
+    : weeks[0];
+  const cov = subCoverageForRange(win.startKey, win.endKey);
+
+  // "Last hit" per region over 90 days, so a gap can be dated.
+  const lastHit = {};
+  const start90 = todayKey(new Date(Date.now() - 89*86400000));
+  Object.keys(state.days).sort().forEach(k => {
+    if(k < start90) return;
+    ((state.days[k] || {}).sessions || []).forEach(s => {
+      if(s.type === "cardio") return;
+      subMusclesForExercise(s.name || "").forEach(id => { lastHit[id] = k; });
+    });
+  });
+  const daysAgo = (k) => k ? Math.round((new Date(todayKey()) - new Date(k)) / 86400000) : null;
+
+  const report = [];
+  Object.keys(SUB_MUSCLES).forEach(part => {
+    const pInfo = cov.parts[part];
+    if(!pInfo || pInfo.sets === 0) return;             // part not trained in window — not a "gap", just a rest
+    const all = SUB_MUSCLES[part].map(r => part + "." + r[0]);
+    const hit = all.filter(id => cov.subs[id] && cov.subs[id].sets > 0);
+    const missing = all.filter(id => !hit.includes(id));
+    report.push({
+      part,
+      sets: pInfo.sets,
+      vol: pInfo.vol,
+      unresolved: pInfo.unresolved || 0,
+      hit: hit.map(id => ({ id, label: subLabel(id), sets: cov.subs[id].sets, names: Array.from(cov.subs[id].names) })),
+      missing: missing.map(id => ({ id, label: subLabel(id), fix: SUB_FIX[id] || "", stale: daysAgo(lastHit[id]) })),
+    });
+  });
+  report.sort((a,b) => b.sets - a.sets);
+
+  // Week-to-week: regions trained in an earlier week but dropped this week.
+  const dropped = [];
+  if(scope !== "month" && weeks.length > 1){
+    const now  = subCoverageForRange(weeks[0].startKey, weeks[0].endKey);
+    const back = subCoverageForRange(weeks[3].startKey, weeks[1].endKey);
+    Object.keys(back.subs).forEach(id => {
+      if(now.subs[id]) return;
+      const part = id.split(".")[0];
+      if(!now.parts[part]) return;                     // whole part is resting — fine
+      dropped.push({ id, label: subLabel(id), part, weeksSets: back.subs[id].sets, fix: SUB_FIX[id] || "", stale: daysAgo(lastHit[id]) });
+    });
+    dropped.sort((a,b) => b.weeksSets - a.weeksSets);
+  }
+
+  return { window: win, report, dropped, vague: Array.from(new Set(cov.vague)).slice(0, 6) };
+}
+
+function renderSubMuscles(){
+  const host = document.getElementById("smList");
+  if(!host) return;
+  const scope = (state.ui && state.ui.smScope) || "week";
+  const data = subMuscleGaps(scope);
+  const meta = document.getElementById("smMeta");
+  if(meta) meta.textContent = data.window.label;
+  document.querySelectorAll("[data-smscope]").forEach(b => {
+    b.classList.toggle("on", b.getAttribute("data-smscope") === scope);
+  });
+
+  if(!data.report.length){
+    host.innerHTML = `<p class="wl-empty">No lifts logged ${scope === "month" ? "in the last 4 weeks" : "this week"} yet. Log a session with exercise names (Back Squat, Lat Pulldown…) and this breaks it down muscle by muscle.</p>`;
+    return;
+  }
+
+  let html = `<div class="bp-lead">Every lift you logged, resolved down to the region it actually trains — so a back day that skipped your lower back shows up as a gap, not a checkmark.</div>`
+    + data.report.map(r => {
+    const chips = r.hit.map(h => `<span class="sm-chip on" title="${escape(h.names.join(", "))}">${escape(h.label)} <i>${h.sets}</i></span>`).join("")
+      + r.missing.map(m => `<span class="sm-chip off">${escape(m.label)}</span>`).join("");
+    const gaps = r.missing.length
+      ? `<div class="sm-gap"><b>Missing:</b> ${r.missing.map(m =>
+          `${escape(m.label)}${m.stale != null ? ` <i>(${m.stale}d ago)</i>` : ` <i>(never logged)</i>`}`).join(", ")}
+          <div class="sm-fix">Fix it: ${r.missing.slice(0,2).map(m => escape(m.fix)).filter(Boolean).join(" · ")}</div>
+        </div>`
+      : `<div class="sm-full">Full coverage — every region of ${r.part} got work.</div>`;
+    return `<div class="sm-part">
+      <div class="sm-head"><span class="sm-name">${escape(r.part)}</span><span class="sm-sets">${r.sets} sets</span></div>
+      <div class="sm-chips">${chips}</div>
+      ${gaps}
+    </div>`;
+  }).join("");
+
+  if(data.dropped.length){
+    html += `<div class="sm-part sm-drop">
+      <div class="sm-head"><span class="sm-name">Dropped this week</span><span class="sm-sets">vs last 3 weeks</span></div>
+      <div class="sm-gap">${data.dropped.slice(0,5).map(d =>
+        `<div>${escape(d.label)} — trained ${d.weeksSets} sets in the last 3 weeks, nothing this week. <i>${escape(d.fix)}</i></div>`).join("")}</div>
+    </div>`;
+  }
+  if(data.vague.length){
+    html += `<p class="sm-foot">Couldn't tell which muscles these hit: ${data.vague.map(escape).join(", ")}. Log the movement name (e.g. "Lat Pulldown") instead of just the day name and they'll count.</p>`;
+  }
+  host.innerHTML = html;
+}
+
+// ---------- (b) FOOD QUALITY ----------
+// Macros answer "how much". These answer "what kind" — the question the
+// user actually asked: gluten, processed vs real food, fat quality, dairy.
+// Name-based, deliberately conservative: unknown stays unknown.
+const FQ_GLUTEN = /bread|bagel|baguette|biscuit|bun\b|roll\b|toast|sandwich|sub\b|wrap|tortilla|pita|naan|flatbread|cracker|pretzel|crouton|breaded|panko|batter|flour|pasta|noodle|spaghetti|penne|macaroni|lasagna|ramen|udon|couscous|orzo|farro|barley|\brye\b|wheat|seitan|cereal|granola|muesli|pancake|waffle|french toast|crepe|muffin|croissant|donut|doughnut|pastry|danish|cake|cupcake|brownie|cookie|pie\b|pizza|calzone|dumpling|gyoza|wonton|burrito|quesadilla|taco shell|beer\b|stout|ale\b|malt|soy sauce|teriyaki|hoisin|gravy|breadstick|stuffing|pop ?tart|graham/i;
+const FQ_DAIRY  = /milk|cheese|yogurt|yoghurt|butter|cream|whey|casein|latte|cappuccino|ice cream|gelato|kefir|queso|ricotta|mozzarella|cheddar|parmesan|feta|custard|half and half|frappu/i;
+const FQ_ULTRA  = /candy|chocolate bar|chips|crisps|soda|cola|pepsi|coke\b|energy drink|monster|red bull|cookie|cake|cupcake|brownie|donut|doughnut|pastry|ice cream|cereal|granola bar|protein bar|snack bar|hot dog|sausage|bacon|salami|pepperoni|bologna|deli meat|lunch ?meat|nugget|fries|french fry|tater tot|onion ring|frozen (pizza|meal|dinner)|instant|packaged|fast food|mcdonald|burger king|wendy|taco bell|chick.?fil|dunkin|starbucks|pop ?tart|pretzel|cracker|ramen|mac and cheese|processed|american cheese|creamer|syrup|dressing|ketchup|bbq sauce|mayo|jam\b|jelly|pudding|jello|marshmallow|gummy|gummies|licorice|toaster|frosting|whipped topping|slushie|milkshake|frappu|nutella|cheez|dorito|cheeto|pringle|oreo|pop ?corn, microwave/i;
+const FQ_WHOLE  = /\begg|chicken|turkey|beef|steak|pork|lamb|bison|salmon|tuna|cod\b|tilapia|halibut|shrimp|scallop|sardine|fish\b|tofu|tempeh|lentil|chickpea|black bean|kidney bean|pinto|edamame|\brice\b|quinoa|oat|potato|sweet potato|squash|broccoli|spinach|kale|lettuce|arugula|cabbage|cauliflower|carrot|celery|cucumber|tomato|pepper|onion|garlic|mushroom|zucchini|asparagus|brussels|green bean|pea\b|beet|avocado|apple|banana|berry|berries|orange|grape|melon|peach|pear|plum|mango|pineapple|kiwi|cherry|almond|walnut|pecan|cashew|pistachio|peanut|chia|flax|hemp seed|olive oil|coconut oil|water|greek yogurt, plain|cottage cheese/i;
+
+// Fats worth separating — the user asked about "fat intake" as a quality
+// question, not just grams.
+const FQ_GOODFAT = /avocado|olive oil|salmon|sardine|tuna|mackerel|almond|walnut|pecan|cashew|pistachio|chia|flax|hemp seed|nut butter|almond butter|peanut butter|tahini|egg\b/i;
+const FQ_SATFAT  = /butter|cream|bacon|sausage|cheese|ice cream|lard|coconut oil|ribeye|ground beef 8|whole milk|fried|deep fried/i;
+
+function foodTags(item){
+  const n = (item && item.name) || "";
+  const gluten = FQ_GLUTEN.test(n);
+  const dairy  = FQ_DAIRY.test(n);
+  const ultra  = FQ_ULTRA.test(n);
+  const whole  = !ultra && FQ_WHOLE.test(n);
+  return {
+    gluten, dairy,
+    kind: ultra ? "ultra" : (whole ? "whole" : "mixed"),
+    goodFat: FQ_GOODFAT.test(n),
+    satFat: FQ_SATFAT.test(n),
+  };
+}
+
+// Roll a day's diary up into quality numbers.
+function dayFoodQuality(key){
+  const day = dayObj(key);
+  const o = { cal:0, glutenCal:0, glutenItems:0, dairyItems:0, ultraCal:0, wholeCal:0,
+              mixedCal:0, items:0, fatG:0, goodFatCal:0, satFatCal:0 };
+  ["breakfast","lunch","dinner","snacks"].forEach(m => {
+    (day.meals[m] || []).forEach(it => {
+      const cal = +it.cal || 0;
+      const t = foodTags(it);
+      o.cal += cal; o.items++;
+      o.fatG += (+it.f || 0);
+      if(t.gluten){ o.glutenCal += cal; o.glutenItems++; }
+      if(t.dairy) o.dairyItems++;
+      if(t.kind === "ultra") o.ultraCal += cal;
+      else if(t.kind === "whole") o.wholeCal += cal;
+      else o.mixedCal += cal;
+      if(t.goodFat) o.goodFatCal += (+it.f || 0) * 9;
+      if(t.satFat)  o.satFatCal  += (+it.f || 0) * 9;
+    });
+  });
+  o.ultraPct = o.cal ? Math.round(o.ultraCal / o.cal * 100) : 0;
+  o.wholePct = o.cal ? Math.round(o.wholeCal / o.cal * 100) : 0;
+  o.fatPct   = o.cal ? Math.round((o.fatG * 9) / o.cal * 100) : 0;
+  return o;
+}
+
+// Compare an outcome between two groups of days (the honest way to read
+// "gluten days vs gluten-free days" — a mean split, not a correlation).
+function _splitCompare(rows, predicate, valueKey){
+  const a = rows.filter(r => predicate(r) && r[valueKey] != null).map(r => +r[valueKey]);
+  const b = rows.filter(r => !predicate(r) && r[valueKey] != null).map(r => +r[valueKey]);
+  if(a.length < 3 || b.length < 3) return null;
+  const mean = (x) => x.reduce((m,v)=>m+v,0)/x.length;
+  return { aN:a.length, bN:b.length, aAvg:mean(a), bAvg:mean(b), diff:mean(a)-mean(b) };
+}
+
+function foodQualityCorrelations(){
+  const rows = _dailyRows(90).filter(r => r.cal > 0);
+  const out = [];
+  if(rows.length < 6) return out;
+  const corr = (xKey, yKey, filterFn) => {
+    const src = filterFn ? rows.filter(filterFn) : rows;
+    const pairs = src.filter(r => r[xKey] != null && r[yKey] != null).map(r => [+r[xKey], +r[yKey]]);
+    return { r: _pearson(pairs), n: pairs.length };
+  };
+  const push = (o) => { if(o) out.push(o); };
+
+  // 1. GLUTEN — day-split against symptoms (the question she actually asked)
+  const gDays = rows.filter(r => r.glutenItems > 0);
+  if(gDays.length >= 3 && rows.length - gDays.length >= 3){
+    const sym = _splitCompare(rows, r => r.glutenItems > 0, "symptoms");
+    if(sym){
+      const worse = sym.diff > 0.3, better = sym.diff < -0.3;
+      push({
+        tone: worse ? "watch" : "good",
+        title: worse ? "Gluten days run with more symptoms"
+             : (better ? "Gluten days aren't your symptom days" : "Gluten looks neutral for you"),
+        body: `${sym.aAvg.toFixed(1)} symptoms on the ${sym.aN} days with gluten vs ${sym.bAvg.toFixed(1)} on ${sym.bN} without.`,
+        action: worse ? "Try two clean weeks with gluten swapped out (rice, potato, corn tortilla) and check this card again."
+                      : "No reason to cut gluten on this data. Keep logging.",
+        n: rows.length, r: null, weight: Math.abs(sym.diff),
+      });
+    }
+    const en = _splitCompare(rows, r => r.glutenItems > 0, "energy");
+    if(en && Math.abs(en.diff) >= 0.4){
+      push({
+        tone: en.diff < 0 ? "watch" : "good",
+        title: `Energy runs ${en.diff < 0 ? "lower" : "higher"} on gluten days`,
+        body: `Average energy ${en.aAvg.toFixed(1)} with gluten vs ${en.bAvg.toFixed(1)} without (${en.aN} vs ${en.bN} days).`,
+        action: en.diff < 0 ? "Move the gluten to a rest day and see if training-day energy lifts." : "",
+        n: en.aN + en.bN, r: null, weight: Math.abs(en.diff),
+      });
+    }
+  }
+
+  // 2. PROCESSED vs REAL FOOD
+  const upSym = corr("ultraPct", "symptoms");
+  if(upSym.r !== null && Math.abs(upSym.r) >= 0.25){
+    push({
+      tone: upSym.r > 0 ? "watch" : "good",
+      title: `Processed food ${upSym.r > 0 ? "lines up with more" : "lines up with fewer"} symptoms`,
+      body: `${upSym.n} days compared — ${_strength(upSym.r)} link between the share of calories from packaged/processed food and symptom count.`,
+      action: upSym.r > 0 ? "Swap one packaged item a day for a whole-food version. That's the whole change." : "",
+      n: upSym.n, r: upSym.r, weight: Math.abs(upSym.r),
+    });
+  }
+  const upEn = corr("ultraPct", "energy");
+  if(upEn.r !== null && Math.abs(upEn.r) >= 0.25){
+    push({
+      tone: upEn.r < 0 ? "watch" : "good",
+      title: `Processed food ${upEn.r < 0 ? "drags on" : "tracks with"} your energy`,
+      body: `${upEn.n} days with both a diary and a check-in — ${_strength(upEn.r)} link.`,
+      action: upEn.r < 0 ? "Your lowest-energy days are your most processed days. Front-load real food before 2pm." : "",
+      n: upEn.n, r: upEn.r, weight: Math.abs(upEn.r),
+    });
+  }
+  const wpVol = corr("wholePct", "vol", r => r.trained);
+  if(wpVol.r !== null && Math.abs(wpVol.r) >= 0.25){
+    push({
+      tone: wpVol.r > 0 ? "good" : "watch",
+      title: `Real food ${wpVol.r > 0 ? "shows up in" : "isn't showing in"} your training volume`,
+      body: `${wpVol.n} training days — ${_strength(wpVol.r)} link between the whole-food share of your calories and how much you lifted.`,
+      action: wpVol.r > 0 ? "Highest-volume days are your cleanest-eating days. Eat like that the day before a heavy session." : "",
+      n: wpVol.n, r: wpVol.r, weight: Math.abs(wpVol.r),
+    });
+  }
+
+  // 3. FAT INTAKE (as a share of calories, not raw grams)
+  const fpEn = corr("fatPct", "energy");
+  if(fpEn.r !== null && Math.abs(fpEn.r) >= 0.25){
+    push({
+      tone: fpEn.r > 0 ? "good" : "watch",
+      title: `Higher-fat days feel ${fpEn.r > 0 ? "better" : "worse"}`,
+      body: `${fpEn.n} days — ${_strength(fpEn.r)} link between the share of calories from fat and your energy rating.`,
+      action: fpEn.r > 0 ? "You run well on fat. Don't cut it to hit a calorie number — cut refined carbs instead."
+                         : "Try shifting ~20g of fat into protein or carbs on training days.",
+      n: fpEn.n, r: fpEn.r, weight: Math.abs(fpEn.r),
+    });
+  }
+  const fpSym = corr("fatPct", "symptoms");
+  if(fpSym.r !== null && Math.abs(fpSym.r) >= 0.3){
+    push({
+      tone: fpSym.r > 0 ? "watch" : "good",
+      title: `Fat share ${fpSym.r > 0 ? "lines up with more" : "lines up with fewer"} symptoms`,
+      body: `${fpSym.n} days compared — ${_strength(fpSym.r)} link.`,
+      action: fpSym.r > 0 ? "Check what kind of fat: fried and creamy days behave differently from avocado and salmon days." : "",
+      n: fpSym.n, r: fpSym.r, weight: Math.abs(fpSym.r),
+    });
+  }
+
+  // 4. DAIRY — same day-split treatment as gluten
+  const dDays = rows.filter(r => r.dairyItems > 0);
+  if(dDays.length >= 3 && rows.length - dDays.length >= 3){
+    const sym = _splitCompare(rows, r => r.dairyItems > 0, "symptoms");
+    if(sym && Math.abs(sym.diff) >= 0.3){
+      push({
+        tone: sym.diff > 0 ? "watch" : "good",
+        title: `Dairy days run with ${sym.diff > 0 ? "more" : "fewer"} symptoms`,
+        body: `${sym.aAvg.toFixed(1)} symptoms on the ${sym.aN} dairy days vs ${sym.bAvg.toFixed(1)} on ${sym.bN} without.`,
+        action: sym.diff > 0 ? "Dairy is the easier elimination to test than gluten — swap to lactose-free for two weeks." : "",
+        n: rows.length, r: null, weight: Math.abs(sym.diff),
+      });
+    }
+  }
+
+  // 5. SUGAR + FIBER (already tracked per item, estimated when missing)
+  // Only trust fiber/sugar where the FOODS actually carried those numbers —
+  // otherwise they are estimated from carbs and would just re-discover carbs.
+  const realSug = rows.filter(r => r.items > 0 && r.knownSug / r.items >= 0.5);
+  const realFib = rows.filter(r => r.items > 0 && r.knownFib / r.items >= 0.5);
+  const corrOn = (src, xKey, yKey) => {
+    const pairs = src.filter(r => r[xKey] != null && r[yKey] != null).map(r => [+r[xKey], +r[yKey]]);
+    return { r: _pearson(pairs), n: pairs.length };
+  };
+  const sugSym = realSug.length >= 8 ? corrOn(realSug, "sugar", "symptoms") : { r:null, n:0 };
+  if(sugSym.r !== null && Math.abs(sugSym.r) >= 0.3){
+    push({
+      tone: sugSym.r > 0 ? "watch" : "good",
+      title: `Sugar ${sugSym.r > 0 ? "lines up with more" : "lines up with fewer"} symptoms`,
+      body: `${sugSym.n} days where your foods carried real sugar numbers — ${_strength(sugSym.r)} link.`,
+      action: sugSym.r > 0 ? "The cheapest cut is liquid sugar — drinks and creamers first." : "",
+      n: sugSym.n, r: sugSym.r, weight: Math.abs(sugSym.r),
+    });
+  }
+  const fibSym = realFib.length >= 8 ? corrOn(realFib, "fiber", "symptoms") : { r:null, n:0 };
+  if(fibSym.r !== null && Math.abs(fibSym.r) >= 0.3){
+    push({
+      tone: fibSym.r < 0 ? "good" : "watch",
+      title: `Fiber ${fibSym.r < 0 ? "lines up with fewer" : "lines up with more"} symptoms`,
+      body: `${fibSym.n} days — ${_strength(fibSym.r)} link.`,
+      action: fibSym.r < 0 ? "More fiber is doing real work for you. 30g/day is the target." : "Raise fiber slowly — a jump can cause the same symptoms it fixes.",
+      n: fibSym.n, r: fibSym.r, weight: Math.abs(fibSym.r),
+    });
+  }
+
+  return out.sort((a,b) => (b.weight || 0) - (a.weight || 0)).slice(0, 5);
+}
+
+function renderFoodQuality(){
+  const host = document.getElementById("fqList");
+  if(!host) return;
+  const rows = _dailyRows(90).filter(r => r.cal > 0);
+  const meta = document.getElementById("fqMeta");
+  if(meta) meta.textContent = rows.length ? `${rows.length} logged days` : "—";
+  if(!rows.length){
+    host.innerHTML = `<p class="wl-empty">Log meals for a week and this breaks your food down by <b>kind</b>, not just calories — gluten, processed vs real food, fat share and dairy.</p>`;
+    return;
+  }
+
+  // The composition picture always shows, even before correlations are possible.
+  const last14 = rows.slice(-14);
+  const avg = (f) => last14.reduce((a,r)=>a+f(r),0)/last14.length;
+  const wholeP = Math.round(avg(r => r.wholePct));
+  const ultraP = Math.round(avg(r => r.ultraPct));
+  const mixedP = Math.max(0, 100 - wholeP - ultraP);
+  const glutenDays = last14.filter(r => r.glutenItems > 0).length;
+  const dairyDays  = last14.filter(r => r.dairyItems > 0).length;
+  const fatP = Math.round(avg(r => r.fatPct));
+
+  let html = `<div class="bp-lead">What you eat, not just how much — gluten, processed vs real food, fat share and dairy, checked against how you feel and train. Last ${Math.min(14, rows.length)} days.</div>
+  <div class="fq-comp">
+    <div class="fq-bar">
+      <i class="fq-w" style="width:${wholeP}%"></i>
+      <i class="fq-m" style="width:${mixedP}%"></i>
+      <i class="fq-u" style="width:${ultraP}%"></i>
+    </div>
+    <div class="fq-key">
+      <span><b class="fq-w"></b>Real food ${wholeP}%</span>
+      <span><b class="fq-m"></b>Mixed ${mixedP}%</span>
+      <span><b class="fq-u"></b>Processed ${ultraP}%</span>
+    </div>
+    <div class="fq-stats">
+      <div><b>${glutenDays}<i>/${last14.length}</i></b><span>days with gluten</span></div>
+      <div><b>${dairyDays}<i>/${last14.length}</i></b><span>days with dairy</span></div>
+      <div><b>${fatP}<i>%</i></b><span>calories from fat</span></div>
+    </div>
+  </div>`;
+
+  const items = foodQualityCorrelations();
+  if(rows.length < 6){
+    html += `<p class="wl-empty">${rows.length}/6 days — a few more and this starts telling you which of those actually affects how you feel and train.</p>`;
+  } else if(!items.length){
+    html += `<p class="wl-empty">Nothing in your food <i>kind</i> is moving your symptoms, energy or training yet. That's a real answer: on this data, gluten and processed food aren't your problem.</p>`;
+  } else {
+    html += items.map(it => `
+      <div class="corr-card corr-${it.tone}">
+        <div class="corr-title">${escape(it.title)}</div>
+        <div class="corr-body">${escape(it.body)}</div>
+        ${it.action ? `<div class="corr-act">${escape(it.action)}</div>` : ""}
+        <div class="corr-meta">
+          <span>${it.n} days</span>
+          ${it.r != null ? `<span>r = ${it.r.toFixed(2)} · ${_strength(it.r)}</span>` : `<span>mean split</span>`}
+        </div>
+      </div>`).join("");
+  }
+  html += `<p class="corr-foot">Food kind is read from the item name. Foods it can't classify count as "mixed" rather than guessing.</p>`;
+  host.innerHTML = html;
+}
+
+// ---------- (c) THE BIGGER PICTURE ----------
+// Pairwise correlations answer "does X move Y". They can't answer
+// "what does a good day actually look like for me". This does:
+//   1. score every day on how it FELT (energy + mood - symptoms)
+//   2. rank every input by how hard it pulls that score
+//   3. profile the best third of days against the worst third
+//   4. measure what happens when the habits STACK
+const BP_FACTORS = [
+  { key:"p",        label:"Protein",        unit:"g",  fmt:v => Math.round(v) + "g" },
+  { key:"cal",      label:"Calories",       unit:"",   fmt:v => Math.round(v) },
+  { key:"c",        label:"Carbs",          unit:"g",  fmt:v => Math.round(v) + "g" },
+  { key:"fatPct",   label:"Fat share",      unit:"%",  fmt:v => Math.round(v) + "%" },
+  { key:"water",    label:"Water",          unit:"oz", fmt:v => Math.round(v) + " " + unitVol() },
+  { key:"sleep",    label:"Sleep",          unit:"h",  fmt:v => v.toFixed(1) + "h" },
+  { key:"ultraPct", label:"Processed food", unit:"%",  fmt:v => Math.round(v) + "%" },
+  { key:"wholePct", label:"Real food",      unit:"%",  fmt:v => Math.round(v) + "%" },
+  { key:"fiber",    label:"Fiber",          unit:"g",  fmt:v => Math.round(v) + "g", measuredOnly:"knownFib" },
+  { key:"sugar",    label:"Sugar",          unit:"g",  fmt:v => Math.round(v) + "g", measuredOnly:"knownSug" },
+  { key:"vol",      label:"Training volume",unit:"",   fmt:v => Math.round(v).toLocaleString() },
+  { key:"mins",     label:"Minutes trained",unit:"min",fmt:v => Math.round(v) + " min" },
+];
+
+// 0-100 "how the day felt". Needs a check-in — no check-in, no score.
+function _dayFeelScore(r, useSymptoms){
+  const parts = [];
+  if(r.energy != null) parts.push(Math.max(0, Math.min(1, r.energy / 5)));
+  if(r.mood   != null) parts.push(Math.max(0, Math.min(1, r.mood   / 5)));
+  if(!parts.length) return null;
+  if(useSymptoms) parts.push(Math.max(0, 1 - (r.symptoms || 0) / 4));
+  return Math.round((parts.reduce((a,b)=>a+b,0) / parts.length) * 100);
+}
+
+function bigPicture(){
+  const all = _dailyRows(90).filter(r => r.cal > 0 || r.trained);
+  const useSymptoms = all.some(r => r.symptoms > 0);
+  const rows = all.map(r => Object.assign({}, r, { score: _dayFeelScore(r, useSymptoms) }))
+                  .filter(r => r.score != null);
+  if(rows.length < 8) return { ready:false, n:rows.length, need:8 };
+
+  // 1. Rank the drivers.
+  const drivers = [];
+  BP_FACTORS.forEach(f => {
+    const pairs = rows.filter(r => r[f.key] != null && !(f.key === "sleep" && !r.sleep)
+                        && !(f.measuredOnly && !(r.items > 0 && r[f.measuredOnly] / r.items >= 0.5)))
+                      .map(r => [+r[f.key], r.score]);
+    if(pairs.length < 6) return;
+    const r = _pearson(pairs);
+    if(r === null || Math.abs(r) < 0.2) return;
+    drivers.push({ key:f.key, label:f.label, r, n:pairs.length, fmt:f.fmt });
+  });
+  drivers.sort((a,b) => Math.abs(b.r) - Math.abs(a.r));
+
+  // 2. Best third vs worst third — what those days actually looked like.
+  const sorted = rows.slice().sort((a,b) => b.score - a.score);
+  const cut = Math.max(3, Math.floor(rows.length / 3));
+  const top = sorted.slice(0, cut), bot = sorted.slice(-cut);
+  const meanOf = (set, key) => {
+    const v = set.filter(r => r[key] != null).map(r => +r[key]);
+    return v.length ? v.reduce((a,b)=>a+b,0)/v.length : null;
+  };
+  const deltas = [];
+  BP_FACTORS.forEach(f => {
+    if(f.measuredOnly) return;                           // estimated values don't belong in a profile
+    const a = meanOf(top, f.key), b = meanOf(bot, f.key);
+    if(a === null || b === null) return;
+    if(a === 0 && b === 0) return;
+    const base = Math.max(Math.abs(a), Math.abs(b));
+    const relDiff = base ? (a - b) / base : 0;
+    if(Math.abs(relDiff) < 0.12) return;                 // too small to be worth a sentence
+    deltas.push({ key:f.key, label:f.label, best:a, worst:b, relDiff, fmt:f.fmt });
+  });
+  deltas.sort((a,b) => Math.abs(b.relDiff) - Math.abs(a.relDiff));
+
+  // 3. The stack: how many of the core habits were true that day.
+  const g = state.goals || {};
+  const habits = [
+    { id:"protein", label:`Protein ≥ ${Math.round((g.protein||0)*0.9)}g`, test:r => g.protein ? r.p >= g.protein*0.9 : null },
+    { id:"sleep",   label:"Sleep ≥ 7h",                                   test:r => r.sleep != null ? r.sleep >= 7 : null },
+    { id:"water",   label:`Water ≥ ${g.water||64} ${unitVol()}`,          test:r => r.water != null ? r.water >= (g.water||64) : null },
+    { id:"clean",   label:"Processed ≤ 25% of calories",                  test:r => r.cal > 0 ? r.ultraPct <= 25 : null },
+    { id:"train",   label:"Trained",                                      test:r => !!r.trained },
+  ];
+  const scored = rows.map(r => {
+    let met = 0, known = 0;
+    habits.forEach(h => { const v = h.test(r); if(v === null) return; known++; if(v) met++; });
+    return { score:r.score, met, known };
+  }).filter(r => r.known >= 3);
+  const buckets = [
+    { label:"0–1 habits", min:0, max:1, scores:[] },
+    { label:"2 habits",   min:2, max:2, scores:[] },
+    { label:"3 habits",   min:3, max:3, scores:[] },
+    { label:"4–5 habits", min:4, max:9, scores:[] },
+  ];
+  scored.forEach(r => {
+    const b = buckets.find(b => r.met >= b.min && r.met <= b.max);
+    if(b) b.scores.push(r.score);
+  });
+  const stack = buckets.filter(b => b.scores.length >= 2).map(b => ({
+    label: b.label, n: b.scores.length,
+    avg: Math.round(b.scores.reduce((a,c)=>a+c,0) / b.scores.length),
+  }));
+
+  // Per-habit lift: score with vs without, so she can see which one earns its place.
+  const perHabit = habits.map(h => {
+    const withH = rows.filter(r => h.test(r) === true).map(r => r.score);
+    const without = rows.filter(r => h.test(r) === false).map(r => r.score);
+    if(withH.length < 3 || without.length < 3) return null;
+    const m = (x) => x.reduce((a,b)=>a+b,0)/x.length;
+    return { label:h.label, lift: Math.round(m(withH) - m(without)), withN:withH.length, withoutN:without.length };
+  }).filter(Boolean).sort((a,b) => b.lift - a.lift);
+
+  return {
+    ready:true, n:rows.length, useSymptoms,
+    avgScore: Math.round(rows.reduce((a,r)=>a+r.score,0)/rows.length),
+    drivers, deltas, stack, perHabit,
+    bestAvg: Math.round(top.reduce((a,r)=>a+r.score,0)/top.length),
+    worstAvg: Math.round(bot.reduce((a,r)=>a+r.score,0)/bot.length),
+    cut,
+  };
+}
+
+function renderBigPicture(){
+  const host = document.getElementById("bigPicList");
+  if(!host) return;
+  const d = bigPicture();
+  const meta = document.getElementById("bigPicMeta");
+  if(meta) meta.textContent = d.ready ? `${d.n} scored days` : `${d.n}/${d.need || 8} days`;
+
+  if(!d.ready){
+    host.innerHTML = `<p class="wl-empty">This needs a daily <b>check-in</b> (energy + mood) alongside your food and training — that's the only way to score how a day actually went. ${d.n} of ${d.need || 8} so far. Tap <b>+ CHECK-IN</b> above; it takes three taps.</p>`;
+    return;
+  }
+
+  let html = `<div class="bp-lead">Every day you checked in scores <b>0–100</b> on how it felt${d.useSymptoms ? " (energy, mood, symptoms)" : " (energy, mood)"}. Your average is <b>${d.avgScore}</b>. Here is what separates the good ones.</div>`;
+
+  // The stack — the actual "bigger picture": habits compound.
+  if(d.stack.length >= 2){
+    const max = Math.max(...d.stack.map(s => s.avg), 1);
+    const first = d.stack[0], last = d.stack[d.stack.length-1];
+    html += `<div class="bp-block">
+      <div class="bp-h">Habits stack</div>
+      ${d.stack.map(s => `<div class="bp-row">
+        <span class="bp-lbl">${escape(s.label)}</span>
+        <span class="bp-bar"><i style="width:${Math.round(s.avg/max*100)}%"></i></span>
+        <span class="bp-val">${s.avg}</span>
+        <span class="bp-n">${s.n}d</span>
+      </div>`).join("")}
+      <div class="bp-note">${last.avg - first.avg > 5
+        ? `Stacking them is worth <b>+${last.avg - first.avg} points</b> a day over doing one or none. No single habit does that on its own — that's the point.`
+        : `On your data the habits aren't compounding much yet. Keep logging — this is the number to watch.`}</div>
+    </div>`;
+  }
+
+  // Best vs worst day profile.
+  if(d.deltas.length){
+    html += `<div class="bp-block">
+      <div class="bp-h">Your best ${d.cut} days vs your worst ${d.cut}</div>
+      <div class="bp-cmp-head"><span></span><span>Best (${d.bestAvg})</span><span>Worst (${d.worstAvg})</span></div>
+      ${d.deltas.slice(0,7).map(x => `<div class="bp-cmp">
+        <span class="bp-lbl">${escape(x.label)}</span>
+        <span class="bp-b">${escape(String(x.fmt(x.best)))}</span>
+        <span class="bp-w">${escape(String(x.fmt(x.worst)))}</span>
+      </div>`).join("")}
+    </div>`;
+  }
+
+  // What pulls the score hardest.
+  if(d.drivers.length){
+    const max = Math.max(...d.drivers.map(x => Math.abs(x.r)));
+    html += `<div class="bp-block">
+      <div class="bp-h">What moves the score, strongest first</div>
+      ${d.drivers.slice(0,6).map(x => `<div class="bp-row">
+        <span class="bp-lbl">${escape(x.label)}</span>
+        <span class="bp-bar ${x.r > 0 ? "pos" : "neg"}"><i style="width:${Math.round(Math.abs(x.r)/max*100)}%"></i></span>
+        <span class="bp-val ${x.r > 0 ? "pos" : "neg"}">${x.r > 0 ? "+" : ""}${x.r.toFixed(2)}</span>
+        <span class="bp-n">${x.n}d</span>
+      </div>`).join("")}
+    </div>`;
+  } else {
+    html += `<div class="bp-block"><div class="bp-note">No single input is pulling your score yet across ${d.n} days. That's a real result — keep logging and the ranking fills in.</div></div>`;
+  }
+
+  // Per-habit lift, with the one instruction that follows from it.
+  if(d.perHabit.length){
+    const best = d.perHabit[0];
+    html += `<div class="bp-block">
+      <div class="bp-h">What each habit is worth to you</div>
+      ${d.perHabit.map(h => `<div class="bp-cmp">
+        <span class="bp-lbl">${escape(h.label)}</span>
+        <span class="bp-b ${h.lift >= 0 ? "" : "neg"}">${h.lift >= 0 ? "+" : ""}${h.lift} pts</span>
+        <span class="bp-w">${h.withN}d vs ${h.withoutN}d</span>
+      </div>`).join("")}
+      ${best.lift > 3 ? `<div class="bp-note">If you only defend one thing this week, defend <b>${escape(best.label)}</b> — it's worth ${best.lift} points a day to you.</div>` : ""}
+    </div>`;
+  }
+
+  html += `<p class="corr-foot">Every number here is from your own log. Patterns, not proof — but they are your patterns.</p>`;
+  host.innerHTML = html;
+}
+
+// Week / 4-week toggle on the muscle-coverage card.
+onReady(() => {
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-smscope]");
+    if(!b) return;
+    if(!state.ui) state.ui = {};
+    state.ui.smScope = b.getAttribute("data-smscope");
+    save();
+    renderSubMuscles();
+  });
+});
 
 
 // =================================================================
@@ -10448,6 +11200,9 @@ function go(tab){
 
 function renderTrends(){
   renderTrendsBase();
+  try{ renderBigPicture(); }catch(e){ console.warn("big picture", e); }
+  try{ renderSubMuscles(); }catch(e){ console.warn("sub muscles", e); }
+  try{ renderFoodQuality(); }catch(e){ console.warn("food quality", e); }
   try{ renderBodyPartTrends(); }catch(e){ console.warn("bp trends", e); }
   try{ renderCorrelations(); }catch(e){ console.warn("correlations", e); }
   renderTrendsStep_RenderTrendsForSym();

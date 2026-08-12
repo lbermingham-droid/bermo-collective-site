@@ -3362,3 +3362,108 @@ input, select, textarea{
   border:1px solid var(--iron-line); border-radius:7px;
   color:var(--iron-red); font-size:14px; cursor:pointer;
 }
+
+/* ============================================================
+   v20 — DEEP SIGNAL: bigger picture, food quality, muscle coverage
+   ============================================================ */
+
+/* --- shared: the "do this" line under a finding --- */
+.corr-act{
+  margin-top:7px; padding-top:7px; border-top:1px dashed var(--iron-line);
+  font-size:11.5px; font-weight:700; color:var(--iron-cyan); line-height:1.45;
+}
+
+/* --- (c) THE BIGGER PICTURE --- */
+.bp-wrap{ display:flex; flex-direction:column; gap:12px; }
+.bp-lead{ font-size:12px; color:var(--iron-mute); line-height:1.55; }
+.bp-lead b{ color:#fff; }
+.bp-block{
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  border-radius:12px; padding:12px;
+}
+.bp-h{
+  font-size:10px; font-weight:900; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--iron-volt); margin-bottom:9px;
+}
+.bp-row{ display:grid; grid-template-columns:112px 1fr 44px 30px; gap:8px; align-items:center; margin-bottom:5px; }
+.bp-lbl{ font-size:11px; font-weight:700; color:#fff; }
+.bp-bar{ height:8px; background:#111622; border-radius:6px; overflow:hidden; }
+.bp-bar i{ display:block; height:100%; background:var(--iron-volt); border-radius:6px; }
+.bp-bar.neg i{ background:var(--iron-red); }
+.bp-val{ font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:800; color:#fff; text-align:right; }
+.bp-val.pos{ color:var(--iron-volt); }
+.bp-val.neg{ color:var(--iron-red); }
+.bp-n{ font-family:'JetBrains Mono',monospace; font-size:9px; color:#7b8499; text-align:right; }
+.bp-note{ margin-top:9px; font-size:11.5px; color:var(--iron-mute); line-height:1.5; }
+.bp-note b{ color:var(--iron-volt); }
+.bp-cmp-head{
+  display:grid; grid-template-columns:1fr 82px 82px; gap:6px; margin-bottom:5px;
+  font-size:9px; font-weight:900; letter-spacing:.06em; text-transform:uppercase; color:#7b8499;
+}
+.bp-cmp-head span:not(:first-child){ text-align:right; }
+.bp-cmp{ display:grid; grid-template-columns:1fr 82px 82px; gap:6px; align-items:center; padding:4px 0; border-top:1px solid var(--iron-line); }
+.bp-b{ font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:800; color:var(--iron-volt); text-align:right; }
+.bp-b.neg{ color:var(--iron-red); }
+.bp-w{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--iron-mute); text-align:right; }
+
+/* --- (b) FOOD QUALITY --- */
+.fq-wrap{ display:flex; flex-direction:column; gap:8px; }
+.fq-comp{
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  border-radius:12px; padding:12px;
+}
+.fq-bar{ display:flex; height:12px; border-radius:6px; overflow:hidden; background:#111622; }
+.fq-bar i{ display:block; height:100%; }
+.fq-bar i.fq-w{ background:var(--iron-volt); }
+.fq-bar i.fq-m{ background:var(--iron-cyan); }
+.fq-bar i.fq-u{ background:var(--iron-red); }
+.fq-key{ display:flex; flex-wrap:wrap; gap:12px; margin-top:8px; font-size:10px; color:var(--iron-mute); }
+.fq-key span{ display:flex; align-items:center; gap:5px; }
+.fq-key b{ width:8px; height:8px; border-radius:2px; display:block; }
+.fq-key b.fq-w{ background:var(--iron-volt); }
+.fq-key b.fq-m{ background:var(--iron-cyan); }
+.fq-key b.fq-u{ background:var(--iron-red); }
+.fq-stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px; }
+.fq-stats div{ text-align:center; }
+.fq-stats b{ display:block; font-family:'JetBrains Mono',monospace; font-size:17px; font-weight:900; color:#fff; }
+.fq-stats b i{ font-style:normal; font-size:11px; color:var(--iron-mute); }
+.fq-stats span{ font-size:9.5px; color:var(--iron-mute); text-transform:uppercase; letter-spacing:.04em; }
+
+/* --- (a) MUSCLE COVERAGE --- */
+.sm-scope{ display:flex; gap:6px; margin-bottom:10px; }
+.sm-tab{
+  flex:1; padding:7px 10px; border-radius:9px; cursor:pointer;
+  background:transparent; border:1px solid var(--iron-line); color:var(--iron-mute);
+  font-size:10px; font-weight:900; letter-spacing:.06em;
+}
+.sm-tab.on{ border-color:var(--iron-volt); color:var(--iron-volt); }
+.sm-list{ display:flex; flex-direction:column; gap:8px; }
+.sm-part{
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  border-radius:12px; padding:11px;
+}
+.sm-part.sm-drop{ border-color:var(--iron-red); }
+.sm-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
+.sm-name{ font-size:12.5px; font-weight:900; color:#fff; text-transform:uppercase; letter-spacing:.05em; }
+.sm-drop .sm-name{ color:var(--iron-red); }
+.sm-sets{ font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--iron-mute); }
+.sm-chips{ display:flex; flex-wrap:wrap; gap:5px; }
+.sm-chip{
+  font-size:10.5px; font-weight:700; padding:4px 8px; border-radius:8px;
+  border:1px solid var(--iron-line); color:#5a6478;
+}
+.sm-chip.on{ border-color:var(--iron-volt); color:var(--iron-volt); }
+.sm-chip.on i{ font-style:normal; opacity:.75; font-family:'JetBrains Mono',monospace; }
+.sm-chip.off{ border-color:var(--iron-red); color:var(--iron-red); }
+.sm-gap{ margin-top:9px; font-size:11.5px; color:var(--iron-mute); line-height:1.5; }
+.sm-gap b{ color:var(--iron-red); }
+.sm-gap i{ font-style:normal; color:#7b8499; font-size:10px; }
+.sm-gap > div{ margin-bottom:3px; }
+.sm-fix{ margin-top:5px; font-size:11.5px; font-weight:700; color:var(--iron-cyan); }
+.sm-full{ margin-top:9px; font-size:11.5px; font-weight:700; color:var(--iron-volt); }
+.sm-foot{ font-size:10px; color:#7b8499; margin:4px 0 0; font-style:italic; line-height:1.5; }
+
+@media (max-width: 720px){
+  .bp-row{ grid-template-columns:96px 1fr 40px 26px; }
+  .bp-cmp, .bp-cmp-head{ grid-template-columns:1fr 68px 68px; }
+}

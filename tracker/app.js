@@ -2271,7 +2271,7 @@ function applyRedFlags(){
     } else if(t.cal > g.cal * 0.9){
       banner.classList.remove("hidden");
       banner.classList.add("warn");
-      banner.textContent = `⚠️ Within ${g.cal - t.cal} kcal of goal — careful`;
+      banner.textContent = `Within ${g.cal - t.cal} kcal of goal — careful`;
     } else {
       banner.classList.add("hidden");
       banner.classList.remove("warn");
@@ -2565,11 +2565,11 @@ function renderCyclePanel(){
     </div>
     <div class="cycle-bar">
       ${[
-        ["menstrual","🌑","#ff4d9d","1-5"],
-        ["follicular","🌒","#c8f500","5-13"],
-        ["ovulation","🌕","#00f5d4","13-16"],
-        ["luteal","🌗","#888","16-"+cycle.avgLen],
-      ].map(([p,e,c,r]) => `<div class="cph ${p===phase?"on":""}" style="--cc:${c}">${e}<span>${p}</span><i>${r}</i></div>`).join("")}
+        ["menstrual","#ff4d9d","1-5"],
+        ["follicular","#b788ff","5-13"],
+        ["ovulation","#00f5d4","13-16"],
+        ["luteal","#4db8ff","16-"+cycle.avgLen],
+      ].map(([p,c,r]) => `<div class="cph ${p===phase?"on":""}" style="--cc:${c}"><b class="cph-dot"></b><span>${p}</span><i>${r}</i></div>`).join("")}
     </div>
   `;
 }
@@ -2619,7 +2619,7 @@ function computeInsights(){
         const a = avg(sleepOnPR), b = avg(sleepOther);
         if(Math.abs(a-b) >= 0.5){
           insights.push({
-            icon: "💤",
+            icon: "sleep",
             tier: a > b ? "good" : "watch",
             headline: `PR days follow ${(a-b).toFixed(1)}h ${a>b?"more":"less"} sleep`,
             body: `Average sleep on days you set a PR: ${a.toFixed(1)}h. Average other days: ${b.toFixed(1)}h. ${a > b ? "Sleep is helping you lift heavier — protect it." : "Interesting — your PRs aren't tied to sleep, or you've been pushing through tired."}`
@@ -2637,7 +2637,7 @@ function computeInsights(){
     const rWater = avg(restDays.map(k => state.days[k].water || 0));
     if(Math.abs(wWater - rWater) >= 4){
       insights.push({
-        icon: "",
+        icon: "water",
         tier: "info",
         headline: `Workout days = ${Math.round(wWater)} oz water vs ${Math.round(rWater)} on rest days`,
         body: `${wWater > rWater ? "You hydrate more on training days." : "You actually drink less on training days — easy fix to log a couple more cups around your session."}`
@@ -2661,7 +2661,7 @@ function computeInsights(){
       const diff = pctDiff(lutealAvg, baseline);
       if(Math.abs(diff) >= 12){
         insights.push({
-          icon: "🌗",
+          icon: "cycle",
           tier: "info",
           headline: `${diff > 0 ? "+" : ""}${diff}% calories during your luteal phase`,
           body: `Average ${Math.round(lutealAvg)} kcal in luteal vs ${Math.round(baseline)} kcal early-cycle. Real and normal — your TDEE is genuinely higher then. ${diff > 0 ? "Don't fight the cravings, just keep protein high." : "If under-eating, it can backfire."}`
@@ -2675,7 +2675,7 @@ function computeInsights(){
   const pct = Math.round(logged/dayKeys.length*100);
   if(dayKeys.length >= 14){
     insights.push({
-      icon: pct > 70 ? "🔥" : "⚠️",
+      icon: pct > 70 ? "streak" : "alert",
       tier: pct > 70 ? "good" : "watch",
       headline: `You've logged meals on ${pct}% of days (${logged}/${dayKeys.length})`,
       body: pct > 70
@@ -2689,7 +2689,7 @@ function computeInsights(){
   const proteinPct = Math.round(proteinHit/Math.max(1,logged)*100);
   if(logged >= 7 && proteinPct < 50){
     insights.push({
-      icon: "🥩",
+      icon: "protein",
       tier: "watch",
       headline: `Hit your protein goal on only ${proteinPct}% of logged days`,
       body: `Goal is ${state.goals.protein}g. Adding a protein shake or extra serving once a day is the cheapest fix.`
@@ -2698,6 +2698,19 @@ function computeInsights(){
 
   return insights;
 }
+
+// Named stroke icons for insight cards — the UI carries no emoji.
+const INS_ICONS = {
+  sleep:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.2 8.2 0 0 1 9.5 4 8.3 8.3 0 1 0 20 14.5Z"/></svg>',
+  water:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 6.4 6 10.4A6 6 0 0 1 6 13.4C6 9.4 12 3 12 3Z"/></svg>',
+  cycle:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17Z" fill="currentColor" stroke="none" opacity=".35"/></svg>',
+  protein:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4.5h11l1.5 5.5-7 9.5-7-9.5 1.5-5.5Z"/><path d="M5 10h14"/></svg>',
+  target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>',
+  streak: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s4.5 4 4.5 8a4.5 4.5 0 0 1-9 0c0-1.6.8-3 1.6-4 .2 1.4 1 2.3 1.9 2.3 1.1 0 1.6-1 1-6.3Z"/><path d="M5.5 15.5a6.5 6.5 0 0 0 13 0"/></svg>',
+  alert:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5 21 19H3l9-14.5Z"/><path d="M12 10v4"/><path d="M12 17h.01"/></svg>',
+  sick:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M8.5 14.5s1.3-1.2 3.5-1.2 3.5 1.2 3.5 1.2"/><path d="M9 9.5h.01"/><path d="M15 9.5h.01"/></svg>',
+};
+function insIcon(name){ return INS_ICONS[name] || INS_ICONS.target; }
 
 function renderInsights(){
   const list = document.getElementById("insightsList");
@@ -2710,7 +2723,7 @@ function renderInsights(){
   }
   list.innerHTML = insights.map(i => `
     <div class="ins-card ins-${i.tier}">
-      <div class="ins-icon">${i.icon}</div>
+      <div class="ins-icon">${insIcon(i.icon)}</div>
       <div class="ins-body">
         <div class="ins-headline">${escape(i.headline)}</div>
         <div class="ins-text">${escape(i.body)}</div>
@@ -2774,10 +2787,10 @@ function renderCtxGrid(){
   const protein = workoutDays.map(k => totalsFor(k).p);
   const energy = workoutDays.map(k => state.days[k].checkin && state.days[k].checkin.energy).filter(s=>s!=null);
   const cells = [
-    ["💤 Sleep on training days", sleep.length ? avg(sleep).toFixed(1)+" h" : "—", "Goal: 7+ h"],
+    ["Sleep on training days", sleep.length ? avg(sleep).toFixed(1)+" h" : "—", "Goal: 7+ h"],
     ["Water on training days", Math.round(avg(water))+" oz", "Goal: 64+ oz"],
     ["Protein on training days", Math.round(avg(protein))+" g", "Goal: " + state.goals.protein + "+ g"],
-    ["⚡ Reported energy", energy.length ? (avg(energy).toFixed(1)+" / 5") : "—", "Log via daily check-in"],
+    ["Reported energy", energy.length ? (avg(energy).toFixed(1)+" / 5") : "—", "Log via daily check-in"],
   ];
   grid.innerHTML = cells.map(([h,v,sub]) => `<div class="ctx-cell"><div class="ctx-h">${h}</div><div class="ctx-v">${v}</div><div class="ctx-sub">${sub}</div></div>`).join("");
 }
@@ -3038,7 +3051,7 @@ function computeSymptomInsights(){
       const a = avg(sleepOnSym), b = avg(sleepOther);
       if(a < b - 0.7){
         out.push({
-          icon:"💤", tier:"watch",
+          icon:"sleep", tier:"watch",
           headline:`${name} appears after ${(b-a).toFixed(1)}h less sleep`,
           body:`Avg sleep before "${name}" days: ${a.toFixed(1)}h. Other days: ${b.toFixed(1)}h. Sleep looks like a real trigger here.`
         });
@@ -3051,7 +3064,7 @@ function computeSymptomInsights(){
     const aw = avg(waterOnSym), bw = avg(waterOther);
     if(aw < bw - 12 && bw > 0){
       out.push({
-        icon:"", tier:"watch",
+        icon:"water", tier:"watch",
         headline:`${name} happens on low-water days`,
         body:`On "${name}" days you average ${Math.round(aw)} oz water vs ${Math.round(bw)} oz other days. Hydration is a likely factor.`
       });
@@ -3065,7 +3078,7 @@ function computeSymptomInsights(){
       const [topTrigger, n] = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
       if(n >= 2){
         out.push({
-          icon:"🎯", tier:"info",
+          icon:"target", tier:"info",
           headline:`You've flagged "${topTrigger}" as the trigger for ${name} ${n}× now`,
           body:`That's the most common suspected trigger when this symptom shows up. Worth a small experiment: cut it for two weeks and see if frequency drops.`
         });
@@ -3085,7 +3098,7 @@ function computeSymptomInsights(){
         const top = Object.entries(phaseCount).sort((a,b)=>b[1]-a[1])[0];
         if(top[1] / total > 0.55){
           out.push({
-            icon:"🌗", tier:"info",
+            icon:"cycle", tier:"info",
             headline:`${name} shows up most in your ${top[0]} phase`,
             body:`${Math.round(top[1]/total*100)}% of "${name}" entries fell in ${top[0]} phase. Hormones likely a factor.`
           });
@@ -3102,7 +3115,7 @@ function computeSymptomInsights(){
       if(ranked.length && ranked[0][1] >= 2){
         const monthName = new Date(2000, ranked[0][0]-1, 1).toLocaleDateString(undefined, {month:"long"});
         out.push({
-          icon:"🤧", tier:"info",
+          icon:"sick", tier:"info",
           headline:`${ranked[0][1]} sicknesses logged in ${monthName}`,
           body:`Your sick days cluster in this month. Plan extra immune support / sleep / vitamin D heading into it.`
         });
@@ -3127,7 +3140,7 @@ function renderTrendsStep_RenderTrendsForSym(){
     if(extra.length){
       const html = extra.map(i => `
         <div class="ins-card ins-${i.tier}">
-          <div class="ins-icon">${i.icon}</div>
+          <div class="ins-icon">${insIcon(i.icon)}</div>
           <div class="ins-body">
             <div class="ins-headline">${escape(i.headline)}</div>
             <div class="ins-text">${escape(i.body)}</div>
@@ -4994,7 +5007,7 @@ function renderTrendsHub(){
   }
   list.innerHTML = insights.slice(0,2).map(i => `
     <div class="hi-card hi-${i.tier}">
-      <span class="hi-icon">${i.icon}</span>
+      <span class="hi-icon">${insIcon(i.icon)}</span>
       <span class="hi-text">${escape(i.headline)}</span>
     </div>
   `).join("");
@@ -6366,7 +6379,7 @@ function renderBodyCoverage(){
 
   let suggestion = "";
   if(missing.length){
-    suggestion = `<div class="bp-suggest"><b>⚠️ Missing in last 14 days:</b> ${missing.map(m=>m.charAt(0).toUpperCase()+m.slice(1)).join(", ")}.<br><i>Try: ${PART_SUGGESTIONS[missing[0]]}</i></div>`;
+    suggestion = `<div class="bp-suggest"><b>Missing in last 14 days:</b> ${missing.map(m=>m.charAt(0).toUpperCase()+m.slice(1)).join(", ")}.<br><i>Try: ${PART_SUGGESTIONS[missing[0]]}</i></div>`;
   } else if(low.length){
     suggestion = `<div class="bp-suggest bp-suggest-low"><b>👀 Under-trained:</b> ${low.map(m=>m.charAt(0).toUpperCase()+m.slice(1)).join(", ")} (only 1 set each).<br><i>Try: ${PART_SUGGESTIONS[low[0]]}</i></div>`;
   } else if(totalSessions > 0){
@@ -7148,7 +7161,7 @@ function renderSmartBanners(){
   const now = _nowMinutes();
   const banners = [];
 
-  // 🔥 Morning workout call — fires from the set time until +3h, while no workout logged
+  // Morning workout call — fires from the set time until +3h, while no workout logged
   if(r.workoutOn){
     const t = _hmToMinutes(r.workout);
     if(now >= t && now < t + 180 && !_todayHasWorkout() && !_bannerDismissed("workout")){

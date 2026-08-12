@@ -3475,3 +3475,14 @@ input, select, textarea{
 }
 /* A single wide child must never widen every card in the grid. */
 .grid-12 > *{ min-width:0; }
+
+/* v20: insight icons are inline SVG now (ICON RULE), not emoji glyphs */
+.ins-icon{ background:var(--iron-panel-2) !important; }
+.ins-icon svg{ width:19px; height:19px; }
+.ins-good  .ins-icon{ border-color:var(--iron-volt) !important;  color:var(--iron-volt) !important; }
+.ins-watch .ins-icon{ border-color:var(--brand-purple) !important; color:var(--brand-purple) !important; }
+.ins-info  .ins-icon{ border-color:var(--iron-cyan) !important;  color:var(--iron-cyan) !important; }
+.hi-icon svg{ width:15px; height:15px; vertical-align:-2px; }
+/* v20: cycle phase pills use a colored dot, not a moon emoji */
+.cph-dot{ display:block; width:9px; height:9px; border-radius:50%; background:var(--cc); margin:0 auto 4px; }
+.cph.on .cph-dot{ box-shadow:0 0 0 3px color-mix(in srgb, var(--cc) 25%, transparent); }

@@ -71,8 +71,11 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       await page.waitForTimeout(350);
       const active = await page.evaluate(t =>
         !!document.getElementById("view-" + t)?.classList.contains("active"), tab);
-      active ? ok(`tab '${tab}' activates its view`)
-             : fail(`tab '${tab}'`, "view not active after click");
+      const bleed = await page.evaluate(() =>
+        document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      if(!active) fail(`tab '${tab}'`, "view not active after click");
+      else if(bleed > 1) fail(`tab '${tab}' overflow`, bleed + "px sideways bleed at 390px");
+      else ok(`tab '${tab}' activates its view (no bleed)`);
     } catch (e) {
       // Diagnose what intercepted the click
       const blocker = await page.evaluate((sel) => {

@@ -325,7 +325,6 @@ function bindGlobal(){
 
 
   // Quick chips
-  on("#dashCopyYesterday", "click", copyYesterday);
 
   // WOD shuffle
   on("#wodShuffle", "click", shuffleWod);
@@ -456,7 +455,7 @@ function openFoodModal(meal){
       <p class="ql-hint" id="foodAIStatusHint">Use an AI key (Claude or OpenAI) to read a photo of your plate or parse a typed description.</p>
       <button type="button" class="btn btn-cyan" id="foodAIPhotoBtn" style="width:100%;margin-bottom:8px">Snap a photo of food</button>
       <button type="button" class="btn btn-ghost" id="foodAITextBtn" style="width:100%;margin-bottom:8px">Type what you ate</button>
-      <button type="button" class="btn btn-ghost btn-sm" id="foodAISetupBtn" style="width:100%;font-size:11px">⚙ Set up / change API key</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="foodAISetupBtn" style="width:100%;font-size:11px"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.77-.32 1.6 1.6 0 0 0-1 1.47V21a2 2 0 1 1-4 0v-.11a1.6 1.6 0 0 0-1.05-1.46 1.6 1.6 0 0 0-1.77.32l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.6 1.6 0 0 0 .32-1.77 1.6 1.6 0 0 0-1.47-1H3a2 2 0 1 1 0-4h.11A1.6 1.6 0 0 0 4.57 8.8a1.6 1.6 0 0 0-.32-1.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.6 1.6 0 0 0 1.77.32H9a1.6 1.6 0 0 0 1-1.47V3a2 2 0 1 1 4 0v.11a1.6 1.6 0 0 0 1 1.47 1.6 1.6 0 0 0 1.77-.32l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.6 1.6 0 0 0-.32 1.77V9a1.6 1.6 0 0 0 1.47 1H21a2 2 0 1 1 0 4h-.11a1.6 1.6 0 0 0-1.47 1Z"/></svg></span> Set up / change API key</button>
     </div>
     <div class="food-pane" data-pane="barcode">
       <button type="button" class="btn btn-cyan" id="foodBarcodeBtn" style="width:100%;margin-bottom:8px">Scan with camera</button>
@@ -1223,17 +1222,6 @@ function renderSettingsBase(){
   // Layout card
   const stStart = $("#setStartTab"); if(stStart) stStart.value = state.profile.startTab || "dashboard";
   const stFood = $("#setFoodMode"); if(stFood) stFood.value = state.profile.foodMode || "search";
-  const hubsList = $("#setHubsList");
-  if(hubsList && typeof getHubPrefs === "function" && typeof ALL_HUBS !== "undefined"){
-    const prefs = getHubPrefs();
-    hubsList.innerHTML = ALL_HUBS.map(h => `
-      <label class="set-hub-row">
-        <input type="checkbox" data-hub="${h}" ${prefs.hidden.includes(h) ? "" : "checked"}>
-        <span>${HUB_LABELS[h] || h}</span>
-      </label>
-    `).join("");
-  }
-
   $("#cfList").innerHTML = state.customFoods.map(f => `
     <li class="meal-item" style="background:#fff;border:1px solid var(--lgray)">
       <div>
@@ -1986,6 +1974,7 @@ function openMacroCalcModal(){
           <option value="cut">Lose fat (-500 cal)</option>
           <option value="cutmild">Lose slow (-250 cal)</option>
           <option value="maintain" selected>Maintain</option>
+          <option value="recomp">Recomp — lean out + build (-150 cal)</option>
           <option value="leanbulk">Build muscle (+250 cal)</option>
           <option value="bulk">Bulk (+500 cal)</option>
         </select>
@@ -1993,9 +1982,16 @@ function openMacroCalcModal(){
       <label><span>Macro split</span>
         <select id="mcSplit">
           <option value="balanced" selected>Balanced 30/40/30</option>
+          <option value="recomp">Lean / recomp 40/40/20 — high protein, low fat</option>
           <option value="highprotein">High protein 40/35/25</option>
           <option value="lowcarb">Low carb 30/20/50</option>
           <option value="endurance">Endurance 20/55/25</option>
+        </select>
+      </label>
+      <label class="mc-cycle"><span>Carb cycling</span>
+        <select id="mcCycle">
+          <option value="off" selected>Off — same macros every day</option>
+          <option value="on">On — high carb on training days, low on rest days</option>
         </select>
       </label>
     </div>
@@ -2036,11 +2032,12 @@ function openMacroCalcModal(){
         formula = "Mifflin-St Jeor";
       }
       const tdee = bmr * act;
-      const adj = { cut:-500, cutmild:-250, maintain:0, leanbulk:250, bulk:500 }[goal];
+      const adj = { cut:-500, cutmild:-250, maintain:0, recomp:-150, leanbulk:250, bulk:500 }[goal];
       const cal = Math.round(tdee + adj);
 
       const splits = {
         balanced:    [.30,.40,.30],
+        recomp:      [.40,.40,.20],   // high protein, mod-high carbs, low fat
         highprotein: [.40,.35,.25],
         lowcarb:     [.30,.20,.50],
         endurance:   [.20,.55,.25],
@@ -2053,7 +2050,9 @@ function openMacroCalcModal(){
       const proteinFloor = Math.round(wt * 0.8);
       const finalProtein = Math.max(protein, proteinFloor);
 
-      computed = { cal, protein: finalProtein, carbs, fat };
+      const cycleOn = document.getElementById("mcCycle").value === "on";
+      const cycle = cycleOn ? buildCarbCycle(carbs, fat, state.profile.units === "metric" ? wt * 2.205 : wt) : null;
+      computed = { cal, protein: finalProtein, carbs, fat, cycle };
 
       const lbsPerWeek = Math.abs(adj) * 7 / 3500;
       const dir = adj < 0 ? "lose" : adj > 0 ? "gain" : "maintain";
@@ -2070,6 +2069,12 @@ function openMacroCalcModal(){
           <div><div class="mc-lbl mc-c">Carbs</div><div class="mc-mval">${carbs}<i>g</i></div></div>
           <div><div class="mc-lbl mc-f">Fat</div><div class="mc-mval">${fat}<i>g</i></div></div>
         </div>
+        ${cycle ? `<div class="mc-cyc">
+          <div class="mc-cyc-h">Carb cycling — same calories, different shape</div>
+          <div class="mc-cyc-row"><span>Training day</span><b>${cycle.trainC}g carbs</b><b>${cycle.trainF}g fat</b></div>
+          <div class="mc-cyc-row"><span>Rest day</span><b>${cycle.restC}g carbs</b><b>${cycle.restF}g fat</b></div>
+          <div class="mc-cyc-note">Protein stays at ${finalProtein}g every day. The app picks the right target automatically from whether you trained (or have a workout planned).</div>
+        </div>` : ""}
       `;
       document.getElementById("mcApply").classList.remove("hidden");
     });
@@ -2079,8 +2084,10 @@ function openMacroCalcModal(){
       state.goals.protein = computed.protein;
       state.goals.carbs = computed.carbs;
       state.goals.fat = computed.fat;
+      if(computed.cycle) state.goals.cycle = computed.cycle;
+      else delete state.goals.cycle;
       save(); closeModal(); renderAll();
-      toast("Goals updated", "cyan");
+      toast(computed.cycle ? "Goals + carb cycling saved" : "Goals updated", "cyan");
     });
   });
 }
@@ -2769,7 +2776,7 @@ function renderCtxGrid(){
   const cells = [
     ["💤 Sleep on training days", sleep.length ? avg(sleep).toFixed(1)+" h" : "—", "Goal: 7+ h"],
     ["Water on training days", Math.round(avg(water))+" oz", "Goal: 64+ oz"],
-    ["🥩 Protein on training days", Math.round(avg(protein))+" g", "Goal: " + state.goals.protein + "+ g"],
+    ["Protein on training days", Math.round(avg(protein))+" g", "Goal: " + state.goals.protein + "+ g"],
     ["⚡ Reported energy", energy.length ? (avg(energy).toFixed(1)+" / 5") : "—", "Log via daily check-in"],
   ];
   grid.innerHTML = cells.map(([h,v,sub]) => `<div class="ctx-cell"><div class="ctx-h">${h}</div><div class="ctx-v">${v}</div><div class="ctx-sub">${sub}</div></div>`).join("");
@@ -5094,117 +5101,6 @@ onReady(() => {
 // POLISH — back arrow, mobile nav, hub timestamps, reorder, PTR
 // =================================================================
 
-// ---- HUB ORDER + VISIBILITY ----
-const ALL_HUBS = ["activity","nutrition","fitness","health","trends","weight"];
-const HUB_LABELS = {
-  activity: "Activity Rings",
-  nutrition: "Nutrition",
-  fitness: "Fitness",
-  health: "Health",
-  trends: "Trends",
-  weight: "Weight vs Goal",
-};
-function getHubPrefs(){
-  if(!state.hubPrefs) state.hubPrefs = { order: [...ALL_HUBS], hidden: [] };
-  // Heal: ensure order has all, no duplicates
-  const present = new Set(state.hubPrefs.order);
-  ALL_HUBS.forEach(h => { if(!present.has(h)) state.hubPrefs.order.push(h); });
-  state.hubPrefs.order = state.hubPrefs.order.filter(h => ALL_HUBS.includes(h));
-  return state.hubPrefs;
-}
-
-function applyHubPrefs(){
-  const prefs = getHubPrefs();
-  const grid = document.querySelector(".hubs-grid");
-  if(!grid) return;
-  // Reorder DOM
-  const map = {};
-  grid.querySelectorAll(".hub").forEach(el => { map[el.dataset.hub] = el; });
-  prefs.order.forEach(h => {
-    if(map[h]){
-      grid.appendChild(map[h]);
-      map[h].classList.toggle("hidden", prefs.hidden.includes(h));
-    }
-  });
-}
-
-function openCustomizeModal(){
-  const prefs = getHubPrefs();
-  const rows = prefs.order.map((h, i) => `
-    <div class="custom-row" data-hub="${h}">
-      <div class="cr-grip">⋮⋮</div>
-      <div class="cr-name">${HUB_LABELS[h]}</div>
-      <div class="cr-actions">
-        <button class="cr-up" data-up title="Move up">↑</button>
-        <button class="cr-dn" data-dn title="Move down">↓</button>
-        <label class="cr-vis">
-          <input type="checkbox" ${prefs.hidden.includes(h) ? "" : "checked"} data-vis>
-          <span>Show</span>
-        </label>
-      </div>
-    </div>
-  `).join("");
-  openModal("Customize dashboard hubs", `
-    <p style="font-size:12px;color:#666;margin:0 0 8px">Reorder with ↑↓. Uncheck to hide a hub. Changes save instantly.</p>
-    <div class="custom-list">${rows}</div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" id="hubReset">Reset to default</button>
-      <button class="btn btn-cyan" data-close>Done</button>
-    </div>
-  `, (root) => {
-    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => { closeModal(); applyHubPrefs(); }));
-
-    const refresh = () => {
-      // Re-render the modal list to reflect new order
-      const list = document.querySelector(".custom-list");
-      const order = getHubPrefs().order;
-      list.innerHTML = order.map(h => `
-        <div class="custom-row" data-hub="${h}">
-          <div class="cr-grip">⋮⋮</div>
-          <div class="cr-name">${HUB_LABELS[h]}</div>
-          <div class="cr-actions">
-            <button class="cr-up" data-up title="Move up">↑</button>
-            <button class="cr-dn" data-dn title="Move down">↓</button>
-            <label class="cr-vis">
-              <input type="checkbox" ${getHubPrefs().hidden.includes(h) ? "" : "checked"} data-vis>
-              <span>Show</span>
-            </label>
-          </div>
-        </div>
-      `).join("");
-      bindRows();
-    };
-
-    function bindRows(){
-      document.querySelectorAll(".custom-row").forEach(row => {
-        const h = row.dataset.hub;
-        row.querySelector("[data-up]").addEventListener("click", () => {
-          const order = getHubPrefs().order;
-          const i = order.indexOf(h);
-          if(i > 0){ [order[i-1], order[i]] = [order[i], order[i-1]]; save(); refresh(); applyHubPrefs(); }
-        });
-        row.querySelector("[data-dn]").addEventListener("click", () => {
-          const order = getHubPrefs().order;
-          const i = order.indexOf(h);
-          if(i < order.length-1){ [order[i+1], order[i]] = [order[i], order[i+1]]; save(); refresh(); applyHubPrefs(); }
-        });
-        row.querySelector("[data-vis]").addEventListener("change", (e) => {
-          const prefs = getHubPrefs();
-          if(e.target.checked){ prefs.hidden = prefs.hidden.filter(x => x !== h); }
-          else if(!prefs.hidden.includes(h)){ prefs.hidden.push(h); }
-          save(); applyHubPrefs();
-        });
-      });
-    }
-    bindRows();
-    document.getElementById("hubReset").addEventListener("click", () => {
-      state.hubPrefs = { order: [...ALL_HUBS], hidden: [] };
-      save(); refresh(); applyHubPrefs();
-      toast("Reset","cyan");
-    });
-  });
-}
-
 // ---- PER-HUB TIMESTAMPS ("Last: X ago") ----
 function timeAgo(dateStr){
   if(!dateStr) return null;
@@ -5249,7 +5145,6 @@ function applyHubTimestamps(){
 // Hook hub renders to also stamp + apply prefs
 // Pipeline step (extracted from a wrapper patch; composed at EOF).
 function renderHubsAllStep_RenderHubsAll(){
-  applyHubPrefs();
   applyHubTimestamps();
 }
 
@@ -5309,9 +5204,6 @@ function setupPTR(){
 }
 
 onReady(() => {
-  const btn = document.getElementById("hubCustomizeBtn");
-  if(btn) btn.addEventListener("click", openCustomizeModal);
-  applyHubPrefs();
   applyHubTimestamps();
   setupPTR();
 });
@@ -5678,18 +5570,6 @@ function renderNutritionWeekBase(){
 // Hook into existing drawActivityRings to make week strip more visible
 // (CSS does the visual work; just ensure it renders)
 
-// ---- CUSTOMIZE relocations ----
-onReady(() => {
-  // Bottom button (re-create binding since the cloned hubs may have shadowed)
-  const btn = document.getElementById("hubCustomizeBtn");
-  if(btn && typeof openCustomizeModal === "function"){
-    const nb = btn.cloneNode(true);
-    btn.parentNode.replaceChild(nb, btn);
-    nb.addEventListener("click", openCustomizeModal);
-  }
-});
-
-
 // =================================================================
 // FIXES — back buttons on all pages, activity week strip with status,
 //          day-click quick view, compact macros (CSS-driven)
@@ -5809,8 +5689,8 @@ function openDayQuickView(dateKey, kind){
       <div class="qv-rings">
         <div class="qv-ring"><div class="qv-lbl">Calories</div><div class="qv-val">${t.cal}<i>/${state.goals.cal}</i></div></div>
         <div class="qv-ring"><div class="qv-lbl">Protein</div><div class="qv-val">${t.p}g<i>/${state.goals.protein}g</i></div></div>
-        <div class="qv-ring"><div class="qv-lbl">Carbs</div><div class="qv-val">${t.c}g<i>/${state.goals.carbs}g</i></div></div>
-        <div class="qv-ring"><div class="qv-lbl">Fat</div><div class="qv-val">${t.f}g<i>/${state.goals.fat}g</i></div></div>
+        <div class="qv-ring"><div class="qv-lbl">Carbs</div><div class="qv-val">${t.c}g<i>/${goalsForDay(dateKey).carbs}g</i></div></div>
+        <div class="qv-ring"><div class="qv-lbl">Fat</div><div class="qv-val">${t.f}g<i>/${goalsForDay(dateKey).fat}g</i></div></div>
       </div>
     `;
   }
@@ -7181,16 +7061,7 @@ function saveCurrentMealAsTemplate(meal){
     const stFood = document.getElementById("setFoodMode");
     state.profile.startTab = stStart ? stStart.value : "dashboard";
     state.profile.foodMode = stFood ? stFood.value : "search";
-    if(typeof getHubPrefs === "function"){
-      const prefs = getHubPrefs();
-      const checks = document.querySelectorAll("#setHubsList input[type=checkbox][data-hub]");
-      const hidden = [];
-      checks.forEach(cb => { if(!cb.checked) hidden.push(cb.dataset.hub); });
-      prefs.hidden = hidden;
-      state.hubPrefs = prefs;
-    }
     save();
-    if(typeof applyHubPrefs === "function") applyHubPrefs();
     toast("Layout saved", "ok");
   });
   const ahImp = document.getElementById("ahImportBtn");
@@ -7532,7 +7403,7 @@ function dayGoalStatus(k){
   const day = state.days[k];
   const isFuture = k > todayKey();
   const isToday = k === todayKey();
-  const g = state.goals || {};
+  const g = goalsForDay(k);
   const out = { food: "none", workout: "none" };
   if(isFuture) return out;
 
@@ -8568,7 +8439,7 @@ function renderFitRing(){
 }
 function renderNutRing(){
   const t = totalsFor(currentDate);
-  const g = state.goals || {};
+  const g = goalsForDay(currentDate);
   drawRingStack("nutMiniRings", [
     { color:"#b788ff", track:"#111622", val:t.cal, goal:g.cal || 2200,   r:40, lw:9 },
     { color:"#00f5d4", track:"#111622", val:t.p,   goal:g.protein || 1,  r:29, lw:9 },
@@ -8681,7 +8552,7 @@ function renderNutrientsTable(){
       fiber += it.fiber||0; sugar += it.sugar||0;
     });
   });
-  const g = state.goals || {};
+  const g = goalsForDay(currentDate);
   const rows = [
     ["Calories", Math.round(cal), g.cal || 2200, ""],
     ["Protein", Math.round(p), g.protein || 0, "g"],
@@ -8854,9 +8725,10 @@ function renderNutTopStats(){
   const el = document.getElementById("nutTopStats");
   if(!el) return;
   const t = totalsFor(currentDate);
-  const g = state.goals || {};
+  const g = goalsForDay(currentDate);
   const water = (state.days[currentDate]||{}).water || 0;
   el.innerHTML = `
+    ${g.mode ? `<span class="cyc-tag cyc-${g.mode}">${g.mode === "training" ? "TRAINING DAY" : "REST DAY"} CARBS</span>` : ""}
     <span><i style="color:#b788ff">Cal</i> <b>${Math.round(t.cal)}</b>/${g.cal||0}</span>
     <span><i style="color:#4db8ff">P</i> <b>${Math.round(t.p)}</b>/${g.protein||0}</span>
     <span><i style="color:#00f5d4">C</i> <b>${Math.round(t.c)}</b>/${g.carbs||0}</span>
@@ -9098,7 +8970,7 @@ function renderCalSub(){
   }).join("");
   const t = totalsFor(currentDate);
   const a = getActivityForDay(currentDate);
-  const g = state.goals || {};
+  const g = goalsForDay(currentDate);
   const rowsEl = document.getElementById("calTotals");
   if(rowsEl) rowsEl.innerHTML = `
     <div class="mfp-row"><span>Total Calories</span><b>${Math.round(t.cal)}</b></div>
@@ -9112,7 +8984,7 @@ function renderMacroSub(){
   const cv = document.getElementById("macroDonut");
   if(!cv || typeof Chart === "undefined") return;
   const t = totalsFor(currentDate);
-  const g = state.goals || {};
+  const g = goalsForDay(currentDate);
   const calFrom = { c: t.c*4, f: t.f*9, p: t.p*4 };
   const totalMacroCal = calFrom.c + calFrom.f + calFrom.p;
   const goalCal = { c:(g.carbs||0)*4, f:(g.fat||0)*9, p:(g.protein||0)*4 };
@@ -9705,6 +9577,51 @@ onReady(() => {
 // calories live; editing calories offers a split you can dial in.
 // =================================================================
 const KCAL = { p:4, c:4, f:9 };
+// =================================================================
+// CARB CYCLING — training-day vs rest-day macro targets.
+// state.goals stays the single base record; state.goals.cycle holds the
+// two variants. Every DAY-SCOPED display reads goalsForDay(key) so the
+// number on screen is the number that applies to THAT day.
+// =================================================================
+function goalsForDay(key){
+  const g = state.goals || {};
+  const base = { cal:g.cal, protein:g.protein, carbs:g.carbs, fat:g.fat, fiber:g.fiber, sugar:g.sugar, water:g.water, mode:null };
+  const cyc = g.cycle;
+  if(!cyc || !cyc.on) return base;
+  const k = key || currentDate;
+  const day = state.days[k];
+  let trained = !!(day && ((day.sessions || []).length > 0 || ((day.activity || {}).exercise || 0) >= 20));
+  if(!trained){
+    // Today / future days have no log yet — fall back to what's PLANNED.
+    const dt = new Date(k + "T12:00:00");
+    const dayName = ["sun","mon","tue","wed","thu","fri","sat"][dt.getDay()];
+    const wk = weekKey(weekStart(dt));
+    const planned = state.plan && state.plan[wk] && state.plan[wk][dayName];
+    if(planned && planned.type && !/rest|recov|off\b/i.test(planned.type)) trained = true;
+  }
+  return Object.assign({}, base, trained
+    ? { carbs: cyc.trainC, fat: cyc.trainF, mode: "training" }
+    : { carbs: cyc.restC,  fat: cyc.restF,  mode: "rest" });
+}
+
+// Split a base carb/fat target into a high-carb training day and a
+// low-carb rest day at the SAME calories (carbs swap with fat 1:1 by kcal).
+function buildCarbCycle(carbs, fat, weightLb){
+  const fatFloor = Math.max(35, Math.round((weightLb || 150) * 0.25));
+  let up = Math.round(carbs * 0.35);                       // +35% carbs on training days
+  let fatCut = Math.round(up * 4 / 9);
+  if(fat - fatCut < fatFloor){                             // never starve fat below the floor
+    fatCut = Math.max(0, fat - fatFloor);
+    up = Math.round(fatCut * 9 / 4);
+  }
+  const down = Math.round(carbs * 0.30);
+  return {
+    on: true,
+    trainC: carbs + up,   trainF: fat - fatCut,
+    restC:  carbs - down, restF:  fat + Math.round(down * 4 / 9),
+  };
+}
+
 function macroCals(g){ return (g.p||0)*KCAL.p + (g.c||0)*KCAL.c + (g.f||0)*KCAL.f; }
 
 function renderMacroCalc(hostId){

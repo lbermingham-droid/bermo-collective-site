@@ -19,7 +19,7 @@ Deliberately NOT linked from the main site nav — it's a standalone app.
   all views (food/lift/plan/body/trends/history/settings), modals, overlays,
   PWA meta. Has a visible BUILD version marker — bump it each deploy so the
   user can confirm cache refresh.
-- `tracker/app.js` (~8k lines) — ONE giant IIFE with all logic
+- `tracker/app.js` (~11k lines) — ONE giant IIFE with all logic
 - `tracker/styles.css` — BRAND theme (v15, matches bermocollective.com):
   deep navy #0a0c12, rounded 16px cards. Palette is EXACTLY four
   accents — electric teal #00f5d4 (primary), bright blue #4db8ff,
@@ -98,6 +98,41 @@ dots per day (food/workout), tap a date to select it app-wide.
 Body: weigh-ins, measurements, InBody scan parse, adaptive macros
 (Macrofactor-style TDEE recalc), smart onboarding wizard (sex/age/activity →
 TDEE → macros + program), macro calculator (Mifflin-St Jeor / Katch-McArdle).
+Health/Deep signal (v20): three cards above the v19 ones.
+  #bigPicCard "The bigger picture" — every day with a check-in is scored
+  0-100 on how it FELT (energy + mood - symptoms); the card then ranks
+  every input against that score, profiles the best third of days vs the
+  worst third, shows what happens when habits STACK (0-1 / 2 / 3 / 4-5
+  habits met -> average score), and prices each habit in points.
+  #fqCard "Food quality" — name-based tagging (FQ_GLUTEN / FQ_DAIRY /
+  FQ_ULTRA / FQ_WHOLE / fat quality) rolled up per day by
+  dayFoodQuality(); shows a real-vs-mixed-vs-processed composition bar
+  plus gluten/dairy/fat-share counts, then correlates those against
+  symptoms, energy and volume. Gluten and dairy use a MEAN SPLIT
+  (days-with vs days-without) not a Pearson r — that's the honest test
+  for a binary exposure. Fiber/sugar findings only run on days where
+  >=50% of the foods carried real fiber/sugar numbers, because
+  totalsDetailFor() estimates them from carbs otherwise and the
+  correlation would just re-discover carbs. Capped at 5 findings.
+  #smCard "Muscle coverage" — subMusclesForExercise() resolves ANY
+  logged lift down to the region it trains (SUB_MUSCLES: back ->
+  lats/mid-back/traps/rear delts/erectors; legs -> quads/adductors/
+  hams/calves; glutes -> max/med; chest -> upper/mid/lower; shoulders,
+  arms, core). subMuscleGaps(scope) reports, per part TRAINED in the
+  window, which regions got work and which were skipped, dates the gap
+  from a 90-day last-hit index, and attaches the fix from SUB_FIX.
+  Week / 4-week toggle (state.ui.smScope) + a "dropped this week"
+  detector vs the prior 3 weeks. Exercises it can't resolve are named,
+  not silently dropped.
+  Every finding across all these cards carries an `action` line.
+Carb cycling (v20): state.goals.cycle = {on,trainC,trainF,restC,restF}
+  built by buildCarbCycle() (carbs swap with fat 1:1 by kcal, fat never
+  below max(35g, 0.25g/lb)). goalsForDay(key) is the accessor every
+  DAY-SCOPED macro display uses — it picks the training or rest target
+  from logged sessions, >=20 min of Apple exercise, or the PLANNED
+  workout for that weekday. Nutrition page shows a TRAINING DAY / REST
+  DAY CARBS tag. Macro calculator gained a "Recomp" goal (-150 cal) and
+  a "Lean / recomp 40/40/20" split.
 Health/Correlations (v19): #corrCard runs a Pearson-r engine over
 paired daily rows (_dailyRows -> foodCorrelations): protein x volume,
 yesterday's calories x today's volume, water x volume, sleep x volume,
@@ -232,8 +267,11 @@ export/import, PWA install.
   `executablePath: "/opt/pw-browsers/chromium"` and proxy
   `{ server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" }`
   (do NOT `npx playwright install`). Covers load, wizard onboarding,
-  mobile overflow, all tabs, food + lift logging end-to-end, modal
-  close, dashboard re-render, cross-page date sync. Expected: 15/15 + zero page errors.
+  mobile overflow ON EVERY PAGE (not just the dashboard), all tabs,
+  food + lift logging end-to-end, modal close, dashboard re-render,
+  cross-page date sync, and the v20 health engines (seeds a quad-free
+  leg week and asserts the gap is named WITH a fix).
+  Expected: 16/16 + zero page errors.
   Also always `node --check tracker/app.js`. The user additionally
   tests on iPhone — when something breaks there, ask for a screenshot
   + the exact element tapped.
@@ -257,9 +295,25 @@ export/import, PWA install.
   carb cycling (training days high carb, rest days low). Check whether the
   lean + carb-cycling presets made it in; if not, they're the top backlog item.
 
-## Backlog / next up
-- Verify + polish everything above on the phone (screenshot-driven QA)
-- Lean/Recomp + carb-cycling macro presets (if not yet present)
-- Weekly buddy-email recap via send-emails.js (needs recipient + schedule)
-- Twilio SMS (optional, user hasn't opted in)
-- Native iOS wrapper (Capacitor) for true HealthKit sync — future project
+## Backlog / next up (audited 2026-08, v20)
+BLOCKED ON THE USER (cannot be built without her):
+- Brain Dump is code-complete but returns "credit balance too low" —
+  needs credits on the Anthropic account behind the Netlify env key.
+- App icon: she wants the KIERA husky photo; the image was never
+  uploaded. Drop it at tracker/icon.png (512x512) and it ships.
+- Moving the tracker to its own repo: needs her to create the repo +
+  Netlify site (asked twice; ~20 minutes once she says go).
+- Weekly buddy-email recap via send-emails.js — needs a recipient.
+- Twilio SMS — ~$2-3/mo, she hasn't opted in.
+
+STILL OPEN (buildable):
+- Body / Goals / Settings never got the page-by-page refinement pass
+  that Dashboard / Nutrition / Fitness / Health got. Settings is still
+  long-form paragraphs.
+- Muscle map is geometric, not anatomical (she asked for prettier).
+- Sub-muscle coverage reads LOGGED sessions only; it could also
+  pre-check a PLANNED workout and warn BEFORE she trains.
+- Native iOS wrapper (Capacitor) for true HealthKit sync — future
+  project, $99/yr Apple dev.
+
+DONE IN v20 (was top of this list): Lean/Recomp + carb-cycling presets.

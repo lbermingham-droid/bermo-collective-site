@@ -102,6 +102,37 @@ dots per day (food/workout), tap a date to select it app-wide.
 Body: weigh-ins, measurements, InBody scan parse, adaptive macros
 (Macrofactor-style TDEE recalc), smart onboarding wizard (sex/age/activity →
 TDEE → macros + program), macro calculator (Mifflin-St Jeor / Katch-McArdle).
+SURFACE + DEPTH + FLOW (v24). Her words: "no 3d depth, it's flat",
+  "the edges and bottom show a box", "lack of consistency and flow from
+  section to section". All three were real and all three had a root
+  cause:
+  THE BOX — a v13 "kill white bleed" rule painted `.view` navy
+  (#0b1424) with !important, while a later layer repainted `.main`
+  near-black (#05060a). Every page was a navy slab on a black page:
+  hard edges down both sides, a straight cut across the bottom where
+  content stopped. Fixed by giving html/body/#app/.app one ground and
+  making .view/.hubs-grid/.smart-banners transparent. A smoke test now
+  fails if any .view paints a background again.
+  FLAT — on a near-black UI, drop shadows do nothing. Depth comes from
+  a LIT SURFACE. New elevation ramp in :root: --surf-0..3 (gradient
+  surfaces, not flat greys), --edge-top (1px inset white specular
+  highlight), --lift-1/2 (wide soft ambient shadow), --hairline
+  (rgba white .055, replacing the #252c3d outline that read as a drawn
+  box). Cards sit on surf-1, things INSIDE cards go UP to surf-2 (not
+  down), selected seg buttons read as pressed with an inset shadow +
+  volt glow, topbar/mobnav/modals float with backdrop blur. The
+  colour BORDER RULE is untouched — status still uses full colour.
+  FLOW — every page laid its top out differently and titles were
+  right-aligned and clipping off the screen (`.view-head` was
+  space-between, so the title got shoved right when the actions
+  wrapped). Now: `.view.active` is a flex column with a fixed order —
+  header(0) → subnav(1) → brain row(2) → stat band(3) → banners(4) →
+  content(5) — so Home/Fitness/Food/Body/Health share one skeleton
+  regardless of markup order. One header: back + left-aligned eyebrow
+  and title, actions on their own full-width scrolling row. One stat
+  band (.page-rings/.page-stats). Body's three tall single-number
+  slabs became a 3-up .stat-tile row. A smoke test asserts all four
+  page titles share the same left edge, alignment, and don't overflow.
 DESIGN SYSTEM + food search (v23):
   THE BUG: food search silently dead-ended. When the OpenFoodFacts call
   failed, the .catch() only removed the spinner and left an EMPTY <ul>
@@ -365,7 +396,7 @@ export/import, PWA install.
   food + lift logging end-to-end, modal close, dashboard re-render,
   cross-page date sync, and the v20 health engines (seeds a quad-free
   leg week and asserts the gap is named WITH a fix).
-  Expected: 23/23 + zero page errors.
+  Expected: 25/25 + zero page errors.
   Also always `node --check tracker/app.js`. The user additionally
   tests on iPhone — when something breaks there, ask for a screenshot
   + the exact element tapped.

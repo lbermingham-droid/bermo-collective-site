@@ -3862,3 +3862,245 @@ input, select, textarea{
   mask-image:linear-gradient(90deg,#000 calc(100% - 18px), transparent);
 }
 .lrow-sub{ font-size:10.5px; letter-spacing:-.2px; }
+
+/* ============================================================
+   v24 — SURFACE + DEPTH + FLOW
+   Three defects this fixes, all visible in her screenshots:
+
+   1. THE BOX. A v13 rule painted `.view` navy (#0b1424) with
+      !important while a later layer repainted `.main` near-black.
+      Every page was therefore a navy slab floating on a black
+      page, with a hard edge down both sides and a straight cut
+      across the bottom where content ended. One ground now.
+
+   2. FLAT. Every surface was the same value with a 1px grey
+      outline. On a near-black UI, depth does NOT come from drop
+      shadows (they vanish); it comes from a lit surface: a
+      top-to-bottom gradient, a 1px specular highlight along the
+      top edge, and a wide soft ambient shadow underneath. The
+      outline is what reads "homemade" — it's a drawn box rather
+      than a raised object.
+
+   3. NO FLOW. Page tops were laid out differently on every
+      screen — titles right-aligned and clipping off the edge,
+      the sub-nav above the brain row on Fitness and below it on
+      Food. Every view now uses one header and one section order.
+   ============================================================ */
+
+:root{
+  /* elevation ramp — each step is a lit surface, not just a lighter grey */
+  --surf-0:#05060a;
+  --surf-1:linear-gradient(180deg,#141a28 0%,#0d1220 100%);
+  --surf-2:linear-gradient(180deg,#1b2233 0%,#141a28 100%);
+  --surf-3:linear-gradient(180deg,#222b40 0%,#1b2233 100%);
+  --hairline:rgba(255,255,255,.055);
+  --edge-top:inset 0 1px 0 rgba(255,255,255,.07);
+  --edge-top-soft:inset 0 1px 0 rgba(255,255,255,.05);
+  --lift-1:0 1px 2px rgba(0,0,0,.55), 0 8px 20px -8px rgba(0,0,0,.75);
+  --lift-2:0 2px 6px rgba(0,0,0,.6), 0 18px 40px -12px rgba(0,0,0,.85);
+}
+
+/* ---- 1. ONE GROUND. No slab, no edges, no bottom cut. ---- */
+html, body, #app, .app{
+  background:var(--surf-0) !important;
+}
+.main{
+  background:transparent !important;
+  /* a barely-there vertical wash so the page has a light source */
+  background-image:radial-gradient(120% 60% at 50% -10%, rgba(0,245,212,.05) 0%, transparent 62%) !important;
+  background-attachment:fixed !important;
+}
+.view, .hubs-grid, .smart-banners{ background:transparent !important; }
+
+/* ---- 2. DEPTH. Lit surfaces, specular top edge, ambient shadow. ---- */
+.card,
+.hub, .contract-card, .restart-card, .checkin-card,
+.trend-hero, .detail-overlay-card, .qv-card, .fq-comp, .bp-block,
+.sm-part, .corr-card, .mc-cyc, .plan-prog, .gd-body,
+.gd-grid > div, .gd-macros > div, .micro-cov{
+  background:var(--surf-1) !important;
+  border:1px solid var(--hairline) !important;
+  box-shadow:var(--edge-top), var(--lift-1) !important;
+}
+/* Status still speaks in full colour — the border rule stands. */
+.corr-good{ border-color:var(--iron-volt) !important; }
+.corr-watch{ border-color:var(--brand-purple) !important; }
+.sm-drop{ border-color:var(--iron-red) !important; }
+.bp-block.why-top, .plan-prog, .mc-cyc, .gd-grid .gd-hi{ border-color:var(--iron-volt) !important; }
+.sr-empty.sr-err{ border-color:var(--brand-purple) !important; }
+.note-find.note-watch{ border-color:var(--brand-purple) !important; }
+.note-find.note-good{ border-color:var(--iron-volt) !important; }
+
+/* things that sit INSIDE a card are one step up, not one step down */
+.lrow, .msel-row, .seg, .food-tabs, .subnav, .sm-scope, .meal-slot-row,
+.sfield, .gs-cell, .fq-stats > div, .stat-cell, .nt-block{
+  background:var(--surf-2) !important;
+  border:1px solid var(--hairline) !important;
+  box-shadow:var(--edge-top-soft) !important;
+}
+.lrow, .msel-row{ box-shadow:var(--edge-top-soft), var(--lift-1) !important; }
+.lrow:active, .msel-row:active{ box-shadow:var(--edge-top-soft) !important; transform:translateY(1px); }
+.lrow.lx-row .lx-thumb{ background:var(--surf-3) !important; border-color:var(--hairline) !important; }
+
+/* selected states read as pressed-in, not painted-on */
+.seg-btn.active, .seg-btn.on, .food-tab.active,
+.sub-chip.active, .sub-chip.on, .sm-tab.on, .meal-slot.on{
+  box-shadow:0 1px 2px rgba(0,0,0,.4), 0 0 0 1px rgba(0,245,212,.35),
+             0 0 18px -6px rgba(0,245,212,.55) !important;
+}
+
+/* buttons get the same light source */
+.btn{
+  box-shadow:var(--edge-top-soft), var(--lift-1);
+  transition:transform .1s ease, box-shadow .1s ease;
+}
+.btn:active{ transform:translateY(1px); box-shadow:var(--edge-top-soft); }
+.btn-ghost{ background:var(--surf-2) !important; border:1px solid var(--hairline) !important; }
+.btn-cyan, .btn-lime, .btn-volt{
+  box-shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px -8px rgba(0,245,212,.6) !important;
+}
+.btn-pink{ box-shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px -8px rgba(255,77,157,.6) !important; }
+
+/* chrome floats above the page instead of butting into it */
+.topbar{
+  background:rgba(5,6,10,.86) !important;
+  backdrop-filter:saturate(160%) blur(14px);
+  -webkit-backdrop-filter:saturate(160%) blur(14px);
+  border-bottom:1px solid var(--hairline) !important;
+  box-shadow:0 8px 24px -14px rgba(0,0,0,.9) !important;
+}
+.mobnav{
+  background:rgba(5,6,10,.9) !important;
+  backdrop-filter:saturate(160%) blur(18px);
+  -webkit-backdrop-filter:saturate(160%) blur(18px);
+  border-top:1px solid var(--hairline) !important;
+  box-shadow:0 -10px 30px -12px rgba(0,0,0,.95) !important;
+}
+.modal, .modal-card{
+  box-shadow:var(--edge-top), 0 30px 80px -20px rgba(0,0,0,.95) !important;
+  border:1px solid var(--hairline) !important;
+}
+
+/* ---- 3. FLOW. One header, one section order, every page. ---- */
+.view.active{
+  display:flex !important; flex-direction:column;
+}
+.view.active > *{ order:5; }
+.view.active > .view-head{ order:0; }
+.view.active > .subnav{ order:1; }
+.view.active > .brain-row{ order:2; }
+.view.active > .page-rings{ order:3; }
+.view.active > .over-banner, .view.active > .smart-banners{ order:4; }
+
+.view-head{
+  display:flex !important; flex-wrap:wrap; align-items:center;
+  gap:10px !important; justify-content:flex-start !important;
+  padding:2px 0 0 !important; margin:0 0 14px !important; border:0 !important;
+}
+.view-head > div:not(.view-head-actions){
+  flex:1 1 auto; min-width:0; text-align:left !important;
+}
+.view-h1{
+  font-size:clamp(20px,5.6vw,26px) !important;
+  text-align:left !important; letter-spacing:-.02em !important;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.eyebrow{
+  text-align:left !important; margin:0 0 3px !important;
+  font-size:9px !important; letter-spacing:2.2px !important;
+  color:var(--iron-volt) !important;
+}
+/* actions always get their own full-width row that scrolls, never wraps */
+.view-head-actions{
+  order:9; flex:0 0 100%; width:100%;
+  display:flex !important; flex-wrap:nowrap !important; gap:6px !important;
+  overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
+  padding-bottom:2px;
+  -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 16px), transparent);
+  mask-image:linear-gradient(90deg,#000 calc(100% - 16px), transparent);
+}
+.view-head-actions::-webkit-scrollbar{ display:none; }
+.view-head-actions .btn{ flex:0 0 auto; white-space:nowrap; }
+.view-back{
+  flex:0 0 auto; width:36px; height:36px; border-radius:11px;
+  background:var(--surf-2) !important; border:1px solid var(--hairline) !important;
+  box-shadow:var(--edge-top-soft), var(--lift-1);
+}
+
+/* consistent rhythm between sections on every page */
+.view.active > .card,
+.view.active > .grid-12,
+.view.active > .page-rings,
+.view.active > .brain-row,
+.view.active > .subnav{ margin-bottom:12px !important; }
+.view.active > .grid-12{ gap:12px !important; }
+.card{ padding:14px !important; border-radius:16px !important; }
+.card + .card{ margin-top:12px; }
+
+/* the page should fade out under the nav, not end in a hard line */
+.main::after{
+  content:""; position:fixed; left:0; right:0;
+  bottom:calc(64px + env(safe-area-inset-bottom, 0px));
+  height:28px; pointer-events:none; z-index:5;
+  background:linear-gradient(180deg, transparent, var(--surf-0));
+}
+
+/* ---- one page-stat band, identical on every screen ---- */
+.page-rings, .page-stats:not(.page-stats--rings){
+  padding:11px 13px; border-radius:16px;
+  background:var(--surf-1) !important;
+  border:1px solid var(--hairline) !important;
+  box-shadow:var(--edge-top), var(--lift-1) !important;
+  margin:0 0 12px !important;
+}
+.page-rings{ display:flex !important; align-items:center; gap:12px; }
+.page-rings canvas{ width:62px !important; height:62px !important; flex-shrink:0; }
+.page-stats, .page-stats--rings{
+  flex:1 !important;
+  display:flex !important; flex-direction:row !important; flex-wrap:wrap !important;
+  align-items:baseline !important; gap:5px 14px !important;
+}
+.page-stats--rings{ background:transparent !important; border:0 !important; padding:0 !important; margin:0 !important; box-shadow:none !important; }
+.page-stats span{
+  display:inline-flex !important; flex-direction:row !important;
+  align-items:baseline; gap:5px; white-space:nowrap;
+}
+.page-stats i{
+  font-style:normal; font-size:9px; font-weight:900; letter-spacing:.07em;
+  text-transform:uppercase; opacity:.9;
+}
+.page-stats b{
+  font-family:'JetBrains Mono',monospace !important; font-size:14px !important;
+  font-weight:800 !important; color:#fff !important;
+}
+
+/* ---- three-up stat tiles (Body) instead of three tall slabs ---- */
+.view.active .grid-12:has(> .stat-tile){ grid-template-columns:repeat(3, 1fr) !important; }
+.view.active .grid-12:has(> .stat-tile) > *{ grid-column:span 3 !important; }
+.view.active .grid-12:has(> .stat-tile) > .stat-tile{ grid-column:span 1 !important; }
+.stat-tile{ padding:11px 10px !important; text-align:left; }
+.stat-tile .card-head{ margin-bottom:5px !important; padding:0 !important; border:0 !important; }
+.stat-tile .card-eyebrow{ font-size:8px !important; letter-spacing:.07em !important; }
+.stat-tile .stat-big{
+  font-size:18px !important; line-height:1.05 !important; display:block;
+  font-family:'Inter Tight',sans-serif; font-weight:900;
+}
+.stat-tile .stat-sub{ font-size:8.5px !important; letter-spacing:.04em; line-height:1.3; display:block; margin-top:3px; }
+/* Dashboard's title block isn't a .view-head — give it the same slot so
+   the greeting leads the page like every other title does. */
+.view.active > .dash-greet{ order:0; }
+.dash-greet{
+  display:flex; align-items:baseline; flex-wrap:wrap; gap:8px;
+  margin:2px 0 12px !important;
+}
+.dash-greet h1{
+  font-family:'Inter Tight',sans-serif; font-weight:900;
+  font-size:clamp(20px,5.6vw,26px) !important; line-height:1.05;
+  letter-spacing:-.02em; text-transform:uppercase; margin:0;
+}
+.dash-greet .dg-date{
+  font-family:'JetBrains Mono',monospace; font-size:10px;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--iron-mute);
+}
+/* Health has no stat band; keep its rhythm identical to the others */
+#view-trends > .card:first-of-type{ margin-top:0; }

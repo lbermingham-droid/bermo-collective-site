@@ -393,6 +393,50 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       : fail("v23 nav consistency", JSON.stringify(consistent));
   } catch (e) { fail("v23 nav consistency", e); }
 
+  // 16. v24: surface + flow. Three defects that made it look homemade:
+  //     a view-level background slab (the "box" at the edges and bottom),
+  //     zero elevation, and a different header layout on every page.
+  try {
+    const surfaces = await page.evaluate(() => {
+      const out = { slabs:[], flat:0, headers:[] };
+      const ground = getComputedStyle(document.body).backgroundColor;
+      document.querySelectorAll(".view").forEach(v => {
+        const bg = getComputedStyle(v).backgroundColor;
+        if(bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent" && bg !== ground) out.slabs.push(v.id + ":" + bg);
+      });
+      const c = document.querySelector(".view.active .card");
+      if(c && getComputedStyle(c).boxShadow === "none") out.flat++;
+      return out;
+    });
+    (surfaces.slabs.length === 0 && surfaces.flat === 0)
+      ? ok("v24 one ground, no view slab, cards are elevated")
+      : fail("v24 surfaces", JSON.stringify(surfaces));
+  } catch (e) { fail("v24 surfaces", e); }
+
+  try {
+    const heads = [];
+    for(const tab of ["fitness","nutrition","body","trends"]){
+      await page.click(`${tabSel}[data-tab="${tab}"]`).catch(()=>{});
+      await page.waitForTimeout(350);
+      const h = await page.evaluate(() => {
+        const v = document.querySelector(".view.active");
+        const t = v && v.querySelector(".view-h1");
+        if(!t) return null;
+        const r = t.getBoundingClientRect();
+        return {
+          align: getComputedStyle(t).textAlign,
+          left: Math.round(r.left),
+          overflows: r.right > window.innerWidth + 1,
+        };
+      });
+      heads.push(h);
+    }
+    const good = heads.every(h => h && h.align === "left" && !h.overflows)
+      && new Set(heads.map(h => h.left)).size === 1;
+    good ? ok("v24 every page header aligns and fits identically")
+         : fail("v24 header flow", JSON.stringify(heads));
+  } catch (e) { fail("v24 header flow", e); }
+
   await browser.close();
   print();
 })();

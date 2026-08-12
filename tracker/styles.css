@@ -3268,3 +3268,97 @@ input, select, textarea{
 .cal-dot.rest{ background:#3d4a63; }
 .cal-key{ display:flex; gap:12px; flex-wrap:wrap; margin-top:10px; font-size:10px; color:var(--iron-mute); }
 .cal-key span{ display:flex; align-items:center; gap:5px; }
+
+/* ============================================================
+   v19 — correlations + body-part trend
+   ============================================================ */
+.corr-list{ display:flex; flex-direction:column; gap:6px; }
+.corr-card{
+  background:var(--iron-panel-2); border:1px solid var(--iron-line);
+  border-radius:12px; padding:12px;
+}
+.corr-card.corr-good{ border-color:var(--iron-volt); }
+.corr-card.corr-watch{ border-color:var(--brand-purple); }
+.corr-title{ font-size:13px; font-weight:800; color:#fff; line-height:1.3; margin-bottom:4px; }
+.corr-good .corr-title{ color:var(--iron-volt); }
+.corr-watch .corr-title{ color:var(--brand-purple); }
+.corr-body{ font-size:12px; color:var(--iron-mute); line-height:1.5; }
+.corr-meta{ display:flex; gap:10px; margin-top:6px; font-size:10px; color:#7b8499; font-family:'JetBrains Mono',monospace; }
+.corr-foot, .bpt-foot{ font-size:10px; color:#7b8499; margin:8px 0 0; font-style:italic; }
+
+.bpt-list{ display:flex; flex-direction:column; gap:4px; }
+.bpt-row{ display:grid; grid-template-columns:64px 1fr auto 54px; gap:8px; align-items:center; }
+.bpt-name{ font-size:11px; font-weight:800; color:#fff; text-transform:capitalize; }
+.bpt-bar{ height:8px; background:#111622; border-radius:6px; overflow:hidden; }
+.bpt-bar i{ display:block; height:100%; background:var(--iron-volt); border-radius:6px; }
+.bpt-vol{ font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--iron-mute); }
+.bpt-tag{ font-size:10px; font-weight:900; text-align:right; }
+.bpt-tag.t-up{ color:var(--iron-volt); }
+.bpt-tag.t-down{ color:var(--iron-red); }
+.bpt-tag.t-flat{ color:var(--iron-mute); }
+.bpt-tag.t-none{ color:#5a6478; }
+
+/* Health hero: no icon block */
+.trend-hero{ background:var(--iron-panel) !important; border:1px solid var(--iron-line) !important; border-radius:16px !important; }
+.trend-hero-title{ color:#fff !important; }
+.trend-hero-sub{ color:var(--iron-mute) !important; }
+
+/* ============================================================
+   v19 — last legacy-light surfaces on the Health page
+   ============================================================ */
+.ins-card, .hi-card, .insight-card{
+  background:var(--iron-panel-2) !important;
+  color:#fff !important;
+}
+.ins-card *, .hi-card *, .insight-card *{ color:inherit; }
+.ins-title, .ins-card b, .hi-card b{ color:#fff !important; }
+.ins-body, .ins-card p, .hi-card p, .ins-sub{ color:var(--iron-mute) !important; }
+.ins-icon, .insight-icon, .ins-card .ins-emoji{
+  background:var(--iron-panel) !important;
+  border:1px solid var(--iron-line) !important;
+  color:#fff !important;
+}
+
+/* Context grid ("workout quality vs context") */
+.ctx-grid > *, .ctx-cell, #ctxGrid > *{
+  background:var(--iron-panel-2) !important;
+  border:1px solid var(--iron-line) !important;
+  color:#fff !important;
+  border-radius:10px !important;
+}
+.ctx-cell b, #ctxGrid b, .ctx-val{ color:#fff !important; }
+.ctx-cell small, #ctxGrid small, .ctx-goal{ color:var(--iron-mute) !important; }
+
+/* Symptom rows */
+.sym-row, .symptom-row, .sym-r{
+  background:var(--iron-panel-2) !important;
+  border:1px solid var(--iron-line) !important;
+  color:#fff !important;
+  border-radius:10px !important;
+}
+.sym-r-name, .sym-row b{ color:#fff !important; }
+.sym-r-meta, .sym-row small, .sym-when{ color:var(--iron-mute) !important; }
+.sev{ background:var(--iron-panel) !important; color:var(--iron-cyan) !important; border-radius:6px; padding:1px 6px; font-size:10px; }
+
+/* Cycle tracking + top-symptom bars */
+.cycle-card, .sym-top-row, .sym-bar{ background:var(--iron-panel-2) !important; }
+.sym-bar > i, .sym-bar span{ background:var(--iron-red) !important; }
+
+/* Symptom recent list — the last light surface on Health */
+.sym-recent{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:3px; }
+.sym-recent li{
+  display:flex; align-items:center; gap:8px;
+  background:var(--iron-panel-2) !important;
+  border:1px solid var(--iron-line) !important;
+  border-radius:10px !important;
+  padding:9px 10px;
+  color:#fff !important;
+  box-shadow:none !important;
+}
+.sym-recent .sym-r-name{ flex:1; min-width:0; font-size:12px; font-weight:700; color:#fff !important; text-transform:capitalize; }
+.sym-recent .sym-r-meta{ font-size:10px; color:var(--iron-mute) !important; flex-shrink:0; }
+.sym-recent .sym-r-del{
+  flex-shrink:0; width:26px; height:26px; background:transparent;
+  border:1px solid var(--iron-line); border-radius:7px;
+  color:var(--iron-red); font-size:14px; cursor:pointer;
+}

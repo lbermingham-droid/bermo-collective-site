@@ -21,7 +21,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Inter+Tight:wght@600;700;800;900&family=Montserrat:wght@600;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./styles.css?v=18">
+<link rel="stylesheet" href="./styles.css?v=19">
 </head>
 <body>
 
@@ -191,7 +191,7 @@
     <div class="tb-left">
       <div class="tb-logo">
         <span class="tb-top">BERMO<span class="c">.</span></span>
-        <span class="tb-bot">TRACKER <span style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v18</span></span>
+        <span class="tb-bot">TRACKER <span style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v19</span></span>
       </div>
     </div>
     <nav class="tb-nav" id="tabNav">
@@ -911,12 +911,12 @@
     <section class="view" id="view-trends">
       <header class="view-head">
         <div>
-          <p class="eyebrow">Trends · patterns from your log</p>
-          <h1 class="view-h1">Insights</h1>
+          <p class="eyebrow">Health · everything connected</p>
+          <h1 class="view-h1">Health</h1>
         </div>
         <div class="view-head-actions">
-          <button class="btn btn-ghost" id="trCheckinBtn">+ Daily check-in</button>
-          <button class="btn btn-cyan" id="trRefreshBtn">⟳ Recompute</button>
+          <button class="btn btn-ghost" id="trCheckinBtn">+ CHECK-IN</button>
+          <button class="btn btn-cyan" id="trRefreshBtn">RECOMPUTE</button>
         </div>
       </header>
       <div class="brain-row brain-row--sm">
@@ -927,7 +927,7 @@
 
 
       <div class="trend-hero" id="trendHero">
-        <div class="trend-hero-icon">✦</div>
+        
         <div class="trend-hero-body">
           <div class="trend-hero-title">Add a few weeks of data, then come back.</div>
           <div class="trend-hero-sub">Insights need at least ~10 days of meals, workouts, sleep, or weigh-ins to spot patterns. Log consistently and patterns surface automatically.</div>
@@ -935,6 +935,24 @@
       </div>
 
       <div class="grid-12">
+        <!-- FOOD -> TRAINING -> HEALTH correlations -->
+        <div class="card span-12" id="corrCard">
+          <div class="card-head">
+            <span class="card-eyebrow">What your data connects</span>
+            <span class="card-meta" id="corrMeta">—</span>
+          </div>
+          <div class="corr-list" id="corrList"></div>
+        </div>
+
+        <!-- BODY PART PROGRESS -->
+        <div class="card span-12" id="bpTrendCard">
+          <div class="card-head">
+            <span class="card-eyebrow">Body part · 4-week trend</span>
+            <span class="card-meta">volume vs previous 4 weeks</span>
+          </div>
+          <div class="bpt-list" id="bpTrendList"></div>
+        </div>
+
         <div class="card span-12">
           <div class="card-head">
             <span class="card-eyebrow">Detected patterns</span>
@@ -1306,7 +1324,7 @@
 <div class="toast" id="toast" aria-live="polite"></div>
 
 <script src="/tracker/vendor/chart.umd.js"></script>
-<script src="./data.js?v=18"></script>
-<script src="./app.js?v=18"></script>
+<script src="./data.js?v=19"></script>
+<script src="./app.js?v=19"></script>
 </body>
 </html>

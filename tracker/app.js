@@ -804,8 +804,8 @@ function drawWeeklyChart(){
         callbacks:{ title:(items)=>items[0].label, label:(c)=>c.parsed.y+" kcal"}
       }},
       scales:{
-        y:{beginAtZero:true, grid:{color:"#eee"}, ticks:{color:"#888",font:{size:10}}},
-        x:{grid:{display:false}, ticks:{color:"#888",font:{size:10}}}
+        y:{beginAtZero:true, grid:{color:"rgba(255,255,255,.06)"}, ticks:{color:"#a7b1c6",font:{size:10}}},
+        x:{grid:{display:false}, ticks:{color:"#a7b1c6",font:{size:10}}}
       }
     }
   });
@@ -1109,8 +1109,8 @@ function drawWeightChart(){
     options:{
       plugins:{legend:{display:false}},
       scales:{
-        y:{grid:{color:"#eee"}, ticks:{color:"#888",font:{size:10}}},
-        x:{grid:{display:false}, ticks:{color:"#888",font:{size:10},maxRotation:0,autoSkip:true}}
+        y:{grid:{color:"rgba(255,255,255,.06)"}, ticks:{color:"#a7b1c6",font:{size:10}}},
+        x:{grid:{display:false}, ticks:{color:"#a7b1c6",font:{size:10},maxRotation:0,autoSkip:true}}
       }
     }
   });
@@ -1765,7 +1765,7 @@ function drawActivityRingsBase(){
   const g = getActivityGoals();
   const rings = [
     { color:"#ff2d56", track:"#3a0a14", val:a.move,     goal:g.move,     r:88, lw:18 }, // Move (red)
-    { color:"#a8f000", track:"#1a2400", val:a.exercise, goal:g.exercise, r:65, lw:18 }, // Exercise (lime)
+    { color:"#00f5d4", track:"#111622", val:a.exercise, goal:g.exercise, r:65, lw:18 }, // Exercise (lime)
     { color:"#00f5d4", track:"#003a32", val:a.stand,    goal:g.stand,    r:42, lw:18 }, // Stand (cyan)
   ];
   rings.forEach(ring => {
@@ -2732,7 +2732,7 @@ function renderDowChart(){
     data:{ labels, datasets:[{ data, backgroundColor:"#00f5d4", borderRadius:6, maxBarThickness:32 }] },
     options:{
       plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>c.parsed.y+" kcal"}}},
-      scales:{ y:{beginAtZero:true, grid:{color:"#eee"}, ticks:{color:"#888",font:{size:10}}}, x:{grid:{display:false}, ticks:{color:"#888",font:{size:10}}} }
+      scales:{ y:{beginAtZero:true, grid:{color:"rgba(255,255,255,.06)"}, ticks:{color:"#a7b1c6",font:{size:10}}}, x:{grid:{display:false}, ticks:{color:"#a7b1c6",font:{size:10}}} }
     }
   });
 }
@@ -2749,10 +2749,10 @@ function renderSleepChart(){
   window._sleepChart = new Chart(c.getContext("2d"), {
     type:"line",
     data:{ labels, datasets:[
-      { data, borderColor:"#c8f500", backgroundColor:"rgba(200,245,0,0.15)", fill:true, tension:.3, pointRadius:2, borderWidth:2, spanGaps:true },
-      { type:"line", data:labels.map(()=>7), borderColor:"#888", borderWidth:1, borderDash:[4,4], pointRadius:0 }
+      { data, borderColor:"#00f5d4", backgroundColor:"rgba(0,245,212,0.12)", fill:true, tension:.3, pointRadius:2, borderWidth:2, spanGaps:true },
+      { type:"line", data:labels.map(()=>7), borderColor:"#4db8ff", borderWidth:1, borderDash:[4,4], pointRadius:0 }
     ] },
-    options:{ plugins:{legend:{display:false}}, scales:{ y:{min:0, max:12, grid:{color:"#eee"}, ticks:{color:"#888",font:{size:10}}}, x:{grid:{display:false}, ticks:{display:false}} } }
+    options:{ plugins:{legend:{display:false}}, scales:{ y:{min:0, max:12, grid:{color:"rgba(255,255,255,.06)"}, ticks:{color:"#a7b1c6",font:{size:10}}}, x:{grid:{display:false}, ticks:{display:false}} } }
   });
 }
 
@@ -2984,7 +2984,7 @@ function renderSymptomPanel(){
         <ul class="sym-recent">
           ${recent.map(s => `
             <li>
-              <span class="sym-r-name">${escape(s.name)} <span class="sev sev-${s.severity}">${s.severity}/5</span></span>
+              <span class="sym-r-name">${escape(s.name)} ${s.severity != null && s.severity !== "" ? `<span class="sev sev-${s.severity}">${s.severity}/5</span>` : ""}</span>
               <span class="sym-r-meta">${fmtDate(s.date)}${s.trigger?" · "+escape(s.trigger):""}${s.note?" · "+escape(s.note):""}</span>
               <button class="sym-r-del" data-del="${s.date}|${s.id}" title="Delete">×</button>
             </li>
@@ -4489,8 +4489,8 @@ function drawDetailChart(series, goal, color, unitStr){
         tooltip:{callbacks:{label:(c)=>`${c.parsed.y} ${unitStr}`}}
       },
       scales: {
-        y: { beginAtZero: true, grid:{color:"rgba(0,0,0,0.06)"}, ticks:{color:"#888",font:{size:10}}},
-        x: { grid:{display:false}, ticks:{color:"#888",font:{size:10},maxRotation:0,autoSkip:true,autoSkipPadding:8}}
+        y: { beginAtZero: true, grid:{color:"rgba(255,255,255,.06)"}, ticks:{color:"#a7b1c6",font:{size:10}}},
+        x: { grid:{display:false}, ticks:{color:"#a7b1c6",font:{size:10},maxRotation:0,autoSkip:true,autoSkipPadding:8}}
       }
     }
   });
@@ -4750,8 +4750,8 @@ drawDetailChart = function(series, goal, color, unitStr, mode){
         tooltip:{callbacks:{label:(c)=>`${c.parsed.y} ${unitStr}`}}
       },
       scales: {
-        y: { beginAtZero: true, grid:{color:"rgba(0,0,0,0.06)"}, ticks:{color:"#888",font:{size:10}}},
-        x: { grid:{display:false}, ticks:{color:"#888",font:{size:10},maxRotation:0,autoSkip:true,autoSkipPadding:8}}
+        y: { beginAtZero: true, grid:{color:"rgba(255,255,255,.06)"}, ticks:{color:"#a7b1c6",font:{size:10}}},
+        x: { grid:{display:false}, ticks:{color:"#a7b1c6",font:{size:10},maxRotation:0,autoSkip:true,autoSkipPadding:8}}
       }
     }
   });
@@ -10112,6 +10112,253 @@ onReady(() => {
 });
 
 
+
+// =================================================================
+// v19 — CORRELATIONS ENGINE
+// Two questions the user asked for:
+//   (a) body part worked -> is it progressing or stalling?
+//   (b) food -> does what I eat move my training and how I feel?
+// Everything is computed from logged data only. Correlations use
+// Pearson r on paired daily values and are always shown with the
+// sample size, because n=6 is a hint, not a finding.
+// =================================================================
+function _pearson(pairs){
+  const n = pairs.length;
+  if(n < 4) return null;
+  const xs = pairs.map(p => p[0]), ys = pairs.map(p => p[1]);
+  const mx = xs.reduce((a,b)=>a+b,0)/n, my = ys.reduce((a,b)=>a+b,0)/n;
+  let num = 0, dx = 0, dy = 0;
+  for(let i=0;i<n;i++){
+    const a = xs[i]-mx, b = ys[i]-my;
+    num += a*b; dx += a*a; dy += b*b;
+  }
+  if(dx === 0 || dy === 0) return null;
+  return num / Math.sqrt(dx*dy);
+}
+function _strength(r){
+  const a = Math.abs(r);
+  if(a >= 0.6) return "strong";
+  if(a >= 0.35) return "moderate";
+  if(a >= 0.2) return "slight";
+  return "none";
+}
+
+// ---------- (a) BODY PART PROGRESS ----------
+// Volume per body part, this 4 weeks vs the previous 4 weeks.
+function bodyPartTrends(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const winA = new Date(today.getTime() - 28*86400000);   // last 4 weeks
+  const winB = new Date(today.getTime() - 56*86400000);   // the 4 before that
+  const cur = {}, prev = {}, sets = {};
+  MUSCLE_PARTS.forEach(p => { cur[p] = 0; prev[p] = 0; sets[p] = 0; });
+  Object.keys(state.days).forEach(k => {
+    const d = new Date(k + "T12:00:00");
+    if(d < winB || d > today) return;
+    const inCur = d >= winA;
+    ((state.days[k] || {}).sessions || []).forEach(s => {
+      if(s.type === "cardio") return;
+      const vol = (s.weight||0) * (s.reps||0) * (s.sets||1);
+      if(!vol) return;
+      partsForExercise(s.name).forEach(p => {
+        if(cur[p] === undefined) return;
+        if(inCur){ cur[p] += vol; sets[p] += (s.sets||1); }
+        else prev[p] += vol;
+      });
+    });
+  });
+  return MUSCLE_PARTS.map(p => {
+    const c = cur[p], pv = prev[p];
+    let pct = null;
+    if(pv > 0) pct = Math.round(((c - pv) / pv) * 100);
+    else if(c > 0) pct = 100;
+    return { part: p, cur: c, prev: pv, pct, sets: sets[p] };
+  }).sort((a,b) => b.cur - a.cur);
+}
+
+function renderBodyPartTrends(){
+  const host = document.getElementById("bpTrendList");
+  if(!host) return;
+  const rows = bodyPartTrends();
+  const any = rows.some(r => r.cur > 0 || r.prev > 0);
+  if(!any){
+    host.innerHTML = `<p class="wl-empty">Log a few weeks of lifts and each muscle group's trend shows here.</p>`;
+    return;
+  }
+  const max = Math.max(1, ...rows.map(r => r.cur));
+  host.innerHTML = rows.map(r => {
+    const w = Math.round((r.cur / max) * 100);
+    let tag = "flat", label = "—";
+    if(r.pct === null){ tag = "none"; label = "no data"; }
+    else if(r.pct >= 10){ tag = "up"; label = `+${r.pct}%`; }
+    else if(r.pct <= -10){ tag = "down"; label = `${r.pct}%`; }
+    else { tag = "flat"; label = `${r.pct > 0 ? "+" : ""}${r.pct}%`; }
+    return `<div class="bpt-row">
+      <span class="bpt-name">${r.part}</span>
+      <span class="bpt-bar"><i style="width:${w}%"></i></span>
+      <span class="bpt-vol">${r.cur ? Math.round(r.cur).toLocaleString() : "0"}</span>
+      <span class="bpt-tag t-${tag}">${label}</span>
+    </div>`;
+  }).join("") + `<p class="bpt-foot">Volume (${unit()} × reps) this 4 weeks vs the 4 before it.</p>`;
+}
+
+// ---------- (b) FOOD -> TRAINING / HEALTH ----------
+// Build day rows, then correlate nutrition inputs against outputs.
+function _dailyRows(daysBack){
+  const rows = [];
+  const today = new Date(); today.setHours(0,0,0,0);
+  for(let i = daysBack; i >= 1; i--){
+    const d = new Date(today.getTime() - i*86400000);
+    const k = todayKey(d);
+    const day = state.days[k];
+    if(!day) continue;
+    const t = totalsFor(k);
+    const sessions = day.sessions || [];
+    const vol = sessions.reduce((n,s) => n + (s.weight||0)*(s.reps||0)*(s.sets||1), 0);
+    const trained = sessions.length > 0;
+    const ci = day.checkin || {};
+    rows.push({
+      key: k,
+      cal: t.cal, p: t.p, c: t.c, f: t.f,
+      water: day.water || 0,
+      vol, trained,
+      mins: sessions.reduce((n,s) => n + (s.durationMin||0), 0),
+      sleep: ci.sleep != null ? +ci.sleep : null,
+      energy: ci.energy != null ? +ci.energy : (ci.qMove != null ? ci.qMove * 5 : null),
+      mood: ci.mood != null ? +ci.mood : null,
+      symptoms: (day.symptoms || []).length,
+    });
+  }
+  return rows;
+}
+
+function foodCorrelations(){
+  const rows = _dailyRows(90).filter(r => r.cal > 0);
+  const out = [];
+  const pairUp = (xKey, yKey, filterFn) => {
+    const src = filterFn ? rows.filter(filterFn) : rows;
+    return src.filter(r => r[xKey] != null && r[yKey] != null && !(r[yKey] === 0 && yKey === "vol"))
+              .map(r => [r[xKey], r[yKey]]);
+  };
+
+  // Protein -> training volume (on days trained)
+  const pv = pairUp("p", "vol", r => r.trained);
+  const rpv = _pearson(pv);
+  if(rpv !== null && _strength(rpv) !== "none"){
+    out.push({
+      tone: rpv > 0 ? "good" : "watch",
+      title: `Protein ${rpv > 0 ? "tracks with" : "runs against"} your training volume`,
+      body: `On the ${pv.length} training days you logged food, higher-protein days line up with ${rpv > 0 ? "heavier" : "lighter"} sessions (${_strength(rpv)} link).`,
+      n: pv.length, r: rpv,
+    });
+  }
+  // Calories -> next-day volume (fuel effect)
+  const fuel = [];
+  for(let i = 0; i < rows.length - 1; i++){
+    const a = rows[i], b = rows[i+1];
+    const gap = (new Date(b.key) - new Date(a.key)) / 86400000;
+    if(gap === 1 && a.cal > 0 && b.trained) fuel.push([a.cal, b.vol]);
+  }
+  const rf = _pearson(fuel);
+  if(rf !== null && _strength(rf) !== "none"){
+    out.push({
+      tone: rf > 0 ? "good" : "watch",
+      title: `Yesterday's calories ${rf > 0 ? "show up in" : "drag on"} today's session`,
+      body: `Across ${fuel.length} back-to-back day pairs, eating more the day before lines up with ${rf > 0 ? "more" : "less"} volume the next day (${_strength(rf)} link).`,
+      n: fuel.length, r: rf,
+    });
+  }
+  // Water -> training volume
+  const wv = pairUp("water", "vol", r => r.trained);
+  const rw = _pearson(wv);
+  if(rw !== null && _strength(rw) !== "none"){
+    out.push({
+      tone: rw > 0 ? "good" : "watch",
+      title: `Water ${rw > 0 ? "tracks with" : "runs against"} how much you lift`,
+      body: `${wv.length} training days compared — ${_strength(rw)} link between hydration and session volume.`,
+      n: wv.length, r: rw,
+    });
+  }
+  // Sleep -> volume
+  const sv = pairUp("sleep", "vol", r => r.trained);
+  const rs = _pearson(sv);
+  if(rs !== null && _strength(rs) !== "none"){
+    out.push({
+      tone: rs > 0 ? "good" : "watch",
+      title: `Sleep ${rs > 0 ? "lifts" : "isn't lifting"} your training`,
+      body: `${sv.length} nights matched to the next session — ${_strength(rs)} ${rs > 0 ? "positive" : "negative"} link.`,
+      n: sv.length, r: rs,
+    });
+  }
+  // Sugar-ish (carbs) -> symptoms
+  const cs = rows.filter(r => r.symptoms != null).map(r => [r.c, r.symptoms]);
+  const rcs = _pearson(cs);
+  if(rcs !== null && Math.abs(rcs) >= 0.35){
+    out.push({
+      tone: rcs > 0 ? "watch" : "good",
+      title: `Carb intake ${rcs > 0 ? "lines up with more" : "lines up with fewer"} symptoms`,
+      body: `${cs.length} days compared. ${rcs > 0 ? "Higher-carb days tend to be symptom days for you." : "Higher-carb days tend to be your cleaner days."} Worth watching, not proof.`,
+      n: cs.length, r: rcs,
+    });
+  }
+  // Trained vs not: mood / energy split
+  const tE = rows.filter(r => r.trained && r.energy != null).map(r => r.energy);
+  const nE = rows.filter(r => !r.trained && r.energy != null).map(r => r.energy);
+  if(tE.length >= 3 && nE.length >= 3){
+    const avg = (a) => a.reduce((x,y)=>x+y,0)/a.length;
+    const diff = avg(tE) - avg(nE);
+    if(Math.abs(diff) >= 0.5){
+      out.push({
+        tone: diff > 0 ? "good" : "watch",
+        title: `You feel ${diff > 0 ? "better" : "worse"} on days you train`,
+        body: `Energy averages ${avg(tE).toFixed(1)} on ${tE.length} training days vs ${avg(nE).toFixed(1)} on ${nE.length} rest days.`,
+        n: tE.length + nE.length, r: null,
+      });
+    }
+  }
+  // Hitting protein goal -> consistency
+  const g = state.goals || {};
+  if(g.protein){
+    const hit = rows.filter(r => r.p >= g.protein * 0.9);
+    if(rows.length >= 7){
+      out.push({
+        tone: hit.length / rows.length >= 0.6 ? "good" : "watch",
+        title: `Protein goal hit on ${hit.length} of ${rows.length} logged days`,
+        body: `${Math.round((hit.length/rows.length)*100)}% of days at or near ${g.protein}g. ${hit.length/rows.length >= 0.6 ? "That consistency is doing the work." : "Raising this is the highest-leverage change available."}`,
+        n: rows.length, r: null,
+      });
+    }
+  }
+  return out.sort((a,b) => Math.abs(b.r || 0) - Math.abs(a.r || 0));
+}
+
+function renderCorrelations(){
+  const host = document.getElementById("corrList");
+  if(!host) return;
+  const rows = _dailyRows(90).filter(r => r.cal > 0);
+  const items = foodCorrelations();
+  const meta = document.getElementById("corrMeta");
+  if(meta) meta.textContent = `${rows.length} logged days`;
+  if(rows.length < 6){
+    host.innerHTML = `<p class="wl-empty">Log food and training on the same days for about a week — correlations need paired days to say anything honest. ${rows.length}/6 so far.</p>`;
+    return;
+  }
+  if(!items.length){
+    host.innerHTML = `<p class="wl-empty">Nothing stands out yet across ${rows.length} days. No strong links between what you eat, how you sleep, and how you train — that's a real result, not an error.</p>`;
+    return;
+  }
+  host.innerHTML = items.map(it => `
+    <div class="corr-card corr-${it.tone}">
+      <div class="corr-title">${escape(it.title)}</div>
+      <div class="corr-body">${escape(it.body)}</div>
+      <div class="corr-meta">
+        <span>${it.n} days</span>
+        ${it.r !== null ? `<span>r = ${it.r.toFixed(2)} · ${_strength(it.r)}</span>` : ""}
+      </div>
+    </div>`).join("")
+    + `<p class="corr-foot">Correlation is not causation — these are patterns in your own log, strongest first.</p>`;
+}
+
+
 // =================================================================
 
 // PIPELINES — explicit composition (replaces the old wrapper chains).
@@ -10201,6 +10448,8 @@ function go(tab){
 
 function renderTrends(){
   renderTrendsBase();
+  try{ renderBodyPartTrends(); }catch(e){ console.warn("bp trends", e); }
+  try{ renderCorrelations(); }catch(e){ console.warn("correlations", e); }
   renderTrendsStep_RenderTrendsForSym();
 }
 

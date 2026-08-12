@@ -98,6 +98,13 @@ dots per day (food/workout), tap a date to select it app-wide.
 Body: weigh-ins, measurements, InBody scan parse, adaptive macros
 (Macrofactor-style TDEE recalc), smart onboarding wizard (sex/age/activity →
 TDEE → macros + program), macro calculator (Mifflin-St Jeor / Katch-McArdle).
+Health/Correlations (v19): #corrCard runs a Pearson-r engine over
+paired daily rows (_dailyRows -> foodCorrelations): protein x volume,
+yesterday's calories x today's volume, water x volume, sleep x volume,
+carbs x symptom count, trained-vs-rest energy split, protein-goal hit
+rate. Every card shows n and r with a strength word, needs >=6 paired
+days, and says so honestly when nothing correlates. #bpTrendCard shows
+per-body-part volume for the last 4 weeks vs the 4 before (+/-% tags).
 Trends: 11-rule insight engine (day-of-week cal, sleep×PR, water×training,
 cycle phase, logging %, protein rate, symptom×sleep/water/trigger/cycle,
 seasonal sickness), cycle tracking, symptom tracker (80+ incl mouth ulcers,

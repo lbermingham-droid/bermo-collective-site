@@ -306,7 +306,7 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
     const okPlan = plan.lean > 110 && plan.lean < 120
       && plan.goalWeight > 150 && plan.goalWeight < 156
       && plan.cal >= 1460
-      && plan.protein >= Math.round(plan.lean) && plan.protein <= Math.round(plan.lean * 1.4);
+      && plan.protein >= Math.round(plan.lean) && plan.protein <= Math.round(plan.lean * 1.5);
     okPlan ? ok(`v22 goal designer (lean ${plan.lean}, goal ${plan.goalWeight}, eat ${plan.cal}, protein ${plan.protein})`)
            : fail("v22 goal designer", JSON.stringify(plan));
   } catch (e) { fail("v22 goal designer", e); }
@@ -545,6 +545,57 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       ? ok(`v27 program: ${prog.days} training days covering all 7 regions + ${prog.cardio}min cardio + ${prog.meals} meals`)
       : fail("v27 program", JSON.stringify(prog));
   } catch (e) { fail("v27 program", e); }
+
+  // 20. v28: four bugs she hit in the Goal Designer.
+  try {
+    const r = await page.evaluate(() => {
+      const base = { weightLb:122, bfPct:22, targetBfPct:20, mode:"recomp", floorCal:1400,
+                     days:6, lifts:true, sex:"f", ageYears:36, heightIn:66 };
+      const D = window.__bermo.designGoalPlan;
+      const slow = D(Object.assign({}, base, {ratePctPerWk:0.35}));
+      const fast = D(Object.assign({}, base, {ratePctPerWk:0.85}));
+      const mine = D(Object.assign({}, base, {ratePctPerWk:0.6, targetCal:1460}));
+      const hiP  = D(Object.assign({}, base, {ratePctPerWk:0.6, targetCal:1460, macroStyle:"highprotein"}));
+      return {
+        paceMoves: slow.cal !== fast.cal && fast.cal < slow.cal,
+        proteinShare: slow.pctP, carbShare: slow.pctC,
+        honoursTarget: mine.cal === 1460 && mine.manual === true,
+        hiProtein: hiP.pctP >= 35 && hiP.pctC <= 36,
+      };
+    });
+    // the pace selector did nothing outside "lose"; protein was 23% of
+    // calories and carbs 56%; her own number was overridden by the estimate
+    (r.paceMoves && r.proteinShare >= 28 && r.carbShare <= 50 && r.honoursTarget && r.hiProtein)
+      ? ok(`v28 goal designer: pace applies, protein ${r.proteinShare}%/carbs ${r.carbShare}%, own target honoured`)
+      : fail("v28 goal designer", JSON.stringify(r));
+  } catch (e) { fail("v28 goal designer", e); }
+
+  try {
+    // tapping "?" used to call openModal(), replacing the designer and
+    // wiping everything typed into it
+    const kept = await page.evaluate(async () => {
+      const btn = document.getElementById("goalPlanBtn");
+      if(!btn) return null;
+      btn.click();
+      await new Promise(r => setTimeout(r, 400));
+      const age = document.getElementById("gdAge");
+      if(!age) return null;
+      age.value = "36";
+      const q = document.querySelector("#modal [data-explain], .modal [data-explain]");
+      if(!q) return null;
+      q.click();
+      await new Promise(r => setTimeout(r, 300));
+      const sheet = !!document.getElementById("explainSheet");
+      document.querySelector("#explainSheet [data-xclose]").click();
+      await new Promise(r => setTimeout(r, 200));
+      const survived = (document.getElementById("gdAge") || {}).value === "36";
+      if(typeof closeModal === "function") closeModal();
+      return { sheet, survived };
+    });
+    (kept && kept.sheet && kept.survived)
+      ? ok("v28 explainer layers above the form instead of destroying it")
+      : fail("v28 explainer", JSON.stringify(kept));
+  } catch (e) { fail("v28 explainer", e); }
 
   await browser.close();
   print();

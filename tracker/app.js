@@ -11974,39 +11974,83 @@ function designGoalPlan(input){
   const wantedLbWk = Math.round(weightLb * ratePct / 100 * 100) / 100;
 
   let dailyDelta = 0;
+  // The pace selector used to do NOTHING outside "lose" mode — recomp was
+  // hard-coded to -8% and build to +10%, so picking "faster" changed no
+  // number on screen. Every mode now scales with it.
+  const paceScale = ratePct / 0.6;                       // 0.6%/wk is the middle option
   if(mode === "lose")        dailyDelta = -Math.round(wantedLbWk * 3500 / 7);
-  else if(mode === "recomp") dailyDelta = -Math.round(tdee * 0.08);   // small, deliberate
-  else if(mode === "build")  dailyDelta =  Math.round(tdee * 0.10);
+  else if(mode === "recomp") dailyDelta = -Math.round(tdee * 0.08 * paceScale);
+  else if(mode === "build")  dailyDelta =  Math.round(tdee * 0.10 * paceScale);
   else                       dailyDelta = 0;
 
   // The floor is hers, not the formula's.
   const floor = floorCal || 1400;
   let cal = tdee + dailyDelta;
-  let floored = false;
-  if(dailyDelta < 0 && cal < floor){ cal = floor; floored = true; }
-  // Never design a deficit steeper than 25% of maintenance.
+  let floored = false, manual = false;
+  if(input.targetCal && input.targetCal > 0){
+    // She told it what she wants to eat. That wins over the estimate — the
+    // multiplier is a guess, her experience of her own body is not.
+    cal = Math.round(input.targetCal);
+    manual = true;
+  }
+  if(!manual && dailyDelta < 0 && cal < floor){ cal = floor; floored = true; }
+  // Never DESIGN a deficit steeper than 25% of maintenance. If she sets the
+  // number herself we don't override it — we flag it instead.
   const maxDeficit = Math.round(tdee * 0.75);
   let capped = false;
-  if(dailyDelta < 0 && cal < maxDeficit){ cal = maxDeficit; capped = true; }
-  cal = Math.round(cal / 10) * 10;
+  if(!manual && dailyDelta < 0 && cal < maxDeficit){ cal = maxDeficit; capped = true; }
+  if(!manual) cal = Math.round(cal / 10) * 10;
 
   const actualDelta = cal - tdee;
   const actualLbWk = Math.round(Math.abs(actualDelta) * 7 / 3500 * 100) / 100;
   const weeks = (toLose != null && actualLbWk > 0.05 && actualDelta < 0)
     ? Math.ceil(toLose / actualLbWk) : null;
 
-  // PROTEIN is the muscle-sparing lever. Per pound of LEAN mass, not
-  // total weight — that's why body fat % matters here.
-  const proteinBase = lean != null ? lean : weightLb * 0.75;
+  // PROTEIN. Lean mass alone produced numbers that were far too low for a
+  // lighter person — 95lb of lean mass gave 109g, which at 1870 kcal is 23%
+  // of calories with carbs mopping up 56%. Backwards for a lean-out goal.
+  // Take the HIGHEST of three floors and cap the top.
+  const leanBase = lean != null ? lean : weightLb * 0.75;
   let gPerLbLean = 1.0;
   if(actualDelta < 0 && lifts) gPerLbLean = 1.15;      // deficit + lifting = the highest need
   else if(actualDelta < 0)     gPerLbLean = 1.05;
-  else if(mode === "build")    gPerLbLean = 1.0;
-  let protein = Math.round(proteinBase * gPerLbLean);
+  // Deficit + lifting is the highest protein need there is: the accepted
+  // range is 1.0-1.2g per lb of BODYWEIGHT, not 0.8.
+  // ...but per-bodyweight overshoots when body fat is high — you don't need
+  // to feed fat mass. Use goal weight as the base when it's lower.
+  const bwBase = (goalWeight && goalWeight < weightLb) ? goalWeight : weightLb;
+  const gPerLbBw = (actualDelta < 0 && lifts) ? 1.0 : (actualDelta < 0 ? 0.85 : 0.8);
+  // Macro style — she can ask for higher protein / lower carb outright
+  // instead of hand-editing the result every time.
+  const STYLES = {
+    balanced:    { pMin:0.30, cMax:0.50, fMin:0.22 },
+    highprotein: { pMin:0.35, cMax:0.35, fMin:0.25 },
+    lowercarb:   { pMin:0.35, cMax:0.25, fMin:0.35 },
+    morecarb:    { pMin:0.28, cMax:0.55, fMin:0.20 },
+  };
+  const style = STYLES[input.macroStyle] || STYLES.balanced;
+  const pctFloor = (mode === "build") ? Math.min(style.pMin, 0.28) : style.pMin;
+  let protein = Math.round(Math.max(
+    leanBase * gPerLbLean,                             // per lb of lean mass
+    bwBase * gPerLbBw,                                 // per lb of (goal) bodyweight
+    (cal * pctFloor) / 4                               // never a low-protein diet
+  ));
+  protein = Math.min(protein, Math.round(cal * 0.45 / 4), Math.round(leanBase * 1.6));
 
-  // FAT floor — hormones, and she said low fat, so this is the guard rail.
-  let fat = Math.round(weightLb * 0.35);
+  // FAT: a gram floor for hormones AND a share floor, whichever is higher.
+  let fat = Math.round(Math.max(weightLb * 0.35, (cal * style.fMin) / 9));
+
+  // CARBS get what's left, but they are NOT an unlimited dump bucket.
   let carbs = Math.round((cal - protein*4 - fat*9) / 4);
+  const carbCap = Math.round((cal * style.cMax) / 4);
+  if(carbs > carbCap){
+    const spare = (carbs - carbCap) * 4;
+    const pRoom = Math.round(cal * 0.45 / 4) - protein;
+    const addP = Math.min(Math.round(spare / 4), Math.max(0, pRoom));
+    protein += addP;
+    fat = Math.round((cal - protein*4 - carbCap*4) / 9);
+    carbs = carbCap;
+  }
   if(carbs < 60){                                       // squeeze fat first, then protein
     fat = Math.max(Math.round(weightLb * 0.28), Math.round((cal - protein*4 - 60*4) / 9));
     carbs = Math.round((cal - protein*4 - fat*9) / 4);
@@ -12016,8 +12060,17 @@ function designGoalPlan(input){
     carbs = Math.round((cal - protein*4 - fat*9) / 4);
   }
   carbs = Math.max(0, carbs);
+  fat = Math.max(0, fat);
 
   const notes = [];
+  if(manual){
+    const impliedLb = Math.round(Math.abs(cal - tdee) * 7 / 3500 * 100) / 100;
+    notes.push(cal < tdee
+      ? `You set ${cal} yourself. Against an estimated maintenance of ${tdee} that's a ${tdee - cal} deficit — about ${impliedLb} ${unit()} a week.`
+      : `You set ${cal} yourself. That's ${cal - tdee > 0 ? "above" : "at"} the estimated maintenance of ${tdee}.`);
+    if(cal < tdee * 0.7) notes.push(`That's a steep deficit. Watch your energy and lifts — if either falls off, add 100 kcal back.`);
+    notes.push(`Maintenance is an estimate from a formula. Weigh in consistently and the app will correct it from what your weight actually does.`);
+  }
   if(floored) notes.push(`Your ${floor} kcal floor is holding — the math wanted lower, so the timeline stretched instead of the food shrinking. That's the right trade.`);
   if(capped)  notes.push(`Capped at a 25% deficit. Steeper than that and you start paying in muscle.`);
   if(lean == null) notes.push(`No body fat % logged, so protein is set from total weight. Log an InBody or a body fat estimate and this gets sharper.`);
@@ -12025,11 +12078,15 @@ function designGoalPlan(input){
   if(lifts && actualDelta < 0) notes.push(`${protein}g protein is ${gPerLbLean.toFixed(2)}g per lb of lean mass — that's the number that decides whether the weight you lose is fat or muscle.`);
 
   return {
+    macroStyle: input.macroStyle || "balanced",
     bmr, formula, act, tdee, lean, fatMass,
     goalWeight, goalFat, toLose, weeks,
     cal, protein, carbs, fat,
-    actualDelta, actualLbWk, ratePct, floored, capped, notes,
+    actualDelta, actualLbWk, ratePct, floored, capped, manual, notes,
     gPerLbLean,
+    pctP: Math.round(protein*4 / cal * 100),
+    pctC: Math.round(carbs*4 / cal * 100),
+    pctF: Math.round(fat*9 / cal * 100),
   };
 }
 
@@ -12069,7 +12126,12 @@ function openGoalDesigner(){
     <div class="gd-sec">
       <div class="gd-h"><i>2</i> Your numbers today</div>
       <div class="form-grid">
-        <label><span>Weight (${unit()})</span><input id="gdW" type="number" step="0.1" value="${w0}"></label>
+        <label><span>Sex</span>
+          <select id="gdSex">
+            <option value="f" ${(state.profile.sex === "male" || state.profile.sex === "m") ? "" : "selected"}>Female</option>
+            <option value="m" ${(state.profile.sex === "male" || state.profile.sex === "m") ? "selected" : ""}>Male</option>
+          </select></label>
+        <label><span>Weight (${unit()})</span><input id="gdW" type="number" step="any" inputmode="decimal" value="${w0}"></label>
         <label><span>Body fat %<i class="gd-hint" data-explain="bf">?</i></span><input id="gdBF" type="number" step="0.1" inputmode="decimal" value="${bf0 != null ? bf0 : ""}" placeholder="from your InBody"></label>
         <label><span>Age</span><input id="gdAge" type="number" min="14" max="90" value="${age}"></label>
         ${heightFieldHtml("gdHt", state.profile.height)}
@@ -12094,6 +12156,16 @@ function openGoalDesigner(){
         <label><span>Training days a week</span><input id="gdDays" type="number" min="0" max="7" inputmode="numeric" value="${saved.days != null ? saved.days : 4}"></label>
       </div>
       <label class="gd-check"><input type="checkbox" id="gdLifts" ${saved.lifts === false ? "" : "checked"}> I lift weights (raises your protein target)</label>
+      <label class="span-2"><span>Macro style</span>
+        <select id="gdStyle">
+          <option value="balanced" ${(saved.macroStyle||"balanced")==="balanced"?"selected":""}>Balanced — 30% protein</option>
+          <option value="highprotein" ${saved.macroStyle==="highprotein"?"selected":""}>Higher protein, lower carb</option>
+          <option value="lowercarb" ${saved.macroStyle==="lowercarb"?"selected":""}>Low carb</option>
+          <option value="morecarb" ${saved.macroStyle==="morecarb"?"selected":""}>More carbs — high training volume</option>
+        </select></label>
+      <label class="span-2"><span>Calories — leave blank to let it work them out</span>
+        <input id="gdTargetCal" type="number" step="1" inputmode="numeric"
+          value="${saved.targetCal || ""}" placeholder="e.g. 1460 if you already know"></label>
       <label><span>How fast</span>
         <select id="gdRate">
           <option value="0.35" ${saved.ratePct==0.35?"selected":""}>Gentle — easiest to stick to</option>
@@ -12121,14 +12193,14 @@ function openGoalDesigner(){
     }));
     root.querySelectorAll("[data-explain]").forEach(b =>
       b.addEventListener("click", () => openExplainer(b.getAttribute("data-explain"))));
-    let _gdProgram = null;
+    let _gdProgram = null, _gdInput = null;
 
     const num = (id) => { const v = parseFloat((document.getElementById(id)||{}).value); return isNaN(v) ? null : v; };
 
     document.getElementById("gdBuild").addEventListener("click", () => {
       const weightLb = num("gdW");
       if(!weightLb){ toast("Enter your weight", "pink"); return; }
-      plan = designGoalPlan({
+      _gdInput = {
         weightLb,
         bfPct: num("gdBF"),
         targetBfPct: num("gdTargetBF"),
@@ -12138,10 +12210,13 @@ function openGoalDesigner(){
         days: num("gdDays"),
         lifts: document.getElementById("gdLifts").checked,
         ratePctPerWk: parseFloat(document.getElementById("gdRate").value),
-        sex: state.profile.sex === "male" || state.profile.sex === "m" ? "m" : "f",
+        targetCal: num("gdTargetCal"),
+        macroStyle: (document.getElementById("gdStyle")||{}).value || "balanced",
+        sex: (document.getElementById("gdSex") || {}).value || "f",
         ageYears: num("gdAge"),
         heightIn: readHeightField("gdHt"),
-      });
+      };
+      plan = designGoalPlan(_gdInput);
       _gdProgram = buildProgram({
         mode, days: num("gdDays"), lifts: document.getElementById("gdLifts").checked,
         dailyDelta: plan.actualDelta, protein: plan.protein, carbs: plan.carbs, fat: plan.fat,
@@ -12176,13 +12251,60 @@ function openGoalDesigner(){
         <div class="gd-h" style="margin-top:16px"><i>✎</i> Change anything before you save</div>
         <div class="form-grid">
           <label><span>Calories</span><input id="gdFinalCal" type="number" step="1" inputmode="numeric" value="${plan.cal}"></label>
-          <label><span>Protein (g)</span><input id="gdFinalP" type="number" value="${plan.protein}"></label>
-          <label><span>Carbs (g)</span><input id="gdFinalC" type="number" value="${plan.carbs}"></label>
-          <label><span>Fat (g)</span><input id="gdFinalF" type="number" value="${plan.fat}"></label>
+          <label><span>Protein (g)</span><input id="gdFinalP" type="number" step="1" inputmode="numeric" value="${plan.protein}"></label>
+          <label><span>Carbs (g)</span><input id="gdFinalC" type="number" step="1" inputmode="numeric" value="${plan.carbs}"></label>
+          <label><span>Fat (g)</span><input id="gdFinalF" type="number" step="1" inputmode="numeric" value="${plan.fat}"></label>
         </div>
+        <div id="gdTally" class="gd-tally"></div>
       `;
       res.querySelectorAll("[data-explain]").forEach(b =>
         b.addEventListener("click", () => openExplainer(b.getAttribute("data-explain"))));
+
+      // Live macro maths. Change the calories and the macros rebalance;
+      // change a macro and the calorie line updates. Nothing silently drifts.
+      const gi = (id) => { const v = parseInt((document.getElementById(id)||{}).value, 10); return isNaN(v) ? 0 : v; };
+      const tally = document.getElementById("gdTally");
+      let _lastCal = plan.cal;
+      const retally = () => {
+        const c = gi("gdFinalCal"), pp = gi("gdFinalP"), cc = gi("gdFinalC"), ff = gi("gdFinalF");
+        const fromMacros = pp*4 + cc*4 + ff*9;
+        const off = c - fromMacros;
+        const pctOf = (v) => c ? Math.round(v / c * 100) : 0;
+        tally.innerHTML = `
+          <div class="gd-tally-row">
+            <span>Macros add up to <b>${fromMacros}</b> kcal</span>
+            <span class="${Math.abs(off) <= 25 ? "ok" : "off"}">${Math.abs(off) <= 25 ? "matches your target" : (off > 0 ? `${off} under target` : `${-off} over target`)}</span>
+          </div>
+          <div class="gd-tally-split">
+            <span>P ${pctOf(pp*4)}%</span><span>C ${pctOf(cc*4)}%</span><span>F ${pctOf(ff*9)}%</span>
+          </div>
+          ${Math.abs(off) > 25 ? `<button type="button" class="btn btn-ghost btn-sm" id="gdRebal">REBALANCE TO ${c} KCAL</button>` : ""}`;
+        const rb = document.getElementById("gdRebal");
+        if(rb) rb.addEventListener("click", () => {
+          const re = designGoalPlan(Object.assign({}, _gdInput, { targetCal: c }));
+          document.getElementById("gdFinalP").value = re.protein;
+          document.getElementById("gdFinalC").value = re.carbs;
+          document.getElementById("gdFinalF").value = re.fat;
+          retally();
+        });
+      };
+      ["gdFinalCal","gdFinalP","gdFinalC","gdFinalF"].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.addEventListener("input", () => {
+          if(id === "gdFinalCal"){
+            const c = gi("gdFinalCal");
+            if(c >= 800 && c !== _lastCal){
+              _lastCal = c;
+              const re = designGoalPlan(Object.assign({}, _gdInput, { targetCal: c }));
+              document.getElementById("gdFinalP").value = re.protein;
+              document.getElementById("gdFinalC").value = re.carbs;
+              document.getElementById("gdFinalF").value = re.fat;
+            }
+          }
+          retally();
+        });
+      });
+      retally();
       document.getElementById("gdApply").classList.remove("hidden");
     });
 
@@ -12203,6 +12325,8 @@ function openGoalDesigner(){
         targetBf: num("gdTargetBF"),
         targetWeight: plan.goalWeight,
         floor: num("gdFloor"),
+        targetCal: num("gdTargetCal"),
+        macroStyle: (document.getElementById("gdStyle")||{}).value || "balanced",
         days: num("gdDays"),
         lifts: document.getElementById("gdLifts").checked,
         ratePct: parseFloat(document.getElementById("gdRate").value),
@@ -12322,12 +12446,33 @@ const EXPLAINERS = {
       <p><b>Getting the number:</b> an InBody or DEXA scan is the accurate route — log it under Body. A smart scale is roughly right and consistent enough to track a trend. Without one the app falls back to a formula that only knows height and weight.</p>`,
   },
 };
+// Tapping "?" used to call openModal(), which REPLACED whatever modal was
+// open — so opening the BMR explainer from inside the Goal Designer wiped
+// every value she had typed and dumped her back on the main screen. The
+// explainer is now its own sheet layered ON TOP; nothing underneath is
+// touched, and closing it returns her to exactly what she was filling in.
 function openExplainer(key){
   const e = EXPLAINERS[key];
   if(!e) return;
-  openModal(e.title, `<div class="explainer">${e.body}</div>
-    <div class="modal-foot"><button class="btn btn-cyan" data-close>Got it</button></div>`,
-    (root) => root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal)));
+  document.getElementById("explainSheet")?.remove();
+  const wrap = document.createElement("div");
+  wrap.id = "explainSheet";
+  wrap.className = "xsheet";
+  wrap.innerHTML = `
+    <div class="xsheet-scrim" data-xclose></div>
+    <div class="xsheet-card" role="dialog" aria-modal="true">
+      <div class="xsheet-head">
+        <h3>${escape(e.title)}</h3>
+        <button type="button" class="xsheet-x" data-xclose aria-label="Close">×</button>
+      </div>
+      <div class="xsheet-body"><div class="explainer">${e.body}</div></div>
+      <div class="xsheet-foot"><button type="button" class="btn btn-cyan" data-xclose>GOT IT</button></div>
+    </div>`;
+  document.body.appendChild(wrap);
+  const close = () => wrap.remove();
+  wrap.querySelectorAll("[data-xclose]").forEach(b => b.addEventListener("click", close));
+  const esc = (ev) => { if(ev.key === "Escape"){ close(); document.removeEventListener("keydown", esc); } };
+  document.addEventListener("keydown", esc);
 }
 
 
@@ -12840,10 +12985,10 @@ function programHtml(program){
 // =================================================================
 window.__bermo = {
   save,
+  designGoalPlan,
   buildProgram,
   readHeightField,
   parseHealthNote,
-  designGoalPlan,
   subMusclesForExercise,
   whyTags,
   foodTags,

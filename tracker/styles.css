@@ -4203,3 +4203,50 @@ html, body, #app, .app{
 .plan-prog-link b{ display:block; font-size:12.5px; color:var(--iron-volt); }
 .plan-prog-link span{ display:block; font-size:10.5px; color:var(--iron-mute); margin-top:2px; }
 .plan-prog-link .btn{ flex-shrink:0; }
+
+/* ============================================================
+   v28 — explainer sheet (layers ABOVE a modal, never replaces it)
+   ============================================================ */
+.xsheet{ position:fixed; inset:0; z-index:9999; display:flex; align-items:flex-end; justify-content:center; }
+.xsheet-scrim{ position:absolute; inset:0; background:rgba(0,0,0,.72); backdrop-filter:blur(3px); }
+.xsheet-card{
+  position:relative; width:100%; max-width:560px; max-height:82vh;
+  display:flex; flex-direction:column;
+  background:var(--surf-1); border:1px solid var(--hairline);
+  border-radius:20px 20px 0 0;
+  box-shadow:var(--edge-top), 0 -20px 60px -10px rgba(0,0,0,.95);
+  padding-bottom:env(safe-area-inset-bottom, 0px);
+  animation:xsheetUp .22s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes xsheetUp{ from{ transform:translateY(18px); opacity:0; } to{ transform:none; opacity:1; } }
+.xsheet-head{
+  display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+  padding:18px 18px 12px; border-bottom:1px solid var(--hairline);
+}
+.xsheet-head h3{
+  margin:0; font-family:'Inter Tight',sans-serif; font-weight:900;
+  font-size:16px; line-height:1.2; color:#fff; letter-spacing:-.01em;
+}
+.xsheet-x{
+  flex-shrink:0; width:30px; height:30px; border-radius:50%;
+  background:var(--surf-2); border:1px solid var(--hairline);
+  color:var(--iron-mute); font-size:19px; line-height:1; cursor:pointer;
+}
+.xsheet-body{ padding:16px 18px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.xsheet-foot{ padding:0 18px 18px; }
+.xsheet-foot .btn{ width:100%; }
+
+/* live macro tally under the editable fields */
+.gd-tally{ margin-top:10px; }
+.gd-tally-row{
+  display:flex; justify-content:space-between; align-items:baseline; gap:10px;
+  font-size:11.5px; color:var(--iron-mute);
+}
+.gd-tally-row b{ color:#fff; font-family:'JetBrains Mono',monospace; }
+.gd-tally-row .ok{ color:var(--iron-volt); font-weight:800; }
+.gd-tally-row .off{ color:var(--brand-purple); font-weight:800; }
+.gd-tally-split{ display:flex; gap:10px; margin-top:6px; }
+.gd-tally-split span{
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--iron-mute);
+}
+.gd-tally .btn{ width:100%; margin-top:8px; }

@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v27**.
+- Current build: **v28**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -215,6 +215,35 @@ floor binds. Every output editable before saving. Plan card shows progress
 toward the body-fat target. Plain-language **BMR vs BMI** and body-fat
 explainers. Goal contract, consistency chain, restart card.
 
+**Goal Designer maths — four bugs fixed in v28, do not regress them:**
+1. The pace selector did **nothing** outside "lose" mode — recomp was
+   hard-coded to -8% of TDEE and build to +10%, so picking "faster" changed
+   no number on screen. Every mode now scales by `paceScale = ratePct/0.6`.
+2. Protein was set from lean mass alone. For a lighter person that produced
+   109g at 1870 kcal — **23% of calories, with carbs mopping up 56%**, which
+   is backwards for a lean-out goal. Protein is now the highest of: per lb
+   lean, per lb **goal** bodyweight (1.0 g/lb in a deficit while lifting;
+   goal weight rather than current so it doesn't feed fat mass), and a
+   share-of-calories floor. Carbs are capped by `macroStyle` rather than
+   absorbing everything left over.
+3. `macroStyle` — balanced / highprotein / lowercarb / morecarb. She asked
+   for roughly 1460 · P130 · C130 · F49; "higher protein, lower carb" at
+   1460 returns P140 C128 F43.
+4. `input.targetCal` — if she types a calorie number it **wins over the
+   estimate**, because the activity multiplier is a guess and her experience
+   of her own body is not. It is not clamped by the floor or the 25% rule;
+   those only apply to numbers the app designs. It flags the implied rate.
+Also: the form now asks **sex** (it silently read the profile), and the
+"change anything" fields are live — editing calories rebalances the macros,
+editing a macro updates a running tally with a REBALANCE button.
+
+**The explainer sheet** — `openExplainer()` used to call `openModal()`, which
+**replaced** whatever modal was open. Tapping "?" inside the Goal Designer
+destroyed the form and dumped her on the main screen with everything she had
+typed gone. It is now its own `.xsheet` layered on top of `document.body`;
+nothing underneath is touched. **Never route a secondary panel through
+`openModal()` while another modal is open.**
+
 **The program** (v27) — `buildProgram()` turns the Goal Designer's answers
 into what to actually DO: a training split from `SPLIT_TEMPLATES` (2-6 days),
 exercises chosen per sub-muscle region from `REGION_EXERCISES` and filtered by
@@ -281,7 +310,7 @@ Playwright is already installed in the scratchpad. Launch chromium with
 `{ server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" }`.
 **Do not run `npx playwright install`.**
 
-**Expected: 29/29 and zero page errors.** (Two console errors about
+**Expected: 31/31 and zero page errors.** (Two console errors about
 `ERR_CONNECTION_RESET` are the sandbox blocking a CDN — pre-existing, ignore.)
 
 The suite covers: load, wizard, **sideways overflow on every page**, all tabs,
@@ -386,4 +415,5 @@ micronutrients, Goal Designer, local health-note parser, manual body comp ·
 `v23` food-search dead-end fix, design system, My Gym · `v24` surface, depth
 and page-flow rebuild · `v25` `save()` made fail-safe · `v26` stat band
 rebuilt, uniform gaps, equal side-by-side cards · `v27` step-attribute bug,
-feet+inches height, and the training/cardio/food program.
+feet+inches height, and the training/cardio/food program · `v28` Goal Designer maths and the
+explainer sheet.

@@ -9074,7 +9074,8 @@ function renderBodyComp(){
 let _cmpOffset = 1;      // weeks back
 let _cmpCustomStart = null; // YYYY-MM-DD of any day in the custom week
 function _weekMetrics(monDate){
-  const out = { workouts:0, volume:0, calDays:0, calSum:0, waterSum:0, days:0 };
+  const out = { workouts:0, liftDays:0, lifts:0, sets:0, volume:0,
+                calDays:0, calSum:0, waterSum:0, cardioMin:0, days:0, best:{} };
   for(let i = 0; i < 7; i++){
     const d = new Date(monDate.getTime() + i*86400000);
     const k = todayKey(d);
@@ -9083,6 +9084,19 @@ function _weekMetrics(monDate){
     const day = state.days[k] || {};
     const sessions = day.sessions || [];
     if(sessions.length) out.workouts++;
+    const lifted = sessions.filter(x => x.type !== "cardio" && (x.weight || x.reps));
+    if(lifted.length) out.liftDays++;
+    out.lifts += lifted.length;
+    out.sets  += lifted.reduce((n,x) => n + (x.sets || 1), 0);
+    out.cardioMin += sessions.filter(x => x.type === "cardio")
+                             .reduce((n,x) => n + (x.durationMin || 0), 0);
+    // heaviest set per exercise, so week-to-week strength is visible
+    lifted.forEach(x => {
+      const w = +x.weight || 0;
+      if(!w) return;
+      const nm = x.name || "";
+      if(!out.best[nm] || w > out.best[nm]) out.best[nm] = w;
+    });
     out.volume += sessions.reduce((n,x) => n + (x.weight||0)*(x.reps||0)*(x.sets||1), 0);
     const cal = totalsFor(k).cal;
     if(cal > 0){ out.calDays++; out.calSum += cal; }
@@ -9120,10 +9134,33 @@ function renderCompareCard(){
   wrap.innerHTML = `
     <div class="cmp-sub">This week (${A.days}d) vs week of ${label}</div>
     ${row("Workouts", A.workouts, B.workouts, n0)}
+    ${row("Lift days", A.liftDays, B.liftDays, n0)}
+    ${row("Lifts logged", A.lifts, B.lifts, n0)}
+    ${row("Working sets", A.sets, B.sets, n0)}
     ${row("Volume (" + unit() + ")", A.volume, B.volume, n0)}
+    ${row("Cardio (min)", A.cardioMin, B.cardioMin, n0)}
     ${row("Avg cal/day", A.calDays ? A.calSum/A.calDays : 0, B.calDays ? B.calSum/B.calDays : 0, n0, false)}
-    ${row("Water (oz)", A.waterSum, B.waterSum, n0)}
+    ${row("Water (" + unitVol() + ")", A.waterSum, B.waterSum, n0)}
+    ${_liftDeltaHtml(A, B)}
   `;
+}
+
+// Per-exercise heaviest set, this week vs the comparison week. This is the
+// number that answers "am I actually getting stronger".
+function _liftDeltaHtml(A, B){
+  const names = Object.keys(A.best).filter(n => B.best[n] != null);
+  if(!names.length) return "";
+  const rows = names.map(n => ({ n, a:A.best[n], b:B.best[n], d:A.best[n]-B.best[n] }))
+                    .sort((x,y) => Math.abs(y.d) - Math.abs(x.d))
+                    .slice(0, 5);
+  return `<div class="cmp-lifts">
+    <div class="cmp-lifts-h">Heaviest set, lift by lift</div>
+    ${rows.map(r => `<div class="cmp-lift">
+      <span>${escape(r.n)}</span>
+      <b>${r.a} ${unit()}</b>
+      <em class="${r.d > 0 ? "cmp-good" : (r.d < 0 ? "cmp-bad" : "")}">${r.d === 0 ? "same" : (r.d > 0 ? "+" : "") + r.d}</em>
+    </div>`).join("")}
+  </div>`;
 }
 onReady(() => {
   const sel = document.getElementById("cmpWeekSel");
@@ -11970,15 +12007,41 @@ function designGoalPlan(input){
 
   // Rate: a share of bodyweight per week, capped at 1% (above that you
   // start paying in muscle, which is the whole thing she's avoiding).
-  const ratePct = Math.min(1.0, Math.max(0.15, ratePctPerWk || 0.6));
+  let ratePct = Math.min(1.0, Math.max(0.15, ratePctPerWk || 0.6));
+
+  // A DEADLINE sets the rate, not the dropdown. The evidence-backed ceiling
+  // for holding muscle is ~1% of bodyweight a week (Helms 2014; Garthe 2011
+  // found 0.7%/wk gained lean mass while 1.4%/wk did not), so if her date
+  // demands more than that we say so instead of quietly designing it.
+  let deadline = null;
+  if(input.byDate){
+    const target = new Date(input.byDate + "T12:00:00");
+    const today0 = new Date(); today0.setHours(0,0,0,0);
+    const weeksLeft = Math.max(0.5, (target - today0) / (7 * 86400000));
+    deadline = { date: input.byDate, weeksLeft: Math.round(weeksLeft * 10) / 10 };
+  }
+
   const wantedLbWk = Math.round(weightLb * ratePct / 100 * 100) / 100;
+
+  if(deadline && toLose != null && toLose > 0){
+    const needLbWk = toLose / deadline.weeksLeft;
+    const needPct = (needLbWk / weightLb) * 100;
+    deadline.needLbWk = Math.round(needLbWk * 100) / 100;
+    deadline.needPct = Math.round(needPct * 100) / 100;
+    deadline.realistic = needPct <= 1.0;
+    deadline.safeWeeks = Math.ceil(toLose / (weightLb * 0.0085));   // at 0.85%/wk
+    // Use the deadline's rate when it's inside the safe band, otherwise
+    // design the safe one and tell her the honest date.
+    ratePct = Math.min(1.0, Math.max(0.15, needPct));
+  }
 
   let dailyDelta = 0;
   // The pace selector used to do NOTHING outside "lose" mode — recomp was
   // hard-coded to -8% and build to +10%, so picking "faster" changed no
   // number on screen. Every mode now scales with it.
   const paceScale = ratePct / 0.6;                       // 0.6%/wk is the middle option
-  if(mode === "lose")        dailyDelta = -Math.round(wantedLbWk * 3500 / 7);
+  const lbWk = Math.round(weightLb * ratePct / 100 * 100) / 100;
+  if(mode === "lose")        dailyDelta = -Math.round(lbWk * 3500 / 7);
   else if(mode === "recomp") dailyDelta = -Math.round(tdee * 0.08 * paceScale);
   else if(mode === "build")  dailyDelta =  Math.round(tdee * 0.10 * paceScale);
   else                       dailyDelta = 0;
@@ -12063,6 +12126,13 @@ function designGoalPlan(input){
   fat = Math.max(0, fat);
 
   const notes = [];
+  if(deadline && deadline.needPct != null){
+    if(deadline.realistic){
+      notes.push(`To be there by ${new Date(deadline.date + "T12:00:00").toLocaleDateString(undefined,{month:"long",day:"numeric",year:"numeric"})} you need ${deadline.needLbWk} ${unit()}/week — that's ${deadline.needPct}% of bodyweight, inside the 0.5–1% band that holds muscle. The plan below is set to that pace.`);
+    } else {
+      notes.push(`Your date needs ${deadline.needLbWk} ${unit()}/week (${deadline.needPct}% of bodyweight). Above 1%/week you start losing muscle with the fat — in one trial, 0.7%/week gained lean mass while 1.4%/week didn't. Designed at the fastest safe pace instead: realistically about ${deadline.safeWeeks} weeks.`);
+    }
+  }
   if(manual){
     const impliedLb = Math.round(Math.abs(cal - tdee) * 7 / 3500 * 100) / 100;
     notes.push(cal < tdee
@@ -12082,7 +12152,7 @@ function designGoalPlan(input){
     bmr, formula, act, tdee, lean, fatMass,
     goalWeight, goalFat, toLose, weeks,
     cal, protein, carbs, fat,
-    actualDelta, actualLbWk, ratePct, floored, capped, manual, notes,
+    actualDelta, actualLbWk, ratePct, floored, capped, manual, notes, deadline,
     gPerLbLean,
     pctP: Math.round(protein*4 / cal * 100),
     pctC: Math.round(carbs*4 / cal * 100),
@@ -12156,6 +12226,17 @@ function openGoalDesigner(){
         <label><span>Training days a week</span><input id="gdDays" type="number" min="0" max="7" inputmode="numeric" value="${saved.days != null ? saved.days : 4}"></label>
       </div>
       <label class="gd-check"><input type="checkbox" id="gdLifts" ${saved.lifts === false ? "" : "checked"}> I lift weights (raises your protein target)</label>
+      <label><span>Split style</span>
+        <select id="gdSplit">
+          <option value="bodypart" ${(saved.splitStyle||"bodypart")==="bodypart"?"selected":""}>Body part — back+biceps, chest+triceps</option>
+          <option value="classic" ${saved.splitStyle==="classic"?"selected":""}>Upper / lower / push / pull</option>
+        </select></label>
+      <label><span>Meals + snacks a day</span>
+        <select id="gdMeals">
+          ${[3,4,5,6].map(n => `<option value="${n}" ${String(saved.meals||4)===String(n)?"selected":""}>${n} — ${Math.min(3,n)} meal${Math.min(3,n)===1?"":"s"}${n>3?` + ${n-3} snack${n-3===1?"":"s"}`:""}</option>`).join("")}
+        </select></label>
+      <label class="span-2"><span>By when? <i class="gd-hint" data-explain="rate">?</i></span>
+        <input id="gdByDate" type="date" value="${saved.byDate || ""}"></label>
       <label class="span-2"><span>Macro style</span>
         <select id="gdStyle">
           <option value="balanced" ${(saved.macroStyle||"balanced")==="balanced"?"selected":""}>Balanced — 30% protein</option>
@@ -12211,7 +12292,10 @@ function openGoalDesigner(){
         lifts: document.getElementById("gdLifts").checked,
         ratePctPerWk: parseFloat(document.getElementById("gdRate").value),
         targetCal: num("gdTargetCal"),
+        byDate: (document.getElementById("gdByDate")||{}).value || null,
         macroStyle: (document.getElementById("gdStyle")||{}).value || "balanced",
+        splitStyle: (document.getElementById("gdSplit")||{}).value || "bodypart",
+        meals: num("gdMeals") || 4,
         sex: (document.getElementById("gdSex") || {}).value || "f",
         ageYears: num("gdAge"),
         heightIn: readHeightField("gdHt"),
@@ -12221,6 +12305,8 @@ function openGoalDesigner(){
         mode, days: num("gdDays"), lifts: document.getElementById("gdLifts").checked,
         dailyDelta: plan.actualDelta, protein: plan.protein, carbs: plan.carbs, fat: plan.fat,
         weightLb,
+        splitStyle: (document.getElementById("gdSplit")||{}).value || "bodypart",
+        meals: num("gdMeals") || 4,
       });
       const eta = plan.weeks
         ? new Date(Date.now() + plan.weeks*7*86400000).toLocaleDateString(undefined,{month:"long",year:"numeric"})
@@ -12326,7 +12412,10 @@ function openGoalDesigner(){
         targetWeight: plan.goalWeight,
         floor: num("gdFloor"),
         targetCal: num("gdTargetCal"),
+        byDate: (document.getElementById("gdByDate")||{}).value || null,
         macroStyle: (document.getElementById("gdStyle")||{}).value || "balanced",
+        splitStyle: (document.getElementById("gdSplit")||{}).value || "bodypart",
+        meals: num("gdMeals") || 4,
         days: num("gdDays"),
         lifts: document.getElementById("gdLifts").checked,
         ratePct: parseFloat(document.getElementById("gdRate").value),
@@ -12437,6 +12526,13 @@ const EXPLAINERS = {
       <p>It's the floor your whole food plan is built on. Your <b>maintenance</b> (TDEE) is BMR multiplied by how much you move — so a heavier, more muscular person has a higher BMR, which is one reason muscle is worth defending in a deficit.</p>
       <p><b>BMI — Body Mass Index.</b> Just your weight compared to your height. One formula, no idea what you're made of. A lean athlete and someone with much more body fat at the same height and weight get the identical BMI. It's a population statistic, not a description of you.</p>
       <p class="ex-key">The short version: <b>BMR is about energy</b> — how much you burn, so how much to eat. <b>BMI is about size</b> — and it can't tell muscle from fat, which is exactly the difference you're training for. Body fat % is the number worth tracking instead.</p>`,
+  },
+  rate: {
+    title: "Why the date can't always be the date",
+    body: `<p>Losing weight faster does not mean losing more <b>fat</b> faster. Past a point, the extra comes off your muscle.</p>
+      <p>The evidence-based ceiling for holding lean mass is about <b>0.5–1% of your bodyweight a week</b>. In one trial on trained athletes, the group losing <b>0.7%/week gained</b> lean mass over the cut, while the group losing 1.4%/week finished with the same lean mass they started with — and lost less fat overall (31% vs 21% of their fat mass).</p>
+      <p>So if the date you set needs more than 1% a week, the app doesn't quietly design it. It builds the fastest pace that still protects your muscle and tells you the honest date that lands on.</p>
+      <p class="ex-key">You can still set an aggressive date. You just get told what it costs, rather than finding out in the mirror three months later.</p>`,
   },
   bf: {
     title: "Body fat % — and why the plan is built on it",
@@ -12745,6 +12841,38 @@ function renderNotesCard(){
 
 // Splits by training frequency. Each day names the regions it must cover;
 // exercises are then filled from what her gym actually has.
+// Body-part splits — the way she actually trains. Biceps go with back
+// (both pull), triceps with chest (both push).
+const BODYPART_TEMPLATES = {
+  3: { name:"Body part ×3", days:[
+    { name:"Back + biceps", focus:["back.lats","back.midback","back.traps","arms.biceps","arms.forearms"] },
+    { name:"Chest + triceps", focus:["chest.midchest","chest.upperchest","chest.lowerchest","arms.triceps","core.abs"] },
+    { name:"Legs + glutes", focus:["legs.quads","glutes.glutemax","legs.hams","glutes.glutemed","legs.calves"] },
+  ]},
+  4: { name:"Body part ×4", days:[
+    { name:"Back + biceps", focus:["back.lats","back.midback","back.traps","arms.biceps","arms.forearms"] },
+    { name:"Chest + triceps", focus:["chest.midchest","chest.upperchest","chest.lowerchest","arms.triceps"] },
+    { name:"Legs — quads", focus:["legs.quads","legs.adductors","legs.calves","core.abs"] },
+    { name:"Glutes + hamstrings", focus:["glutes.glutemax","glutes.glutemed","legs.hams","back.erectors"] },
+  ]},
+  5: { name:"Body part ×5", days:[
+    { name:"Back + biceps", focus:["back.lats","back.midback","back.traps","arms.biceps"] },
+    { name:"Chest + triceps", focus:["chest.midchest","chest.upperchest","chest.lowerchest","arms.triceps"] },
+    { name:"Legs — quads", focus:["legs.quads","legs.adductors","legs.calves","core.abs"] },
+    { name:"Shoulders + arms", focus:["shoulders.frontdelt","shoulders.sidedelt","shoulders.reardelt","arms.biceps","arms.triceps"] },
+    { name:"Glutes + hamstrings", focus:["glutes.glutemax","glutes.glutemed","legs.hams","back.erectors","core.obliques"] },
+  ]},
+  6: { name:"Body part ×6", days:[
+    { name:"Back + biceps", focus:["back.lats","back.midback","arms.biceps"] },
+    { name:"Chest + triceps", focus:["chest.midchest","chest.upperchest","arms.triceps"] },
+    { name:"Legs — quads", focus:["legs.quads","legs.adductors","legs.calves"] },
+    { name:"Shoulders", focus:["shoulders.frontdelt","shoulders.sidedelt","shoulders.reardelt","back.traps"] },
+    { name:"Glutes + hamstrings", focus:["glutes.glutemax","glutes.glutemed","legs.hams"] },
+    { name:"Arms + core", focus:["arms.biceps","arms.triceps","arms.forearms","core.abs","core.obliques"] },
+  ]},
+};
+BODYPART_TEMPLATES[2] = BODYPART_TEMPLATES[3];
+
 const SPLIT_TEMPLATES = {
   2: { name:"Full body ×2", days:[
     { name:"Full body A", focus:["legs.quads","glutes.glutemax","chest.midchest","back.lats","shoulders.sidedelt","core.abs"] },
@@ -12818,7 +12946,8 @@ function buildProgram(opts){
   const days  = Math.max(2, Math.min(6, opts.days || 4));
   const mode  = opts.mode || "lose";
   const lifts = opts.lifts !== false;
-  const tpl   = SPLIT_TEMPLATES[days] || SPLIT_TEMPLATES[4];
+  const family = (opts.splitStyle === "bodypart") ? BODYPART_TEMPLATES : SPLIT_TEMPLATES;
+  const tpl   = family[days] || family[4] || SPLIT_TEMPLATES[4];
 
   // ---- LIFTING ----
   const pickFor = (region, used) => {
@@ -12839,34 +12968,73 @@ function buildProgram(opts){
   }) : [];
 
   // ---- CARDIO ----
-  // Scaled to the size of the deficit and how much lifting is already on.
+  // Grounded in the concurrent-training literature rather than invented:
+  //  * Wilson 2012 (JSCR meta-analysis, 21 studies / 422 effect sizes) found
+  //    interference scales with the FREQUENCY and DURATION of endurance work,
+  //    and that RUNNING blunted strength and hypertrophy while CYCLING did not.
+  //    3 days/wk interfered less than 5.
+  //  * Intra-session sequence review (2017): the interference is largely a
+  //    SAME-SESSION problem. Separate days, or 6+ hours apart, and it shrinks.
+  //  * Steps/NEAT are not endurance training and don't interfere at all —
+  //    which is why they carry most of the load here.
   const deficit = Math.max(0, -(opts.dailyDelta || 0));
-  let cardio;
+  const liftPriority = lifts && days >= 4;
+  let sessions, total;
   if(mode === "build"){
-    cardio = { total: 60, sessions: [
-      { kind:"Easy zone 2", detail:"2 × 30 min — walk, incline treadmill or bike", why:"Keeps your heart healthy without eating into recovery." },
-    ]};
-  } else if(deficit >= 400 || days >= 5){
-    cardio = { total: 150, sessions: [
-      { kind:"Zone 2", detail:"3 × 40 min — brisk walk, incline treadmill, easy bike", why:"Burns fat without adding fatigue to your lifts." },
-      { kind:"Intervals", detail:"1 × 15 min — 30s hard / 90s easy", why:"Conditioning in the least time. Keep it away from leg day." },
-    ]};
+    sessions = [
+      { kind:"Easy, 2 × 25 min", detail:"Bike, incline walk or elliptical — conversational pace",
+        why:"Heart health without denting recovery. Keep it off leg days." },
+    ];
+    total = 50;
+  } else if(liftPriority){
+    // Lifting is the priority: hold cardio to 3 sessions, cap the duration,
+    // and keep it off the bike-vs-run side of the interference finding.
+    sessions = [
+      { kind:"Zone 2, 3 × 30 min", detail:"Bike, incline treadmill walk, elliptical or rower — NOT running",
+        why:"Cycling-type work showed no strength or hypertrophy cost in the meta-analysis; running did." },
+      { kind:"Intervals, 1 × 10 min", detail:"30s hard / 90s easy, on a bike — optional",
+        why:"Short and low-volume on purpose. Interference tracks with duration." },
+    ];
+    total = 100;
   } else {
-    cardio = { total: 120, sessions: [
-      { kind:"Zone 2", detail:"3 × 30 min — brisk walk or incline treadmill", why:"Low cost to recovery, adds up fast." },
-      { kind:"Intervals", detail:"1 × 10 min — 30s hard / 90s easy", why:"Optional. Skip it in a heavy training week." },
-    ]};
+    sessions = [
+      { kind:"Zone 2, 4 × 35 min", detail:"Brisk walk, incline treadmill, bike or elliptical",
+        why:"With fewer lifting days there's room for more of it." },
+      { kind:"Intervals, 1 × 15 min", detail:"30s hard / 90s easy", why:"Conditioning in the least time." },
+    ];
+    total = 155;
   }
-  cardio.steps = mode === "build" ? 8000 : 9000;
+  const cardio = {
+    total, sessions,
+    steps: mode === "build" ? 8000 : (deficit >= 400 ? 10000 : 9000),
+    rules: [
+      "Never in the same session as legs. Different day is best; same day, leave 6+ hours.",
+      "If you have to choose, lift first — cardio before lifting is what costs you strength.",
+      liftPriority
+        ? "Three cardio sessions a week is the ceiling while lifting is the goal. More sessions and more minutes is where the interference shows up."
+        : "Four sessions is fine at this lifting frequency.",
+      "Steps are the lever that never interferes. They're doing more work here than the sessions are.",
+    ],
+    source: "Wilson et al. 2012, J Strength Cond Res — meta-analysis of 21 concurrent-training studies.",
+  };
 
   // ---- FOOD ----
   const protein = opts.protein || 0, carbs = opts.carbs || 0, fat = opts.fat || 0;
-  const meals = protein >= 150 ? 4 : 3;
+  // She splits protein across 5-6 feeds including snacks — so this is hers
+  // to set, not something the app decides for her.
+  const meals = Math.max(3, Math.min(6, opts.meals || (protein >= 150 ? 4 : 3)));
+  const mainMeals = Math.min(3, meals);
+  const snacks = meals - mainMeals;
   const food = {
-    meals,
+    meals, mainMeals, snacks,
     perMeal: { p: Math.round(protein / meals), c: Math.round(carbs / meals), f: Math.round(fat / meals) },
     build: [
-      { slot:"Every meal", rule:`${Math.round(protein / meals)}g protein`, examples:"chicken, turkey, lean beef, fish, eggs, Greek yogurt, cottage cheese, tofu, whey" },
+      { slot: snacks > 0 ? `Each of your ${mainMeals} meals` : "Every meal",
+        rule:`${Math.round(protein / meals)}g protein`,
+        examples:"chicken, turkey, lean beef, fish, eggs, Greek yogurt, cottage cheese, tofu, whey" },
+      ...(snacks > 0 ? [{ slot:`Each of your ${snacks} snack${snacks===1?"":"s"}`,
+        rule:`${Math.round(protein / meals)}g protein`,
+        examples:"Greek yogurt, cottage cheese, a shake, jerky, edamame, string cheese + fruit, protein cookie" }] : []),
       { slot:"Around training", rule:`Most of your ${carbs}g carbs`, examples:"rice, potato, oats, fruit, sourdough — before and after the session" },
       { slot:"Fat", rule:`${fat}g, spread across the day`, examples:"olive oil, avocado, nuts, salmon, whole eggs" },
       { slot:"Volume", rule:"2 fists of vegetables at lunch and dinner", examples:"broccoli, peppers, greens, courgette — fills you up for almost no calories" },
@@ -12929,6 +13097,61 @@ function openApplyProgramModal(program){
   });
 }
 
+// Hold her to the program she signed up for. The plan says N lifting days
+// a week; this says whether she's on for it and what it costs if not.
+function programAccountability(){
+  const g = state.goals || {};
+  const prog = g.program, plan = g.plan;
+  if(!prog || !prog.liftDays || !prog.liftDays.length) return null;
+  const target = prog.liftDays.length;
+
+  const A = _weekMetrics(weekStart(new Date()));
+  const done = A.liftDays;
+  const today = new Date();
+  const daysLeft = 6 - today.getDay();            // Sunday-start week
+  const short = target - done;
+  if(short <= 0){
+    return { tone:"good", title:`${done} of ${target} lifting days done`,
+             body:`Week's target hit${daysLeft > 0 ? ` with ${daysLeft} day${daysLeft===1?"":"s"} to spare` : ""}. Anything else this week is a bonus.` };
+  }
+  const canStillMakeIt = short <= daysLeft + 1;
+
+  // What the missed sessions cost in volume, using her own recent average.
+  const last = _weekMetrics(new Date(weekStart(new Date()).getTime() - 7*86400000));
+  const perDay = last.liftDays ? Math.round(last.volume / last.liftDays)
+                               : (A.liftDays ? Math.round(A.volume / A.liftDays) : 0);
+  const missing = prog.liftDays.slice(done).map(d => d.name);
+
+  return {
+    tone: canStillMakeIt ? "watch" : "bad",
+    title: `${done} of ${target} lifting days — ${short} to go`,
+    body: canStillMakeIt
+      ? `${daysLeft} day${daysLeft===1?"":"s"} left in the week. Still on for it${missing.length ? `: ${missing.slice(0,2).join(", ")}` : ""}.`
+      : `Only ${daysLeft} day${daysLeft===1?"":"s"} left — you can't fit ${short} more. Take the two that matter most${missing.length ? `: ${missing.slice(0,2).join(", ")}` : ""}.`,
+    cost: perDay ? `Each missed day is about ${perDay.toLocaleString()} ${unit()} of volume you don't get back.` : "",
+    missing,
+    target, done, daysLeft,
+  };
+}
+
+function renderProgramCallout(){
+  const host = document.getElementById("progCallout");
+  if(!host) return;
+  let a = null;
+  try{ a = programAccountability(); }catch(e){ console.warn("prog callout", e); }
+  if(!a){ host.innerHTML = ""; host.classList.add("nsec-hide"); return; }
+  host.classList.remove("nsec-hide");
+  host.innerHTML = `<div class="pc-card pc-${a.tone}">
+    <div class="pc-bar"><i style="width:${Math.round(a.done / a.target * 100)}%"></i></div>
+    <div class="pc-title">${escape(a.title)}</div>
+    <div class="pc-body">${escape(a.body)}</div>
+    ${a.cost ? `<div class="pc-cost">${escape(a.cost)}</div>` : ""}
+    ${a.tone !== "good" ? `<button type="button" class="btn btn-cyan btn-sm" id="pcGo">START ONE NOW</button>` : ""}
+  </div>`;
+  const b = document.getElementById("pcGo");
+  if(b) b.addEventListener("click", () => { go("fitness"); });
+}
+
 function programHtml(program){
   const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   const LAYOUT = { 2:[1,4], 3:[1,3,5], 4:[1,2,4,5], 5:[1,2,3,5,6], 6:[1,2,3,4,5,6] };
@@ -12958,8 +13181,13 @@ function programHtml(program){
           <span>${escape(c.detail)}</span>
           <em>${escape(c.why)}</em>
         </div>`).join("")}
-      <div class="pg-c-row"><b>Daily steps</b><span>${program.cardio.steps.toLocaleString()} a day</span><em>The one that matters most and costs you nothing.</em></div>
+      <div class="pg-c-row"><b>Daily steps</b><span>${program.cardio.steps.toLocaleString()} a day</span><em>The one that never interferes with lifting — it's doing more work here than the sessions are.</em></div>
     </div>
+    ${(program.cardio.rules || []).length ? `<div class="pg-rules">
+      <div class="pg-rules-h">How to place it so it doesn't cost you muscle</div>
+      <ul>${program.cardio.rules.map(r => `<li>${escape(r)}</li>`).join("")}</ul>
+      ${program.cardio.source ? `<div class="pg-src">${escape(program.cardio.source)}</div>` : ""}
+    </div>` : ""}
 
     <div class="gd-h" style="margin-top:16px"><i>3</i> How to eat it — ${program.food.meals} meals a day</div>
     <div class="pg-food">
@@ -13016,6 +13244,7 @@ function renderBody(){
 }
 
 function renderFitness(){
+  try{ renderProgramCallout(); }catch(e){ console.warn("prog callout", e); }
   renderFitnessBase();
   renderLiftsList();
   renderBodyCoverage();

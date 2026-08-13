@@ -4250,3 +4250,64 @@ html, body, #app, .app{
   font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--iron-mute);
 }
 .gd-tally .btn{ width:100%; margin-top:8px; }
+/* cardio placement rules + citation */
+.pg-rules{
+  margin-top:8px; padding:11px; border-radius:12px;
+  background:var(--surf-2); border:1px solid var(--iron-cyan);
+}
+.pg-rules-h{
+  font-size:9.5px; font-weight:900; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--iron-cyan); margin-bottom:6px;
+}
+.pg-rules ul{ margin:0; padding-left:16px; }
+.pg-rules li{ font-size:11.5px; color:var(--iron-mute); line-height:1.5; margin-bottom:5px; }
+.pg-src{
+  margin-top:7px; padding-top:7px; border-top:1px solid var(--hairline);
+  font-size:9.5px; color:#6b7488; font-style:italic;
+}
+
+/* ============================================================
+   v29 — program accountability + lift comparison
+   ============================================================ */
+#progCallout{ margin-bottom:12px; }
+.pc-card{
+  padding:12px 13px; border-radius:14px;
+  background:var(--surf-1); border:1px solid var(--hairline);
+  box-shadow:var(--edge-top), var(--lift-1);
+}
+.pc-card.pc-good{ border-color:var(--iron-volt); }
+.pc-card.pc-watch{ border-color:var(--brand-purple); }
+.pc-card.pc-bad{ border-color:var(--iron-red); }
+.pc-bar{ height:5px; border-radius:3px; background:rgba(255,255,255,.09); overflow:hidden; margin-bottom:9px; }
+.pc-bar i{ display:block; height:100%; border-radius:3px; background:var(--iron-volt); }
+.pc-bad .pc-bar i{ background:var(--iron-red); }
+.pc-watch .pc-bar i{ background:var(--brand-purple); }
+.pc-title{ font-size:13.5px; font-weight:800; color:#fff; margin-bottom:3px; }
+.pc-good .pc-title{ color:var(--iron-volt); }
+.pc-watch .pc-title{ color:var(--brand-purple); }
+.pc-bad .pc-title{ color:var(--iron-red); }
+.pc-body{ font-size:11.5px; color:var(--iron-mute); line-height:1.5; }
+.pc-cost{
+  margin-top:7px; padding-top:7px; border-top:1px dashed var(--hairline);
+  font-size:11px; color:var(--iron-cyan); font-weight:700; line-height:1.45;
+}
+.pc-card .btn{ width:100%; margin-top:10px; }
+
+.cmp-lifts{ margin-top:10px; padding-top:10px; border-top:1px solid var(--hairline); }
+.cmp-lifts-h{
+  font-size:9.5px; font-weight:900; letter-spacing:.08em; text-transform:uppercase;
+  color:#6b7488; margin-bottom:7px;
+}
+.cmp-lift{
+  display:grid; grid-template-columns:1fr auto 54px; gap:8px; align-items:baseline;
+  padding:5px 0; border-top:1px solid var(--hairline);
+}
+.cmp-lift:first-of-type{ border-top:0; }
+.cmp-lift span{ font-size:11.5px; color:var(--iron-mute); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cmp-lift b{ font-family:'JetBrains Mono',monospace; font-size:12px; color:#fff; }
+.cmp-lift em{
+  font-style:normal; font-family:'JetBrains Mono',monospace; font-size:11px;
+  font-weight:800; text-align:right; color:var(--iron-mute);
+}
+.cmp-lift em.cmp-good{ color:var(--iron-volt); }
+.cmp-lift em.cmp-bad{ color:var(--iron-red); }

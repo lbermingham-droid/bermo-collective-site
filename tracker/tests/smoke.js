@@ -597,6 +597,52 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       : fail("v28 explainer", JSON.stringify(kept));
   } catch (e) { fail("v28 explainer", e); }
 
+  // 21. v29: body-part splits, snack-aware meals, deadline maths, and a
+  //     cardio dose grounded in the concurrent-training literature.
+  try {
+    const r = await page.evaluate(() => {
+      const p = window.__bermo.buildProgram({ mode:"lose", days:5, lifts:true, dailyDelta:-400,
+        protein:140, carbs:128, fat:45, weightLb:122, splitStyle:"bodypart", meals:6 });
+      return {
+        bodypart: /back \+ biceps/i.test(p.liftDays[0].name) && p.liftDays.some(d => /chest \+ triceps/i.test(d.name)),
+        snacks: p.food.snacks === 3 && p.food.mainMeals === 3,
+        // lifting is the priority at 5 days -> cardio capped, running warned off
+        cardioCapped: p.cardio.total <= 120,
+        hasRules: (p.cardio.rules || []).length >= 3 && !!p.cardio.source,
+      };
+    });
+    (r.bodypart && r.snacks && r.cardioCapped && r.hasRules)
+      ? ok("v29 body-part split + snacks + evidence-based cardio dose")
+      : fail("v29 program options", JSON.stringify(r));
+  } catch (e) { fail("v29 program options", e); }
+
+  try {
+    const d = await page.evaluate(() => {
+      const near = new Date(Date.now() + 42*86400000).toISOString().slice(0,10);
+      const base = { weightLb:150, bfPct:30, targetBfPct:22, mode:"lose", floorCal:1400,
+                     days:5, lifts:true, ratePctPerWk:0.6, sex:"f", ageYears:36, heightIn:66 };
+      const p = window.__bermo.designGoalPlan(Object.assign({}, base, {byDate:near}));
+      return { need:p.deadline.needPct, realistic:p.deadline.realistic,
+               rate:p.ratePct, safeWeeks:p.deadline.safeWeeks,
+               warned: p.notes.some(n => /1%\/week|muscle with the fat/i.test(n)) };
+    });
+    // an impossible date must be flagged, capped at the 1%/wk evidence
+    // ceiling, and answered with an honest timeline instead
+    (d.need > 1 && d.realistic === false && d.rate <= 1 && d.safeWeeks > 6 && d.warned)
+      ? ok(`v29 deadline capped at the safe rate (asked ${d.need}%/wk, honest answer ${d.safeWeeks} weeks)`)
+      : fail("v29 deadline", JSON.stringify(d));
+  } catch (e) { fail("v29 deadline", e); }
+
+  try {
+    const cmp = await page.evaluate(() => {
+      const el = document.getElementById("cmpRows");
+      return el ? el.innerText : "";
+    });
+    /lift days/i.test(cmp) && /working sets/i.test(cmp) && /cardio/i.test(cmp)
+      ? ok("v29 week comparison includes lifts, sets and cardio")
+      : fail("v29 compare card", cmp.slice(0, 120));
+  } catch (e) { fail("v29 compare card", e); }
+
   await browser.close();
   print();
 })();

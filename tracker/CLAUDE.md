@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v28**.
+- Current build: **v29**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -244,12 +244,43 @@ typed gone. It is now its own `.xsheet` layered on top of `document.body`;
 nothing underneath is touched. **Never route a secondary panel through
 `openModal()` while another modal is open.**
 
-**The program** (v27) — `buildProgram()` turns the Goal Designer's answers
+**Evidence the program is built on — cite it, don't re-guess it.** She
+explicitly asked for this to be looked up rather than invented:
+- **Cardio dose / interference.** Wilson et al. 2012, *J Strength Cond Res*
+  (meta-analysis, 21 studies, 422 effect sizes): interference scales with the
+  **frequency and duration** of endurance work; **running** blunted strength
+  and hypertrophy while **cycling did not**; 3 days/wk interfered less than 5.
+  A 2017 systematic review on intra-session sequence found the effect is
+  largely a **same-session** problem — separate days, or 6+ hours apart, and
+  it shrinks. Steps/NEAT don't interfere at all, which is why they carry most
+  of the load in the prescription. Encoded in `buildProgram()`'s cardio block:
+  ≤3 sessions and ≤100 min/wk when lifting is the priority, cycling/incline
+  walking/elliptical named over running, never in the same session as legs.
+- **Rate of loss.** Helms et al. 2014 (JISSN) — 0.5–1% of bodyweight per week
+  to maximise muscle retention. Garthe et al. 2011 — 0.7%/wk **gained** lean
+  mass and lost 31% of fat mass, while 1.4%/wk held lean mass flat and lost
+  only 21%. This is the ceiling `designGoalPlan` enforces when a target date
+  demands more; it reports the honest timeline instead of designing the
+  unsafe one. Explainer key `"rate"`.
+- **Sex.** A 2023 Frontiers review found no good evidence for programming
+  around menstrual-cycle phase, and a 2020 JSCR meta-analysis found women and
+  men respond similarly to resistance training. So the app asks for sex (it
+  affects the Mifflin fallback) but does **not** cycle-sync training.
+
+**The program** (v27, extended v29) — `buildProgram()` turns the Goal Designer's answers
 into what to actually DO: a training split from `SPLIT_TEMPLATES` (2-6 days),
 exercises chosen per sub-muscle region from `REGION_EXERCISES` and filtered by
 `gymHasExercise()` so it only prescribes kit she has, rep schemes that follow
 the goal (`_schemeFor`), a cardio prescription scaled to the size of the
 deficit, and a food plan with per-meal protein and real examples.
+`splitStyle` picks the template family: **`bodypart` is the default** —
+back+biceps, chest+triceps, legs, shoulders+arms, glutes+hams — because she
+does not train upper/lower/push/pull. `classic` keeps the old templates.
+`meals` (3-6) splits protein across meals **and snacks**, since she feeds
+protein 5-6 times a day. `input.byDate` on the goal derives the required
+rate from a deadline. `programAccountability()` / `renderProgramCallout()`
+put a card at the top of Fitness holding her to the prescribed lifting days,
+priced in the volume each missed day costs.
 `applyProgramToPlan()` writes the split into `state.plan` for the current week
 with sensible weekday spacing. Saved as `state.goals.program` and surfaced on
 the Goals plan card. The split is deliberately built to cover all seven
@@ -310,7 +341,7 @@ Playwright is already installed in the scratchpad. Launch chromium with
 `{ server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" }`.
 **Do not run `npx playwright install`.**
 
-**Expected: 31/31 and zero page errors.** (Two console errors about
+**Expected: 34/34 and zero page errors.** (Two console errors about
 `ERR_CONNECTION_RESET` are the sandbox blocking a CDN — pre-existing, ignore.)
 
 The suite covers: load, wizard, **sideways overflow on every page**, all tabs,
@@ -416,4 +447,5 @@ micronutrients, Goal Designer, local health-note parser, manual body comp ·
 and page-flow rebuild · `v25` `save()` made fail-safe · `v26` stat band
 rebuilt, uniform gaps, equal side-by-side cards · `v27` step-attribute bug,
 feet+inches height, and the training/cardio/food program · `v28` Goal Designer maths and the
-explainer sheet.
+explainer sheet · `v29` target date, body-part splits, researched cardio dose,
+lift comparison and the program call-out.

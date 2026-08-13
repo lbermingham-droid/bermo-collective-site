@@ -2195,7 +2195,7 @@ function openMacroCalcModal(){
         <select id="mcSex"><option value="f" ${sex==="f"?"selected":""}>Female</option><option value="m" ${sex==="m"?"selected":""}>Male</option></select>
       </label>
       <label><span>Age</span><input id="mcAge" type="number" min="14" max="90" value="${profYear ? new Date().getFullYear()-profYear : ""}" placeholder="35"></label>
-      <label><span>Height (in or cm)</span><input id="mcHt" type="number" min="50" max="220" step="0.5" value="${state.profile.height||""}" placeholder="${state.profile.units==='metric'?'168':'66'}"></label>
+      ${heightFieldHtml("mcHt", state.profile.height)}
       <label><span>Weight (${unit()})</span><input id="mcWt" type="number" min="60" max="600" step="0.1" value="${lastWeight}" placeholder=""></label>
       <label><span>Body fat % (optional)</span><input id="mcBF" type="number" min="3" max="60" step="0.1" value="${lastBF}" placeholder="auto from log"></label>
       <label><span>Activity</span>
@@ -2245,13 +2245,13 @@ function openMacroCalcModal(){
     document.getElementById("mcCalc").addEventListener("click", () => {
       const sex = document.getElementById("mcSex").value;
       const age = parseFloat(document.getElementById("mcAge").value);
-      let ht = parseFloat(document.getElementById("mcHt").value);
+      let ht = readHeightField("mcHt");
       let wt = parseFloat(document.getElementById("mcWt").value);
       const bf = parseFloat(document.getElementById("mcBF").value);
       const act = parseFloat(document.getElementById("mcAct").value);
       const goal = document.getElementById("mcGoal").value;
       const split = document.getElementById("mcSplit").value;
-      if(isNaN(age) || isNaN(ht) || isNaN(wt)) { toast("Fill in age, height, weight", "pink"); return; }
+      if(isNaN(age) || ht == null || isNaN(ht) || isNaN(wt)) { toast("Fill in age, height, weight", "pink"); return; }
 
       // Convert to metric for the formulas
       let kg = wt, cm = ht;
@@ -4490,7 +4490,7 @@ function openEditPRsModal(lift){
     <div class="edit-pr-grid">
       ${REP_RANGES.map(r => `
         <div class="edit-pr-row">
-          <label><input id="pr_${r}" type="number" step="0.5" min="0" value="${prs[String(r)] ? prs[String(r)].val : ""}" placeholder="--"> <span>${r} REP MAX (${unit()})</span></label>
+          <label><input id="pr_${r}" type="number" step="any" inputmode="decimal" min="0" value="${prs[String(r)] ? prs[String(r)].val : ""}" placeholder="--"> <span>${r} REP MAX (${unit()})</span></label>
         </div>
       `).join("")}
     </div>
@@ -10095,7 +10095,7 @@ function renderMacroCalc(hostId){
     <div class="mc-top">
       <div class="mc-cal">
         <label>Calorie goal</label>
-        <input id="${hostId}_cal" type="number" min="800" max="6000" step="10" value="${Math.round(calGoal)}">
+        <input id="${hostId}_cal" type="number" min="800" max="6000" step="1" inputmode="numeric" value="${Math.round(calGoal)}">
       </div>
       <div class="mc-from">from macros <b>${Math.round(fromMacros)}</b> kcal</div>
     </div>
@@ -11891,6 +11891,37 @@ function renderWhy(){
 
 // Katch-McArdle when body fat is known (it beats Mifflin once you have
 // a real body-comp number), Mifflin-St Jeor when it isn't.
+// Height in the units people actually think in. Nobody knows they are 66
+// inches tall; they know they are 5'6". Renders ft + in for imperial, cm for
+// metric, and reads back a single number of inches (or cm).
+function heightFieldHtml(idBase, valueIn){
+  const metric = state.profile.units === "metric";
+  if(metric){
+    const cm = valueIn ? Math.round(valueIn * 2.54) : "";
+    return `<label class="span-2"><span>Height</span>
+      <input id="${idBase}Cm" type="number" min="100" max="230" step="any" inputmode="decimal"
+        value="${cm}" placeholder="cm"></label>`;
+  }
+  const ft = valueIn ? Math.floor(valueIn / 12) : "";
+  const inch = valueIn ? Math.round(valueIn % 12) : "";
+  return `<label class="span-2"><span>Height</span>
+    <span class="ht-row">
+      <span class="ht-unit"><input id="${idBase}Ft" type="number" min="3" max="8" step="1" inputmode="numeric" value="${ft}" placeholder="5"><i>ft</i></span>
+      <span class="ht-unit"><input id="${idBase}In" type="number" min="0" max="11" step="1" inputmode="numeric" value="${inch}" placeholder="6"><i>in</i></span>
+    </span></label>`;
+}
+// Returns height in INCHES (imperial) or CM (metric) — same unit the rest of
+// the maths already expects from the old single field.
+function readHeightField(idBase){
+  const metric = state.profile.units === "metric";
+  const num = (id) => { const el = document.getElementById(id); if(!el) return null;
+    const v = parseFloat(el.value); return isNaN(v) ? null : v; };
+  if(metric){ const cm = num(idBase + "Cm"); return cm; }
+  const ft = num(idBase + "Ft"), inch = num(idBase + "In");
+  if(ft == null && inch == null) return null;
+  return (ft || 0) * 12 + (inch || 0);
+}
+
 function _bmrFor(weightLb, bfPct, sex, ageYears, heightIn){
   const kg = weightLb * 0.4536;
   if(bfPct != null && bfPct > 3 && bfPct < 60){
@@ -12041,7 +12072,7 @@ function openGoalDesigner(){
         <label><span>Weight (${unit()})</span><input id="gdW" type="number" step="0.1" value="${w0}"></label>
         <label><span>Body fat %<i class="gd-hint" data-explain="bf">?</i></span><input id="gdBF" type="number" step="0.1" inputmode="decimal" value="${bf0 != null ? bf0 : ""}" placeholder="from your InBody"></label>
         <label><span>Age</span><input id="gdAge" type="number" min="14" max="90" value="${age}"></label>
-        <label><span>Height (in)</span><input id="gdHt" type="number" step="0.5" value="${state.profile.height || ""}"></label>
+        ${heightFieldHtml("gdHt", state.profile.height)}
       </div>
     </div>
 
@@ -12049,7 +12080,7 @@ function openGoalDesigner(){
       <div class="gd-h"><i>3</i> Your target</div>
       <div class="form-grid">
         <label><span>Goal body fat %<i class="gd-hint" data-explain="bf">?</i></span>
-          <input id="gdTargetBF" type="number" step="0.5" value="${saved.targetBf != null ? saved.targetBf : (bf0 != null ? Math.max(15, Math.round(bf0 - 5)) : "")}" placeholder="e.g. 24"></label>
+          <input id="gdTargetBF" type="number" step="any" inputmode="decimal" value="${saved.targetBf != null ? saved.targetBf : (bf0 != null ? Math.max(15, Math.round(bf0 - 5)) : "")}" placeholder="e.g. 24"></label>
         <label><span>Goal weight (${unit()})</span>
           <input id="gdTargetW" type="number" step="0.1" value="${saved.targetWeight || g.weight || ""}" placeholder="optional"></label>
       </div>
@@ -12059,7 +12090,7 @@ function openGoalDesigner(){
     <div class="gd-sec">
       <div class="gd-h"><i>4</i> Your limits</div>
       <div class="form-grid">
-        <label><span>Lowest calories you'll accept</span><input id="gdFloor" type="number" step="10" inputmode="numeric" value="${saved.floor || 1400}"></label>
+        <label><span>Lowest calories you'll accept</span><input id="gdFloor" type="number" step="1" inputmode="numeric" value="${saved.floor || 1400}"></label>
         <label><span>Training days a week</span><input id="gdDays" type="number" min="0" max="7" inputmode="numeric" value="${saved.days != null ? saved.days : 4}"></label>
       </div>
       <label class="gd-check"><input type="checkbox" id="gdLifts" ${saved.lifts === false ? "" : "checked"}> I lift weights (raises your protein target)</label>
@@ -12090,6 +12121,7 @@ function openGoalDesigner(){
     }));
     root.querySelectorAll("[data-explain]").forEach(b =>
       b.addEventListener("click", () => openExplainer(b.getAttribute("data-explain"))));
+    let _gdProgram = null;
 
     const num = (id) => { const v = parseFloat((document.getElementById(id)||{}).value); return isNaN(v) ? null : v; };
 
@@ -12108,7 +12140,12 @@ function openGoalDesigner(){
         ratePctPerWk: parseFloat(document.getElementById("gdRate").value),
         sex: state.profile.sex === "male" || state.profile.sex === "m" ? "m" : "f",
         ageYears: num("gdAge"),
-        heightIn: num("gdHt"),
+        heightIn: readHeightField("gdHt"),
+      });
+      _gdProgram = buildProgram({
+        mode, days: num("gdDays"), lifts: document.getElementById("gdLifts").checked,
+        dailyDelta: plan.actualDelta, protein: plan.protein, carbs: plan.carbs, fat: plan.fat,
+        weightLb,
       });
       const eta = plan.weeks
         ? new Date(Date.now() + plan.weeks*7*86400000).toLocaleDateString(undefined,{month:"long",year:"numeric"})
@@ -12135,9 +12172,10 @@ function openGoalDesigner(){
           ${eta ? `<div><span>Gets you there around</span><b>${eta}</b></div>` : ""}
         </div>` : ""}
         ${plan.notes.length ? `<ul class="gd-notes">${plan.notes.map(n => `<li>${escape(n)}</li>`).join("")}</ul>` : ""}
+        ${programHtml(_gdProgram)}
         <div class="gd-h" style="margin-top:16px"><i>✎</i> Change anything before you save</div>
         <div class="form-grid">
-          <label><span>Calories</span><input id="gdFinalCal" type="number" step="10" value="${plan.cal}"></label>
+          <label><span>Calories</span><input id="gdFinalCal" type="number" step="1" inputmode="numeric" value="${plan.cal}"></label>
           <label><span>Protein (g)</span><input id="gdFinalP" type="number" value="${plan.protein}"></label>
           <label><span>Carbs (g)</span><input id="gdFinalC" type="number" value="${plan.carbs}"></label>
           <label><span>Fat (g)</span><input id="gdFinalF" type="number" value="${plan.fat}"></label>
@@ -12159,6 +12197,7 @@ function openGoalDesigner(){
       // Keep the top-level energy numbers in step — adaptive macros reads them.
       state.goals.bmr = plan.bmr;
       state.goals.tdee = plan.tdee;
+      state.goals.program = _gdProgram;
       state.goals.plan = {
         mode,
         targetBf: num("gdTargetBF"),
@@ -12173,7 +12212,8 @@ function openGoalDesigner(){
         createdAt: todayKey(),
       };
       save(); closeModal(); renderAll();
-      toast("Plan saved as your goals", "cyan");
+      if(_gdProgram && _gdProgram.liftDays.length) openApplyProgramModal(_gdProgram);
+      else toast("Plan saved as your goals", "cyan");
     });
   });
 }
@@ -12222,7 +12262,12 @@ function renderPlanCard(){
     </div>`;
   }
 
-  host.innerHTML = progress + `<div class="plan-rows">
+  const prog = g.program;
+  const progRow = prog ? `<div class="plan-prog-link">
+      <div><b>${escape(prog.split)}</b><span>${prog.days} training days · ${prog.cardio.total} min cardio · ${prog.food.meals} meals a day</span></div>
+      <button type="button" class="btn btn-ghost btn-sm" id="planShowProg">VIEW</button>
+    </div>` : "";
+  host.innerHTML = progress + progRow + `<div class="plan-rows">
     ${rows.map(([k,v,sub]) => `<div class="plan-row"><span>${escape(k)}</span><b>${escape(v)}</b><em>${escape(sub||"")}</em></div>`).join("")}
   </div>
   <div class="plan-acts">
@@ -12233,6 +12278,20 @@ function renderPlanCard(){
   if(redo) redo.addEventListener("click", openGoalDesigner);
   const wi = document.getElementById("planWhatIs");
   if(wi) wi.addEventListener("click", () => openExplainer("bmr"));
+  const sp = document.getElementById("planShowProg");
+  if(sp) sp.addEventListener("click", () => openModal("Your program", programHtml(prog) + `
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Close</button>
+      <button class="btn btn-cyan" id="pgApply">ADD TO THIS WEEK</button>
+    </div>`, (root) => {
+      root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+      const a = document.getElementById("pgApply");
+      if(a) a.addEventListener("click", () => {
+        const n = applyProgramToPlan(prog);
+        closeModal(); renderAll();
+        toast(`${n} training days added to this week`, "cyan");
+      });
+    }));
 }
 
 onReady(() => {
@@ -12530,6 +12589,250 @@ function renderNotesCard(){
 }
 
 
+
+// =================================================================
+// THE PROGRAM
+// The Goal Designer said what to EAT. It said nothing about what to DO.
+// This turns the same answers — goal, training days, equipment, deficit
+// size — into a week of lifting, a cardio prescription, and a food plan
+// with real portions. And it can write the split straight into her plan.
+// =================================================================
+
+// Splits by training frequency. Each day names the regions it must cover;
+// exercises are then filled from what her gym actually has.
+const SPLIT_TEMPLATES = {
+  2: { name:"Full body ×2", days:[
+    { name:"Full body A", focus:["legs.quads","glutes.glutemax","chest.midchest","back.lats","shoulders.sidedelt","core.abs"] },
+    { name:"Full body B", focus:["legs.hams","glutes.glutemed","back.midback","shoulders.frontdelt","arms.biceps","core.obliques"] },
+  ]},
+  3: { name:"Full body ×3", days:[
+    { name:"Full body A", focus:["legs.quads","glutes.glutemax","chest.midchest","back.lats","core.abs"] },
+    { name:"Full body B", focus:["legs.hams","back.erectors","shoulders.frontdelt","arms.triceps","core.deepcore"] },
+    { name:"Full body C", focus:["glutes.glutemed","legs.calves","back.midback","chest.upperchest","arms.biceps","core.obliques"] },
+  ]},
+  4: { name:"Upper / Lower ×2", days:[
+    { name:"Lower — quad focus", focus:["legs.quads","legs.adductors","glutes.glutemax","legs.calves","core.abs"] },
+    { name:"Upper — push focus", focus:["chest.midchest","chest.upperchest","shoulders.frontdelt","shoulders.sidedelt","arms.triceps"] },
+    { name:"Lower — glute / ham focus", focus:["legs.hams","glutes.glutemax","glutes.glutemed","back.erectors","core.deepcore"] },
+    { name:"Upper — pull focus", focus:["back.lats","back.midback","back.traps","shoulders.reardelt","arms.biceps"] },
+  ]},
+  5: { name:"Upper / Lower / Push / Pull / Legs", days:[
+    { name:"Lower — quad focus", focus:["legs.quads","legs.adductors","legs.calves","core.abs"] },
+    { name:"Push", focus:["chest.midchest","chest.upperchest","shoulders.frontdelt","shoulders.sidedelt","arms.triceps"] },
+    { name:"Pull", focus:["back.lats","back.midback","back.traps","shoulders.reardelt","arms.biceps"] },
+    { name:"Glutes + hamstrings", focus:["glutes.glutemax","glutes.glutemed","legs.hams","back.erectors"] },
+    { name:"Full body + core", focus:["legs.quads","chest.midchest","back.lats","core.obliques","core.deepcore"] },
+  ]},
+  6: { name:"Push / Pull / Legs ×2", days:[
+    { name:"Push", focus:["chest.midchest","shoulders.frontdelt","shoulders.sidedelt","arms.triceps"] },
+    { name:"Pull", focus:["back.lats","back.midback","shoulders.reardelt","arms.biceps"] },
+    { name:"Legs — quad focus", focus:["legs.quads","legs.adductors","legs.calves","core.abs"] },
+    { name:"Push — upper chest", focus:["chest.upperchest","shoulders.frontdelt","arms.triceps","core.deepcore"] },
+    { name:"Pull — thickness", focus:["back.midback","back.traps","back.erectors","arms.biceps"] },
+    { name:"Legs — glute / ham focus", focus:["glutes.glutemax","glutes.glutemed","legs.hams","legs.calves"] },
+  ]},
+};
+
+// Candidate exercises per region, best first. Filtered by her gym.
+const REGION_EXERCISES = {
+  "legs.quads":      ["Back Squat","Leg Press","Front Squat","Bulgarian Split Squat","Leg Extension","Goblet Squat","Walking Lunge"],
+  "legs.adductors":  ["Adductor Machine","Cossack Squat","Sumo Deadlift","Wide Stance Leg Press"],
+  "legs.hams":       ["Romanian Deadlift","Lying Leg Curl","Seated Leg Curl","Good Morning","Nordic Curl"],
+  "legs.calves":     ["Standing Calf Raise","Seated Calf Raise","Leg Press Calf Raise"],
+  "glutes.glutemax": ["Hip Thrust","Bulgarian Split Squat","Romanian Deadlift","Glute Bridge","Step-up","Cable Kickback"],
+  "glutes.glutemed": ["Cable Abduction","Banded Lateral Walk","Abduction Machine","Curtsy Lunge","Clamshell"],
+  "back.lats":       ["Lat Pulldown","Pull-up","Straight-Arm Pulldown","Dumbbell Pullover"],
+  "back.midback":    ["Seated Cable Row","Chest-Supported Row","Barbell Row","Dumbbell Row","T-Bar Row"],
+  "back.traps":      ["Barbell Shrug","Dumbbell Shrug","Farmer Carry","Rack Pull"],
+  "back.erectors":   ["Back Extension","Romanian Deadlift","Deadlift","Good Morning"],
+  "back.reardelt":   ["Face Pull","Reverse Pec Deck","Rear Delt Fly"],
+  "chest.midchest":  ["Bench Press","Dumbbell Bench Press","Chest Press Machine","Push-up","Cable Fly"],
+  "chest.upperchest":["Incline Dumbbell Press","Incline Bench Press","Low-to-High Cable Fly"],
+  "chest.lowerchest":["Dip","Decline Press","High-to-Low Cable Fly"],
+  "shoulders.frontdelt":["Overhead Press","Dumbbell Shoulder Press","Arnold Press","Front Raise"],
+  "shoulders.sidedelt": ["Lateral Raise","Cable Lateral Raise","Upright Row"],
+  "shoulders.reardelt": ["Face Pull","Reverse Pec Deck","Rear Delt Fly"],
+  "arms.biceps":     ["Dumbbell Curl","Hammer Curl","Cable Curl","Preacher Curl","Chin-up"],
+  "arms.triceps":    ["Cable Pushdown","Overhead Tricep Extension","Close-Grip Bench Press","Dip","Skull Crusher"],
+  "arms.forearms":   ["Farmer Carry","Wrist Curl","Reverse Curl"],
+  "core.abs":        ["Hanging Leg Raise","Cable Crunch","Decline Sit-up","Toes to Bar"],
+  "core.obliques":   ["Pallof Press","Russian Twist","Side Plank","Cable Woodchop"],
+  "core.deepcore":   ["Plank","Ab Wheel Rollout","Dead Bug","Bird Dog"],
+};
+
+// Rep prescription depends on what she's trying to do.
+function _schemeFor(mode, isCompound){
+  if(mode === "build")  return isCompound ? "4 × 6-8" : "3 × 10-12";
+  if(mode === "lose")   return isCompound ? "3 × 6-8" : "3 × 12-15";
+  if(mode === "recomp") return isCompound ? "4 × 6-10" : "3 × 10-15";
+  return isCompound ? "3 × 8" : "3 × 12";
+}
+const _COMPOUND = /squat|deadlift|press|\brow\b|pull ?up|pull ?down|chin ?up|hip thrust|lunge|step-?up|\bdip\b|good morning/i;
+
+function buildProgram(opts){
+  const days  = Math.max(2, Math.min(6, opts.days || 4));
+  const mode  = opts.mode || "lose";
+  const lifts = opts.lifts !== false;
+  const tpl   = SPLIT_TEMPLATES[days] || SPLIT_TEMPLATES[4];
+
+  // ---- LIFTING ----
+  const pickFor = (region, used) => {
+    const list = REGION_EXERCISES[region] || [];
+    const available = list.filter(n => gymHasExercise(n));
+    const pool = available.length ? available : list;      // gym too narrow? show it anyway
+    return pool.find(n => !used.has(n)) || pool[0] || null;
+  };
+  const liftDays = lifts ? tpl.days.map(d => {
+    const used = new Set();
+    const exercises = d.focus.map(region => {
+      const name = pickFor(region, used);
+      if(!name) return null;
+      used.add(name);
+      return { name, scheme: _schemeFor(mode, _COMPOUND.test(name)), region, label: subLabel(region) };
+    }).filter(Boolean);
+    return { name: d.name, exercises };
+  }) : [];
+
+  // ---- CARDIO ----
+  // Scaled to the size of the deficit and how much lifting is already on.
+  const deficit = Math.max(0, -(opts.dailyDelta || 0));
+  let cardio;
+  if(mode === "build"){
+    cardio = { total: 60, sessions: [
+      { kind:"Easy zone 2", detail:"2 × 30 min — walk, incline treadmill or bike", why:"Keeps your heart healthy without eating into recovery." },
+    ]};
+  } else if(deficit >= 400 || days >= 5){
+    cardio = { total: 150, sessions: [
+      { kind:"Zone 2", detail:"3 × 40 min — brisk walk, incline treadmill, easy bike", why:"Burns fat without adding fatigue to your lifts." },
+      { kind:"Intervals", detail:"1 × 15 min — 30s hard / 90s easy", why:"Conditioning in the least time. Keep it away from leg day." },
+    ]};
+  } else {
+    cardio = { total: 120, sessions: [
+      { kind:"Zone 2", detail:"3 × 30 min — brisk walk or incline treadmill", why:"Low cost to recovery, adds up fast." },
+      { kind:"Intervals", detail:"1 × 10 min — 30s hard / 90s easy", why:"Optional. Skip it in a heavy training week." },
+    ]};
+  }
+  cardio.steps = mode === "build" ? 8000 : 9000;
+
+  // ---- FOOD ----
+  const protein = opts.protein || 0, carbs = opts.carbs || 0, fat = opts.fat || 0;
+  const meals = protein >= 150 ? 4 : 3;
+  const food = {
+    meals,
+    perMeal: { p: Math.round(protein / meals), c: Math.round(carbs / meals), f: Math.round(fat / meals) },
+    build: [
+      { slot:"Every meal", rule:`${Math.round(protein / meals)}g protein`, examples:"chicken, turkey, lean beef, fish, eggs, Greek yogurt, cottage cheese, tofu, whey" },
+      { slot:"Around training", rule:`Most of your ${carbs}g carbs`, examples:"rice, potato, oats, fruit, sourdough — before and after the session" },
+      { slot:"Fat", rule:`${fat}g, spread across the day`, examples:"olive oil, avocado, nuts, salmon, whole eggs" },
+      { slot:"Volume", rule:"2 fists of vegetables at lunch and dinner", examples:"broccoli, peppers, greens, courgette — fills you up for almost no calories" },
+    ],
+    limit: deficit > 0
+      ? ["Liquid calories — juice, lattes, alcohol. They don't fill you up.",
+         "Fried food and creamy sauces — the fastest way to blow the fat target.",
+         "Snacking straight from a packet. Portion it out first."]
+      : ["Nothing is off the table. Hit the protein number first, then eat what you like with the rest."],
+    hydration: Math.round((opts.weightLb || 150) * 0.6),
+  };
+
+  return { split: tpl.name, days, liftDays, cardio, food, mode };
+}
+
+// Write the split into her actual week, starting from the coming Sunday.
+function applyProgramToPlan(program){
+  const names = ["sun","mon","tue","wed","thu","fri","sat"];
+  const plan = getPlan();
+  const start = weekStart(new Date());
+  const wk = weekKey(start);
+  if(!plan[wk]) plan[wk] = {};
+
+  // Sensible weekday placement so training days aren't stacked back to back.
+  const LAYOUT = {
+    2: [1,4], 3: [1,3,5], 4: [1,2,4,5], 5: [1,2,3,5,6], 6: [1,2,3,4,5,6],
+  };
+  const slots = LAYOUT[program.days] || LAYOUT[4];
+  program.liftDays.forEach((d, i) => {
+    const dayName = names[slots[i]];
+    if(!dayName) return;
+    plan[wk][dayName] = {
+      type: d.name,
+      exercises: d.exercises.map(e => ({ name: e.name, scheme: e.scheme })),
+    };
+  });
+  save();
+  return slots.length;
+}
+
+// After saving a plan, offer to write the split straight into her week so
+// the program isn't just something she read once.
+function openApplyProgramModal(program){
+  openModal("Put this in your week?", `
+    <p class="hn-intro">Your targets are saved. Want the <b>${escape(program.split)}</b> split written into this week's plan as well? Each day arrives with its exercises already listed, ready to start.</p>
+    <p class="gd-note">It replaces anything already planned for those days. You can edit any day afterwards from Fitness.</p>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Not now</button>
+      <button class="btn btn-cyan" id="apYes">ADD IT TO MY WEEK</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => {
+      closeModal(); toast("Plan saved as your goals", "cyan");
+    }));
+    document.getElementById("apYes").addEventListener("click", () => {
+      const n = applyProgramToPlan(program);
+      closeModal(); renderAll();
+      toast(`${n} training days added to this week`, "cyan");
+    });
+  });
+}
+
+function programHtml(program){
+  const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const LAYOUT = { 2:[1,4], 3:[1,3,5], 4:[1,2,4,5], 5:[1,2,3,5,6], 6:[1,2,3,4,5,6] };
+  const slots = LAYOUT[program.days] || LAYOUT[4];
+  return `
+    ${program.liftDays.length ? `
+    <div class="gd-h" style="margin-top:16px"><i>1</i> Your training week — ${escape(program.split)}</div>
+    <div class="pg-days">
+      ${program.liftDays.map((d, i) => `
+        <div class="pg-day">
+          <div class="pg-day-head">
+            <b>${escape(dayNames[slots[i]] || "")}</b>
+            <span>${escape(d.name)}</span>
+          </div>
+          <ul class="pg-ex">
+            ${d.exercises.map(e => `<li><span>${escape(e.name)}</span><em>${escape(e.scheme)}</em></li>`).join("")}
+          </ul>
+        </div>`).join("")}
+    </div>
+    <p class="gd-note">Built from the equipment in <b>My Gym</b>, and chosen so every region gets covered across the week — that's what the Muscle coverage card on Health checks against.</p>` : ""}
+
+    <div class="gd-h" style="margin-top:16px"><i>2</i> Cardio — ${program.cardio.total} min a week</div>
+    <div class="pg-cardio">
+      ${program.cardio.sessions.map(c => `
+        <div class="pg-c-row">
+          <b>${escape(c.kind)}</b>
+          <span>${escape(c.detail)}</span>
+          <em>${escape(c.why)}</em>
+        </div>`).join("")}
+      <div class="pg-c-row"><b>Daily steps</b><span>${program.cardio.steps.toLocaleString()} a day</span><em>The one that matters most and costs you nothing.</em></div>
+    </div>
+
+    <div class="gd-h" style="margin-top:16px"><i>3</i> How to eat it — ${program.food.meals} meals a day</div>
+    <div class="pg-food">
+      ${program.food.build.map(b => `
+        <div class="pg-f-row">
+          <b>${escape(b.slot)}</b>
+          <span>${escape(b.rule)}</span>
+          <em>${escape(b.examples)}</em>
+        </div>`).join("")}
+      <div class="pg-f-row"><b>Water</b><span>${program.food.hydration} ${unitVol()} a day</span><em>Hydration shows up in your training volume — the Health page tracks it.</em></div>
+    </div>
+    <div class="pg-limit">
+      <div class="pg-limit-h">Where the calories leak</div>
+      <ul>${program.food.limit.map(l => `<li>${escape(l)}</li>`).join("")}</ul>
+    </div>`;
+}
+
+
 // =================================================================
 // TEST SEAM — the only thing this IIFE exposes. Pure functions only, so
 // the smoke suite can assert on the maths without the UI in the way.
@@ -12537,6 +12840,8 @@ function renderNotesCard(){
 // =================================================================
 window.__bermo = {
   save,
+  buildProgram,
+  readHeightField,
   parseHealthNote,
   designGoalPlan,
   subMusclesForExercise,

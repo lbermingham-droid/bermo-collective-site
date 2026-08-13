@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v26**.
+- Current build: **v27**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -168,6 +168,13 @@ in chunks. Always `node --check tracker/app.js` before committing.
   **On near-black, drop shadows are invisible — depth comes from a lit
   surface.** A grey 1px outline reads as a drawn box, which is what made it
   look homemade. Things inside a card step **up** a level, not down.
+- **Number inputs**: use `step="1"` (integers) or `step="any"` (decimals),
+  never a coarse step. `#setCal` had `step="50"`, so typing 1473 was rejected
+  by the browser with "Enter a valid value" and she could not save her calorie
+  goal. Always add `inputmode` too so iOS shows the right keypad.
+- **Height**: `heightFieldHtml(idBase, valueIn)` / `readHeightField(idBase)`.
+  Renders **feet + inches** for imperial and cm for metric, reads back a single
+  number in the unit the maths expects. Nobody knows they are 66 inches tall.
 - **Spacing**: exactly 12px between every top-level section of a view, set in
   one rule. Never add a `.card + .card` margin — it applies inside grids and
   knocks side-by-side cards out of alignment (this happened in v24).
@@ -207,6 +214,17 @@ second, and **stretches the timeline rather than shrinking the food** when the
 floor binds. Every output editable before saving. Plan card shows progress
 toward the body-fat target. Plain-language **BMR vs BMI** and body-fat
 explainers. Goal contract, consistency chain, restart card.
+
+**The program** (v27) — `buildProgram()` turns the Goal Designer's answers
+into what to actually DO: a training split from `SPLIT_TEMPLATES` (2-6 days),
+exercises chosen per sub-muscle region from `REGION_EXERCISES` and filtered by
+`gymHasExercise()` so it only prescribes kit she has, rep schemes that follow
+the goal (`_schemeFor`), a cardio prescription scaled to the size of the
+deficit, and a food plan with per-meal protein and real examples.
+`applyProgramToPlan()` writes the split into `state.plan` for the current week
+with sensible weekday spacing. Saved as `state.goals.program` and surfaced on
+the Goals plan card. The split is deliberately built to cover all seven
+regions across the week — the same thing the Muscle coverage card audits.
 
 **Health** (view id is `view-trends`) — the differentiated part:
 - **The bigger picture** — every day with a check-in scores 0–100 on how it
@@ -263,7 +281,7 @@ Playwright is already installed in the scratchpad. Launch chromium with
 `{ server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" }`.
 **Do not run `npx playwright install`.**
 
-**Expected: 27/27 and zero page errors.** (Two console errors about
+**Expected: 29/29 and zero page errors.** (Two console errors about
 `ERR_CONNECTION_RESET` are the sandbox blocking a CDN — pre-existing, ignore.)
 
 The suite covers: load, wizard, **sideways overflow on every page**, all tabs,
@@ -367,4 +385,5 @@ picture, carb cycling, dead-UI sweep · `v21` the WHY layer · `v22`
 micronutrients, Goal Designer, local health-note parser, manual body comp ·
 `v23` food-search dead-end fix, design system, My Gym · `v24` surface, depth
 and page-flow rebuild · `v25` `save()` made fail-safe · `v26` stat band
-rebuilt, uniform gaps, equal side-by-side cards.
+rebuilt, uniform gaps, equal side-by-side cards · `v27` step-attribute bug,
+feet+inches height, and the training/cardio/food program.

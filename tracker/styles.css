@@ -4135,3 +4135,71 @@ html, body, #app, .app{
   font-weight:800 !important; color:#fff !important;
 }
 .page-stats .sb-cell b u{ font-size:10px; color:var(--iron-mute); }
+/* height entered the way people think about it: feet + inches */
+.ht-row{ display:flex; gap:8px; }
+.ht-unit{ position:relative; flex:1; display:block; }
+.ht-unit input{ width:100%; padding-right:34px !important; }
+.ht-unit i{
+  position:absolute; right:12px; top:50%; transform:translateY(-50%);
+  font-style:normal; font-size:11px; font-weight:800; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--iron-mute); pointer-events:none;
+}
+
+/* ============================================================
+   v27 — the program: training week, cardio, food plan
+   ============================================================ */
+.pg-days{ display:flex; flex-direction:column; gap:8px; }
+.pg-day{
+  background:var(--surf-2); border:1px solid var(--hairline);
+  border-radius:12px; padding:11px; box-shadow:var(--edge-top-soft);
+}
+.pg-day-head{ display:flex; align-items:baseline; gap:8px; margin-bottom:8px; }
+.pg-day-head b{
+  font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:800;
+  color:#04120f; background:var(--iron-volt); padding:2px 7px; border-radius:6px;
+}
+.pg-day-head span{ font-size:12.5px; font-weight:800; color:#fff; }
+.pg-ex{ list-style:none; margin:0; padding:0; }
+.pg-ex li{
+  display:flex; justify-content:space-between; align-items:baseline; gap:10px;
+  padding:5px 0; border-top:1px solid var(--hairline);
+}
+.pg-ex li:first-child{ border-top:0; }
+.pg-ex li span{ font-size:12px; color:var(--iron-mute); }
+.pg-ex li em{
+  font-style:normal; font-family:'JetBrains Mono',monospace;
+  font-size:10.5px; color:var(--iron-volt); white-space:nowrap;
+}
+.pg-cardio, .pg-food{ display:flex; flex-direction:column; gap:6px; }
+.pg-c-row, .pg-f-row{
+  background:var(--surf-2); border:1px solid var(--hairline);
+  border-radius:12px; padding:10px 11px; box-shadow:var(--edge-top-soft);
+}
+.pg-c-row b, .pg-f-row b{
+  display:block; font-size:9.5px; font-weight:900; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--iron-cyan); margin-bottom:3px;
+}
+.pg-c-row span, .pg-f-row span{ display:block; font-size:13px; font-weight:700; color:#fff; }
+.pg-c-row em, .pg-f-row em{
+  display:block; font-style:normal; font-size:10.5px; color:var(--iron-mute);
+  line-height:1.45; margin-top:3px;
+}
+.pg-limit{
+  margin-top:8px; padding:11px; border-radius:12px;
+  border:1px solid var(--brand-purple); background:var(--surf-2);
+}
+.pg-limit-h{
+  font-size:9.5px; font-weight:900; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--brand-purple); margin-bottom:6px;
+}
+.pg-limit ul{ margin:0; padding-left:16px; }
+.pg-limit li{ font-size:11.5px; color:var(--iron-mute); line-height:1.5; margin-bottom:4px; }
+.plan-prog-link{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:11px; border-radius:12px;
+  background:var(--surf-2); border:1px solid var(--iron-volt);
+  box-shadow:var(--edge-top-soft);
+}
+.plan-prog-link b{ display:block; font-size:12.5px; color:var(--iron-volt); }
+.plan-prog-link span{ display:block; font-size:10.5px; color:var(--iron-mute); margin-top:2px; }
+.plan-prog-link .btn{ flex-shrink:0; }

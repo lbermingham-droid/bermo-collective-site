@@ -21,7 +21,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Inter+Tight:wght@600;700;800;900&family=Montserrat:wght@600;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./styles.css?v=26">
+<link rel="stylesheet" href="./styles.css?v=27">
 </head>
 <body>
 
@@ -79,7 +79,7 @@
         </div>
         <label id="wizHtRowMetric" style="display:none">
           <span>Height (cm)</span>
-          <input type="number" id="wizHeightCm" value="165" min="100" max="220" step="0.5">
+          <input type="number" id="wizHeightCm" value="165" min="100" max="220" step="any" inputmode="decimal">
         </label>
         <label>
           <span>Weight <em id="wizWtUnit">(lb)</em></span>
@@ -191,7 +191,7 @@
     <div class="tb-left">
       <div class="tb-logo">
         <span class="tb-top">BERMO<span class="c">.</span></span>
-        <span class="tb-bot">TRACKER <span style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v26</span></span>
+        <span class="tb-bot">TRACKER <span style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v27</span></span>
       </div>
     </div>
     <nav class="tb-nav" id="tabNav">
@@ -1119,7 +1119,7 @@
             <button type="button" class="link-btn-sm" id="macroCalcBtn"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5Z"/></svg></span> Calculate for me</button>
           </div>
           <form id="goalsForm" class="form form-grid">
-            <label><span>Calories</span><input type="number" id="setCal" min="800" max="6000" step="50"></label>
+            <label><span>Calories</span><input type="number" id="setCal" min="800" max="6000" step="1" inputmode="numeric"></label>
             <label><span>Protein (g)</span><input type="number" id="setP" min="0" max="500"></label>
             <label><span>Carbs (g)</span><input type="number" id="setC" min="0" max="800"></label>
             <label><span>Fat (g)</span><input type="number" id="setF" min="0" max="300"></label>
@@ -1389,7 +1389,7 @@
 <div class="toast" id="toast" aria-live="polite"></div>
 
 <script src="/tracker/vendor/chart.umd.js"></script>
-<script src="./data.js?v=26"></script>
-<script src="./app.js?v=26"></script>
+<script src="./data.js?v=27"></script>
+<script src="./app.js?v=27"></script>
 </body>
 </html>

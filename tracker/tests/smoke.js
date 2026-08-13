@@ -511,6 +511,41 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       : fail("v26 spacing/sizing", JSON.stringify(layout));
   } catch (e) { fail("v26 spacing/sizing", e); }
 
+  // 19. v27: the step attribute rejected real calorie targets, height was
+  //     asked for in inches, and the plan prescribed food but no training.
+  try {
+    const stepOk = await page.evaluate(() => {
+      const el = document.getElementById("setCal");
+      if(!el) return null;
+      el.value = "1473";                       // step="50" used to reject this
+      return el.checkValidity();
+    });
+    stepOk ? ok("v27 calorie goal accepts any number (step bug fixed)")
+           : fail("v27 step bug", "1473 still rejected by the input");
+  } catch (e) { fail("v27 step bug", e); }
+
+  try {
+    const prog = await page.evaluate(() => {
+      const p = window.__bermo.buildProgram({
+        mode:"lose", days:4, lifts:true, dailyDelta:-365,
+        protein:101, carbs:157, fat:43, weightLb:122,
+      });
+      return {
+        days: p.liftDays.length,
+        exPerDay: p.liftDays.map(d => d.exercises.length),
+        regions: [...new Set(p.liftDays.flatMap(d => d.exercises.map(e => e.region.split(".")[0])))].sort(),
+        cardio: p.cardio.total,
+        meals: p.food.meals,
+        compoundScheme: (p.liftDays[0].exercises.find(e => /squat/i.test(e.name)) || {}).scheme,
+      };
+    });
+    const covers = ["arms","back","chest","core","glutes","legs","shoulders"].every(r => prog.regions.includes(r));
+    (prog.days === 4 && prog.exPerDay.every(n => n >= 4) && covers
+      && prog.cardio > 0 && prog.meals >= 3 && /6-8/.test(prog.compoundScheme || ""))
+      ? ok(`v27 program: ${prog.days} training days covering all 7 regions + ${prog.cardio}min cardio + ${prog.meals} meals`)
+      : fail("v27 program", JSON.stringify(prog));
+  } catch (e) { fail("v27 program", e); }
+
   await browser.close();
   print();
 })();

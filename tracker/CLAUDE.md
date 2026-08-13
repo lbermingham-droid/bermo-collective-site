@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v25**.
+- Current build: **v26**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -156,12 +156,21 @@ in chunks. Always `node --check tracker/app.js` before committing.
 - `.lrow` — one list row (title / mono sub / heart / +). Used by search results,
   recents, favourites, saved meals, exercise library.
 - `.msel` — grouped multi-select with check circles and per-group "All".
+- `statBandHtml(items)` — **the one page stat band**. Equal cells across the
+  full width, each with label / value / goal / progress bar. Used by
+  `renderNutTopStats`, `renderFitTopStats`, `renderBodyTopStats`. It replaced
+  a tiny ring canvas that floated in dead space on the left with the numbers
+  stacked beside it — five rows tall to show four values. Do not reintroduce a
+  ring here; the dashboard's big Apple rings are the ones that earn their space.
 - **Elevation ramp** (`:root`): `--surf-0..3` (gradient surfaces, not flat greys),
   `--edge-top` (1px inset white specular highlight), `--lift-1/2` (wide soft
   ambient shadow), `--hairline` (rgba white .055).
   **On near-black, drop shadows are invisible — depth comes from a lit
   surface.** A grey 1px outline reads as a drawn box, which is what made it
   look homemade. Things inside a card step **up** a level, not down.
+- **Spacing**: exactly 12px between every top-level section of a view, set in
+  one rule. Never add a `.card + .card` margin — it applies inside grids and
+  knocks side-by-side cards out of alignment (this happened in v24).
 - **Page skeleton**: `.view.active` is a flex column with a fixed order —
   header(0) → subnav(1) → brain row(2) → stat band(3) → banners(4) →
   content(5). This is why every page's top matches regardless of markup order.
@@ -254,14 +263,15 @@ Playwright is already installed in the scratchpad. Launch chromium with
 `{ server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" }`.
 **Do not run `npx playwright install`.**
 
-**Expected: 26/26 and zero page errors.** (Two console errors about
+**Expected: 27/27 and zero page errors.** (Two console errors about
 `ERR_CONNECTION_RESET` are the sandbox blocking a CDN — pre-existing, ignore.)
 
 The suite covers: load, wizard, **sideways overflow on every page**, all tabs,
 food + lift logging end to end, modal close, dashboard re-render, cross-page
 date sync, the v20 health engines, the v21 why layer, the v22 note parser +
 goal maths + calorie floor, v23 search-never-dead-ends + nav consistency,
-v24 surfaces + header flow, v25 quota safety.
+v24 surfaces + header flow, v25 quota safety, v26 uniform gaps + equal
+side-by-side cards + stat-band width use.
 
 Also do a **screenshot pass** — the scratchpad has working scripts
 (`tops.js`, `v20pages.js`, `v23check.js`). Seed state via `localStorage` then
@@ -335,10 +345,6 @@ wrapper, native — are correct, but for the tracker specifically:
 - Twilio SMS (~$2–3/mo) — she hasn't opted in.
 
 **Buildable now:**
-- **The empty ring canvases on Food and Fitness.** Flagged twice, still
-  unresolved. When the day is empty they're a big dark donut taking real
-  estate for zero information. Either show something useful at zero or don't
-  reserve the space until there's data. She was asked to choose and hasn't yet.
 - **Settings never got the page-by-page design pass** that Dashboard,
   Nutrition, Fitness, Body and Health got. It's still walls of paragraph text.
 - Muscle map is geometric, not anatomical (she asked for prettier).
@@ -360,4 +366,5 @@ overhaul, inline macro calc · `v18` Exercise Library w/ photos, month calendar 
 picture, carb cycling, dead-UI sweep · `v21` the WHY layer · `v22`
 micronutrients, Goal Designer, local health-note parser, manual body comp ·
 `v23` food-search dead-end fix, design system, My Gym · `v24` surface, depth
-and page-flow rebuild · `v25` `save()` made fail-safe.
+and page-flow rebuild · `v25` `save()` made fail-safe · `v26` stat band
+rebuilt, uniform gaps, equal side-by-side cards.

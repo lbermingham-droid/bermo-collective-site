@@ -4035,7 +4035,7 @@ html, body, #app, .app{
 .view.active > .subnav{ margin-bottom:12px !important; }
 .view.active > .grid-12{ gap:12px !important; }
 .card{ padding:14px !important; border-radius:16px !important; }
-.card + .card{ margin-top:12px; }
+
 
 /* the page should fade out under the nav, not end in a hard line */
 .main::after{
@@ -4045,34 +4045,42 @@ html, body, #app, .app{
   background:linear-gradient(180deg, transparent, var(--surf-0));
 }
 
-/* ---- one page-stat band, identical on every screen ---- */
-.page-rings, .page-stats:not(.page-stats--rings){
-  padding:11px 13px; border-radius:16px;
+/* ---- ONE stat band. Equal cells, full width, a bar per stat. ---- */
+.stat-band{
+  padding:12px 12px 10px; border-radius:16px;
   background:var(--surf-1) !important;
   border:1px solid var(--hairline) !important;
   box-shadow:var(--edge-top), var(--lift-1) !important;
   margin:0 0 12px !important;
 }
-.page-rings{ display:flex !important; align-items:center; gap:12px; }
-.page-rings canvas{ width:62px !important; height:62px !important; flex-shrink:0; }
-.page-stats, .page-stats--rings{
-  flex:1 !important;
-  display:flex !important; flex-direction:row !important; flex-wrap:wrap !important;
-  align-items:baseline !important; gap:5px 14px !important;
+.page-stats{
+  display:grid !important;
+  grid-template-columns:repeat(auto-fit, minmax(72px, 1fr)) !important;
+  gap:10px 8px !important; align-items:stretch !important;
+  margin:0 !important; padding:0 !important; background:transparent !important; border:0 !important;
 }
-.page-stats--rings{ background:transparent !important; border:0 !important; padding:0 !important; margin:0 !important; box-shadow:none !important; }
-.page-stats span{
-  display:inline-flex !important; flex-direction:row !important;
-  align-items:baseline; gap:5px; white-space:nowrap;
+.sb-cell{ display:flex !important; flex-direction:column; gap:2px; min-width:0; }
+.sb-cell i{
+  font-style:normal; font-size:8.5px; font-weight:900; letter-spacing:.07em;
+  text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-.page-stats i{
-  font-style:normal; font-size:9px; font-weight:900; letter-spacing:.07em;
-  text-transform:uppercase; opacity:.9;
+.sb-cell b{
+  font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:800;
+  color:#fff; line-height:1.05; white-space:nowrap;
 }
-.page-stats b{
-  font-family:'JetBrains Mono',monospace !important; font-size:14px !important;
-  font-weight:800 !important; color:#fff !important;
+.sb-cell b u{ text-decoration:none; font-size:10px; color:var(--iron-mute); }
+.sb-cell em{
+  font-style:normal; font-size:9px; color:#6b7488; line-height:1.2;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
+.sb-bar{
+  display:block; height:3px; border-radius:2px; background:#111622;
+  margin-top:5px; overflow:hidden;
+}
+.sb-bar i{ display:block; height:100%; border-radius:2px; }
+.sb-empty{ grid-column:1/-1; font-size:12px; color:var(--iron-mute); line-height:1.5; }
+.sb-empty b{ color:#fff; }
+.page-stats .cyc-tag{ grid-column:1/-1; justify-self:start; margin-bottom:2px; }
 
 /* ---- three-up stat tiles (Body) instead of three tall slabs ---- */
 .view.active .grid-12:has(> .stat-tile){ grid-template-columns:repeat(3, 1fr) !important; }
@@ -4104,3 +4112,26 @@ html, body, #app, .app{
 }
 /* Health has no stat band; keep its rhythm identical to the others */
 #view-trends > .card:first-of-type{ margin-top:0; }
+
+/* boxes sitting next to each other must be the same size */
+.view.active .grid-12{ align-items:stretch !important; }
+.view.active .grid-12 > .card{ height:100%; }
+.stat-tile{ display:flex; flex-direction:column; justify-content:flex-start; }
+
+/* one gap everywhere — the header was 22px while everything else was 12px */
+.view-head{ margin-bottom:12px !important; }
+.view.active > *{ margin-bottom:12px !important; }
+.view.active > *:last-child{ margin-bottom:0 !important; }
+.brain-row{ margin:0 !important; }
+/* legacy .page-stats rules from v11 still applied to the new cells */
+.page-stats .sb-cell{ display:flex !important; flex-direction:column !important; align-items:stretch !important; gap:2px !important; }
+.page-stats .sb-bar{
+  display:block !important; height:4px !important; border-radius:3px !important;
+  background:rgba(255,255,255,.09) !important; margin-top:6px !important; overflow:hidden;
+}
+.page-stats .sb-bar i{ display:block !important; height:100% !important; border-radius:3px; min-width:2px; }
+.page-stats .sb-cell b{
+  font-family:'JetBrains Mono',monospace !important; font-size:17px !important;
+  font-weight:800 !important; color:#fff !important;
+}
+.page-stats .sb-cell b u{ font-size:10px; color:var(--iron-mute); }

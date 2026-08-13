@@ -453,6 +453,64 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       : fail("v25 quota safety", JSON.stringify(res));
   } catch (e) { fail("v25 quota safety", e); }
 
+  // 18. v26: spacing + sizing consistency. Her words: "this gapping in
+  //     between is too much", "so much space on the left", "make sure
+  //     boxes next to each other are all the same size".
+  try {
+    // an earlier test leaves the food modal open, which blocks tab clicks
+    await page.evaluate(() => { if(typeof closeModal === "function") closeModal();
+      document.querySelectorAll("#modal.open, .modal.open").forEach(m => m.classList.remove("open")); });
+    await page.waitForTimeout(250);
+    await page.evaluate(() => { const b = document.querySelector('.mtab[data-tab="body"], .tab[data-tab="body"]'); if(b) b.click(); });
+    await page.waitForTimeout(700);
+    const layout = await page.evaluate(() => {
+      const out = { gaps:[], tileSizes:[], bandWaste:0 };
+      const v = document.querySelector(".view.active");
+      // only elements that actually occupy space — hidden sub-sections and
+      // zero-height wrappers would otherwise report phantom gaps
+      const kids = [...v.children].filter(e => {
+        const r = e.getBoundingClientRect();
+        return getComputedStyle(e).display !== "none" && r.height > 4;
+      });
+      for(let i=1;i<kids.length;i++){
+        const a = kids[i-1].getBoundingClientRect(), b = kids[i].getBoundingClientRect();
+        if(b.top >= a.bottom) out.gaps.push(Math.round(b.top - a.bottom));
+      }
+      // every row of side-by-side cards must be identical in size
+      const rows = {};
+      document.querySelectorAll(".view.active .grid-12 > .card").forEach(c => {
+        const r = c.getBoundingClientRect();
+        const key = Math.round(r.top);
+        (rows[key] = rows[key] || []).push(Math.round(r.width) + "x" + Math.round(r.height));
+      });
+      Object.values(rows).forEach(cells => {
+        if(cells.length > 1 && new Set(cells).size > 1) out.tileSizes.push(cells);
+      });
+      // the stat band must use the full width, not float in dead space
+      out.bandCells = 0;
+      const band = v.querySelector(".stat-band .page-stats");   // ACTIVE view only — hidden views measure 0
+      if(band){
+        const cells = [...band.querySelectorAll(".sb-cell")];
+        out.bandCells = cells.length;
+        if(cells.length){
+          const bandW = band.getBoundingClientRect().width;
+          const first = cells[0].getBoundingClientRect();
+          const last = cells[cells.length-1].getBoundingClientRect();
+          const spanned = last.right - first.left;   // gaps included, edge to edge
+          out.bandWaste = Math.round((1 - spanned / bandW) * 100);
+        }
+      }
+      return out;
+    });
+    const uniformGaps = new Set(layout.gaps).size <= 1;
+    const equalTiles = layout.tileSizes.length === 0;
+    // only meaningful when the band actually has stats in it
+    const packed = layout.bandCells === 0 || (layout.bandWaste != null && layout.bandWaste < 25);
+    (uniformGaps && equalTiles && packed)
+      ? ok(`v26 uniform ${layout.gaps[0] || 0}px gaps, equal side-by-side cards${layout.bandCells ? `, band ${100-layout.bandWaste}% used` : ""}`)
+      : fail("v26 spacing/sizing", JSON.stringify(layout));
+  } catch (e) { fail("v26 spacing/sizing", e); }
+
   await browser.close();
   print();
 })();

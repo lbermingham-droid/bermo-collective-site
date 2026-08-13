@@ -8881,34 +8881,27 @@ function drawSectionRing(canvasId, pct, color){
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
   ctx.fillText(Math.round(p*100) + "%", cx, cy);
 }
-function renderFitRing(){
-  const g = getActivityGoals();
-  const a = getActivityForDay(currentDate);
-  drawRingStack("fitMiniRings", [
-    { color:"#ff4d9d", track:"#111622", val:a.move,     goal:g.move,     r:40, lw:9 },
-    { color:"#00f5d4", track:"#111622", val:a.exercise, goal:g.exercise, r:29, lw:9 },
-    { color:"#4db8ff", track:"#111622", val:a.stand,    goal:g.stand,    r:18, lw:9 },
-  ]);
+// ONE stat band for every page. Was: a tiny ring canvas floating in dead
+// space on the left with the numbers stacked in a single column beside it —
+// five rows tall to show four numbers. Now: equal-width cells across the
+// full width, each with its own progress bar, which is the job the ring was
+// failing to do at that size.
+function statBandHtml(items){
+  return items.map(it => {
+    const pct = (it.goal && it.goal > 0)
+      ? Math.max(0, Math.min(100, (it.val / it.goal) * 100)) : null;
+    const val = typeof it.val === "number"
+      ? (it.val >= 10000 ? Math.round(it.val).toLocaleString() : Math.round(it.val * 10) / 10)
+      : it.val;
+    return `<span class="sb-cell">
+      <i style="color:${it.color}">${escape(it.label)}</i>
+      <b>${escape(String(val))}${it.unit ? `<u>${escape(it.unit)}</u>` : ""}</b>
+      <em>${it.goal != null ? escape("of " + it.goal + (it.goalUnit || "")) : escape(it.sub || "")}</em>
+      <span class="sb-bar">${pct != null ? `<i style="width:${pct}%;background:${it.color}"></i>` : ""}</span>
+    </span>`;
+  }).join("");
 }
-function renderNutRing(){
-  const t = totalsFor(currentDate);
-  const g = goalsForDay(currentDate);
-  drawRingStack("nutMiniRings", [
-    { color:"#b788ff", track:"#111622", val:t.cal, goal:g.cal || 2200,   r:40, lw:9 },
-    { color:"#00f5d4", track:"#111622", val:t.p,   goal:g.protein || 1,  r:29, lw:9 },
-    { color:"#4db8ff", track:"#111622", val:t.c,   goal:g.carbs || 1,    r:18, lw:9 },
-  ]);
-}
-function renderBodyRing(){
-  const wts = state.weights || [];
-  const goal = (state.goals || {}).weight;
-  if(!wts.length || !goal){ drawSectionRing("bodyRing", 0, "#4db8ff"); return; }
-  const start = wts[0].val, cur = wts[wts.length-1].val;
-  const total = Math.abs(start - goal);
-  const done = Math.abs(start - cur);
-  const movingRightWay = (start > goal && cur <= start) || (start < goal && cur >= start);
-  drawSectionRing("bodyRing", total < 0.1 ? 1 : (movingRightWay ? done/total : 0), "#4db8ff");
-}
+
 
 // ---- Training volume progress (Fitbod Overall Strength style) ----
 let _fpScale = "m";
@@ -9180,13 +9173,15 @@ function renderNutTopStats(){
   const t = totalsFor(currentDate);
   const g = goalsForDay(currentDate);
   const water = (state.days[currentDate]||{}).water || 0;
-  el.innerHTML = `
-    ${g.mode ? `<span class="cyc-tag cyc-${g.mode}">${g.mode === "training" ? "TRAINING DAY" : "REST DAY"} CARBS</span>` : ""}
-    <span><i style="color:#b788ff">Cal</i> <b>${Math.round(t.cal)}</b>/${g.cal||0}</span>
-    <span><i style="color:#4db8ff">P</i> <b>${Math.round(t.p)}</b>/${g.protein||0}</span>
-    <span><i style="color:#00f5d4">C</i> <b>${Math.round(t.c)}</b>/${g.carbs||0}</span>
-    <span><i style="color:#ff4d9d">F</i> <b>${Math.round(t.f)}</b>/${g.fat||0}</span>
-    <span><i style="color:#4db8ff">Water</i> <b>${Math.round(water)}</b>/${g.water||64}</span>`;
+  el.innerHTML =
+    (g.mode ? `<span class="cyc-tag cyc-${g.mode}">${g.mode === "training" ? "TRAINING" : "REST"} DAY CARBS</span>` : "")
+    + statBandHtml([
+      { label:"Cal",     val:t.cal,  goal:g.cal||0,     color:"#b788ff" },
+      { label:"Protein", val:t.p,    goal:g.protein||0, color:"#4db8ff", unit:"g" },
+      { label:"Carbs",   val:t.c,    goal:g.carbs||0,   color:"#00f5d4", unit:"g" },
+      { label:"Fat",     val:t.f,    goal:g.fat||0,     color:"#ff4d9d", unit:"g" },
+      { label:"Water",   val:water,  goal:g.water||64,  color:"#4db8ff", unit:unitVol() },
+    ]);
 }
 function renderFitTopStats(){
   const el = document.getElementById("fitTopStats");
@@ -9194,11 +9189,12 @@ function renderFitTopStats(){
   const a = getActivityForDay(currentDate);
   const g = getActivityGoals();
   const lifted = _liftedLbFor(currentDate);
-  el.innerHTML = `
-    <span><i style="color:#ff4d9d">Move</i> <b>${Math.round(a.move)}</b>/${g.move}</span>
-    <span><i style="color:#00f5d4">Ex</i> <b>${Math.round(a.exercise)}</b>/${g.exercise}m</span>
-    <span><i style="color:#4db8ff">Stand</i> <b>${Math.round(a.stand)}</b>/${g.stand}h</span>
-    <span><i style="color:#8b95a1">Lifted</i> <b>${Math.round(lifted).toLocaleString()}</b> ${unit()}</span>`;
+  el.innerHTML = statBandHtml([
+    { label:"Move",     val:a.move,     goal:g.move,     color:"#ff4d9d" },
+    { label:"Exercise", val:a.exercise, goal:g.exercise, color:"#00f5d4", goalUnit:"m" },
+    { label:"Stand",    val:a.stand,    goal:g.stand,    color:"#4db8ff", goalUnit:"h" },
+    { label:"Lifted",   val:lifted,     color:"#b788ff", unit:" "+unit(), sub:"today" },
+  ]);
 }
 function renderBodyTopStats(){
   const el = document.getElementById("bodyTopStats");
@@ -9206,11 +9202,18 @@ function renderBodyTopStats(){
   const wts = state.weights || [];
   const last = wts.length ? wts[wts.length-1] : null;
   const goal = (state.goals||{}).weight;
-  el.innerHTML = last
-    ? `<span><i style="color:#4db8ff">Now</i> <b>${last.val}</b> ${unit()}</span>
-       <span><i style="color:#00f5d4">Goal</i> <b>${goal || "—"}</b>${goal ? " "+unit() : ""}</span>
-       <span><i style="color:#8b95a1">To go</i> <b>${goal ? Math.abs(last.val-goal).toFixed(1) : "—"}</b></span>`
-    : `<span><i style="color:#8b95a1">No weigh-ins yet</i></span>`;
+  const bf = _latestBodyFat();
+  if(!last){
+    el.innerHTML = `<span class="sb-empty">No weigh-ins yet — tap <b>+ WEIGH IN</b> to start the chart.</span>`;
+    return;
+  }
+  const items = [
+    { label:"Now",  val:last.val, color:"#4db8ff", unit:" "+unit(), sub:"latest" },
+    { label:"Goal", val:goal != null ? goal : "—", color:"#00f5d4", unit:goal != null ? " "+unit() : "", sub:goal != null ? "target" : "not set" },
+    { label:"To go",val:goal != null ? Math.abs(last.val-goal).toFixed(1) : "—", color:"#b788ff", unit:goal != null ? " "+unit() : "", sub:goal != null ? "remaining" : "set a goal" },
+  ];
+  if(bf != null) items.push({ label:"Body fat", val:bf, color:"#ff4d9d", unit:"%", sub:"latest scan" });
+  el.innerHTML = statBandHtml(items);
 }
 
 // ---- DIARY (one box, per-meal macros, item actions) ----
@@ -12559,7 +12562,6 @@ function renderSettings(){
 function renderBody(){
   renderBodyBase();
   try{ renderBodyComp(); }catch(e){ console.warn("body comp", e); }
-  try{ renderBodyRing(); }catch(e){ console.warn("body ring", e); }
   try{ renderBodyTopStats(); }catch(e){ console.warn("body top", e); }
 }
 
@@ -12574,7 +12576,6 @@ function renderFitness(){
   try{ renderPrList(); }catch(e){ console.warn("pr list", e); }
   try{ renderMuscleMap(); }catch(e){ console.warn("muscle map", e); }
   try{ renderFitProgress(); }catch(e){ console.warn("fit progress", e); }
-  try{ renderFitRing(); }catch(e){ console.warn("fit ring", e); }
   try{ renderFitTopStats(); }catch(e){ console.warn("fit top", e); }
   try{ renderMonthCalendar(); }catch(e){ console.warn("calendar", e); }
   try{ applyFitSub(); }catch(e){ console.warn("fit subnav", e); }
@@ -12647,7 +12648,6 @@ function renderNutrition(){
   try{ renderDiary(); }catch(e){ console.warn("diary", e); }
   renderNutritionStep_RenderNutritionForFlags(); // decorates diary items — must follow renderDiary
   renderDetail();
-  try{ renderNutRing(); }catch(e){ console.warn("nut ring", e); }
   try{ renderNutTopStats(); }catch(e){ console.warn("nut top", e); }
   try{ renderNutrientsTable(); }catch(e){ console.warn("nutrients", e); }
   try{ renderMicros(); }catch(e){ console.warn("micros", e); }

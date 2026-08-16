@@ -6119,12 +6119,123 @@ function renderNutritionWeekStep_RNW(){
 // Supports multiple workouts per day (double days), a time-of-day per
 // workout, and picking from Saved workouts / categories / custom names.
 // Storage stays back-compat: { type, time, exercises, notes, extra:[...] }
+// Parse a free-typed movement box the way a person actually writes one.
+// She typed:
+//     1.5 hours.
+//     Thruster machine, kick back machine, abductor machine inner and outer
+//     and walked 20 min
+// The old parser split on newlines only, so "1.5 hours." became an exercise
+// and that entire second line became ONE exercise with a 70-character name.
+// Now: commas split too, a duration line is pulled out as a duration, and
+// "walked 20 min" is recognised as cardio with its own minutes.
+const _DUR_ONLY = /^(?:about\s+|~\s*)?(\d+(?:\.\d+)?)\s*(hours?|hrs?|h|minutes?|mins?|m)\.?$/i;
+const _CARDIO_WORD = /\b(walk(?:ed|ing)?|ran|run(?:ning)?|jog(?:ged|ging)?|bike|biked|cycl(?:e|ed|ing)|row(?:ed|ing)? erg|elliptical|stair|treadmill|incline walk|swim|swam|hike[d]?|sauna|stretch(?:ed|ing)?|yoga|spin class)\b/i;
+const _MIN_IN = /(\d+(?:\.\d+)?)\s*(hours?|hrs?|h|minutes?|mins?|m)\b/i;
+
+function _toMinutes(n, unitWord){
+  const v = parseFloat(n);
+  if(isNaN(v)) return null;
+  return /^(h|hr|hrs|hour|hours)$/i.test(unitWord) ? Math.round(v * 60) : Math.round(v);
+}
+
+function parseMovementText(text){
+  const out = { movements: [], durationMin: null };
+  String(text || "")
+    // Split on " and " ONLY when a cardio verb follows, so
+    // "abductor machine inner and outer and walked 20 min" becomes two
+    // items while "inner and outer" stays in one piece.
+    .replace(/\s+and\s+(?=(?:walk|ran\b|run|jog|bike|biked|cycl|rowed|elliptical|stair|treadmill|swim|swam|hike|yoga|stretch|sauna|spin)\w*)/gi, ",")
+    .split(/\n|,|;|\u2022/)                       // newlines, commas, semicolons, bullets
+    .map(l => l.trim().replace(/^[-•*]\s*/, "").replace(/^and\s+/i, "").replace(/\.$/, "").trim())
+    .filter(Boolean)
+    .forEach(line => {
+      // a line that is ONLY a duration is the session length, not a movement
+      const d = line.match(_DUR_ONLY);
+      if(d){
+        const mins = _toMinutes(d[1], d[2]);
+        if(mins) out.durationMin = (out.durationMin || 0) + mins;
+        return;
+      }
+      const parts = line.split("—");
+      const name = parts[0].trim();
+      const scheme = (parts[1] || "").trim();
+      if(!name) return;
+      const mv = { name, scheme };
+      if(_CARDIO_WORD.test(name)){
+        mv.cardio = true;
+        const m = name.match(_MIN_IN);
+        if(m) mv.minutes = _toMinutes(m[1], m[2]);
+      }
+      out.movements.push(mv);
+    });
+  return out;
+}
+
+// Turn a planned day into LOGGED sessions. She types what she did AFTER
+// doing it — planning and logging were two different things and nothing
+// carried across, so the day below stayed empty and she couldn't see why.
+function logPlannedDay(dateKey){
+  const dt = new Date(dateKey + "T12:00:00");
+  const dayName = ["sun","mon","tue","wed","thu","fri","sat"][dt.getDay()];
+  const wk = weekKey(weekStart(dt));
+  const p = (state.plan && state.plan[wk] && state.plan[wk][dayName]) || null;
+  if(!p) return 0;
+
+  const workouts = [{ name:p.type, exercises:p.exercises || [], durationMin:p.durationMin }]
+    .concat((p.extra || []).map(x => ({ name:x.name, exercises:x.exercises || [], durationMin:x.durationMin })));
+
+  const day = dayObj(dateKey);
+  if(!day.sessions) day.sessions = [];
+  let added = 0;
+
+  workouts.forEach(w => {
+    const moves = w.exercises || [];
+    // Split the session length across the strength movements so each one
+    // carries a share, and give cardio its own stated minutes.
+    const cardioMoves = moves.filter(m => m.cardio);
+    const liftMoves = moves.filter(m => !m.cardio);
+    const cardioMins = cardioMoves.reduce((n,m) => n + (m.minutes || 0), 0);
+    const liftMins = Math.max(0, (w.durationMin || 0) - cardioMins);
+    const perLift = liftMoves.length ? Math.round(liftMins / liftMoves.length) : 0;
+
+    liftMoves.forEach(m => {
+      if(day.sessions.some(x => x.name === m.name && x.fromPlan)) return;
+      day.sessions.push({
+        id: uid(), name: m.name, weight: 0, reps: 0, sets: 1,
+        type: "strength", durationMin: perLift || undefined,
+        notes: m.scheme || "", fromPlan: true, needsNumbers: true,
+      });
+      added++;
+    });
+    cardioMoves.forEach(m => {
+      if(day.sessions.some(x => x.name === m.name && x.fromPlan)) return;
+      day.sessions.push({
+        id: uid(), name: m.name, type: "cardio",
+        durationMin: m.minutes || perLift || undefined,
+        fromPlan: true,
+      });
+      added++;
+    });
+    // Nothing itemised, but she said how long — log the session itself.
+    if(!moves.length && w.durationMin){
+      day.sessions.push({
+        id: uid(), name: w.name || "Workout", type: "strength",
+        weight: 0, reps: 0, sets: 1, durationMin: w.durationMin,
+        fromPlan: true, needsNumbers: true,
+      });
+      added++;
+    }
+  });
+  save();
+  return added;
+}
+
 function openPlanDayModal(wkKey, dayName){
   const plan = getPlan();
   if(!plan[wkKey]) plan[wkKey] = {};
   const cur = plan[wkKey][dayName] || {};
-  const items = [{ name: cur.type || "", time: cur.time || "", why: cur.why || "", exercises: cur.exercises || [] }]
-    .concat((cur.extra || []).map(x => ({ name: x.name || "", time: x.time || "", why: x.why || "", exercises: x.exercises || [] })));
+  const items = [{ name: cur.type || "", time: cur.time || "", why: cur.why || "", durationMin: cur.durationMin, exercises: cur.exercises || [] }]
+    .concat((cur.extra || []).map(x => ({ name: x.name || "", time: x.time || "", why: x.why || "", durationMin: x.durationMin, exercises: x.exercises || [] })));
 
   const lib = getWorkoutLib();
   const optionsHtml = (sel) => {
@@ -6154,7 +6265,10 @@ function openPlanDayModal(wkKey, dayName){
         <input class="pde-time" type="time" value="${escape(it.time || "")}" title="Time of day">
         <button type="button" class="pde-del" title="Remove">×</button>
       </div>
-      <textarea class="pde-moves" rows="3" placeholder="Movements — one per line:\nthruster machine\nRDL\nkickback machine\nhamstring curls">${escape(moves)}</textarea>
+      <textarea class="pde-moves" rows="3" placeholder="What you did — one per line or separated by commas:\nthruster machine, kickback machine, abductor machine\nwalked 20 min">${escape(moves)}</textarea>
+      <label class="pde-dur-wrap"><span>How long (minutes)</span>
+        <input class="pde-dur" type="number" min="0" max="600" step="1" inputmode="numeric"
+          value="${it.durationMin || ""}" placeholder="e.g. 90"></label>
       <div class="pde-why">
         <span class="pde-why-lbl">Why this one today? <i>optional — it feeds your health patterns</i></span>
         <input class="pde-whytxt" type="text" maxlength="70" value="${escape(it.why || "")}"
@@ -6212,7 +6326,7 @@ function openPlanDayModal(wkKey, dayName){
     list.querySelectorAll(".pde-row-wrap").forEach(wireRow);
     document.getElementById("pdeAdd").addEventListener("click", () => {
       const div = document.createElement("div");
-      div.innerHTML = rowHtml({ name:"", time:"", why:"", exercises:[] }, list.children.length);
+      div.innerHTML = rowHtml({ name:"", time:"", why:"", durationMin:null, exercises:[] }, list.children.length);
       const row = div.firstElementChild;
       list.appendChild(row);
       wireRow(row);
@@ -6227,11 +6341,15 @@ function openPlanDayModal(wkKey, dayName){
       const parseMoves = (row) => {
         const ta = row.querySelector(".pde-moves");
         if(!ta || !ta.value.trim()) return [];
-        return ta.value.split("\n").map(l => l.trim().replace(/^[-•*]\s*/, "")).filter(Boolean)
-          .map(l => {
-            const m = l.split("—");
-            return { name: m[0].trim(), scheme: (m[1] || "").trim() };
-          });
+        return parseMovementText(ta.value).movements;
+      };
+      const parseDur = (row) => {
+        const el = row.querySelector(".pde-dur");
+        const typed = el ? parseFloat(el.value) : NaN;
+        if(!isNaN(typed) && typed > 0) return Math.round(typed);
+        // she may have typed "1.5 hours" into the movements box instead
+        const ta = row.querySelector(".pde-moves");
+        return ta ? parseMovementText(ta.value).durationMin : null;
       };
       const parsed = rows.map(row => {
         const v = row.querySelector(".pde-sel").value;
@@ -6240,12 +6358,12 @@ function openPlanDayModal(wkKey, dayName){
         if(v.startsWith("saved:")){
           const w = lib.find(x => x.id === v.slice(6));
           if(!w) return null;
-          return { name: w.name, time, why: parseWhy(row), exercises: moves.length ? moves : w.exercises.map(e => ({ name: e.name, scheme: e.scheme || "" })) };
+          return { name: w.name, time, why: parseWhy(row), durationMin: parseDur(row), exercises: moves.length ? moves : w.exercises.map(e => ({ name: e.name, scheme: e.scheme || "" })) };
         }
-        if(v.startsWith("cat:")) return { name: v.slice(4), time, why: parseWhy(row), exercises: moves };
+        if(v.startsWith("cat:")) return { name: v.slice(4), time, why: parseWhy(row), durationMin: parseDur(row), exercises: moves };
         if(v === "custom"){
           const name = row.querySelector(".pde-custom").value.trim();
-          return name ? { name, time, why: parseWhy(row), exercises: moves } : null;
+          return name ? { name, time, why: parseWhy(row), durationMin: parseDur(row), exercises: moves } : null;
         }
         return null;
       }).filter(Boolean);
@@ -6256,6 +6374,7 @@ function openPlanDayModal(wkKey, dayName){
         type: main.name,
         time: main.time || undefined,
         why: main.why,
+        durationMin: main.durationMin || undefined,
         gym: gym.trim() || undefined,
         exercises: main.exercises.length ? main.exercises : undefined,
         extra: parsed.length > 1 ? parsed.slice(1) : undefined,
@@ -9779,6 +9898,7 @@ function renderFitDayCard(){
           <button class="fd-heart" data-fdw="${wi}" title="Save to My Workouts">♥</button>
         </div>
         ${w.why ? `<p class="fd-why">Why: ${escape(w.why)}</p>` : ""}
+        ${w.durationMin ? `<p class="fd-dur">${w.durationMin} min</p>` : ""}
         ${(w.exercises || []).length
           ? `<ul class="fd-moves">${w.exercises.map(e => `<li>${escape(e.name)}${e.scheme ? ` <i>${escape(e.scheme)}</i>` : ""}</li>`).join("")}</ul>`
           : `<p class="fd-nomoves">Nothing listed yet — hit START WORKOUT and add lifts as you go, or EDIT DAY to plan them first.</p>`}
@@ -9787,9 +9907,18 @@ function renderFitDayCard(){
         <button class="btn btn-lime" id="fdStart">▶ START WORKOUT</button>
         <button class="btn btn-ghost" id="fdLogSet">+ QUICK SET</button>
       </div>
+      ${(workouts.some(w => (w.exercises||[]).length) && !sessions.length)
+        ? `<button class="btn btn-cyan fd-done" id="fdDone">ALREADY DID IT — LOG IT ALL</button>
+           <p class="fd-hint">Writes everything above into today's session. Weights and reps can go in after.</p>`
+        : ""}
       ${sessions.length ? `<p class="fd-logged">✓ ${sessions.length} entr${sessions.length===1?"y":"ies"} logged</p>` : ""}`;
     on2(card, "#fdStart", () => openWorkoutSession(currentDate));
     on2(card, "#fdLogSet", () => openLiftModal());
+    on2(card, "#fdDone", () => {
+      const n = logPlannedDay(currentDate);
+      renderAll();
+      toast(n ? `Logged ${n} entr${n===1?"y":"ies"} — add weights any time` : "Nothing to log", n ? "cyan" : "pink");
+    });
     card.querySelectorAll(".fd-heart").forEach(b => b.addEventListener("click", () => {
       const w = workouts[parseInt(b.dataset.fdw, 10)];
       if(!w || !(w.exercises || []).length){ toast("Add movements first, then save", "pink"); return; }
@@ -9833,11 +9962,15 @@ function renderSessionCard(){
       if(s.level) bits.push(`L${s.level}`);
       if(s.mph) bits.push(`${s.mph} mph`);
       if(s.calories) bits.push(`${Math.round(s.calories)} kcal`);
+    } else if(s.needsNumbers && !s.weight && !s.reps){
+      // logged from a planned day — she said she did it, the numbers come later
+      bits.push("tap to add weight + reps");
+      if(s.durationMin) bits.push(`${s.durationMin} min`);
     } else {
       bits.push(`${s.weight||0} ${unit()} × ${s.reps||0}${(s.sets||1) > 1 ? ` × ${s.sets}` : ""}`);
       if(s.durationMin) bits.push(`${s.durationMin} min`);
     }
-    return `<button class="se-row ${s.type === "cardio" ? "se-cardio" : "se-lift"}" data-sid="${s.id}">
+    return `<button class="se-row ${s.type === "cardio" ? "se-cardio" : "se-lift"} ${s.needsNumbers && !s.weight && !s.reps ? "se-todo" : ""}" data-sid="${s.id}">
       <span class="se-kind">${s.type === "cardio" ? "CARDIO" : "LIFT"}</span>
       <span class="se-info">
         <b>${escape(s.name || "Untitled")}</b>
@@ -13405,6 +13538,7 @@ function programHtml(program){
 // =================================================================
 window.__bermo = {
   save,
+  parseMovementText,
   designGoalPlan,
   buildProgram,
   readHeightField,

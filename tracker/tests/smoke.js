@@ -731,6 +731,62 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       : fail("v30 session flow", JSON.stringify({ newErrors: newErrors.slice(0,3), logged }));
   } catch (e) { fail("v30 session flow", e); }
 
+  // 24. v31: what she actually typed into the day editor.
+  //     "1.5 hours." became an EXERCISE and the whole comma-separated line
+  //     became ONE exercise with a 70-character name, because the parser
+  //     split on newlines only. Nothing carried into the log either.
+  try {
+    const parsed = await page.evaluate(() => window.__bermo.parseMovementText(
+      "1.5 hours.\nThruster machine, kick back machine, abductor machine inner and outer and walked 20 min"));
+    const names = parsed.movements.map(m => m.name);
+    const okParse = parsed.durationMin === 90
+      && parsed.movements.length === 4
+      && names.includes("Thruster machine")
+      && names.includes("kick back machine")
+      && names.includes("abductor machine inner and outer")   // "inner and outer" must NOT split
+      && parsed.movements.some(m => m.cardio && m.minutes === 20);
+    okParse ? ok("v31 movement text parses duration, commas, and cardio separately")
+            : fail("v31 movement parse", JSON.stringify(parsed));
+  } catch (e) { fail("v31 movement parse", e); }
+
+  try {
+    const flow = await page.evaluate(() => {
+      const KEY = "bermo.tracker.v1";
+      const st = JSON.parse(localStorage.getItem(KEY));
+      const names = ["sun","mon","tue","wed","thu","fri","sat"];
+      const d = new Date();
+      const ws = new Date(d); ws.setHours(0,0,0,0); ws.setDate(ws.getDate() - ws.getDay());
+      const wk = (x0) => { const x = new Date(x0); x.setHours(0,0,0,0);
+        x.setDate(x.getDate() + 4 - (x.getDay()||7));
+        const y0 = new Date(x.getFullYear(),0,1);
+        return x.getFullYear() + "-W" + String(Math.ceil(((x - y0)/86400000 + 1)/7)).padStart(2,"0"); };
+      const p = window.__bermo.parseMovementText("1.5 hours.\nSquat, hip thrust, walked 20 min");
+      st.plan = {}; st.plan[wk(ws)] = {};
+      st.plan[wk(ws)][names[d.getDay()]] = { type:"LEGS", durationMin:p.durationMin, exercises:p.movements };
+      const k = new Date().toISOString().slice(0,10);
+      if(st.days[k]) st.days[k].sessions = [];
+      localStorage.setItem(KEY, JSON.stringify(st));
+      return true;
+    });
+    await page.reload({ waitUntil: "domcontentloaded", timeout: 20000 });
+    await page.waitForTimeout(1100);
+    await page.click(`${tabSel}[data-tab="fitness"]`).catch(()=>{});
+    await page.waitForTimeout(600);
+    const had = await page.evaluate(() => !!document.getElementById("fdDone"));
+    await page.evaluate(() => { const b = document.getElementById("fdDone"); if(b) b.click(); });
+    await page.waitForTimeout(700);
+    const logged = await page.evaluate(() => {
+      const st = JSON.parse(localStorage.getItem("bermo.tracker.v1"));
+      const k = new Date().toISOString().slice(0,10);
+      const sess = ((st.days[k] || {}).sessions || []);
+      return { n: sess.length, cardio: sess.filter(x => x.type === "cardio").length,
+               mins: sess.reduce((a,x) => a + (x.durationMin||0), 0) };
+    });
+    (had && logged.n === 3 && logged.cardio === 1 && logged.mins >= 85)
+      ? ok(`v31 "already did it" logs the planned day (${logged.n} entries, ${logged.mins} min)`)
+      : fail("v31 plan to log", JSON.stringify({ had, logged }));
+  } catch (e) { fail("v31 plan to log", e); }
+
   await browser.close();
   print();
 })();

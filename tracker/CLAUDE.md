@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v30**.
+- Current build: **v31**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -244,6 +244,25 @@ typed gone. It is now its own `.xsheet` layered on top of `document.body`;
 nothing underneath is touched. **Never route a secondary panel through
 `openModal()` while another modal is open.**
 
+**PLANNING vs LOGGING was the confusion (v31).** She typed what she had
+already done into the day editor's movements box and expected it in the log.
+Two separate failures:
+1. `parseMovementText()` — the old parser split on **newlines only**. She
+   typed `1.5 hours.` on one line and a comma-separated list on the next, so
+   "1.5 hours." became an *exercise* and the entire second line became ONE
+   exercise with a 70-character name. It now splits on newlines, commas and
+   semicolons, pulls a duration-only line out as `durationMin`, recognises
+   cardio words and their minutes, and splits on `" and "` **only** when a
+   cardio verb follows — so "abductor machine inner and outer and walked 20
+   min" becomes two items while "inner and outer" stays intact. The day
+   editor also has a real **duration field** now.
+2. `logPlannedDay()` + the **ALREADY DID IT — LOG IT ALL** button on the day
+   card. Planning never fed the log, so "Today's session" stayed at 0 entries
+   with no explanation. It writes the movements in as sessions, splits the
+   session length across the lifts, gives cardio its own minutes, and marks
+   lifts `needsNumbers` so they render as "tap to add weight + reps" rather
+   than a broken-looking `0 lb × 0`.
+
 **The session is BUILD-AS-YOU-GO (v30).** This is how she actually trains:
 walk in, hit START WORKOUT, start the clock, and add each lift as she gets to
 it — numbers filled in during the set or after. Some days she loads a saved
@@ -367,7 +386,7 @@ Playwright is already installed in the scratchpad. Launch chromium with
 `{ server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" }`.
 **Do not run `npx playwright install`.**
 
-**Expected: 36/36 and zero page errors.** (Two console errors about
+**Expected: 38/38 and zero page errors.** (Two console errors about
 `ERR_CONNECTION_RESET` are the sandbox blocking a CDN — pre-existing, ignore.)
 
 The suite covers: load, wizard, **sideways overflow on every page**, all tabs,
@@ -475,4 +494,4 @@ rebuilt, uniform gaps, equal side-by-side cards · `v27` step-attribute bug,
 feet+inches height, and the training/cardio/food program · `v28` Goal Designer maths and the
 explainer sheet · `v29` target date, body-part splits, researched cardio dose,
 lift comparison and the program call-out · `v30` build-as-you-go session +
-two never-declared constants.
+two never-declared constants · `v31` movement-text parsing and plan-to-log.

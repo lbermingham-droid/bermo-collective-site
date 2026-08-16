@@ -4323,3 +4323,20 @@ html, body, #app, .app{
 .ws-empty-b{ font-size:13px; color:var(--iron-mute); line-height:1.55; max-width:320px; margin:0 auto; }
 .ws-actions{ display:flex; flex-direction:column; gap:7px; padding:14px 0 0; }
 .ws-actions .btn{ width:100%; }
+
+/* ============================================================
+   v31 — plan → log, duration, movements that need numbers
+   ============================================================ */
+.pde-dur-wrap{ margin-top:6px; display:flex !important; flex-direction:column; gap:5px; }
+.pde-dur-wrap > span{
+  font-size:10px; font-weight:800; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--iron-mute);
+}
+.fd-dur{
+  margin:2px 0 6px; font-family:'JetBrains Mono',monospace;
+  font-size:11px; color:var(--iron-mute);
+}
+.fd-done{ width:100%; margin-top:8px; }
+.fd-hint{ font-size:10.5px; color:#6b7488; line-height:1.45; margin:6px 0 0; text-align:center; }
+.se-row.se-todo{ border-color:var(--brand-purple) !important; }
+.se-row.se-todo .se-info small{ color:var(--brand-purple); font-weight:700; }

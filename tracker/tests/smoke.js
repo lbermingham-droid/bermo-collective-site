@@ -362,7 +362,13 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
     // (b) kill the network and confirm we get an actionable error, not a blank list
     await page.route("**/openfoodfacts.org/**", r => r.abort());
     await page.fill("#foodSearch", "zzzznotafood");
-    await page.waitForTimeout(1200);
+    // wait for the request to actually resolve rather than a fixed sleep —
+    // under load the spinner was still up when the assertion ran
+    await page.waitForFunction(() => {
+      const l = document.getElementById("searchResults");
+      return l && !l.querySelector(".sr-loading");
+    }, { timeout: 15000 }).catch(()=>{});
+    await page.waitForTimeout(200);
     const state14 = await page.evaluate(() => {
       const l = document.getElementById("searchResults");
       return {
@@ -642,6 +648,88 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       ? ok("v29 week comparison includes lifts, sets and cardio")
       : fail("v29 compare card", cmp.slice(0, 120));
   } catch (e) { fail("v29 compare card", e); }
+
+  // 22. v30: start a workout with NOTHING planned and build it as you go.
+  //     It used to refuse — a confirm() then a click on a "plan" tab that
+  //     was deleted in v18, so OK did nothing either. Two constants used
+  //     by the session (SET_KINDS, the rest-timer state) were also never
+  //     declared, so the overlay threw the moment an exercise rendered.
+  try {
+    const dialogs = [];
+    const onDialog = async (d) => { dialogs.push(d.message()); await d.dismiss(); };
+    page.on("dialog", onDialog);
+    await page.evaluate(() => {
+      const KEY = "bermo.tracker.v1";
+      const st = JSON.parse(localStorage.getItem(KEY));
+      const names = ["sun","mon","tue","wed","thu","fri","sat"];
+      const d = new Date();
+      const ws = new Date(d); ws.setHours(0,0,0,0); ws.setDate(ws.getDate() - ws.getDay());
+      const wk = (date) => { const x = new Date(date); x.setHours(0,0,0,0);
+        x.setDate(x.getDate() + 4 - (x.getDay()||7));
+        const y0 = new Date(x.getFullYear(),0,1);
+        return x.getFullYear() + "-W" + String(Math.ceil(((x - y0)/86400000 + 1)/7)).padStart(2,"0"); };
+      st.plan = st.plan || {};
+      st.plan[wk(ws)] = st.plan[wk(ws)] || {};
+      st.plan[wk(ws)][names[d.getDay()]] = { type:"LEGS" };   // a type, but NO exercises
+      delete (st.days[new Date().toISOString().slice(0,10)] || {}).workoutSession;
+      localStorage.setItem(KEY, JSON.stringify(st));
+    });
+    await page.reload({ waitUntil: "domcontentloaded", timeout: 20000 });
+    await page.waitForTimeout(1100);
+    await page.click(`${tabSel}[data-tab="fitness"]`).catch(()=>{});
+    await page.waitForTimeout(600);
+    await page.evaluate(() => { const b = document.getElementById("fdStart"); if(b) b.click(); });
+    await page.waitForTimeout(700);
+    const sess = await page.evaluate(() => {
+      const o = document.getElementById("workoutOverlay");
+      return { open: !!o && getComputedStyle(o).display !== "none",
+               clock: (document.getElementById("woClock")||{}).textContent || "",
+               canAdd: !!document.getElementById("wsAddEx") };
+    });
+    page.off("dialog", onDialog);
+    (sess.open && sess.canAdd && dialogs.length === 0 && /⏸/.test(sess.clock))
+      ? ok("v30 empty session opens, clock auto-starts, exercises addable")
+      : fail("v30 empty session", JSON.stringify({ ...sess, dialogs }));
+  } catch (e) { fail("v30 empty session", e); }
+
+  // 23. Drive the WHOLE session flow and require zero page errors.
+  //     A regex scan for undeclared identifiers was tried here and produced
+  //     false positives; exercising the path is both simpler and stricter.
+  //     This is what would have caught SET_KINDS and the rest-timer state:
+  //     both were referenced and never declared, and only threw once an
+  //     exercise actually rendered and a set was actually logged.
+  try {
+    const before = pageErrors.length;
+    await page.evaluate(() => { const b = document.getElementById("wsAddEx"); if(b) b.click(); });
+    await page.waitForTimeout(500);
+    await page.fill("#axSearch", "hip thrust").catch(()=>{});
+    await page.waitForTimeout(350);
+    await page.evaluate(() => { const li = document.querySelector("#axList .lrow"); if(li) li.click(); });
+    await page.waitForTimeout(500);
+    // log a set — this is where the rest timer fires
+    await page.evaluate(() => {
+      const set = document.querySelector(".ws-set");
+      if(!set) return;
+      const reps = set.querySelector(".ws-reps");
+      reps.value = "12";
+      reps.dispatchEvent(new Event("change", { bubbles:true }));
+      set.querySelector("[data-log]").click();
+    });
+    await page.waitForTimeout(700);
+    // cycle a set kind — this is where SET_KINDS was referenced
+    await page.evaluate(() => { const b = document.querySelector("[data-kind-cycle]"); if(b) b.click(); });
+    await page.waitForTimeout(400);
+    const logged = await page.evaluate(() => {
+      const st = JSON.parse(localStorage.getItem("bermo.tracker.v1"));
+      const k = new Date().toISOString().slice(0, 10);
+      const sess = ((st.days[k] || {}).sessions || []);
+      return { rows: sess.length, hasHipThrust: sess.some(x => /hip thrust/i.test(x.name || "")) };
+    });
+    const newErrors = pageErrors.slice(before);
+    (newErrors.length === 0 && logged.hasHipThrust)
+      ? ok("v30 full session flow (add lift, log a bodyweight set, cycle set kind) throws nothing")
+      : fail("v30 session flow", JSON.stringify({ newErrors: newErrors.slice(0,3), logged }));
+  } catch (e) { fail("v30 session flow", e); }
 
   await browser.close();
   print();

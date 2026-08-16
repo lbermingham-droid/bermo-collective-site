@@ -6274,6 +6274,11 @@ function openPlanDayModal(wkKey, dayName){
 }
 
 // Update plan day rendering to show planned exercises preview
+// Rest-timer state. Like SET_KINDS, these were used and never declared —
+// every logged set threw a ReferenceError the instant it was recorded, which
+// is the exact moment the rest timer is supposed to appear.
+let _restTimer = null, _restEndAt = 0;
+
 function startRestTimer(seconds){
   clearInterval(_restTimer);
   _restEndAt = Date.now() + seconds*1000;
@@ -6322,6 +6327,160 @@ function getPreviousSet(exerciseName){
   return null;
 }
 
+// Set kinds. This constant was USED in four places and declared in none —
+// so the moment the session logger rendered a single exercise it threw
+// "SET_KINDS is not defined" and the overlay came up blank. It stayed hidden
+// because the old confirm() refused to open a session without a planned
+// exercise, so the crashing path was rarely reached. Palette-legal: no
+// yellow, no amber.
+function _setKind(k){ return SET_KINDS.find(x => x.k === k) || SET_KINDS[0]; }
+const SET_KINDS = [
+  { k:"normal",  lbl:"Normal",  c:"#2b3446" },
+  { k:"warmup",  lbl:"Warm-up", c:"#4db8ff" },
+  { k:"drop",    lbl:"Drop",    c:"#b788ff" },
+  { k:"failure", lbl:"Failure", c:"#ff4d9d" },
+];
+
+// Add / load / save from INSIDE a running session, so the workout can be
+// built as it happens rather than planned in advance.
+function openSessionAddExercise(dateKey, overlay){
+  const all = allLibraryExercises();
+  const favs = state.favLifts || [];
+  const recents = (function(){
+    const seen = [];
+    Object.keys(state.days).sort().reverse().slice(0, 30).forEach(k => {
+      ((state.days[k] || {}).sessions || []).forEach(x => {
+        if(x.name && x.type !== "cardio" && !seen.includes(x.name)) seen.push(x.name);
+      });
+    });
+    return seen.slice(0, 10);
+  })();
+
+  openModal("Add an exercise", `
+    <div class="sfield">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" id="axSearch" placeholder="Search movements" autocomplete="off">
+    </div>
+    <ul class="lrows" id="axList"></ul>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    const list = document.getElementById("axList");
+    const add = (name) => {
+      const day = dayObj(dateKey);
+      if(!day.workoutSession) day.workoutSession = { exercises:{} };
+      if(!Array.isArray(day.workoutSession.list)) day.workoutSession.list = [];
+      if(day.workoutSession.list.some(x => x.name === name)){ toast("Already in this session", "cyan"); return; }
+      day.workoutSession.list.push({ name, scheme:"" });
+      save(); closeModal();
+      if(overlay) renderWorkoutSession(overlay, dateKey);
+      toast(`Added ${name}`, "cyan");
+    };
+    const row = (n, tag) => `<li class="lrow" data-add="${escape(n)}">
+      <div class="lrow-main"><div class="lrow-title">${escape(n)}</div>
+        <div class="lrow-sub">${escape(tag || (partsForExercise(n).join(", ") || "movement"))}</div></div>
+      <button type="button" class="lrow-add">+</button></li>`;
+    const render = (q) => {
+      const term = (q || "").trim().toLowerCase();
+      let html = "";
+      if(!term){
+        if(favs.length) html += `<div class="lgroup">Favourites</div>` + favs.slice(0,8).map(n => row(n)).join("");
+        if(recents.length) html += `<div class="lgroup">Recent</div>` + recents.map(n => row(n, "logged recently")).join("");
+        html += `<div class="lgroup">All movements</div>` + all.slice(0, 40).map(n => row(n)).join("");
+      } else {
+        const hits = all.filter(n => n.toLowerCase().includes(term)).slice(0, 40);
+        html = hits.length ? hits.map(n => row(n)).join("")
+          : `<li class="sr-empty">
+               <div class="sr-empty-h">No movement called "${escape(q)}"</div>
+               <div class="sr-empty-b">Add it anyway — it'll be in your library from now on.</div>
+               <button type="button" class="btn btn-cyan btn-sm" data-custom="${escape(q)}">+ ADD "${escape(q.toUpperCase())}"</button>
+             </li>`;
+      }
+      list.innerHTML = html;
+      list.querySelectorAll("[data-add]").forEach(li =>
+        li.addEventListener("click", () => add(li.getAttribute("data-add"))));
+      list.querySelectorAll("[data-custom]").forEach(b =>
+        b.addEventListener("click", () => {
+          const n = b.getAttribute("data-custom");
+          if(!state.customExercises) state.customExercises = [];
+          if(!state.customExercises.includes(n)) state.customExercises.push(n);
+          add(n);
+        }));
+    };
+    render("");
+    const inp = document.getElementById("axSearch");
+    inp.addEventListener("input", () => render(inp.value));
+    setTimeout(() => inp.focus(), 100);
+  });
+}
+
+function openSessionLoadSaved(dateKey, overlay){
+  const lib = getWorkoutLib();
+  openModal("Load a saved workout", lib.length ? `
+    <p class="hn-intro">Drops its movements into this session. Anything already here stays.</p>
+    <ul class="lrows" id="lwList">
+      ${lib.map(w => `<li class="lrow" data-w="${escape(w.id)}">
+        <div class="lrow-main"><div class="lrow-title">${escape(w.name)}</div>
+          <div class="lrow-sub">${(w.exercises||[]).length} movements</div></div>
+        <button type="button" class="lrow-add">+</button></li>`).join("")}
+    </ul>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close>Cancel</button></div>
+  ` : `
+    <p class="hn-intro">You haven't saved a workout yet. Build one here and tap <b>SAVE THIS AS A WORKOUT</b> when you're done — it'll be one tap next time.</p>
+    <div class="modal-foot"><button class="btn btn-cyan" data-close>Got it</button></div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    root.querySelectorAll("[data-w]").forEach(li => li.addEventListener("click", () => {
+      const w = lib.find(x => x.id === li.getAttribute("data-w"));
+      if(!w) return;
+      const day = dayObj(dateKey);
+      if(!Array.isArray(day.workoutSession.list)) day.workoutSession.list = [];
+      let added = 0;
+      (w.exercises || []).forEach(e => {
+        if(day.workoutSession.list.some(x => x.name === e.name)) return;
+        day.workoutSession.list.push({ name:e.name, scheme:e.scheme || "" });
+        added++;
+      });
+      save(); closeModal();
+      if(overlay) renderWorkoutSession(overlay, dateKey);
+      toast(`${w.name} — ${added} movement${added===1?"":"s"} added`, "cyan");
+    }));
+  });
+}
+
+function openSessionSaveAs(dateKey, overlay){
+  const day = dayObj(dateKey);
+  const list = (day.workoutSession && day.workoutSession.list) || [];
+  if(!list.length){ toast("Nothing to save yet", "pink"); return; }
+  const dayName = ["sun","mon","tue","wed","thu","fri","sat"][new Date(dateKey+"T12:00:00").getDay()];
+  const wkKey_ = weekKey(weekStart(new Date(dateKey+"T12:00:00")));
+  const planType = (state.plan && state.plan[wkKey_] && state.plan[wkKey_][dayName] && state.plan[wkKey_][dayName].type) || "";
+  openModal("Save this workout", `
+    <p class="hn-intro">${list.length} movement${list.length===1?"":"s"}: ${escape(list.map(x => x.name).join(", "))}</p>
+    <label><span>Call it</span><input id="swName" type="text" maxlength="40" value="${escape(planType || "")}" placeholder="e.g. Legs — glute focus"></label>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-cyan" id="swSave">SAVE</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    setTimeout(() => { const n = document.getElementById("swName"); if(n) n.focus(); }, 100);
+    document.getElementById("swSave").addEventListener("click", () => {
+      const name = (document.getElementById("swName").value || "").trim();
+      if(!name){ toast("Give it a name", "pink"); return; }
+      const lib = getWorkoutLib();
+      const existing = lib.find(w => w.name.toLowerCase() === name.toLowerCase());
+      const exercises = list.map(x => ({ name:x.name, scheme:x.scheme || "" }));
+      if(existing) existing.exercises = exercises;
+      else lib.unshift({ id: uid(), name, style:"Lift Day", exercises });
+      save(); closeModal();
+      toast(existing ? `Updated ${name}` : `Saved ${name}`, "cyan");
+    });
+  });
+}
+
 // ---- Workout Session overlay ----
 function openWorkoutSession(dateKey){
   const day = dayObj(dateKey);
@@ -6332,13 +6491,21 @@ function openWorkoutSession(dateKey){
   // Initialize session state for the day if not present
   if(!day.workoutSession) day.workoutSession = { exercises: {} };
 
-  // If no planned exercises, prompt user
-  if(!planned.length){
-    if(!confirm(`No exercises planned for ${fmtDate(dateKey)}. Open the planner to add some?`)) return;
-    const t = document.querySelector('.tab[data-tab="plan"], .mtab[data-tab="plan"]');
-    if(t) t.click();
-    return;
+  // THE LIVE LIST. It used to refuse to open without a planned exercise —
+  // it threw a confirm() and then tried to click a "plan" tab that was
+  // deleted in v18, so OK did nothing either. She works the other way round:
+  // start the session, hit start on the clock, and add each lift as she does
+  // it. The list seeds from the plan when there is one and grows from there.
+  if(!Array.isArray(day.workoutSession.list)){
+    day.workoutSession.list = planned.map(e => ({ name: e.name, scheme: e.scheme || "" }));
+  } else if(planned.length){
+    planned.forEach(e => {
+      if(!day.workoutSession.list.some(x => x.name === e.name))
+        day.workoutSession.list.push({ name: e.name, scheme: e.scheme || "" });
+    });
   }
+  const startedEmpty = day.workoutSession.list.length === 0;
+  save();
 
   // Build the overlay
   let overlay = document.getElementById("workoutOverlay");
@@ -6348,12 +6515,19 @@ function openWorkoutSession(dateKey){
     overlay.className = "workout-overlay";
     document.body.appendChild(overlay);
   }
-  renderWorkoutSession(overlay, dateKey, planned);
+  renderWorkoutSession(overlay, dateKey);
   overlay.classList.add("open");
   document.body.style.overflow = "hidden";
+  // Walked in with nothing planned? The clock is the whole point — start it.
+  if(startedEmpty && !_woStart){
+    _woStart = Date.now();
+    clearInterval(_woTimer);
+    _woTimer = setInterval(_woTick, 1000);
+    _woTick();
+  }
 }
 
-function renderWorkoutSession(overlay, dateKey, planned){
+function renderWorkoutSession(overlay, dateKey){
   const day = dayObj(dateKey);
   const sess = day.workoutSession;
   const planType = (function(){
@@ -6362,7 +6536,8 @@ function renderWorkoutSession(overlay, dateKey, planned){
     return (state.plan && state.plan[wkKey_] && state.plan[wkKey_][dayName] && state.plan[wkKey_][dayName].type) || "Workout";
   })();
 
-  const exHtml = planned.map((ex, exi) => {
+  const list = Array.isArray(sess.list) ? sess.list : [];
+  const exHtml = list.map((ex, exi) => {
     if(!sess.exercises[ex.name]) sess.exercises[ex.name] = { sets: [] };
     const exState = sess.exercises[ex.name];
     const prev = getPreviousSet(ex.name);
@@ -6380,7 +6555,7 @@ function renderWorkoutSession(overlay, dateKey, planned){
 
     const setsHtml = exState.sets.map((s, si) => `
       <div class="ws-set ${s.logged?"logged":""}" data-ex="${exi}" data-si="${si}">
-        <button class="ws-num" data-kind-cycle title="${SET_KINDS.find(k=>k.k===s.kind).lbl}" style="background:${SET_KINDS.find(k=>k.k===s.kind).c}">${s.kind === "normal" ? si+1 : SET_KINDS.find(k=>k.k===s.kind).lbl[0]}</button>
+        <button class="ws-num" data-kind-cycle title="${_setKind(s.kind).lbl}" style="background:${_setKind(s.kind).c}">${s.kind === "normal" ? si+1 : _setKind(s.kind).lbl[0]}</button>
         <input class="ws-reps" type="number" min="0" placeholder="${dReps}" value="${s.reps||""}">
         <input class="ws-weight" type="number" step="2.5" min="0" placeholder="${dWeight||0}" value="${s.weight||""}">
         <button class="ws-log" data-log title="Log this set">${s.logged ? "✓" : "Log"}</button>
@@ -6419,13 +6594,21 @@ function renderWorkoutSession(overlay, dateKey, planned){
       <button class="workout-done" id="woDone">Done</button>
     </header>
     <div class="workout-body">
-      ${exHtml || `<div style="text-align:center;color:#888;padding:60px 20px">No exercises planned. Add some in the Planner.</div>`}
+      ${exHtml || `<div class="ws-empty">
+        <div class="ws-empty-h">Clock's running.</div>
+        <div class="ws-empty-b">Add each lift as you get to it — reps and weight can go in during the set or after you're done.</div>
+      </div>`}
+      <div class="ws-actions">
+        <button type="button" class="btn btn-cyan" id="wsAddEx">+ ADD EXERCISE</button>
+        <button type="button" class="btn btn-ghost" id="wsLoadSaved">LOAD A SAVED WORKOUT</button>
+        ${list.length ? `<button type="button" class="btn btn-ghost" id="wsSaveAs">SAVE THIS AS A WORKOUT</button>` : ""}
+      </div>
       <div class="workout-foot">
-        <p style="font-size:12px;color:#888;text-align:center;line-height:1.5;margin:24px 0 0">Tap the set number circle to cycle Normal → Warm-up → Drop → Failure. Tap "Log" to record. Rest timer auto-starts after each logged set.</p>
+        <p style="font-size:12px;color:#888;text-align:center;line-height:1.5;margin:20px 0 0">Tap the set number to cycle Normal → Warm-up → Drop → Failure. "Log" records it and starts the rest timer. Leave weight blank for bodyweight.</p>
       </div>
     </div>
   `;
-  bindWorkoutSession(overlay, dateKey, planned);
+  bindWorkoutSession(overlay, dateKey);
 }
 
 let _woTimer = null, _woStart = null, _woElapsed = 0;
@@ -6436,7 +6619,8 @@ function _woTick(){
   const m = Math.floor(total/60000), sec = Math.floor((total%60000)/1000);
   el.textContent = `${_woStart ? "⏸" : "▶"} ${m}:${String(sec).padStart(2,"0")}`;
 }
-function bindWorkoutSession(overlay, dateKey, planned){
+function bindWorkoutSession(overlay, dateKey){
+  const listOf = () => (dayObj(dateKey).workoutSession.list || []);
   const finish = () => {
     // save optional session duration once, then close
     if(_woElapsed || _woStart){
@@ -6466,22 +6650,29 @@ function bindWorkoutSession(overlay, dateKey, planned){
     };
   }
 
+  const addBtn = document.getElementById("wsAddEx");
+  if(addBtn) addBtn.onclick = () => openSessionAddExercise(dateKey, overlay);
+  const loadBtn = document.getElementById("wsLoadSaved");
+  if(loadBtn) loadBtn.onclick = () => openSessionLoadSaved(dateKey, overlay);
+  const saveBtn = document.getElementById("wsSaveAs");
+  if(saveBtn) saveBtn.onclick = () => openSessionSaveAs(dateKey, overlay);
+
   // Cycle set kind on number-button tap
   overlay.querySelectorAll("[data-kind-cycle]").forEach(b => b.addEventListener("click", () => {
     const setEl = b.closest(".ws-set");
     const exi = +setEl.dataset.ex, si = +setEl.dataset.si;
-    const exName = planned[exi].name;
+    const exName = listOf()[exi].name;
     const cur = dayObj(dateKey).workoutSession.exercises[exName].sets[si];
     const idx = SET_KINDS.findIndex(k => k.k === cur.kind);
     cur.kind = SET_KINDS[(idx+1) % SET_KINDS.length].k;
-    save(); renderWorkoutSession(overlay, dateKey, planned);
+    save(); renderWorkoutSession(overlay, dateKey);
   }));
 
   // Reps / weight inputs save on blur
   overlay.querySelectorAll(".ws-reps, .ws-weight").forEach(inp => inp.addEventListener("change", () => {
     const setEl = inp.closest(".ws-set");
     const exi = +setEl.dataset.ex, si = +setEl.dataset.si;
-    const exName = planned[exi].name;
+    const exName = listOf()[exi].name;
     const cur = dayObj(dateKey).workoutSession.exercises[exName].sets[si];
     cur.reps = parseInt(setEl.querySelector(".ws-reps").value, 10) || 0;
     cur.weight = parseFloat(setEl.querySelector(".ws-weight").value) || 0;
@@ -6492,12 +6683,13 @@ function bindWorkoutSession(overlay, dateKey, planned){
   overlay.querySelectorAll("[data-log]").forEach(b => b.addEventListener("click", () => {
     const setEl = b.closest(".ws-set");
     const exi = +setEl.dataset.ex, si = +setEl.dataset.si;
-    const exName = planned[exi].name;
+    const exName = listOf()[exi].name;
     const day = dayObj(dateKey);
     const cur = day.workoutSession.exercises[exName].sets[si];
     cur.reps = parseInt(setEl.querySelector(".ws-reps").value, 10) || cur.reps;
     cur.weight = parseFloat(setEl.querySelector(".ws-weight").value) || cur.weight;
-    if(!cur.reps || !cur.weight){ toast("Enter reps + weight first","pink"); return; }
+    if(!cur.reps){ toast("How many reps?","pink"); return; }
+    cur.weight = cur.weight || 0;      // bodyweight sets are real sets
     cur.logged = true;
     cur.loggedAt = Date.now();
 
@@ -6506,7 +6698,7 @@ function bindWorkoutSession(overlay, dateKey, planned){
     const sessionRow = {
       id: uid(), name: exName, weight: cur.weight, reps: cur.reps, sets: 1,
       type: cur.kind === "warmup" ? "accessory" : "strength",
-      notes: cur.kind !== "normal" ? SET_KINDS.find(k=>k.k===cur.kind).lbl : ""
+      notes: cur.kind !== "normal" ? _setKind(cur.kind).lbl : ""
     };
     day.sessions.push(sessionRow);
     if(typeof updateRepPRsFromSet === "function") updateRepPRsFromSet(sessionRow);
@@ -6538,12 +6730,12 @@ function bindWorkoutSession(overlay, dateKey, planned){
   overlay.querySelectorAll("[data-add-set]").forEach(b => b.addEventListener("click", () => {
     const exEl = b.closest(".ws-ex");
     const exi = +exEl.dataset.ex;
-    const exName = planned[exi].name;
+    const exName = listOf()[exi].name;
     const day = dayObj(dateKey);
     const sets = day.workoutSession.exercises[exName].sets;
     const last = sets[sets.length-1] || { kind:"normal", reps:5, weight:0 };
     sets.push({ kind:"normal", reps:last.reps, weight:last.weight, logged:false });
-    save(); renderWorkoutSession(overlay, dateKey, planned);
+    save(); renderWorkoutSession(overlay, dateKey);
   }));
 }
 
@@ -9589,7 +9781,7 @@ function renderFitDayCard(){
         ${w.why ? `<p class="fd-why">Why: ${escape(w.why)}</p>` : ""}
         ${(w.exercises || []).length
           ? `<ul class="fd-moves">${w.exercises.map(e => `<li>${escape(e.name)}${e.scheme ? ` <i>${escape(e.scheme)}</i>` : ""}</li>`).join("")}</ul>`
-          : `<p class="fd-nomoves">No movements listed — EDIT DAY to add them.</p>`}
+          : `<p class="fd-nomoves">Nothing listed yet — hit START WORKOUT and add lifts as you go, or EDIT DAY to plan them first.</p>`}
       </div>`).join("") + `
       <div class="fd-actions">
         <button class="btn btn-lime" id="fdStart">▶ START WORKOUT</button>

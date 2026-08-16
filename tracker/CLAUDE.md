@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v29**.
+- Current build: **v30**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -244,6 +244,32 @@ typed gone. It is now its own `.xsheet` layered on top of `document.body`;
 nothing underneath is touched. **Never route a secondary panel through
 `openModal()` while another modal is open.**
 
+**The session is BUILD-AS-YOU-GO (v30).** This is how she actually trains:
+walk in, hit START WORKOUT, start the clock, and add each lift as she gets to
+it — numbers filled in during the set or after. Some days she loads a saved
+workout instead; some days she builds one and saves it at the end.
+- `day.workoutSession.list` is the **live** exercise list. It seeds from the
+  plan when there is one and grows from there. `renderWorkoutSession` and
+  `bindWorkoutSession` read it, not the `planned` array.
+- `openWorkoutSession` **never refuses to open.** It used to throw a
+  `confirm()` — "No exercises planned, open the planner?" — and then click a
+  `[data-tab="plan"]` that was **deleted in v18**, so OK did nothing either.
+  Opening with an empty list auto-starts the clock.
+- In-session: `openSessionAddExercise` (search library / favourites / recent,
+  or invent a movement), `openSessionLoadSaved`, `openSessionSaveAs`.
+- A set logs with **reps only** — weight defaults to 0 so bodyweight work
+  counts. It used to demand both.
+
+**Two constants were used and never declared** — `SET_KINDS` (4 references)
+and the rest-timer state `_restTimer` / `_restEndAt` (4 references). The
+session overlay threw `ReferenceError` the moment an exercise rendered and
+again the moment a set was logged. It stayed hidden because the `confirm()`
+above meant the crashing path was rarely reached. **Smoke test 23 now drives
+the entire session flow — add a lift, log a bodyweight set, cycle a set kind
+— and fails on any page error.** A regex scan for undeclared identifiers was
+tried first and produced false positives; exercising the path is simpler and
+stricter. Prefer that pattern.
+
 **Evidence the program is built on — cite it, don't re-guess it.** She
 explicitly asked for this to be looked up rather than invented:
 - **Cardio dose / interference.** Wilson et al. 2012, *J Strength Cond Res*
@@ -341,7 +367,7 @@ Playwright is already installed in the scratchpad. Launch chromium with
 `{ server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" }`.
 **Do not run `npx playwright install`.**
 
-**Expected: 34/34 and zero page errors.** (Two console errors about
+**Expected: 36/36 and zero page errors.** (Two console errors about
 `ERR_CONNECTION_RESET` are the sandbox blocking a CDN — pre-existing, ignore.)
 
 The suite covers: load, wizard, **sideways overflow on every page**, all tabs,
@@ -448,4 +474,5 @@ and page-flow rebuild · `v25` `save()` made fail-safe · `v26` stat band
 rebuilt, uniform gaps, equal side-by-side cards · `v27` step-attribute bug,
 feet+inches height, and the training/cardio/food program · `v28` Goal Designer maths and the
 explainer sheet · `v29` target date, body-part splits, researched cardio dose,
-lift comparison and the program call-out.
+lift comparison and the program call-out · `v30` build-as-you-go session +
+two never-declared constants.

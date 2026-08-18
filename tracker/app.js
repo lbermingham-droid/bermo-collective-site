@@ -1140,17 +1140,8 @@ function openLiftModal(prefillName){
       if(!name || isNaN(weight) || isNaN(reps)) { toast("Fill in name, weight, reps","pink"); return; }
       const mins = sessTimerMinutes();
       const day = dayObj(dateK);
-      day.sessions = day.sessions || [];
-      day.sessions.push({ id: uid(), name, weight, reps, sets, type, notes,
+      logSession(dateK, { name, weight, reps, sets, type, notes,
                           time: timeV || undefined, durationMin: mins || undefined });
-      if((type === "strength" || type === "oly") && reps <= 10){
-        const est = Math.round(weight * (1 + reps/30));
-        const cur = state.prs[name];
-        if(!cur || est > cur.val){
-          state.prs[name] = { val: est, date: dateK, unit: unit() };
-          toast(`New PR: ${name} ~ ${est}${unit()}`, "cyan");
-        }
-      }
       clearInterval(_setTimer);
       save(); closeModal(); renderAll();
       toast(`Logged ${name} · ${fmtDate(dateK)}`, "cyan");
@@ -2158,16 +2149,22 @@ Rules:
       const workoutEl = document.getElementById("actWorkoutText");
       const alsoLogEl = document.getElementById("actAlsoLog");
       if(workoutEl && workoutEl.value.trim() && alsoLogEl && alsoLogEl.checked){
-        if(!day.sessions) day.sessions = [];
-        day.sessions.push({
-          id: uid(),
-          name: workoutEl.value.trim(),
-          lift: workoutEl.value.trim(),
-          weight: 0, reps: 0, sets: 1,
-          type: "cardio",
-          notes: `Logged from rings · ${day.activity.exercise} min`,
-          loggedFromRings: true,
-        });
+        // Same parser as everywhere else, so a typed workout here lands as
+        // real movements the muscle map and PR engine can actually read.
+        const parsedW = parseWorkoutText(workoutEl.value);
+        const dateKW = (document.getElementById("actDate") || {}).value || currentDate;
+        if(parsedW.rows.length){
+          parsedW.rows.forEach(r => logSession(dateKW, Object.assign({}, r, {
+            notes: `Logged from rings`,
+          }), { quiet: true }));
+        } else {
+          logSession(dateKW, {
+            name: workoutEl.value.trim(), lift: workoutEl.value.trim(),
+            weight: 0, reps: 0, sets: 1, type: "cardio",
+            notes: `Logged from rings · ${day.activity.exercise} min`,
+            loggedFromRings: true,
+          }, { quiet: true });
+        }
       }
       state.activityGoals = {
         move: parseInt(document.getElementById("goalMove").value,10) || 800,
@@ -3910,6 +3907,7 @@ function openBrainDumpModal(mode){
     <div id="bdNote" class="bd-note"></div>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-ghost" id="bdWorkoutSave">LOG WORKOUT</button>
       <button class="btn btn-ghost" id="bdNoteSave">SAVE HEALTH NOTE</button>
       <button class="btn btn-cyan" id="bdGo">Parse with AI</button>
     </div>
@@ -3991,6 +3989,14 @@ function openBrainDumpModal(mode){
       bdNote.innerHTML = `<div class="hn-h">Health note found — savable without AI</div><div class="hn-chips">${bits.join("")}</div>`;
     };
     bdTa.addEventListener("input", bdRefreshNote);
+    const bdWorkout = document.getElementById("bdWorkoutSave");
+    if(bdWorkout) bdWorkout.addEventListener("click", () => {
+      const p = parseWorkoutText(bdTa.value);
+      if(!p.rows.length){ toast("No movements found in that", "pink"); return; }
+      p.rows.forEach(r => logSession(currentDate, r, { quiet: true }));
+      closeModal(); renderAll();
+      toast(`Logged ${p.rows.length} entr${p.rows.length===1?"y":"ies"}`, "cyan");
+    });
     document.getElementById("bdNoteSave").addEventListener("click", () => {
       const n = parseHealthNote(bdTa.value);
       if(!n.raw){ toast("Type something first", "pink"); return; }
@@ -4142,23 +4148,23 @@ function openBrainDumpReview(parsed){
         if(cb && cb.checked){
           if(!day.sessions) day.sessions = [];
           if((s.lifts || []).length === 0){
-            day.sessions.push({
-              id: uid(), name: s.name || "Session", lift: s.name || "Session",
+            logSession(dateKey, {
+              name: s.name || "Session", lift: s.name || "Session",
               weight: 0, reps: 0, sets: 1,
               type: s.type || "wod",
               durationMin: s.duration_min || null,
               notes: `Brain dump · ${s.duration_min || 0} min`,
-            });
+            }, { quiet: true });
             added++;
           } else {
             (s.lifts || []).forEach(l => {
               (l.sets || []).forEach(st => {
-                day.sessions.push({
-                  id: uid(), name: l.exercise || s.name || "Lift", lift: l.exercise || "Lift",
+                logSession(dateKey, {
+                  name: l.exercise || s.name || "Lift", lift: l.exercise || "Lift",
                   weight: +st.weight || 0, reps: +st.reps || 0, sets: 1,
-                  type: "lift",
+                  type: "strength",
                   notes: s.name ? `Brain dump · ${s.name}` : "Brain dump",
-                });
+                }, { quiet: true });
                 added++;
               });
             });
@@ -6119,6 +6125,142 @@ function renderNutritionWeekStep_RNW(){
 // Supports multiple workouts per day (double days), a time-of-day per
 // workout, and picking from Saved workouts / categories / custom names.
 // Storage stays back-compat: { type, time, exercises, notes, extra:[...] }
+// =================================================================
+// ONE WRITE PATH FOR EVERY WORKOUT ENTRY
+// Eight different places pushed straight into day.sessions, and each did
+// something slightly different afterwards: Quick Set updated the 1RM
+// estimate, the session logger updated rep PRs but NOT the 1RM, the brain
+// dump and cardio loggers updated neither. So the same lift entered from two
+// screens produced two different results. Everything goes through here now.
+// day.sessions is the hub — rings, week comparison, health correlations,
+// body-part trends, muscle coverage, previous-performance and PRs all read
+// it — so anything that lands here is connected to everything by definition.
+// =================================================================
+function logSession(dateKey, row, opts){
+  const o = opts || {};
+  const day = dayObj(dateKey || currentDate);
+  if(!day.sessions) day.sessions = [];
+  const entry = Object.assign({ id: uid(), sets: 1 }, row);
+  if(!entry.name) return null;
+  if(entry.type !== "cardio"){
+    entry.weight = +entry.weight || 0;
+    entry.reps   = +entry.reps || 0;
+  }
+  day.sessions.push(entry);
+
+  // PRs — both kinds, from every entry point, not just some of them.
+  if(!o.skipPR && entry.type !== "cardio" && entry.weight > 0 && entry.reps > 0){
+    if(entry.reps <= 10){
+      const est = Math.round(entry.weight * (1 + entry.reps/30));
+      const cur = state.prs[entry.name];
+      if(!cur || est > cur.val){
+        state.prs[entry.name] = { val: est, date: dateKey || currentDate, unit: unit() };
+        if(!o.quiet) toast(`New PR: ${entry.name} ~ ${est}${unit()}`, "cyan");
+      }
+    }
+    if(typeof updateRepPRsFromSet === "function"){
+      try{ updateRepPRsFromSet(entry); }catch(e){ console.warn("rep PR", e); }
+    }
+  }
+  // The activity rings need no call here: autoComputeActivity() derives them
+  // from day.sessions every time they render, so a logged set is already in
+  // the Move/Exercise numbers the moment it lands.
+  save();
+  return entry;
+}
+
+// Free text -> logged workout, running ON DEVICE. No AI, no credits.
+// "thruster machine 3x10 at 90, kickback machine 3x12, walked 20 min"
+function parseWorkoutText(text){
+  const base = parseMovementText(text);
+  const rows = [];
+  base.movements.forEach(m => {
+    if(m.cardio){
+      rows.push({ name: m.name.replace(/\s*\d+(?:\.\d+)?\s*(?:hours?|hrs?|h|minutes?|mins?|m)\b/i, "").trim() || m.name,
+                  type: "cardio", durationMin: m.minutes || null });
+      return;
+    }
+    // pull "3x10", "3 x 10 @ 90", "10 reps at 45 lb" out of the name
+    let name = m.name, sets = null, reps = null, weight = null;
+    const combo = name.match(/(\d+)\s*[x×]\s*(\d+)(?:\s*(?:@|at)\s*(\d+(?:\.\d+)?))?/i);
+    if(combo){
+      sets = +combo[1]; reps = +combo[2];
+      if(combo[3]) weight = +combo[3];
+      name = name.replace(combo[0], "").trim();
+    } else {
+      const r = name.match(/(\d+)\s*reps?\b/i);
+      if(r){ reps = +r[1]; name = name.replace(r[0], "").trim(); }
+      const w = name.match(/(?:@|at)\s*(\d+(?:\.\d+)?)\s*(?:lbs?|kg)?\b/i);
+      if(w){ weight = +w[1]; name = name.replace(w[0], "").trim(); }
+    }
+    // also allow a trailing scheme after an em dash
+    if(!reps && m.scheme){
+      const c2 = m.scheme.match(/(\d+)\s*[x×]\s*(\d+)(?:\s*(?:@|at)\s*(\d+(?:\.\d+)?))?/i);
+      if(c2){ sets = +c2[1]; reps = +c2[2]; if(c2[3]) weight = +c2[3]; }
+    }
+    name = name.replace(/[-–—,]\s*$/, "").replace(/^\s*[-–—]/, "").trim();
+    if(!name) return;
+    rows.push({ name, type:"strength", sets: sets || 1, reps: reps || 0,
+                weight: weight || 0, needsNumbers: !reps });
+  });
+  return { rows, durationMin: base.durationMin };
+}
+
+// The same "type what you did" sheet, reachable from every screen.
+function openLogWorkoutText(dateKey, prefill){
+  const key = dateKey || currentDate;
+  openModal("Write what you did · " + fmtDate(key), `
+    <p class="hn-intro">Type it however you'd say it. This runs on your phone — no AI, nothing to pay for. It logs straight into the day, so the rings, your week comparison and the Health page all pick it up.</p>
+    <textarea id="lwText" rows="4" class="search-input" style="resize:vertical;min-height:100px;font-size:15px;width:100%"
+      placeholder="1.5 hours&#10;thruster machine 3x10 at 90, kickback machine, abductor machine inner and outer&#10;walked 20 min">${escape(prefill || "")}</textarea>
+    <div class="hn-ex">Understands: <i>3x10 · at 90 · 12 reps · walked 20 min · 1.5 hours</i></div>
+    <div id="lwPreview" class="hn-preview"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-cyan" id="lwSave" disabled>LOG IT</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    const ta = document.getElementById("lwText");
+    const prev = document.getElementById("lwPreview");
+    const btn = document.getElementById("lwSave");
+    const refresh = () => {
+      const p = parseWorkoutText(ta.value);
+      if(!p.rows.length){
+        prev.innerHTML = ta.value.trim() ? `<div class="hn-none">Nothing recognised yet — one movement per line or separated by commas.</div>` : "";
+        btn.disabled = true;
+        return;
+      }
+      prev.innerHTML = `<div class="hn-h">It read this${p.durationMin ? ` · ${p.durationMin} min total` : ""}</div>
+        <div class="hn-chips">${p.rows.map(r => `<span class="hn-chip ${r.type === "cardio" ? "exp" : ""}">${escape(r.name)}${
+          r.type === "cardio" ? (r.durationMin ? ` ${r.durationMin}m` : "")
+          : (r.reps ? ` ${r.sets}×${r.reps}${r.weight ? ` @${r.weight}` : ""}` : "")
+        }</span>`).join("")}</div>`;
+      btn.disabled = false;
+    };
+    ta.addEventListener("input", refresh);
+    refresh();
+    setTimeout(() => ta.focus(), 100);
+
+    btn.addEventListener("click", () => {
+      const p = parseWorkoutText(ta.value);
+      if(!p.rows.length) return;
+      const lifts = p.rows.filter(r => r.type !== "cardio");
+      const cardioMins = p.rows.filter(r => r.type === "cardio")
+                              .reduce((n,r) => n + (r.durationMin || 0), 0);
+      const perLift = lifts.length ? Math.round(Math.max(0, (p.durationMin || 0) - cardioMins) / lifts.length) : 0;
+      let n = 0;
+      p.rows.forEach(r => {
+        const row = Object.assign({}, r);
+        if(row.type !== "cardio" && perLift) row.durationMin = perLift;
+        if(logSession(key, row, { quiet: true })) n++;
+      });
+      closeModal(); renderAll();
+      toast(`Logged ${n} entr${n===1?"y":"ies"}${p.durationMin ? ` · ${p.durationMin} min` : ""}`, "cyan");
+    });
+  });
+}
+
 // Parse a free-typed movement box the way a person actually writes one.
 // She typed:
 //     1.5 hours.
@@ -6200,29 +6342,29 @@ function logPlannedDay(dateKey){
 
     liftMoves.forEach(m => {
       if(day.sessions.some(x => x.name === m.name && x.fromPlan)) return;
-      day.sessions.push({
-        id: uid(), name: m.name, weight: 0, reps: 0, sets: 1,
+      logSession(dateKey, {
+        name: m.name, weight: 0, reps: 0, sets: 1,
         type: "strength", durationMin: perLift || undefined,
         notes: m.scheme || "", fromPlan: true, needsNumbers: true,
-      });
+      }, { quiet: true });
       added++;
     });
     cardioMoves.forEach(m => {
       if(day.sessions.some(x => x.name === m.name && x.fromPlan)) return;
-      day.sessions.push({
-        id: uid(), name: m.name, type: "cardio",
+      logSession(dateKey, {
+        name: m.name, type: "cardio",
         durationMin: m.minutes || perLift || undefined,
         fromPlan: true,
-      });
+      }, { quiet: true });
       added++;
     });
     // Nothing itemised, but she said how long — log the session itself.
     if(!moves.length && w.durationMin){
-      day.sessions.push({
-        id: uid(), name: w.name || "Workout", type: "strength",
+      logSession(dateKey, {
+        name: w.name || "Workout", type: "strength",
         weight: 0, reps: 0, sets: 1, durationMin: w.durationMin,
         fromPlan: true, needsNumbers: true,
-      });
+      }, { quiet: true });
       added++;
     }
   });
@@ -6813,15 +6955,11 @@ function bindWorkoutSession(overlay, dateKey){
     cur.loggedAt = Date.now();
 
     // Add to day.sessions for the existing systems (PRs, history, etc.)
-    if(!day.sessions) day.sessions = [];
-    const sessionRow = {
-      id: uid(), name: exName, weight: cur.weight, reps: cur.reps, sets: 1,
+    logSession(dateKey, {
+      name: exName, weight: cur.weight, reps: cur.reps, sets: 1,
       type: cur.kind === "warmup" ? "accessory" : "strength",
       notes: cur.kind !== "normal" ? _setKind(cur.kind).lbl : ""
-    };
-    day.sessions.push(sessionRow);
-    if(typeof updateRepPRsFromSet === "function") updateRepPRsFromSet(sessionRow);
-    save();
+    }, { skipPR: cur.kind === "warmup" });
 
     // Animate logged state
     setEl.classList.add("logged");
@@ -8470,10 +8608,8 @@ function openCardioModal(){
       }
       const dateK = (document.getElementById("cdDate") || {}).value || currentDate;
       const timeV = (document.getElementById("cdTime") || {}).value || "";
-      const day = dayObj(dateK);
-      if(!day.sessions) day.sessions = [];
-      day.sessions.push({
-        id: uid(), name, lift: name,
+      logSession(dateK, {
+        name, lift: name,
         weight: 0, reps: 0, sets: 1,
         type: "cardio",
         durationMin: mins,
@@ -8483,7 +8619,7 @@ function openCardioModal(){
         mph: t.incline ? ((document.getElementById("cdMph")||{}).value || "") : undefined,
         level: t.incline ? ((document.getElementById("cdLevel")||{}).value || "") : undefined,
       });
-      save(); closeModal(); renderAll();
+      closeModal(); renderAll();
       toast(`${name} · ${mins} min · ~${kcal} kcal · ${fmtDate(dateK)}`, "cyan");
     });
     recalc();
@@ -9993,7 +10129,8 @@ function renderSessionCard(){
     </div>` : ""}
     <div class="se-list">${sessions.map(row).join("") || `<p class="wl-empty">Nothing logged for this day yet.</p>`}</div>
     <div class="se-actions">
-      <button class="btn btn-cyan" id="seAddLift">+ LIFT</button>
+      <button class="btn btn-cyan" id="seWrite">WRITE IT OUT</button>
+      <button class="btn btn-ghost" id="seAddLift">+ LIFT</button>
       <button class="btn btn-ghost" id="seAddCardio">+ CARDIO</button>
       <button class="btn btn-ghost" id="seAddInterval">+ INTERVALS</button>
     </div>`;
@@ -10001,6 +10138,7 @@ function renderSessionCard(){
   card.querySelectorAll(".se-row").forEach(r =>
     r.addEventListener("click", () => openSessionEditor(r.dataset.sid)));
   const on2 = (sel, fn) => { const el = card.querySelector(sel); if(el) el.addEventListener("click", fn); };
+  on2("#seWrite", () => openLogWorkoutText(currentDate));
   on2("#seAddLift", () => openLiftModal());
   on2("#seAddCardio", () => openCardioModal());
   on2("#seAddInterval", () => openIntervalModal());
@@ -10102,17 +10240,8 @@ function openSessionEditor(sid){
       // remove from old day, add to (possibly new) day
       state.days[srcDate].sessions = (state.days[srcDate].sessions || []).filter(x => x.id !== sid);
       const target = dayObj(newDate);
-      target.sessions = target.sessions || [];
-      target.sessions.push(updated);
-      if(!asCardio && updated.reps && updated.reps <= 10 && updated.weight){
-        const est = Math.round(updated.weight * (1 + updated.reps/30));
-        const cur = state.prs[updated.name];
-        if(!cur || est > cur.val){
-          state.prs[updated.name] = { val: est, date: newDate, unit: unit() };
-          toast(`New PR: ${updated.name} ~ ${est}${unit()}`, "cyan");
-        }
-      }
-      save(); closeModal(); renderAll();
+      logSession(newDate, updated);   // one write path — PRs handled there
+      closeModal(); renderAll();
       toast("Updated", "cyan");
     });
   });
@@ -10174,10 +10303,10 @@ function openIntervalModal(){
         if(lvl) nm += ` · L${lvl}`;
         if(mph) nm += ` @ ${mph}mph`;
         if(label) nm = `${label} — ${nm}`;
-        day.sessions.push({ id: uid(), name: nm, lift: nm, type: "cardio",
+        logSession(dateK, { name: nm, lift: nm, type: "cardio",
           weight:0, reps:0, sets:1, durationMin: mins, calories: kcal,
           cardioId: t.id, mph: mph || undefined, level: lvl || undefined,
-          time: timeV || undefined });
+          time: timeV || undefined }, { quiet: true });
         added++;
       });
       if(!added){ toast("Add minutes to at least one block", "pink"); return; }
@@ -12833,6 +12962,8 @@ function renderPlanCard(){
 }
 
 onReady(() => {
+  const fw = document.getElementById("fitWriteOut");
+  if(fw) fw.addEventListener("click", () => openLogWorkoutText(currentDate));
   const n = document.getElementById("trNoteBtn");
   if(n) n.addEventListener("click", () => openHealthNoteModal());
   const a = document.getElementById("goalPlanBtn");
@@ -13538,7 +13669,10 @@ function programHtml(program){
 // =================================================================
 window.__bermo = {
   save,
+  activityFor: (k) => autoComputeActivity(k),
   parseMovementText,
+  parseWorkoutText,
+  logSession,
   designGoalPlan,
   buildProgram,
   readHeightField,

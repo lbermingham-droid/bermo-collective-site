@@ -787,6 +787,79 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       : fail("v31 plan to log", JSON.stringify({ had, logged }));
   } catch (e) { fail("v31 plan to log", e); }
 
+  // 25. v32: ONE entry point must reach EVERY downstream surface.
+  //     Eight places used to push into day.sessions directly and each did
+  //     something different afterwards — Quick Set updated the 1RM estimate,
+  //     the session logger updated rep PRs but not the 1RM, the brain dump
+  //     and cardio loggers updated neither. Everything goes through
+  //     logSession() now.
+  try {
+    const conn = await page.evaluate(() => {
+      const KEY = "bermo.tracker.v1";
+      const st = JSON.parse(localStorage.getItem(KEY));
+      const k = new Date().toISOString().slice(0,10);
+      if(st.days[k]) { st.days[k].sessions = []; }
+      st.prs = {};
+      localStorage.setItem(KEY, JSON.stringify(st));
+      return true;
+    });
+    await page.reload({ waitUntil: "domcontentloaded", timeout: 20000 });
+    await page.waitForTimeout(1400);
+    const result = await page.evaluate(() => {
+      const B = window.__bermo;
+      const k = new Date().toISOString().slice(0,10);
+      // ONE typed sentence, logged once
+      const p = B.parseWorkoutText("1.5 hours\nback squat 3x8 at 135, lat pulldown 3x10\nwalked 20 min");
+      p.rows.forEach(r => B.logSession(k, r, { quiet: true }));
+      const st = JSON.parse(localStorage.getItem("bermo.tracker.v1"));
+      const day = st.days[k] || {};
+      return {
+        rows: (day.sessions || []).length,
+        cardio: (day.sessions || []).filter(x => x.type === "cardio").length,
+        prSet: Object.keys(st.prs || {}).length > 0,
+        repPRs: Object.keys(st.prsRep || {}).length > 0,
+        // rings are DERIVED from sessions, not stored — assert the derivation
+        activity: (function(){
+          const a = window.__bermo.activityFor ? window.__bermo.activityFor(k) : null;
+          return !!(a && a.exercise > 0);
+        })(),
+      };
+    });
+    await page.waitForTimeout(400);
+    // and it must be visible on the surfaces that read the log
+    const surfaces = await page.evaluate(() => {
+      const out = {};
+      const w = document.querySelector('.mtab[data-tab="fitness"]'); if(w) w.click();
+      return new Promise(r => setTimeout(() => {
+        out.sessionCard = /back squat/i.test((document.getElementById("sessionCard")||{}).innerText || "");
+        out.fitStats = /2,?\d{3}|3,?\d{3}/.test((document.getElementById("fitTopStats")||{}).innerText || "");
+        const d = document.querySelector('.mtab[data-tab="dashboard"]'); if(d) d.click();
+        setTimeout(() => {
+          out.compare = /LIFTS LOGGED/i.test((document.getElementById("cmpRows")||{}).innerText || "");
+          r(out);
+        }, 500);
+      }, 500));
+    });
+    const allConnected = result.rows === 3 && result.cardio === 1 && result.prSet
+      && result.activity && surfaces.sessionCard && surfaces.fitStats && surfaces.compare;
+    allConnected
+      ? ok("v32 one typed workout reaches log, PRs, activity, session card, stats and week comparison")
+      : fail("v32 connectedness", JSON.stringify({ ...result, ...surfaces }));
+  } catch (e) { fail("v32 connectedness", e); }
+
+  // 26. Nothing may bypass logSession() — a direct push skips PRs + activity.
+  try {
+    const pushes = await page.evaluate(async () => {
+      const src = await (await fetch("/tracker/app.js")).text();
+      // count on the raw source — stripping comments with a regex was itself
+      // eating chunks of the file and reporting zero
+      return (src.match(/sessions\.push\(/g) || []).length;
+    });
+    pushes === 1
+      ? ok("v32 exactly one write path into day.sessions")
+      : fail("v32 write paths", pushes + " direct pushes into day.sessions (expected 1, inside logSession)");
+  } catch (e) { fail("v32 write paths", e); }
+
   await browser.close();
   print();
 })();

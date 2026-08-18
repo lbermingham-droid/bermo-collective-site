@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v31**.
+- Current build: **v32**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -244,6 +244,28 @@ typed gone. It is now its own `.xsheet` layered on top of `document.body`;
 nothing underneath is touched. **Never route a secondary panel through
 `openModal()` while another modal is open.**
 
+**ONE WRITE PATH — `logSession()` (v32). Do not bypass it.**
+`day.sessions` is the hub: rings, week comparison, health correlations,
+body-part trends, muscle coverage, previous-performance, PRs and the day
+verdict all read it. But **eight** places used to `push()` into it directly
+and each did something different afterwards — Quick Set updated the 1RM
+estimate, the session logger updated rep PRs but NOT the 1RM, the brain dump
+and cardio loggers updated neither. The same lift entered from two screens
+produced two different results.
+Everything now goes through `logSession(dateKey, row, opts)`, which handles
+the 1RM estimate, rep PRs and the save. **Smoke test 26 counts
+`sessions.push(` in the source and fails if it is not exactly 1.**
+Note: the activity rings need no call — `autoComputeActivity()` is a PURE
+function that derives them from `day.sessions` on every read.
+
+**"WRITE IT OUT" — one free-text logger, reachable from everywhere (v32).**
+`parseWorkoutText()` builds on `parseMovementText()` and additionally reads
+`3x10`, `at 90`, `12 reps`. `openLogWorkoutText()` is the sheet; it runs
+**on device, no AI, no credits**. Reachable from the Fitness header, the
+Today's-session card, and inside Brain Dump (LOG WORKOUT), and the rings
+modal's free-text box now runs through the same parser instead of storing
+the whole sentence as one unusable cardio row.
+
 **PLANNING vs LOGGING was the confusion (v31).** She typed what she had
 already done into the day editor's movements box and expected it in the log.
 Two separate failures:
@@ -386,7 +408,7 @@ Playwright is already installed in the scratchpad. Launch chromium with
 `{ server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" }`.
 **Do not run `npx playwright install`.**
 
-**Expected: 38/38 and zero page errors.** (Two console errors about
+**Expected: 40/40 and zero page errors.** (Two console errors about
 `ERR_CONNECTION_RESET` are the sandbox blocking a CDN — pre-existing, ignore.)
 
 The suite covers: load, wizard, **sideways overflow on every page**, all tabs,
@@ -494,4 +516,5 @@ rebuilt, uniform gaps, equal side-by-side cards · `v27` step-attribute bug,
 feet+inches height, and the training/cardio/food program · `v28` Goal Designer maths and the
 explainer sheet · `v29` target date, body-part splits, researched cardio dose,
 lift comparison and the program call-out · `v30` build-as-you-go session +
-two never-declared constants · `v31` movement-text parsing and plan-to-log.
+two never-declared constants · `v31` movement-text parsing and plan-to-log ·
+`v32` one write path + write-it-out logging from any screen.

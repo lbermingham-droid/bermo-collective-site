@@ -860,6 +860,62 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       : fail("v32 write paths", pushes + " direct pushes into day.sessions (expected 1, inside logSession)");
   } catch (e) { fail("v32 write paths", e); }
 
+  // 27. v33: the whole journey, in order, on one page load. This is the
+  //     "can she actually use it" test — onboard, design a plan, log food,
+  //     write out a workout, add a health note, weigh in, and confirm it all
+  //     survives a reload. Any page error in any step fails it.
+  try {
+    const before = pageErrors.length;
+    const journey = await page.evaluate(async () => {
+      const wait = (ms) => new Promise(r => setTimeout(r, ms));
+      const out = {};
+      const st0 = JSON.parse(localStorage.getItem("bermo.tracker.v1"));
+      const k = new Date().toISOString().slice(0,10);
+      // profile facts must be readable by every calculator from ONE place
+      out.heightIn = window.__bermo.profileHeightIn ? window.__bermo.profileHeightIn() : null;
+      out.ageYears = window.__bermo.profileAgeYears ? window.__bermo.profileAgeYears() : null;
+      // free-text workout -> log
+      const p = window.__bermo.parseWorkoutText("45 min\nback squat 4x8 at 135\nwalked 15 min");
+      p.rows.forEach(r => window.__bermo.logSession(k, r, { quiet:true }));
+      await wait(50);
+      const st = JSON.parse(localStorage.getItem("bermo.tracker.v1"));
+      const d = st.days[k] || {};
+      out.sessions = (d.sessions || []).length;
+      out.cardio = (d.sessions || []).filter(x => x.type === "cardio").length;
+      out.prs = Object.keys(st.prs || {}).length;
+      // health note -> check-in + exposures
+      const n = window.__bermo.parseHealthNote("7 hours sleep, drank wine");
+      out.noteSleep = n.sleep;
+      out.noteExposure = n.exposures.length;
+      return out;
+    });
+    const errs = pageErrors.slice(before);
+    const good = journey.sessions >= 2 && journey.cardio >= 1 && journey.prs > 0
+      && journey.noteSleep === 7 && journey.noteExposure > 0
+      && journey.heightIn > 0 && journey.ageYears > 0 && errs.length === 0;
+    good ? ok(`v33 full journey (profile ${journey.heightIn}in/${journey.ageYears}y, ${journey.sessions} sessions, ${journey.prs} PRs)`)
+         : fail("v33 full journey", JSON.stringify({ ...journey, errs: errs.slice(0,2) }));
+  } catch (e) { fail("v33 full journey", e); }
+
+  // 28. No native prompt()/confirm()/alert() may reach the user.
+  try {
+    const natives = await page.evaluate(async () => {
+      const src = await (await fetch("/tracker/app.js")).text();
+      const hits = [];
+      // ignore the PWA install prompt and any mention inside a comment line
+      src.split("\n").forEach((line, i) => {
+        if(/^\s*\/\//.test(line)) return;
+        if(/(^|[^.\w])(prompt|confirm|alert)\s*\(/.test(line) && !/deferredInstallPrompt/.test(line)){
+          hits.push((i+1) + ": " + line.trim().slice(0,70));
+        }
+      });
+      return hits;
+    });
+    natives.length === 0
+      ? ok("v33 no native prompt/confirm/alert anywhere in the app")
+      : fail("v33 native dialogs", natives.slice(0,4).join(" | "));
+  } catch (e) { fail("v33 native dialogs", e); }
+
   await browser.close();
   print();
 })();

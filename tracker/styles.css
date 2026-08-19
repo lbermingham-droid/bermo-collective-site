@@ -4340,3 +4340,9 @@ html, body, #app, .app{
 .fd-hint{ font-size:10.5px; color:#6b7488; line-height:1.45; margin:6px 0 0; text-align:center; }
 .se-row.se-todo{ border-color:var(--brand-purple) !important; }
 .se-row.se-todo .se-info small{ color:var(--brand-purple); font-weight:700; }
+/* destructive confirmation */
+.cd-warn{
+  padding:10px 12px; border-radius:11px; margin-top:10px;
+  border:1px solid var(--brand-purple); color:var(--brand-purple);
+  font-size:11.5px; font-weight:700; line-height:1.45;
+}

@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v32**.
+- Current build: **v33**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -244,6 +244,28 @@ typed gone. It is now its own `.xsheet` layered on top of `document.body`;
 nothing underneath is touched. **Never route a secondary panel through
 `openModal()` while another modal is open.**
 
+**NO NATIVE DIALOGS (v33).** `prompt()` and `confirm()` are banned in the
+UI — unstyleable, blocking, and on iOS a system dialog mid-flow reads as
+phishing. There were **seven**. Replacements: `openNameModal()` for naming
+things, `confirmDestructive()` for anything that deletes (it names the
+consequence and offers an export first). Routine actions that were asking
+permission unnecessarily now just act. **Smoke test 28 greps the source and
+fails on any `prompt(`/`confirm(`/`alert(`** outside the PWA install prompt.
+
+**ONE PROFILE SOURCE (v33).** The wizard wrote `profile.heightIn` and
+`profile.ageYears`; the Goal Designer and macro calculator read
+`profile.height` and `profile.birthYear` — names nothing ever wrote. So after
+onboarding, both calculators still opened with height and age blank.
+`profileHeightIn()` / `profileAgeYears()` / `profileSex()` are the accessors
+(they fall back to the legacy keys), and `rememberBodyFacts()` writes back
+whatever she types into a calculator so it is never asked for twice.
+
+**ONE SAVED-MEAL PATH (v33).** There were three: `saveMealAsTemplate`
+(orphaned, wrote a template with **no** `totals` — which the render read
+unguarded, so it would have thrown), `saveCurrentMealAsTemplate`, and
+`saveSelectedAsMeal`. Now one `saveMealTemplate(items, name)` with one shape,
+and the render derives totals defensively for anything saved by an old build.
+
 **ONE WRITE PATH — `logSession()` (v32). Do not bypass it.**
 `day.sessions` is the hub: rings, week comparison, health correlations,
 body-part trends, muscle coverage, previous-performance, PRs and the day
@@ -408,7 +430,7 @@ Playwright is already installed in the scratchpad. Launch chromium with
 `{ server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" }`.
 **Do not run `npx playwright install`.**
 
-**Expected: 40/40 and zero page errors.** (Two console errors about
+**Expected: 42/42 and zero page errors.** (Two console errors about
 `ERR_CONNECTION_RESET` are the sandbox blocking a CDN — pre-existing, ignore.)
 
 The suite covers: load, wizard, **sideways overflow on every page**, all tabs,
@@ -423,6 +445,23 @@ Also do a **screenshot pass** — the scratchpad has working scripts
 capture. Several bugs were only visible in a screenshot, never in a test.
 
 ---
+
+## 6b. The three audit scripts (scratchpad) — run these, not just the suite
+
+- **`audit.js`** — clicks EVERY visible control on every page, records page
+  errors, blocking dialogs, controls that do nothing, and whether each modal
+  opens AND closes. Change detection compares the full HTML, the stored
+  state, `currentDate` and the count of `.active/.on/.sel` — a weaker check
+  produced dozens of false "dead control" reports.
+- **`journey.js`** — the real user story in order: onboard → design a plan →
+  log food by search → write out a workout → health note → weigh in →
+  dashboard shows it → survives a reload.
+- **`dupes.js`** — cross-surface data flow. Does a weigh-in prefill the Goal
+  Designer? Does saving a plan update Settings and the inline calculator?
+  Does dashboard water show on Nutrition?
+
+Last full run (v33): **0 page errors, 0 dead controls, 0 stuck modals, 47
+modals verified, 8/8 journey steps, no sideways overflow on any page.**
 
 ## 7. Hygiene rule (learned the hard way, twice)
 
@@ -517,4 +556,5 @@ feet+inches height, and the training/cardio/food program · `v28` Goal Designer 
 explainer sheet · `v29` target date, body-part splits, researched cardio dose,
 lift comparison and the program call-out · `v30` build-as-you-go session +
 two never-declared constants · `v31` movement-text parsing and plan-to-log ·
-`v32` one write path + write-it-out logging from any screen.
+`v32` one write path + write-it-out logging from any screen ·
+`v33` full-app audit: no native dialogs, no dead controls, one profile source.

@@ -238,8 +238,10 @@ function wizCollect(){
     heightIn = cm / 2.54;
   } else {
     const ft = parseInt($("#wizHeightFt").value, 10) || 0;
-    const inches = parseInt($("#wizHeightIn").value, 10) || 0;
-    heightIn = ft * 12 + inches;
+    let inches = parseInt($("#wizHeightIn").value, 10) || 0;
+    // If a whole height lands in the INCHES box (66 rather than 5 + 6), take
+    // it as the total rather than silently producing 10'6".
+    heightIn = inches > 11 ? inches : (ft * 12 + inches);
   }
   return {
     name: $("#wizName").value.trim() || "Athlete",
@@ -1632,11 +1634,39 @@ function logout(){
   save();
   showGate();
 }
+// Destructive actions deserve better than a browser confirm(), which is
+// unstyleable, easy to dismiss by accident, and on iOS looks like a phishing
+// popup. This one names the consequence and offers the export first.
+function confirmDestructive(opts, onYes){
+  const o = opts || {};
+  openModal(o.title || "Are you sure?", `
+    <p class="hn-intro">${escape(o.body || "")}</p>
+    ${o.warn ? `<div class="cd-warn">${escape(o.warn)}</div>` : ""}
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      ${o.exportFirst ? `<button class="btn btn-ghost" id="cdExport">EXPORT A BACKUP</button>` : ""}
+      <button class="btn btn-pink" id="cdYes">${escape(o.cta || "DO IT")}</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    const ex = document.getElementById("cdExport");
+    if(ex) ex.addEventListener("click", () => { try{ exportData(); }catch(e){} });
+    document.getElementById("cdYes").addEventListener("click", () => { closeModal(); onYes(); });
+  });
+}
+
 function resetAll(){
-  if(!confirm("Wipe ALL tracker data? There is no undo.")) return;
-  state = defaultState();
-  save();
-  showGate();
+  confirmDestructive({
+    title: "Wipe everything?",
+    body: "Every meal, workout, weigh-in, goal and note in this app will be deleted from this device. There is no undo and no copy on a server.",
+    warn: "Export a backup first — that file restores everything.",
+    cta: "WIPE IT ALL",
+    exportFirst: true,
+  }, () => {
+    state = defaultState();
+    save();
+    showGate();
+  });
 }
 
 // ---------- BOOT ----------
@@ -1735,6 +1765,24 @@ function bindImport(){
         } else {
           result = importHealthCSV(text);
         }
+        // A full tracker export replaces everything — that needs a real
+        // confirmation, not a browser dialog fired from inside a parser.
+        if(result && result.needsConfirm){
+          const payload = result.payload;
+          file.value = "";
+          confirmDestructive({
+            title: "Restore this backup?",
+            body: `This file is a full tracker export with ${Object.keys(payload.days||{}).length} logged day${Object.keys(payload.days||{}).length===1?"":"s"}. Restoring it REPLACES everything currently on this device.`,
+            warn: "Export your current data first if you want to keep it.",
+            cta: "RESTORE IT",
+            exportFirst: true,
+          }, () => {
+            state = payload;
+            save(); renderAll();
+            toast(`Restored ${(payload.weights||[]).length} weigh-ins and ${Object.keys(payload.days||{}).length} days`, "cyan");
+          });
+          return;
+        }
         save(); renderAll();
         const parts = [];
         if(result.weights) parts.push(`${result.weights} weigh-in${result.weights===1?"":"s"}`);
@@ -1825,12 +1873,8 @@ function importHealthJSON(text){
   // Or our own tracker JSON export — detect by shape
   const obj = JSON.parse(text);
   if(obj && obj.profile && obj.days){
-    // Our own export — full state restore (with confirm)
-    if(!confirm("This looks like a tracker export. Replace ALL current data with it?")){
-      return { weights:0, bf:0, lean:0, other:0 };
-    }
-    state = obj;
-    return { weights: (obj.weights||[]).length, bf:0, lean:0, other:0 };
+    // Our own export — hand it back so the caller can confirm properly
+    return { needsConfirm: true, payload: obj, weights:0, bf:0, lean:0, other:0 };
   }
   let added = { weights:0, bf:0, lean:0, other:0 };
   const metrics = (obj.data && obj.data.metrics) || obj.metrics || [];
@@ -1898,7 +1942,6 @@ onReady(() => {
     calInput.addEventListener("change", () => {
       const v = parseInt(calInput.value, 10);
       if(!v || v < 800) return;
-      if(!confirm(`Auto-balance macros for ${v} kcal (30% protein / 40% carbs / 30% fat)?`)) return;
       const m = rebalanceMacros(v);
       const p = document.getElementById("setP");
       const c = document.getElementById("setC");
@@ -2183,16 +2226,16 @@ Rules:
 function openMacroCalcModal(){
   const lastWeight = (state.weights[state.weights.length-1] || {}).val || "";
   const lastBF = (state.measurements.slice().reverse().find(m => m.type==="bodyfat") || {}).val || "";
-  const profYear = state.profile.birthYear || "";
-  const sex = state.profile.sex || "f";
+  const profAge = profileAgeYears() || "";
+  const sex = profileSex();
   openModal("Calculate macros for me", `
     <p style="font-size:12px;color:#666;line-height:1.5;margin:0 0 12px">Same math MyFitnessPal and most coaches use — Mifflin-St Jeor (or Katch-McArdle if you've logged body fat). Pulls latest weight + body fat from your log if available.</p>
     <div class="form-grid">
       <label><span>Sex</span>
         <select id="mcSex"><option value="f" ${sex==="f"?"selected":""}>Female</option><option value="m" ${sex==="m"?"selected":""}>Male</option></select>
       </label>
-      <label><span>Age</span><input id="mcAge" type="number" min="14" max="90" value="${profYear ? new Date().getFullYear()-profYear : ""}" placeholder="35"></label>
-      ${heightFieldHtml("mcHt", state.profile.height)}
+      <label><span>Age</span><input id="mcAge" type="number" min="14" max="90" inputmode="numeric" value="${profAge}" placeholder="35"></label>
+      ${heightFieldHtml("mcHt", profileHeightIn())}
       <label><span>Weight (${unit()})</span><input id="mcWt" type="number" min="60" max="600" step="0.1" value="${lastWeight}" placeholder=""></label>
       <label><span>Body fat % (optional)</span><input id="mcBF" type="number" min="3" max="60" step="0.1" value="${lastBF}" placeholder="auto from log"></label>
       <label><span>Activity</span>
@@ -2266,6 +2309,7 @@ function openMacroCalcModal(){
         bmr = 10*kg + 6.25*cm - 5*age + (sex === "m" ? 5 : -161);
         formula = "Mifflin-St Jeor";
       }
+      rememberBodyFacts({ heightIn: state.profile.units === "metric" ? ht/2.54 : ht, ageYears: age, sex });
       const tdee = bmr * act;
       const adj = { cut:-500, cutmild:-250, maintain:0, recomp:-150, leanbulk:250, bulk:500 }[goal];
       const cal = Math.round(tdee + adj);
@@ -2459,25 +2503,64 @@ function renderUsuals(){
     toast(`Logged ${tpl.name} → ${b.dataset.meal}`, "cyan");
   }));
   grid.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => {
-    if(!confirm("Delete this usual?")) return;
+    // routine delete: undo it by re-saving the meal; no browser dialog
     state.mealTemplates = getTemplates().filter(x => x.id !== b.dataset.del);
     save(); renderUsuals();
   }));
 }
 
-function saveMealAsTemplate(meal){
-  const day = dayObj(currentDate);
-  const items = (day.meals[meal] || []).map(it => ({
-    name:it.name, serving:it.serving, cal:it.cal, p:it.p, c:it.c, f:it.f, cheat:it.cheat
-  }));
-  if(!items.length){ toast("Nothing in that meal yet", "pink"); return; }
-  const default_name = `My ${capitalize(meal)}`;
-  const name = prompt("Name this usual:", default_name);
-  if(!name) return;
-  getTemplates().push({ id:"tpl-"+uid(), name:name.trim().slice(0,40), items, createdAt:todayKey() });
-  save(); renderAll();
-  toast(`Saved "${name}"`, "cyan");
+// A real modal instead of window.prompt(). Native prompts look like a
+// browser alert, block the page, are unstyleable, and on iOS one of them
+// (the period-start date) rendered as a system dialog mid-flow. Five of them
+// were still in here.
+function openNameModal(opts, onSave){
+  const o = opts || {};
+  openModal(o.title || "Name it", `
+    ${o.intro ? `<p class="hn-intro">${escape(o.intro)}</p>` : ""}
+    <label><span>${escape(o.label || "Name")}</span>
+      <input id="nmValue" type="${o.type || "text"}" maxlength="${o.maxlength || 60}"
+        value="${escape(o.value || "")}" placeholder="${escape(o.placeholder || "")}"></label>
+    ${o.hint ? `<p class="gd-note">${escape(o.hint)}</p>` : ""}
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-cyan" id="nmSave">${escape(o.cta || "SAVE")}</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    const inp = document.getElementById("nmValue");
+    const commit = () => {
+      const v = (inp.value || "").trim();
+      if(!v){ toast(o.emptyMsg || "Give it a name", "pink"); return; }
+      closeModal();
+      onSave(v);
+    };
+    document.getElementById("nmSave").addEventListener("click", commit);
+    inp.addEventListener("keydown", (e) => { if(e.key === "Enter"){ e.preventDefault(); commit(); } });
+    setTimeout(() => { inp.focus(); inp.select && inp.select(); }, 100);
+  });
 }
+
+// ONE saved-meal path. There were three: saveMealAsTemplate (orphaned, wrote
+// a template with NO totals — which renderTemplatesPane reads unguarded, so
+// it would have thrown), saveCurrentMealAsTemplate, and saveSelectedAsMeal.
+// Same concept, two storage shapes, one dead function.
+function saveMealTemplate(items, name){
+  const clean = (items || []).filter(Boolean).map(x => ({
+    name:x.name, serving:x.serving, cal:+x.cal||0, p:+x.p||0, c:+x.c||0, f:+x.f||0,
+    fiber:x.fiber, sugar:x.sugar, micros:x.micros, cheat:x.cheat,
+  }));
+  if(!clean.length) return null;
+  const totals = clean.reduce((a,b) => ({
+    cal:a.cal+b.cal, p:a.p+b.p, c:a.c+b.c, f:a.f+b.f
+  }), { cal:0, p:0, c:0, f:0 });
+  ["cal","p","c","f"].forEach(k => totals[k] = Math.round(totals[k] * 10) / 10);
+  if(!state.mealTemplates) state.mealTemplates = [];
+  const entry = { id: uid(), name: String(name).trim().slice(0,40), items: clean, totals, createdAt: todayKey() };
+  state.mealTemplates.unshift(entry);
+  save();
+  return entry;
+}
+
 
 // =================================================================
 // RED FLAG UI: paint over-goal bars red, mark cheat foods, banner
@@ -2854,8 +2937,18 @@ function getCycleData(){
   return state.cycle;
 }
 function logPeriodStart(){
-  const date = prompt("Period start date (YYYY-MM-DD):", currentDate);
-  if(!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)){ toast("Need YYYY-MM-DD","pink"); return; }
+  openNameModal({
+    title: "Log a period start",
+    intro: "Cycle phase then shows up in your Health patterns.",
+    label: "Started on",
+    type: "date",
+    value: currentDate,
+    cta: "LOG IT",
+    emptyMsg: "Pick a date",
+  }, (date) => _commitPeriodStart(date));
+}
+function _commitPeriodStart(date){
+  if(!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)){ toast("Pick a date","pink"); return; }
   const cycle = getCycleData();
   cycle.periods.push({ start: date });
   cycle.periods.sort((a,b) => a.start.localeCompare(b.start));
@@ -3161,7 +3254,11 @@ onReady(() => {
   const c = document.getElementById("trCheckinBtn");
   if(c) c.addEventListener("click", openCheckinModal);
   const r = document.getElementById("trRefreshBtn");
-  if(r) r.addEventListener("click", renderTrends);
+  if(r) r.addEventListener("click", () => {
+    renderTrends();
+    // it used to re-render silently, so it read as a dead button
+    toast("Recomputed from your latest data", "cyan");
+  });
   const p = document.getElementById("trCyclePeriod");
   if(p) p.addEventListener("click", logPeriodStart);
 });
@@ -3545,7 +3642,7 @@ onReady(() => {
     });
     const clear = document.getElementById("aiClearBtn");
     if(clear) clear.addEventListener("click", () => {
-      if(!confirm("Remove AI key?")) return;
+      // removing a key is trivially reversible — just paste it again
       state.ai = { provider:"claude", key:null };
       save(); renderAISetup();
       toast("Key removed","cyan");
@@ -7895,7 +7992,12 @@ function renderTemplatesPane(meal){
     <li class="lrow tpl-row" data-id="${t.id}">
       <div class="lrow-main">
         <div class="lrow-title">${escape(t.name)}</div>
-        <div class="lrow-sub">${t.items.length} item${t.items.length===1?"":"s"} · ${t.totals.cal} cal · P${t.totals.p} C${t.totals.c} F${t.totals.f}</div>
+        <div class="lrow-sub">${(() => {
+          const tt = t.totals || (t.items||[]).reduce((a,b) => ({
+            cal:a.cal+(+b.cal||0), p:a.p+(+b.p||0), c:a.c+(+b.c||0), f:a.f+(+b.f||0)
+          }), {cal:0,p:0,c:0,f:0});
+          return `${t.items.length} item${t.items.length===1?"":"s"} · ${Math.round(tt.cal)} cal · P${Math.round(tt.p)} C${Math.round(tt.c)} F${Math.round(tt.f)}`;
+        })()}</div>
       </div>
       <button class="lrow-del" type="button" data-act="del" aria-label="Delete">×</button>
       <button class="lrow-add" type="button" data-act="apply">+</button>
@@ -7924,21 +8026,21 @@ function renderTemplatesPane(meal){
   });
 }
 function saveCurrentMealAsTemplate(meal){
-  const items = (dayObj(currentDate).meals[meal] || []).map(x => ({
-    name:x.name, serving:x.serving, cal:x.cal, p:x.p, c:x.c, f:x.f
-  }));
+  const items = dayObj(currentDate).meals[meal] || [];
   if(!items.length){ toast(`Add some items to ${capitalize(meal)} first`, "pink"); return; }
-  const name = prompt("Name this template:", `My ${capitalize(meal)} ${new Date().toLocaleDateString()}`);
-  if(!name) return;
-  const totals = items.reduce((a,b) => ({
-    cal: a.cal + (b.cal||0), p: a.p + (b.p||0), c: a.c + (b.c||0), f: a.f + (b.f||0)
-  }), { cal:0, p:0, c:0, f:0 });
-  ["cal","p","c","f"].forEach(k => totals[k] = Math.round(totals[k] * 10) / 10);
-  if(!state.mealTemplates) state.mealTemplates = [];
-  state.mealTemplates.unshift({ id: uid(), name, items, totals, createdAt: new Date().toISOString() });
-  save();
-  toast(`Saved template: ${name}`, "ok");
-  renderTemplatesPane(meal);
+  openNameModal({
+    title: "Save this meal",
+    intro: `${items.length} item${items.length===1?"":"s"} from today's ${meal}. It'll be one tap from now on.`,
+    label: "Call it",
+    value: `My ${capitalize(meal)}`,
+    cta: "SAVE MEAL",
+  }, (name) => {
+    const t = saveMealTemplate(items, name);
+    if(!t) return;
+    toast(`Saved: ${t.name}`, "cyan");
+    renderTemplatesPane(meal);
+    renderAll();
+  });
 }
 
 // ---------- WIRING ----------
@@ -8695,9 +8797,15 @@ function renderWorkoutLib(){
     row.querySelector("[data-wl-assign]").addEventListener("click", () => assignLibWorkout(w));
     row.querySelector("[data-wl-edit]").addEventListener("click", () => openWorkoutBuilder(w));
     row.querySelector("[data-wl-del]").addEventListener("click", () => {
-      if(!confirm(`Delete "${w.name}"?`)) return;
-      state.workoutLib = lib.filter(x => x.id !== w.id);
-      save(); renderWorkoutLib();
+      confirmDestructive({
+        title: `Delete "${w.name}"?`,
+        body: `${(w.exercises||[]).length} movement${(w.exercises||[]).length===1?"":"s"}. Workouts already logged from it stay in your history.`,
+        cta: "DELETE",
+      }, () => {
+        state.workoutLib = lib.filter(x => x.id !== w.id);
+        save(); renderWorkoutLib();
+        toast(`Deleted ${w.name}`, "pink");
+      });
     });
   });
 }
@@ -9866,18 +9974,19 @@ function saveSelectionAsMeal(){
     if(it) items.push({ name:it.name, serving:it.serving, cal:it.cal, p:it.p, c:it.c, f:it.f });
   });
   if(!items.length) return;
-  const name = prompt("Name this meal:", "My meal");
-  if(!name) return;
-  const totals = items.reduce((a,b) => ({
-    cal:a.cal+(b.cal||0), p:a.p+(b.p||0), c:a.c+(b.c||0), f:a.f+(b.f||0)
-  }), {cal:0,p:0,c:0,f:0});
-  ["cal","p","c","f"].forEach(k => totals[k] = Math.round(totals[k]*10)/10);
-  if(!state.mealTemplates) state.mealTemplates = [];
-  state.mealTemplates.unshift({ id: uid(), name, items, totals, createdAt: currentDate });
-  save();
-  _dySelectMode = false; _dySelected.clear();
-  renderDiary();
-  toast(`Saved meal: ${name} (${items.length} items)`, "cyan");
+  openNameModal({
+    title: "Save as a meal",
+    intro: `${items.length} item${items.length===1?"":"s"} selected.`,
+    label: "Call it",
+    value: "My meal",
+    cta: "SAVE MEAL",
+  }, (name) => {
+    const t = saveMealTemplate(items, name);
+    if(!t) return;
+    _dySelectMode = false; _dySelected.clear();
+    renderDiary(); renderAll();
+    toast(`Saved: ${t.name} (${items.length} item${items.length===1?"":"s"})`, "cyan");
+  });
 }
 
 // ---- CALORIES sub-page (MFP: donut by meal + totals rows) ----
@@ -10037,7 +10146,7 @@ function renderFitDayCard(){
         ${w.durationMin ? `<p class="fd-dur">${w.durationMin} min</p>` : ""}
         ${(w.exercises || []).length
           ? `<ul class="fd-moves">${w.exercises.map(e => `<li>${escape(e.name)}${e.scheme ? ` <i>${escape(e.scheme)}</i>` : ""}</li>`).join("")}</ul>`
-          : `<p class="fd-nomoves">Nothing listed yet — hit START WORKOUT and add lifts as you go, or EDIT DAY to plan them first.</p>`}
+          : `<p class="fd-nomoves">No movements planned. START WORKOUT runs the clock and you add lifts as you go.</p>`}
       </div>`).join("") + `
       <div class="fd-actions">
         <button class="btn btn-lime" id="fdStart">▶ START WORKOUT</button>
@@ -10127,7 +10236,7 @@ function renderSessionCard(){
       ${kcal ? `<span><i>Burn</i><b>${Math.round(kcal)}</b> kcal</span>` : ""}
       ${mins ? `<span><i>Time</i><b>${mins}</b> min</span>` : ""}
     </div>` : ""}
-    <div class="se-list">${sessions.map(row).join("") || `<p class="wl-empty">Nothing logged for this day yet.</p>`}</div>
+    <div class="se-list">${sessions.map(row).join("") || `<p class="wl-empty">Nothing here yet — write out what you did, or add one at a time.</p>`}</div>
     <div class="se-actions">
       <button class="btn btn-cyan" id="seWrite">WRITE IT OUT</button>
       <button class="btn btn-ghost" id="seAddLift">+ LIFT</button>
@@ -12385,6 +12494,37 @@ function renderWhy(){
 // Height in the units people actually think in. Nobody knows they are 66
 // inches tall; they know they are 5'6". Renders ft + in for imperial, cm for
 // metric, and reads back a single number of inches (or cm).
+// ONE source for the body facts every calculator needs. The onboarding
+// wizard wrote profile.heightIn / profile.ageYears; the Goal Designer and the
+// macro calculator read profile.height / profile.birthYear — names that were
+// never written. So after completing onboarding, both calculators still
+// opened with height and age blank and she had to type them again.
+function profileHeightIn(){
+  const p = state.profile || {};
+  if(p.heightIn) return +p.heightIn;
+  if(p.height) return +p.height;                       // legacy key
+  return null;
+}
+function profileAgeYears(){
+  const p = state.profile || {};
+  if(p.ageYears) return +p.ageYears;
+  if(p.birthYear) return new Date().getFullYear() - +p.birthYear;   // legacy key
+  return null;
+}
+function profileSex(){
+  const sx = (state.profile || {}).sex || "";
+  return (sx === "male" || sx === "m") ? "m" : "f";
+}
+// Anything the user types into a calculator flows BACK to the profile, so it
+// is never asked for twice.
+function rememberBodyFacts(o){
+  if(!state.profile) state.profile = {};
+  if(o.heightIn) state.profile.heightIn = Math.round(+o.heightIn * 10) / 10;
+  if(o.ageYears) state.profile.ageYears = Math.round(+o.ageYears);
+  if(o.sex) state.profile.sex = o.sex === "m" ? "male" : "female";
+  save();
+}
+
 function heightFieldHtml(idBase, valueIn){
   const metric = state.profile.units === "metric";
   if(metric){
@@ -12628,7 +12768,7 @@ function openGoalDesigner(){
   const bf0 = _latestBodyFat();
   const g   = state.goals || {};
   const saved = g.plan || {};
-  const age = state.profile.birthYear ? (new Date().getFullYear() - state.profile.birthYear) : "";
+  const age = profileAgeYears() || "";
 
   openModal("Design my plan", `
     <p class="gd-intro">Four questions. It designs around your answers, shows its working, and lets you change any number before it saves.</p>
@@ -12652,13 +12792,13 @@ function openGoalDesigner(){
       <div class="form-grid">
         <label><span>Sex</span>
           <select id="gdSex">
-            <option value="f" ${(state.profile.sex === "male" || state.profile.sex === "m") ? "" : "selected"}>Female</option>
-            <option value="m" ${(state.profile.sex === "male" || state.profile.sex === "m") ? "selected" : ""}>Male</option>
+            <option value="f" ${profileSex() === "m" ? "" : "selected"}>Female</option>
+            <option value="m" ${profileSex() === "m" ? "selected" : ""}>Male</option>
           </select></label>
         <label><span>Weight (${unit()})</span><input id="gdW" type="number" step="any" inputmode="decimal" value="${w0}"></label>
         <label><span>Body fat %<i class="gd-hint" data-explain="bf">?</i></span><input id="gdBF" type="number" step="0.1" inputmode="decimal" value="${bf0 != null ? bf0 : ""}" placeholder="from your InBody"></label>
         <label><span>Age</span><input id="gdAge" type="number" min="14" max="90" value="${age}"></label>
-        ${heightFieldHtml("gdHt", state.profile.height)}
+        ${heightFieldHtml("gdHt", profileHeightIn())}
       </div>
     </div>
 
@@ -12754,6 +12894,7 @@ function openGoalDesigner(){
         ageYears: num("gdAge"),
         heightIn: readHeightField("gdHt"),
       };
+      rememberBodyFacts({ heightIn: _gdInput.heightIn, ageYears: _gdInput.ageYears, sex: _gdInput.sex });
       plan = designGoalPlan(_gdInput);
       _gdProgram = buildProgram({
         mode, days: num("gdDays"), lifts: document.getElementById("gdLifts").checked,
@@ -13669,6 +13810,8 @@ function programHtml(program){
 // =================================================================
 window.__bermo = {
   save,
+  profileHeightIn,
+  profileAgeYears,
   activityFor: (k) => autoComputeActivity(k),
   parseMovementText,
   parseWorkoutText,

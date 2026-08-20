@@ -10131,8 +10131,17 @@ function renderFitDayCard(){
       <button class="link-btn-sm" id="fdEdit">${p ? "EDIT DAY" : "+ PLAN DAY"}</button>
     </div>`;
   if(!p || !p.type){
-    card.innerHTML = head + `<p class="wl-empty">Nothing planned. Tap + PLAN DAY — pick a saved workout or type your movements.</p>
-      ${sessions.length ? `<p class="fd-logged">✓ ${sessions.length} entr${sessions.length===1?"y":"ies"} logged anyway — nice.</p>` : ""}`;
+    // START WORKOUT used to live only in the planned branch, so on a day with
+    // nothing planned there was no way to start a session at all — you had to
+    // go and plan it first. That is the opposite of build-as-you-go.
+    card.innerHTML = head + `<p class="wl-empty">Nothing planned — that's fine. Start the clock and add lifts as you go, or write out what you did afterwards.</p>
+      <div class="fd-actions">
+        <button class="btn btn-lime" id="fdStart">▶ START WORKOUT</button>
+        <button class="btn btn-ghost" id="fdWrite">WRITE IT OUT</button>
+      </div>
+      ${sessions.length ? `<p class="fd-logged">✓ ${sessions.length} entr${sessions.length===1?"y":"ies"} logged today</p>` : ""}`;
+    on2(card, "#fdStart", () => openWorkoutSession(currentDate));
+    on2(card, "#fdWrite", () => openLogWorkoutText(currentDate));
   } else {
     const workouts = [{ name:p.type, time:p.time, why:p.why, exercises:p.exercises || [] }].concat(p.extra || []);
     card.innerHTML = head + workouts.map((w, wi) => `

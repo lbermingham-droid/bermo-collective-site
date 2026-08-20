@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v33**.
+- Current build: **v34**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -244,6 +244,22 @@ typed gone. It is now its own `.xsheet` layered on top of `document.body`;
 nothing underneath is touched. **Never route a secondary panel through
 `openModal()` while another modal is open.**
 
+**Z-INDEX ORDER — page < overlay(350) < modal(400) < sheet(9999) (v34).**
+The workout session overlay is a full-screen OPAQUE layer at 350. Modals were
+at 200, so every modal opened from inside a running session — ADD EXERCISE,
+LOAD A SAVED WORKOUT, SAVE THIS AS A WORKOUT — rendered *behind* it. The
+modal was in the DOM and marked `.open`; the button just looked dead.
+**TESTING LESSON, and this is the important part:** the earlier test asserted
+the modal ELEMENT EXISTED. Presence is not visibility. Smoke test 29 now uses
+`document.elementFromPoint()` at the modal's centre and requires the modal to
+be the thing actually painted there. Use that pattern for anything layered.
+
+**START WORKOUT ON AN UNPLANNED DAY (v34).** The button lived only in the
+planned branch of the day card, so a day with nothing planned had no way to
+start a session at all — you had to go and plan it first, which is the
+opposite of the build-as-you-go flow. The unplanned branch now carries
+START WORKOUT and WRITE IT OUT.
+
 **NO NATIVE DIALOGS (v33).** `prompt()` and `confirm()` are banned in the
 UI — unstyleable, blocking, and on iOS a system dialog mid-flow reads as
 phishing. There were **seven**. Replacements: `openNameModal()` for naming
@@ -430,7 +446,7 @@ Playwright is already installed in the scratchpad. Launch chromium with
 `{ server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" }`.
 **Do not run `npx playwright install`.**
 
-**Expected: 42/42 and zero page errors.** (Two console errors about
+**Expected: 43/43 and zero page errors.** (Two console errors about
 `ERR_CONNECTION_RESET` are the sandbox blocking a CDN — pre-existing, ignore.)
 
 The suite covers: load, wizard, **sideways overflow on every page**, all tabs,
@@ -557,4 +573,5 @@ explainer sheet · `v29` target date, body-part splits, researched cardio dose,
 lift comparison and the program call-out · `v30` build-as-you-go session +
 two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v32` one write path + write-it-out logging from any screen ·
-`v33` full-app audit: no native dialogs, no dead controls, one profile source.
+`v33` full-app audit: no native dialogs, no dead controls, one profile source ·
+`v34` modal stacking + START WORKOUT on unplanned days.

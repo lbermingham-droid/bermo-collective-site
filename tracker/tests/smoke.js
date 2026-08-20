@@ -916,6 +916,61 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       : fail("v33 native dialogs", natives.slice(0,4).join(" | "));
   } catch (e) { fail("v33 native dialogs", e); }
 
+  // 29. v34: modals opened from INSIDE the workout overlay must be VISIBLE,
+  //     not merely present. The overlay is z-index 350 and modals were 200,
+  //     so "+ ADD EXERCISE" opened behind an opaque full-screen layer: in the
+  //     DOM, marked .open, and completely invisible. The earlier test asserted
+  //     presence, which is why it passed while the button looked dead.
+  //     Also: START WORKOUT only existed on a PLANNED day, so an unplanned
+  //     day had no way to start a session at all.
+  try {
+    await page.evaluate(() => {
+      const KEY = "bermo.tracker.v1";
+      const st = JSON.parse(localStorage.getItem(KEY));
+      const k = new Date().toISOString().slice(0,10);
+      st.plan = {};                                  // deliberately UNPLANNED
+      if(st.days[k]) delete st.days[k].workoutSession;
+      localStorage.setItem(KEY, JSON.stringify(st));
+    });
+    await page.reload({ waitUntil: "domcontentloaded", timeout: 20000 });
+    await page.waitForTimeout(1100);
+    await page.click(`${tabSel}[data-tab="fitness"]`).catch(()=>{});
+    await page.waitForTimeout(600);
+    const canStart = await page.evaluate(() => !!document.getElementById("fdStart"));
+    await page.evaluate(() => { const b = document.getElementById("fdStart"); if(b) b.click(); });
+    await page.waitForTimeout(700);
+    const overlay = await page.evaluate(() => !!document.querySelector("#workoutOverlay.open"));
+
+    const seen = {};
+    for(const id of ["wsAddEx","wsLoadSaved"]){
+      await page.evaluate((i) => { const b = document.getElementById(i); if(b) b.click(); }, id);
+      await page.waitForTimeout(500);
+      seen[id] = await page.evaluate(() => {
+        const m = document.querySelector("#modal.open, .modal.open");
+        if(!m) return "absent";
+        const card = m.querySelector(".modal-card, .modal-inner, .modal > div") || m;
+        const r = card.getBoundingClientRect();
+        if(r.width < 10 || r.height < 10) return "zero-size";
+        // the real check: what is actually painted on top at that point
+        const top = document.elementFromPoint(r.left + r.width/2, r.top + Math.min(r.height/2, 200));
+        return (top && (m === top || m.contains(top))) ? "visible" : "covered";
+      });
+      await page.evaluate(() => {
+        if(typeof closeModal === "function") closeModal();
+        document.querySelectorAll("#modal.open,.modal.open").forEach(x => x.classList.remove("open"));
+      });
+      await page.waitForTimeout(250);
+    }
+    await page.evaluate(() => {
+      const o = document.getElementById("workoutOverlay");
+      if(o) o.classList.remove("open");
+      document.body.style.overflow = "";
+    });
+    (canStart && overlay && seen.wsAddEx === "visible" && seen.wsLoadSaved === "visible")
+      ? ok("v34 unplanned day can start a session, and in-session modals are visible above the overlay")
+      : fail("v34 modal stacking", JSON.stringify({ canStart, overlay, ...seen }));
+  } catch (e) { fail("v34 modal stacking", e); }
+
   await browser.close();
   print();
 })();

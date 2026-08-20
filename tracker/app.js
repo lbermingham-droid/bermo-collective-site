@@ -390,7 +390,7 @@ function bindGlobal(){
   on("#fitWodPicker", "change", (e) => { dayObj(currentDate).wodId = parseInt(e.target.value,10); save(); renderAll(); });
 
   // Fitness logging
-  on("#fitNewLift", "click", openLiftHub);
+  on("#fitNewLift", "click", () => openAddWorkout(currentDate, "lift"));
   on("#fitNewWod", "click", openWodResultModal);
   on("#fitLogResult", "click", openWodResultModal);
   on("#addPrBtn", "click", openPrModal);
@@ -473,14 +473,14 @@ function copyYesterday(){
 
 // ---------- FOOD MODAL ----------
 let _activeFoodMeal = "lunch";
-function openFoodModal(meal){
+function openFoodModal(meal, forceTab){
   _activeFoodMeal = meal;
   const allFoods = [...DATA.foodDB, ...state.customFoods];
   const hasRecents = (state.recentFoods || []).length > 0;
   const hasTemplates = (state.mealTemplates || []).length > 0;
   // Smart default: if user has recents/templates, jump straight to one-tap quick log.
   const userPref = state.profile && state.profile.foodMode;
-  const startMode = userPref || ((hasRecents || hasTemplates) ? "quicklog" : "search");
+  const startMode = forceTab || userPref || ((hasRecents || hasTemplates) ? "quicklog" : "search");
   const slotPills = ["breakfast","lunch","dinner","snacks"].map(m =>
     `<button type="button" class="meal-slot ${m===meal?"on":""}" data-meal-slot="${m}">${capitalize(m)}</button>`
   ).join("");
@@ -492,6 +492,7 @@ function openFoodModal(meal){
       <button type="button" class="seg-btn food-tab" data-fmode="favorites">Favorites</button>
       <button type="button" class="seg-btn food-tab" data-fmode="templates">My meals</button>
       <button type="button" class="seg-btn food-tab" data-fmode="barcode">Scan</button>
+      <button type="button" class="seg-btn food-tab" data-fmode="byhand">By hand</button>
     </div>
     <div class="food-pane" data-pane="search">
       <div class="sfield">
@@ -551,7 +552,14 @@ function openFoodModal(meal){
       document.querySelectorAll(".food-tab").forEach(t => t.classList.toggle("active", t.dataset.fmode === mode));
       document.querySelectorAll(".food-pane").forEach(p => p.classList.toggle("active", p.dataset.pane === mode));
     };
-    document.querySelectorAll(".food-tab").forEach(t => t.addEventListener("click", () => switchPane(t.dataset.fmode)));
+    document.querySelectorAll(".food-tab").forEach(t => t.addEventListener("click", () => {
+      if(t.dataset.fmode === "byhand"){
+        const m = _activeFoodMeal; closeModal();
+        setTimeout(() => openQuickAddFood("", m), 90);
+        return;
+      }
+      switchPane(t.dataset.fmode);
+    }));
     switchPane(startMode);
 
     const input = $("#foodSearch");
@@ -590,6 +598,7 @@ function openFoodModal(meal){
     if(ait2) ait2.addEventListener("click", () => { closeModal(); if(typeof openAITextModal === "function") openAITextModal(_activeFoodMeal); });
     const qab = $("#foodQuickAddBtn");
     if(qab) qab.addEventListener("click", () => { const m = _activeFoodMeal; closeModal(); setTimeout(() => openQuickAddFood("", m), 120); });
+  // the food modal's own strip and the satellites' strip are the same control
 
     // SAVED MEALS pane
     renderTemplatesPane(_activeFoodMeal);
@@ -756,9 +765,39 @@ function renderFavoritesPane(meal, allFoods){
   });
 }
 
+// The food side has the same problem the workout side had: one good tabbed
+// sheet plus satellites that look nothing like it — Add a food, Scan barcode,
+// Enter UPC, Snap a photo, Log macros only. Same strip on all of them.
+const FOOD_TABS = [
+  { id:"search",    label:"Search" },
+  { id:"quicklog",  label:"Recent" },
+  { id:"favorites", label:"Favorites" },
+  { id:"templates", label:"My meals" },
+  { id:"barcode",   label:"Scan" },
+  { id:"byhand",    label:"By hand" },
+];
+function foodTabsHtml(active){
+  return `<div class="seg seg-scroll fd-tabs">
+    ${FOOD_TABS.map(t => `<button type="button" class="seg-btn fd-tab ${t.id === active ? "active" : ""}" data-fdtab="${t.id}">${t.label}</button>`).join("")}
+  </div>`;
+}
+function bindFoodTabs(root, active, meal){
+  const m = meal || _activeFoodMeal || "breakfast";
+  root.querySelectorAll("[data-fdtab]").forEach(b => b.addEventListener("click", () => {
+    const to = b.getAttribute("data-fdtab");
+    if(to === active) return;
+    closeModal();
+    setTimeout(() => {
+      if(to === "byhand") openQuickAddFood("", m);
+      else openFoodModal(m, to);
+    }, 90);
+  }));
+}
+
 function openQuickAddFood(prefillName, meal){
   const slot = meal || _activeFoodMeal || "breakfast";
-  openModal("Add a food", `
+  openModal("Log food", `
+    ${foodTabsHtml("byhand")}
     <p class="hn-intro">Straight off the label or your best estimate. It saves to your foods, so you only ever do this once.</p>
     <div class="form-grid">
       <label class="span-2"><span>Name</span><input id="qafName" type="text" maxlength="60" value="${escape(prefillName || "")}"></label>
@@ -777,6 +816,7 @@ function openQuickAddFood(prefillName, meal){
     </div>
   `, (root) => {
     root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    bindFoodTabs(root, "byhand", slot);
     const num = (id) => { const v = parseFloat((document.getElementById(id)||{}).value); return isNaN(v) ? 0 : v; };
     const calcEl = document.getElementById("qafCalc");
     const refresh = () => {
@@ -1097,7 +1137,8 @@ function openLiftModal(prefillName){
   const moves = [...DATA.movements, ...DATA.prLifts].filter((v,i,a)=>a.indexOf(v)===i);
   const favs = getFavLifts();
   clearInterval(_setTimer); _setTimer = null; _setStart = null; _setElapsed = 0;
-  openModal("Log a lift", `
+  openModal("Add a workout", `
+    ${workoutTabsHtml("lift")}
     <div class="form-grid">
       <label><span>Date</span><input id="liftDate" type="date" value="${currentDate}"></label>
       <label><span>Time of day <em style="font-style:normal;color:var(--iron-mute)">optional</em></span><input id="liftTime" type="time"></label>
@@ -1128,6 +1169,7 @@ function openLiftModal(prefillName){
       <button class="btn btn-cyan" id="liftSave">SAVE</button>
     </div>
   `, (root) => {
+    bindWorkoutTabs(root, "lift", (document.getElementById("liftDate")||{}).value || currentDate);
     root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => { clearInterval(_setTimer); closeModal(); }));
     wireSessTimer("liftClock", "liftTimerBtn");
     $("#liftSave").addEventListener("click", () => {
@@ -6306,7 +6348,8 @@ function parseWorkoutText(text){
 // The same "type what you did" sheet, reachable from every screen.
 function openLogWorkoutText(dateKey, prefill){
   const key = dateKey || currentDate;
-  openModal("Write what you did · " + fmtDate(key), `
+  openModal("Add a workout", `
+    ${workoutTabsHtml("write")}
     <p class="hn-intro">Type it however you'd say it. This runs on your phone — no AI, nothing to pay for. It logs straight into the day, so the rings, your week comparison and the Health page all pick it up.</p>
     <textarea id="lwText" rows="4" class="search-input" style="resize:vertical;min-height:100px;font-size:15px;width:100%"
       placeholder="1.5 hours&#10;thruster machine 3x10 at 90, kickback machine, abductor machine inner and outer&#10;walked 20 min">${escape(prefill || "")}</textarea>
@@ -6317,6 +6360,7 @@ function openLogWorkoutText(dateKey, prefill){
       <button class="btn btn-cyan" id="lwSave" disabled>LOG IT</button>
     </div>
   `, (root) => {
+    bindWorkoutTabs(root, "write", key);
     root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
     const ta = document.getElementById("lwText");
     const prev = document.getElementById("lwPreview");
@@ -6517,7 +6561,9 @@ function openPlanDayModal(wkKey, dayName){
     </div>`;
   };
 
-  openModal(`${dayName.charAt(0).toUpperCase()+dayName.slice(1)} — workouts`, `
+  openModal("Add a workout", `
+    ${workoutTabsHtml("plan")}
+    <div class="wk-day-label">${escape(dayName.charAt(0).toUpperCase()+dayName.slice(1))} · planning ahead</div>
     <label style="margin-bottom:8px;display:block"><span>Gym / location (optional)</span>
       <input id="pdeGym" type="text" maxlength="40" placeholder="e.g. Planet Fitness" value="${escape(cur.gym || "")}"></label>
     <div class="pde-list" id="pdeList">${items.map(rowHtml).join("")}</div>
@@ -6529,6 +6575,7 @@ function openPlanDayModal(wkKey, dayName){
       <button class="btn btn-cyan" id="pdeSave">SAVE</button>
     </div>
   `, (root) => {
+    bindWorkoutTabs(root, "plan", currentDate);
     root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
     const list = document.getElementById("pdeList");
     const wireRow = (row) => {
@@ -6837,6 +6884,54 @@ function openSessionSaveAs(dateKey, overlay){
       toast(existing ? `Updated ${name}` : `Saved ${name}`, "cyan");
     });
   });
+}
+
+// =================================================================
+// ONE ADD-WORKOUT SHELL
+// There were five different modals for "add a workout" — Log a lift, Log
+// cardio, Log intervals, Add an exercise, Plan the day, plus Write it out —
+// each with a different layout and no way to get between them. Reaching the
+// same job from Home, from Fitness, or from inside a session gave three
+// different screens. They now all wear the same tab strip and switching is
+// one tap.
+// =================================================================
+const WORKOUT_TABS = [
+  { id:"write",    label:"Write it out" },
+  { id:"lift",     label:"Lift" },
+  { id:"cardio",   label:"Cardio" },
+  { id:"interval", label:"Intervals" },
+  { id:"plan",     label:"Plan the day" },
+];
+function workoutTabsHtml(active){
+  return `<div class="seg seg-scroll wk-tabs">
+    ${WORKOUT_TABS.map(t => `<button type="button" class="seg-btn wk-tab ${t.id === active ? "active" : ""}" data-wktab="${t.id}">${t.label}</button>`).join("")}
+  </div>`;
+}
+function bindWorkoutTabs(root, active, dateKey){
+  const key = dateKey || currentDate;
+  root.querySelectorAll("[data-wktab]").forEach(b => b.addEventListener("click", () => {
+    const to = b.getAttribute("data-wktab");
+    if(to === active) return;
+    closeModal();
+    setTimeout(() => openWorkoutTab(to, key), 90);
+  }));
+}
+function openWorkoutTab(tab, dateKey){
+  const key = dateKey || currentDate;
+  if(tab === "write")    return openLogWorkoutText(key);
+  if(tab === "lift")     return openLiftModal();
+  if(tab === "cardio")   return openCardioModal();
+  if(tab === "interval") return openIntervalModal();
+  if(tab === "plan"){
+    const dt = new Date(key + "T12:00:00");
+    const dayName = ["sun","mon","tue","wed","thu","fri","sat"][dt.getDay()];
+    return openPlanDayModal(weekKey(weekStart(dt)), dayName);
+  }
+  return openLogWorkoutText(key);
+}
+// The single entry point every screen should call.
+function openAddWorkout(dateKey, tab){
+  openWorkoutTab(tab || "write", dateKey || currentDate);
 }
 
 // ---- Workout Session overlay ----
@@ -7667,10 +7762,12 @@ function _loadZXing(){
 async function openBarcodeScanner(meal){
   const hasNativeDetector = "BarcodeDetector" in window;
   openModal("Scan barcode",
-    `<video id="bcVideo" playsinline muted autoplay style="width:100%;border-radius:8px;background:#000;max-height:50vh"></video>
+    `
+    ${foodTabsHtml("barcode")}<video id="bcVideo" playsinline muted autoplay style="width:100%;border-radius:8px;background:#000;max-height:50vh"></video>
      <p id="bcStatus" style="font-size:12px;color:#888;margin-top:10px">Point your camera at the barcode…</p>
      <button type="button" class="btn btn-ghost btn-sm" id="bcManualSwitch" style="margin-top:8px;width:100%">Type UPC instead</button>`,
     async (root) => {
+      bindFoodTabs(root, "barcode", meal);
       const video = root.querySelector("#bcVideo");
       const status = root.querySelector("#bcStatus");
       let stream, raf, zxControls, stopped = false;
@@ -7736,14 +7833,16 @@ async function openBarcodeScanner(meal){
 }
 function openBarcodeManual(meal, prefix){
   openModal("Enter UPC manually",
-    `${prefix ? `<p style="color:#c80;font-size:13px;margin:0 0 10px">${escape(prefix)}</p>` : ""}
+    `
+    ${foodTabsHtml("barcode")}${prefix ? `<p style="color:#c80;font-size:13px;margin:0 0 10px">${escape(prefix)}</p>` : ""}
      <label style="display:block;margin-bottom:10px">
        <span style="font-size:11px;letter-spacing:1px;color:#888">UPC / EAN code</span>
        <input type="text" id="bcManualUpc" placeholder="012345678901" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:16px" autocomplete="off" inputmode="numeric">
      </label>
      <button type="button" class="btn btn-cyan" id="bcManualGo">Look up</button>
      <p id="bcManualStatus" style="font-size:12px;color:#888;margin-top:10px"></p>`,
-    () => {
+    (root) => {
+      bindFoodTabs(root, "barcode", meal);
       $("#bcManualUpc").focus();
       $("#bcManualGo").addEventListener("click", async () => {
         const upc = $("#bcManualUpc").value.trim();
@@ -8610,7 +8709,8 @@ function _cardioMET(type, mph, level){
 function openCardioModal(){
   clearInterval(_cardioTimer); _cardioTimer = null; _cardioStart = null; _cardioElapsed = 0;
   const opts = CARDIO_TYPES.map(t => `<option value="${t.id}">${t.name}</option>`).join("");
-  openModal("Log cardio", `
+  openModal("Add a workout", `
+    ${workoutTabsHtml("cardio")}
     <div class="form-grid">
       <label><span>Date</span><input id="cdDate" type="date" value="${currentDate}"></label>
       <label><span>Time of day <em style="font-style:normal;color:var(--iron-mute)">optional</em></span><input id="cdTime" type="time"></label>
@@ -8639,6 +8739,7 @@ function openCardioModal(){
       <button class="btn btn-cyan" id="cdSave">SAVE SESSION</button>
     </div>
   `, (root) => {
+    bindWorkoutTabs(root, "cardio", (document.getElementById("cdDate")||{}).value || currentDate);
     root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => {
       clearInterval(_cardioTimer); closeModal();
     }));
@@ -8729,11 +8830,12 @@ function openCardioModal(){
 }
 
 onReady(() => {
-  on("#fitNewCardio", "click", openCardioModal);
+  on("#fitNewCardio", "click", () => openAddWorkout(currentDate, "cardio"));
   on("#fitPlanDay", "click", () => {
     const dt = new Date(currentDate + "T12:00:00");
     const dayName = ["sun","mon","tue","wed","thu","fri","sat"][dt.getDay()];
-    openPlanDayModal(weekKey(weekStart(dt)), dayName);
+    currentDate = todayKey(dt);
+    openAddWorkout(currentDate, "plan");
   });
 });
 
@@ -10141,7 +10243,7 @@ function renderFitDayCard(){
       </div>
       ${sessions.length ? `<p class="fd-logged">✓ ${sessions.length} entr${sessions.length===1?"y":"ies"} logged today</p>` : ""}`;
     on2(card, "#fdStart", () => openWorkoutSession(currentDate));
-    on2(card, "#fdWrite", () => openLogWorkoutText(currentDate));
+    on2(card, "#fdWrite", () => openAddWorkout(currentDate, "write"));
   } else {
     const workouts = [{ name:p.type, time:p.time, why:p.why, exercises:p.exercises || [] }].concat(p.extra || []);
     card.innerHTML = head + workouts.map((w, wi) => `
@@ -10167,7 +10269,7 @@ function renderFitDayCard(){
         : ""}
       ${sessions.length ? `<p class="fd-logged">✓ ${sessions.length} entr${sessions.length===1?"y":"ies"} logged</p>` : ""}`;
     on2(card, "#fdStart", () => openWorkoutSession(currentDate));
-    on2(card, "#fdLogSet", () => openLiftModal());
+    on2(card, "#fdLogSet", () => openAddWorkout(currentDate, "lift"));
     on2(card, "#fdDone", () => {
       const n = logPlannedDay(currentDate);
       renderAll();
@@ -10256,10 +10358,10 @@ function renderSessionCard(){
   card.querySelectorAll(".se-row").forEach(r =>
     r.addEventListener("click", () => openSessionEditor(r.dataset.sid)));
   const on2 = (sel, fn) => { const el = card.querySelector(sel); if(el) el.addEventListener("click", fn); };
-  on2("#seWrite", () => openLogWorkoutText(currentDate));
-  on2("#seAddLift", () => openLiftModal());
-  on2("#seAddCardio", () => openCardioModal());
-  on2("#seAddInterval", () => openIntervalModal());
+  on2("#seWrite", () => openAddWorkout(currentDate, "write"));
+  on2("#seAddLift", () => openAddWorkout(currentDate, "lift"));
+  on2("#seAddCardio", () => openAddWorkout(currentDate, "cardio"));
+  on2("#seAddInterval", () => openAddWorkout(currentDate, "interval"));
 }
 
 // ---- Edit ANY logged entry: date, time, type, and type-specific fields ----
@@ -10376,7 +10478,8 @@ function openIntervalModal(){
       <input class="iv-lvl" type="number" step="1" min="0" max="30" placeholder="lvl">
       <button type="button" class="iv-del">×</button>
     </div>`;
-  openModal("Log intervals", `
+  openModal("Add a workout", `
+    ${workoutTabsHtml("interval")}
     <div class="form-grid">
       <label><span>Date</span><input id="ivDate" type="date" value="${currentDate}"></label>
       <label><span>Time of day <em style="font-style:normal;color:var(--iron-mute)">optional</em></span><input id="ivTime" type="time"></label>
@@ -10390,6 +10493,7 @@ function openIntervalModal(){
       <button class="btn btn-cyan" id="ivSave">SAVE ALL</button>
     </div>
   `, (root) => {
+    bindWorkoutTabs(root, "interval", (document.getElementById("ivDate")||{}).value || currentDate);
     root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
     const list = document.getElementById("ivList");
     const wire = (r) => r.querySelector(".iv-del").addEventListener("click", () => {
@@ -10435,48 +10539,6 @@ function openIntervalModal(){
 }
 
 // ---- LIFT HUB: workouts first, not a single-lift form ----
-function openLiftHub(){
-  const lib = getWorkoutLib();
-  const favs = getFavLifts();
-  openModal("Add to your training", `
-    <div class="lh-sec">
-      <div class="lh-h">Saved workouts</div>
-      ${lib.length ? `<div class="lh-list">${lib.map(w => `
-        <button class="lh-row" data-lh-w="${w.id}">
-          <span class="lh-info"><b>${escape(w.name)}</b><small>${escape(w.style)} · ${w.exercises.length} movements</small></span>
-          <span class="lh-go">USE</span>
-        </button>`).join("")}</div>`
-        : `<p class="wl-empty">No saved workouts yet — build one in the Exercise Library.</p>`}
-    </div>
-    <div class="lh-sec">
-      <div class="lh-h">Add a single lift</div>
-      ${favs.length ? `<div class="lh-chips">${favs.slice(0,8).map(f =>
-        `<button class="lh-chip" data-lh-fav="${escape(f)}">${escape(f)}</button>`).join("")}</div>` : ""}
-      <button class="btn btn-ghost" id="lhAnyLift" style="width:100%">CHOOSE A MOVEMENT →</button>
-    </div>
-    <div class="lh-sec">
-      <div class="lh-h">Log a workout type</div>
-      <div class="lh-chips">${WORKOUT_TYPES.slice(0,14).map(t =>
-        `<button class="lh-chip" data-lh-type="${escape(t)}">${escape(t)}</button>`).join("")}</div>
-    </div>
-    <div class="modal-foot"><button class="btn btn-ghost" data-close>Close</button></div>
-  `, (root) => {
-    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
-    root.querySelectorAll("[data-lh-w]").forEach(b => b.addEventListener("click", () => {
-      const w = lib.find(x => x.id === b.dataset.lhW);
-      closeModal();
-      if(w) openScheduleWorkoutModal(w.name, w.exercises);
-    }));
-    root.querySelectorAll("[data-lh-fav]").forEach(b => b.addEventListener("click", () => {
-      closeModal(); openLiftModal(b.dataset.lhFav);
-    }));
-    root.querySelectorAll("[data-lh-type]").forEach(b => b.addEventListener("click", () => {
-      closeModal(); openScheduleWorkoutModal(b.dataset.lhType, []);
-    }));
-    const any = document.getElementById("lhAnyLift");
-    if(any) any.addEventListener("click", () => { closeModal(); openLiftModal(); });
-  });
-}
 
 // ---- Pick day + time for a chosen workout / type ----
 function openScheduleWorkoutModal(name, exercises){
@@ -13113,7 +13175,7 @@ function renderPlanCard(){
 
 onReady(() => {
   const fw = document.getElementById("fitWriteOut");
-  if(fw) fw.addEventListener("click", () => openLogWorkoutText(currentDate));
+  if(fw) fw.addEventListener("click", () => openAddWorkout(currentDate, "write"));
   const n = document.getElementById("trNoteBtn");
   if(n) n.addEventListener("click", () => openHealthNoteModal());
   const a = document.getElementById("goalPlanBtn");

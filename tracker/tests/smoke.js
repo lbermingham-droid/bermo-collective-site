@@ -128,9 +128,8 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
     await page.click(`${tabSel}[data-tab="fitness"]`).catch(()=>{});
     await page.click(`${tabSel}[data-tab="lift"]`).catch(()=>{});
     await page.waitForTimeout(400);
-    await page.click("#fitNewLift", { timeout: 4000 });   // opens the Lift Hub
-    await page.waitForTimeout(500);
-    await page.click("#lhAnyLift", { timeout: 4000 });     // -> single-lift form
+    // + WORKOUT now opens the ONE add-workout sheet on the Lift tab
+    await page.click("#fitNewLift", { timeout: 6000 });
     await page.waitForTimeout(500);
     await page.fill("#liftName", "Back Squat");
     await page.fill("#liftWeight", "135");
@@ -970,6 +969,54 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       ? ok("v34 unplanned day can start a session, and in-session modals are visible above the overlay")
       : fail("v34 modal stacking", JSON.stringify({ canStart, overlay, ...seen }));
   } catch (e) { fail("v34 modal stacking", e); }
+
+  // 30. v35: every "add a workout" and "add food" entry point must open the
+  //     SAME sheet. Before this there were five different workout modals with
+  //     five different layouts, and reaching the same job from Home, Fitness
+  //     or inside a session gave three different screens.
+  try {
+    await page.evaluate(() => {
+      if(typeof closeModal === "function") closeModal();
+      document.querySelectorAll("#modal.open,.modal.open").forEach(m => m.classList.remove("open"));
+      const o = document.getElementById("workoutOverlay"); if(o) o.classList.remove("open");
+      document.body.style.overflow = "";
+    });
+    await page.click(`${tabSel}[data-tab="fitness"]`).catch(()=>{});
+    await page.waitForTimeout(600);
+
+    const shot = async (openFn) => {
+      await page.evaluate(openFn);
+      await page.waitForTimeout(500);
+      const r = await page.evaluate(() => {
+        const m = document.querySelector("#modal.open, .modal.open");
+        if(!m) return null;
+        const tabs = [...m.querySelectorAll("[data-wktab]")].map(t => t.textContent.trim());
+        const active = (m.querySelector("[data-wktab].active") || {}).textContent;
+        const title = (m.querySelector(".modal-head h3, .modal-title, h3") || {}).textContent || "";
+        return { tabs, active: (active||"").trim(), title: title.trim() };
+      });
+      await page.evaluate(() => {
+        if(typeof closeModal === "function") closeModal();
+        document.querySelectorAll("#modal.open,.modal.open").forEach(m => m.classList.remove("open"));
+      });
+      await page.waitForTimeout(250);
+      return r;
+    };
+
+    const fromHeader = await shot(() => { const b = document.getElementById("fitNewLift"); if(b) b.click(); });
+    const fromCardio = await shot(() => { const b = document.getElementById("fitNewCardio"); if(b) b.click(); });
+    const fromWrite  = await shot(() => { const b = document.getElementById("fitWriteOut"); if(b) b.click(); });
+
+    const all = [fromHeader, fromCardio, fromWrite].filter(Boolean);
+    const sameTabs = all.length === 3
+      && all.every(x => x.tabs.length === 5 && x.tabs.join("|") === all[0].tabs.join("|"));
+    const sameTitle = all.every(x => x.title === all[0].title && /add a workout/i.test(x.title));
+    const rightActive = /lift/i.test(fromHeader.active) && /cardio/i.test(fromCardio.active)
+      && /write/i.test(fromWrite.active);
+    (sameTabs && sameTitle && rightActive)
+      ? ok(`v35 one add-workout sheet from every entry (${all[0].tabs.length} tabs, same title)`)
+      : fail("v35 workout sheet consistency", JSON.stringify(all));
+  } catch (e) { fail("v35 workout sheet consistency", e); }
 
   await browser.close();
   print();

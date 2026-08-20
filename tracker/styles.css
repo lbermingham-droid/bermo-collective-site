@@ -3044,26 +3044,18 @@ input, select, textarea{
 }
 
 /* Lift hub */
-.lh-sec{ margin-bottom:14px; }
-.lh-h{ font-size:9px; font-weight:900; letter-spacing:1.5px; color:var(--iron-cyan); margin-bottom:6px; }
-.lh-list{ display:flex; flex-direction:column; gap:3px; }
-.lh-row{
-  display:flex; align-items:center; gap:8px; width:100%; text-align:left;
-  background:var(--iron-panel-2); border:1px solid var(--iron-line);
-  border-radius:10px; padding:9px 10px; cursor:pointer;
-}
-.lh-row:hover{ border-color:var(--iron-volt); }
-.lh-info{ flex:1; min-width:0; display:flex; flex-direction:column; }
-.lh-info b{ font-size:12px; font-weight:800; color:#fff; }
-.lh-info small{ font-size:10px; color:var(--iron-mute); }
-.lh-go{ font-size:9px; font-weight:900; letter-spacing:1px; color:var(--iron-volt); }
-.lh-chips{ display:flex; flex-wrap:wrap; gap:4px; margin-bottom:8px; }
-.lh-chip{
-  font-size:11px; font-weight:700; padding:7px 10px;
-  background:var(--iron-panel-2); border:1px solid var(--iron-line);
-  color:#fff; border-radius:8px; cursor:pointer;
-}
-.lh-chip:hover{ border-color:var(--iron-volt); color:var(--iron-volt); }
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* PR callout + list */
 .prc-block{ border:1px solid var(--iron-line); border-radius:12px; padding:10px 12px; margin-bottom:8px; }
@@ -4361,3 +4353,12 @@ html, body, #app, .app{
 #modal{ z-index:400 !important; }
 .rest-timer-bar, #restTimerBar{ z-index:360; }
 .toast, #toast{ z-index:10000; }
+
+/* ============================================================
+   v35 — one add-workout sheet, one add-food sheet
+   ============================================================ */
+.wk-tabs{ margin-bottom:14px !important; }
+.wk-day-label{
+  font-size:10px; font-weight:900; letter-spacing:.07em; text-transform:uppercase;
+  color:var(--iron-cyan); margin:0 0 10px;
+}

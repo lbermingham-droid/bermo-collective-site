@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v34**.
+- Current build: **v35**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -244,6 +244,23 @@ typed gone. It is now its own `.xsheet` layered on top of `document.body`;
 nothing underneath is touched. **Never route a secondary panel through
 `openModal()` while another modal is open.**
 
+**ONE ADD-WORKOUT SHEET, ONE ADD-FOOD SHEET (v35).** There were FIVE
+separate workout modals with five different layouts — Log a lift, Log cardio,
+Log intervals, the plan-day editor, Write it out — so reaching the same job
+from Home, from Fitness, or from inside a session gave three different
+screens. They now all render `workoutTabsHtml()` (Write it out · Lift ·
+Cardio · Intervals · Plan the day), share the title "Add a workout", and
+switching between them is one tap via `bindWorkoutTabs()`.
+**`openAddWorkout(dateKey, tab)` is the single entry point — call that, never
+the individual modals.** The food side gets the same treatment:
+`foodTabsHtml()` / `bindFoodTabs()` put the identical strip on the satellites
+(By hand, Scan barcode, Enter UPC) that the main food modal already had, and
+`openFoodModal(meal, forceTab)` accepts a starting tab.
+`openLiftHub()` became unreachable and was removed, along with its 8 orphaned
+CSS rules (hygiene rule).
+Guarded by smoke test 30, which opens the sheet from three different entry
+points and fails if the tab list, the title, or the active tab diverges.
+
 **Z-INDEX ORDER — page < overlay(350) < modal(400) < sheet(9999) (v34).**
 The workout session overlay is a full-screen OPAQUE layer at 350. Modals were
 at 200, so every modal opened from inside a running session — ADD EXERCISE,
@@ -446,7 +463,7 @@ Playwright is already installed in the scratchpad. Launch chromium with
 `{ server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" }`.
 **Do not run `npx playwright install`.**
 
-**Expected: 43/43 and zero page errors.** (Two console errors about
+**Expected: 44/44 and zero page errors.** (Two console errors about
 `ERR_CONNECTION_RESET` are the sandbox blocking a CDN — pre-existing, ignore.)
 
 The suite covers: load, wizard, **sideways overflow on every page**, all tabs,
@@ -574,4 +591,5 @@ lift comparison and the program call-out · `v30` build-as-you-go session +
 two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v32` one write path + write-it-out logging from any screen ·
 `v33` full-app audit: no native dialogs, no dead controls, one profile source ·
-`v34` modal stacking + START WORKOUT on unplanned days.
+`v34` modal stacking + START WORKOUT on unplanned days ·
+`v35` one add-workout sheet and one add-food sheet from every entry point.

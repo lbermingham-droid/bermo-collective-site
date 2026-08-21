@@ -128,9 +128,11 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
     await page.click(`${tabSel}[data-tab="fitness"]`).catch(()=>{});
     await page.click(`${tabSel}[data-tab="lift"]`).catch(()=>{});
     await page.waitForTimeout(400);
-    // + WORKOUT now opens the ONE add-workout sheet on the Lift tab
-    await page.click("#fitNewLift", { timeout: 6000 });
+    // one header action now: + LOG A WORKOUT, then the Lift tab inside it
+    await page.click("#fitWriteOut", { timeout: 6000 });
     await page.waitForTimeout(500);
+    await page.evaluate(() => { const t = document.querySelector('[data-wktab="lift"]'); if(t) t.click(); });
+    await page.waitForTimeout(600);
     await page.fill("#liftName", "Back Squat");
     await page.fill("#liftWeight", "135");
     await page.fill("#liftReps", "5");
@@ -986,7 +988,7 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
 
     const shot = async (openFn) => {
       await page.evaluate(openFn);
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(900);   // tab switches close + reopen the sheet
       const r = await page.evaluate(() => {
         const m = document.querySelector("#modal.open, .modal.open");
         if(!m) return null;
@@ -1003,11 +1005,18 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       return r;
     };
 
-    const fromHeader = await shot(() => { const b = document.getElementById("fitNewLift"); if(b) b.click(); });
-    const fromCardio = await shot(() => { const b = document.getElementById("fitNewCardio"); if(b) b.click(); });
+    // the header is ONE button now; the variants are tabs inside the sheet
     const fromWrite  = await shot(() => { const b = document.getElementById("fitWriteOut"); if(b) b.click(); });
+    const fromHeader = await shot(() => {
+      const b = document.getElementById("fitWriteOut"); if(b) b.click();
+      setTimeout(() => { const t = document.querySelector('[data-wktab="lift"]'); if(t) t.click(); }, 150);
+    });
+    const fromCardio = await shot(() => {
+      const b = document.getElementById("fitWriteOut"); if(b) b.click();
+      setTimeout(() => { const t = document.querySelector('[data-wktab="cardio"]'); if(t) t.click(); }, 150);
+    });
 
-    const all = [fromHeader, fromCardio, fromWrite].filter(Boolean);
+    const all = [fromHeader, fromCardio, fromWrite].filter(x => x && x.tabs);
     const sameTabs = all.length === 3
       && all.every(x => x.tabs.length === 5 && x.tabs.join("|") === all[0].tabs.join("|"));
     const sameTitle = all.every(x => x.title === all[0].title && /add a workout/i.test(x.title));

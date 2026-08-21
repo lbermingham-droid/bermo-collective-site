@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v35**.
+- Current build: **v36**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -243,6 +243,24 @@ destroyed the form and dumped her on the main screen with everything she had
 typed gone. It is now its own `.xsheet` layered on top of `document.body`;
 nothing underneath is touched. **Never route a secondary panel through
 `openModal()` while another modal is open.**
+
+**BUTTON BUDGET (v36).** She counted the buttons before I did: "so many
+buttons and options". Fitness had **32**, the dashboard **37**, including
+three separate water buttons and five header actions that all opened the same
+sheet. Now: Fitness header is ONE action (`+ LOG A WORKOUT`), the day card is
+ONE (`START WORKOUT`, plus `ALREADY DID IT` only when there is something to
+log), the session card is ONE (`+ ADD TO THIS DAY`). Everything else on those
+pages is navigation, not actions. **Before adding a button, ask which
+existing one it duplicates.**
+Removed: `+ WORKOUT` / `+ CARDIO` / `PLAN DAY` / `+ WOD` from the header,
+`+ QUICK SET` and `WRITE IT OUT` from the day card, `+ LIFT` / `+ CARDIO` /
+`+ INTERVALS` from the session card, `FULL PLANNER` (which pointed at a view
+deleted in v18 and could never have worked), the dashboard WOD card, and the
+second water button on the low-water banner.
+**I broke the app doing it** — removing the dashboard WOD card left
+`renderWodCard()` writing into four elements that no longer existed, so it
+threw on EVERY dashboard render and killed the render chain behind it. That
+is the orphan-sweep rule in §7, ignored in a hurry. It is now guarded.
 
 **ONE ADD-WORKOUT SHEET, ONE ADD-FOOD SHEET (v35).** There were FIVE
 separate workout modals with five different layouts — Log a lift, Log cardio,
@@ -592,4 +610,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v32` one write path + write-it-out logging from any screen ·
 `v33` full-app audit: no native dialogs, no dead controls, one profile source ·
 `v34` modal stacking + START WORKOUT on unplanned days ·
-`v35` one add-workout sheet and one add-food sheet from every entry point.
+`v35` one add-workout sheet and one add-food sheet from every entry point ·
+`v36` button cull — Fitness header 5 actions -> 1.

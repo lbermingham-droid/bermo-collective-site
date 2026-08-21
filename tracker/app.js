@@ -390,8 +390,8 @@ function bindGlobal(){
   on("#fitWodPicker", "change", (e) => { dayObj(currentDate).wodId = parseInt(e.target.value,10); save(); renderAll(); });
 
   // Fitness logging
-  on("#fitNewLift", "click", () => openAddWorkout(currentDate, "lift"));
-  on("#fitNewWod", "click", openWodResultModal);
+  // + LOG A WORKOUT is now the only header action; the rest are tabs inside it
+  // + WOD removed from the header — WODs live on the WOD card at the bottom
   on("#fitLogResult", "click", openWodResultModal);
   on("#addPrBtn", "click", openPrModal);
 
@@ -1124,13 +1124,19 @@ function shuffleWod(){
   renderAll();
 }
 function renderWodCard(){
+  // The WOD card was removed from the dashboard in v36. This used to write
+  // into four elements unconditionally, so once they were gone it threw on
+  // EVERY dashboard render and killed the rest of the render chain with it.
+  const name = $("#wodName");
+  if(!name) return;
   const day = dayObj(currentDate);
   const idx = day.wodId !== null && day.wodId !== undefined ? day.wodId : (state.wodIndex % DATA.wods.length);
   const wod = DATA.wods[idx];
-  $("#wodName").textContent = wod.name + (wod.hero ? " ★" : "");
-  $("#wodType").textContent = wod.type;
-  $("#wodTitle").textContent = wod.name;
-  $("#wodScript").textContent = wod.script;
+  const set = (sel, v) => { const el = $(sel); if(el) el.textContent = v; };
+  set("#wodName", wod.name + (wod.hero ? " ★" : ""));
+  set("#wodType", wod.type);
+  set("#wodTitle", wod.name);
+  set("#wodScript", wod.script);
 }
 
 function openLiftModal(prefillName){
@@ -8275,7 +8281,6 @@ function renderSmartBanners(){
         title: "WATER IS LOW.",
         sub: `${Math.round(cur)} of ${goal} ${unitVol()} so far · ${Math.round(pct*100)}% of goal. Crush a glass right now.`,
         primary: { label: "+ 16 oz", action: "water", oz: 16 },
-        secondary: { label: "+ 8 oz", action: "water", oz: 8 },
       });
     }
   }
@@ -8829,15 +8834,7 @@ function openCardioModal(){
   });
 }
 
-onReady(() => {
-  on("#fitNewCardio", "click", () => openAddWorkout(currentDate, "cardio"));
-  on("#fitPlanDay", "click", () => {
-    const dt = new Date(currentDate + "T12:00:00");
-    const dayName = ["sun","mon","tue","wed","thu","fri","sat"][dt.getDay()];
-    currentDate = todayKey(dt);
-    openAddWorkout(currentDate, "plan");
-  });
-});
+
 
 
 
@@ -10166,7 +10163,8 @@ function renderMacroSub(){
 }
 
 onReady(() => {
-  on("#fwOpenPlanner", "click", () => go("plan"));
+  // FULL PLANNER removed — it pointed at a view deleted in v18, and planning
+  // is now a tab inside + LOG A WORKOUT
   on("#dySelectBtn", "click", () => {
     _dySelectMode = !_dySelectMode;
     if(!_dySelectMode) _dySelected.clear();
@@ -10236,14 +10234,13 @@ function renderFitDayCard(){
     // START WORKOUT used to live only in the planned branch, so on a day with
     // nothing planned there was no way to start a session at all — you had to
     // go and plan it first. That is the opposite of build-as-you-go.
-    card.innerHTML = head + `<p class="wl-empty">Nothing planned — that's fine. Start the clock and add lifts as you go, or write out what you did afterwards.</p>
+    card.innerHTML = head + `<p class="wl-empty">Nothing planned. Start the clock and add lifts as you go, or log it after.</p>
       <div class="fd-actions">
         <button class="btn btn-lime" id="fdStart">▶ START WORKOUT</button>
-        <button class="btn btn-ghost" id="fdWrite">WRITE IT OUT</button>
       </div>
       ${sessions.length ? `<p class="fd-logged">✓ ${sessions.length} entr${sessions.length===1?"y":"ies"} logged today</p>` : ""}`;
     on2(card, "#fdStart", () => openWorkoutSession(currentDate));
-    on2(card, "#fdWrite", () => openAddWorkout(currentDate, "write"));
+
   } else {
     const workouts = [{ name:p.type, time:p.time, why:p.why, exercises:p.exercises || [] }].concat(p.extra || []);
     card.innerHTML = head + workouts.map((w, wi) => `
@@ -10261,15 +10258,12 @@ function renderFitDayCard(){
       </div>`).join("") + `
       <div class="fd-actions">
         <button class="btn btn-lime" id="fdStart">▶ START WORKOUT</button>
-        <button class="btn btn-ghost" id="fdLogSet">+ QUICK SET</button>
+        ${(workouts.some(w => (w.exercises||[]).length) && !sessions.length)
+          ? `<button class="btn btn-ghost" id="fdDone">ALREADY DID IT</button>` : ""}
       </div>
-      ${(workouts.some(w => (w.exercises||[]).length) && !sessions.length)
-        ? `<button class="btn btn-cyan fd-done" id="fdDone">ALREADY DID IT — LOG IT ALL</button>
-           <p class="fd-hint">Writes everything above into today's session. Weights and reps can go in after.</p>`
-        : ""}
       ${sessions.length ? `<p class="fd-logged">✓ ${sessions.length} entr${sessions.length===1?"y":"ies"} logged</p>` : ""}`;
     on2(card, "#fdStart", () => openWorkoutSession(currentDate));
-    on2(card, "#fdLogSet", () => openAddWorkout(currentDate, "lift"));
+
     on2(card, "#fdDone", () => {
       const n = logPlannedDay(currentDate);
       renderAll();
@@ -10349,19 +10343,14 @@ function renderSessionCard(){
     </div>` : ""}
     <div class="se-list">${sessions.map(row).join("") || `<p class="wl-empty">Nothing here yet — write out what you did, or add one at a time.</p>`}</div>
     <div class="se-actions">
-      <button class="btn btn-cyan" id="seWrite">WRITE IT OUT</button>
-      <button class="btn btn-ghost" id="seAddLift">+ LIFT</button>
-      <button class="btn btn-ghost" id="seAddCardio">+ CARDIO</button>
-      <button class="btn btn-ghost" id="seAddInterval">+ INTERVALS</button>
+      <button class="btn btn-cyan" id="seWrite">+ ADD TO THIS DAY</button>
     </div>`;
 
   card.querySelectorAll(".se-row").forEach(r =>
     r.addEventListener("click", () => openSessionEditor(r.dataset.sid)));
   const on2 = (sel, fn) => { const el = card.querySelector(sel); if(el) el.addEventListener("click", fn); };
   on2("#seWrite", () => openAddWorkout(currentDate, "write"));
-  on2("#seAddLift", () => openAddWorkout(currentDate, "lift"));
-  on2("#seAddCardio", () => openAddWorkout(currentDate, "cardio"));
-  on2("#seAddInterval", () => openAddWorkout(currentDate, "interval"));
+
 }
 
 // ---- Edit ANY logged entry: date, time, type, and type-specific fields ----

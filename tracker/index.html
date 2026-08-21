@@ -21,7 +21,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Inter+Tight:wght@600;700;800;900&family=Montserrat:wght@600;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./styles.css?v=35">
+<link rel="stylesheet" href="./styles.css?v=36">
 </head>
 <body>
 
@@ -191,7 +191,7 @@
     <div class="tb-left">
       <div class="tb-logo">
         <span class="tb-top">BERMO<span class="c">.</span></span>
-        <span class="tb-bot">TRACKER <span style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v35</span></span>
+        <span class="tb-bot">TRACKER <span style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v36</span></span>
       </div>
     </div>
     <nav class="tb-nav" id="tabNav">
@@ -479,21 +479,7 @@
       </div>
 
       <!-- WOD CARD AT BOTTOM (de-emphasized, not a hub) -->
-      <div class="wod-suggestion" id="wodSuggestion">
-        <div class="ws-eyebrow">Today's workout suggestion</div>
-        <div class="ws-row">
-          <div class="ws-info">
-            <div class="ws-name">WOD · <span id="wodName">—</span></div>
-            <pre class="ws-script" id="wodScript">Loading workout…</pre>
-          </div>
-          <div class="ws-actions">
-            <button class="btn btn-lime" data-go="fitness">Log result →</button>
-            <button class="btn btn-ghost" id="wodShuffle">Shuffle</button>
-          </div>
-        </div>
-        <span id="wodType" class="hidden">—</span>
-        <span id="wodTitle" class="hidden">—</span>
-      </div>
+      
 
     </section>
 
@@ -608,11 +594,7 @@
         </div>
         
         <div class="view-head-actions">
-          <button class="btn btn-cyan" id="fitWriteOut">WRITE IT OUT</button>
-          <button class="btn btn-ghost" id="fitNewLift">+ WORKOUT</button>
-          <button class="btn btn-ghost" id="fitNewCardio">+ CARDIO</button>
-          <button class="btn btn-ghost" id="fitPlanDay">PLAN DAY</button>
-          <button class="btn btn-ghost" id="fitNewWod">+ WOD</button>
+          <button class="btn btn-cyan" id="fitWriteOut">+ LOG A WORKOUT</button>
         </div>
       </header>
 
@@ -639,7 +621,7 @@
         <div class="card span-12" id="fitWeekCard" data-fsec="summary">
           <div class="card-head">
             <span class="card-eyebrow">This week</span>
-            <button class="link-btn-sm" id="fwOpenPlanner">FULL PLANNER</button>
+
           </div>
           <div class="fw-list" id="fitWeekList"></div>
         </div>
@@ -1391,7 +1373,7 @@
 <div class="toast" id="toast" aria-live="polite"></div>
 
 <script src="/tracker/vendor/chart.umd.js"></script>
-<script src="./data.js?v=35"></script>
-<script src="./app.js?v=35"></script>
+<script src="./data.js?v=36"></script>
+<script src="./app.js?v=36"></script>
 </body>
 </html>

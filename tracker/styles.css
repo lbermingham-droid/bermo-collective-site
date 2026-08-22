@@ -4615,3 +4615,80 @@ html, body, #app, .app{
   background:var(--iron-volt) !important; border-color:var(--iron-volt) !important;
   color:#03251f !important;
 }
+
+/* ============================================================
+   v39 — ONE FITNESS SCREEN
+   ============================================================ */
+/* photo tiles in the media row */
+.mrow-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+/* --- build-workout picker --- */
+.bw-row{ position:relative; }
+.bw-check{
+  width:24px; height:24px; border-radius:50%; justify-self:end;
+  border:2px solid #46525f; flex:0 0 auto;
+}
+.bw-row.sel .bw-check{
+  background:var(--iron-volt); border-color:var(--iron-volt);
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23032' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>");
+  background-size:15px; background-repeat:no-repeat; background-position:center;
+}
+.bw-row.sel{ background:rgba(0,245,212,.07); }
+.bw-row.sel .mrow-title{ color:var(--iron-volt); }
+.bw-foot{
+  position:sticky; bottom:0; padding:12px 14px calc(12px + env(safe-area-inset-bottom));
+  background:linear-gradient(to top, #0a0a14 68%, transparent);
+  transform:translateY(120%); transition:transform .18s ease;
+}
+.bw-foot.on{ transform:none; }
+.bw-foot .btn{ width:100%; justify-content:center; }
+#bwOverlay .workout-body{ padding:14px; overflow-y:auto; flex:1; }
+#bwOverlay .fpills{ padding-top:10px; }
+.facet-row{ grid-template-columns:1fr 16px !important; }
+.facet-row.sel .mrow-title{ color:var(--iron-volt); }
+
+/* --- sets / weights editor --- */
+.lset-list{ display:flex; flex-direction:column; gap:8px; }
+.lset{ display:flex; align-items:flex-end; gap:8px; }
+.lset-n{
+  width:26px; height:34px; flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+  border-radius:8px; background:rgba(255,255,255,.06);
+  font-size:12px; font-weight:800; color:var(--iron-mute);
+}
+.lset label{ flex:1; min-width:0; display:flex; flex-direction:column; gap:3px; }
+.lset label > span{
+  font-size:10px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:var(--iron-mute);
+}
+.lset input{ width:100%; }
+.lset-del{
+  width:32px; height:34px; flex:0 0 auto; border-radius:8px;
+  background:transparent; border:1px solid var(--iron-line); color:var(--iron-mute);
+  font-size:16px; cursor:pointer;
+}
+
+/* --- the day sheet --- */
+.ds-type{ width:100%; }
+.ds-custom{ width:100%; margin-top:8px; }
+.sfield-lbl{ display:block; margin-bottom:10px; }
+.sfield-lbl > span{
+  display:block; margin-bottom:5px;
+  font-size:10px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:var(--iron-mute);
+}
+.ds-acts{ margin:14px 0 4px; }
+.ds-list{ margin:6px 0 4px; }
+.ds-list-hd{
+  font-size:10px; font-weight:800; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--iron-mute); padding:10px 4px 2px;
+}
+.ds-empty{
+  padding:16px 4px; font-size:14px; color:var(--iron-mute);
+}
+.ds-row{ grid-template-columns:56px 1fr 32px !important; }
+.ds-del{
+  width:32px; height:32px; border-radius:8px; justify-self:end;
+  background:transparent; border:1px solid var(--iron-line);
+  color:var(--iron-mute); font-size:16px; cursor:pointer;
+}
+/* .lrows caps at 46vh for modals. Inside the full-screen picker the
+   overlay body is the scroller, so the cap left 5 rows and dead space. */
+#bwOverlay .lrows{ max-height:none !important; overflow:visible !important; }

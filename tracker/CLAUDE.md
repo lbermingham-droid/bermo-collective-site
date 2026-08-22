@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v38**.
+- Current build: **v39**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -261,6 +261,38 @@ second water button on the low-water banner.
 `renderWodCard()` writing into four elements that no longer existed, so it
 threw on EVERY dashboard render and killed the render chain behind it. That
 is the orphan-sweep rule in §7, ignored in a hurry. It is now guarded.
+
+**ONE FITNESS SCREEN (v39).** Her spec, verbatim: *"This one screen is the
+same for fitness page. There should be no other add fitness options outside
+this. This feeds all of it."*
+
+    week list (main screen OR fitness) -> tap a day -> THE DAY SHEET
+      dropdown: activity / saved / create new   (saved AUTOFILLS)
+      Build workout · Start timer · Add time
+      the workout list, blank or filled; tap a lift -> sets & weights
+
+- `openDaySheet(dateKey)` is THE screen. `openAddWorkout()` and
+  `openPlanDayModal()` are now thin wrappers onto it, and the dashboard and
+  fitness week rows both call it. **Do not add another way to add fitness.**
+  `openLogWorkoutText()` survives only because it is text entry that writes
+  into this same day, not a second add screen.
+- `openBuildWorkout(date, preselect, onSave)` — full-screen picker with four
+  facet pills (lift type / machine / body part / workout type) all derived
+  from data we already had (`LIFT_CATEGORIES`, `MACHINE_LIST`,
+  `partsForExercise`, `WORKOUT_TYPES`). Selection lives in a `Set` and
+  toggling a row does **not** re-render, so it survives filter changes.
+- `openLiftSets(date, name)` — numbered set rows, `+` copies the last one.
+  Cardio names (`isCardioName()`) get minutes / speed / grade instead.
+- **Sets on a past-or-today day are LOGGED, not planned.** `_setDayExerciseSets()`
+  clears that exercise's existing rows for the day and re-writes them through
+  `logSession()`, so rings, PRs, week comparison and Totals all see it. A
+  future date stays a plan and writes nothing.
+- **Photos are in IndexedDB, not localStorage** (`exPhotoSet` / `exPhotoLoadAll`),
+  downscaled to 320px on capture. `save()` sheds `state.exPhotos` FIRST on a
+  quota error, so a photo she took would have vanished silently.
+- NOT possible as asked: "find photo online". There is no image search we can
+  call, and the results would be third-party copyrighted images. Her own
+  photo works; the generated glyph tile is the blank default.
 
 **BUILD TO THE REFERENCE (v38).** She sent Ladder/Flex screenshots four
 separate times and asked why the app did not look like them. It did not,
@@ -669,4 +701,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v35` one add-workout sheet and one add-food sheet from every entry point ·
 `v36` button cull — Fitness header 5 actions -> 1 ·
 `v37` three tabs not five, collapsed optional fields, and THE LOST WORKOUT ·
-`v38` built to the reference: media rows, filter pills, totals block, no shouting.
+`v38` built to the reference: media rows, filter pills, totals block, no shouting ·
+`v39` ONE fitness screen — the day sheet, the build-workout picker, sets/weights.

@@ -123,28 +123,49 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
     !(await page.isVisible("#modal.open")) ? ok("modal X closes") : fail("modal X closes", "still open");
   } catch (e) { fail("modal X", e); }
 
-  // 8. Lift logging end-to-end
+  // 8. Lift logging end-to-end THROUGH THE ONE SCREEN (v39).
+  //    day sheet -> Build workout -> pick -> Save -> tap the lift ->
+  //    sets -> Save. Sets on a day that already happened must land in
+  //    day.sessions, or nothing downstream sees the workout.
   try {
     await page.click(`${tabSel}[data-tab="fitness"]`).catch(()=>{});
-    await page.click(`${tabSel}[data-tab="lift"]`).catch(()=>{});
     await page.waitForTimeout(400);
-    // one header action now: + LOG A WORKOUT, then the Lift tab inside it
     await page.click("#fitWriteOut", { timeout: 6000 });
-    await page.waitForTimeout(500);
-    await page.evaluate(() => { const t = document.querySelector('[data-wktab="lift"]'); if(t) t.click(); });
     await page.waitForTimeout(600);
-    await page.fill("#liftName", "Back Squat");
-    await page.fill("#liftWeight", "135");
-    await page.fill("#liftReps", "5");
-    await page.click("#liftSave");
+    await page.click("#dsBuild", { timeout: 6000 });
+    await page.waitForTimeout(800);
+    await page.fill("#bwSearch", "Back Squat");
     await page.waitForTimeout(500);
+    await page.evaluate(() => {
+      const r = [...document.querySelectorAll("#bwList .bw-row")]
+        .find(x => /back squat/i.test(x.querySelector(".mrow-title").textContent));
+      if(r) r.click();
+    });
+    await page.waitForTimeout(300);
+    await page.click("#bwSave");
+    await page.waitForTimeout(800);
+    await page.evaluate(() => { const r = document.querySelector("#dsList .ds-row"); if(r) r.click(); });
+    await page.waitForTimeout(700);
+    await page.fill(".lset .lset-reps", "5");
+    await page.fill(".lset .lset-w", "135");
+    await page.click("#lsSave");
+    await page.waitForTimeout(700);
     const logged = await page.evaluate(() => {
       const s = JSON.parse(localStorage.getItem("bermo.tracker.v1"));
       const t = new Date().toISOString().slice(0, 10);
-      return !!(s.days[t] && (s.days[t].sessions || []).some(x => x.name === "Back Squat"));
+      return (s.days[t] && (s.days[t].sessions || []).filter(x => /back squat/i.test(x.name || ""))) || [];
     });
-    logged ? ok("lift logs + persists") : fail("lift logs", "session missing in state");
-  } catch (e) { fail("lift logging flow", e); }
+    await page.evaluate(() => {
+      if(typeof closeModal === "function") closeModal();
+      document.querySelectorAll("#modal.open,.modal.open").forEach(m => m.classList.remove("open"));
+      document.querySelectorAll(".workout-overlay.open").forEach(o => o.classList.remove("open"));
+      document.body.style.overflow = "";
+    });
+    await page.waitForTimeout(300);
+    (logged.length === 1 && logged[0].reps === 5 && logged[0].weight === 135)
+      ? ok("v39 one screen: build -> sets -> logged + persists")
+      : fail("v39 one screen logging", JSON.stringify(logged));
+  } catch (e) { fail("v39 one screen logging", e); }
 
   // 9. Return to dashboard, hubs render
   try {
@@ -1031,39 +1052,23 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       : fail("v37 lost workout", JSON.stringify({ blankBefore, typed, saved, dbg }));
   } catch (e) { fail("v37 lost workout", e); }
 
-  // 30. v35: every "add a workout" and "add food" entry point must open the
-  //     SAME sheet. Before this there were five different workout modals with
-  //     five different layouts, and reaching the same job from Home, Fitness
-  //     or inside a session gave three different screens.
+  // 30. v39: ONE fitness screen. "There should be no other add fitness
+  //     options outside this." Every entry point must land on the SAME
+  //     day sheet, with the same three actions.
   try {
-    await page.evaluate(() => {
-      if(typeof closeModal === "function") closeModal();
-      document.querySelectorAll("#modal.open,.modal.open").forEach(m => m.classList.remove("open"));
-      const o = document.getElementById("workoutOverlay"); if(o) o.classList.remove("open");
-      document.body.style.overflow = "";
-    });
-    await page.click(`${tabSel}[data-tab="fitness"]`).catch(()=>{});
-    await page.waitForTimeout(600);
-
     const shot = async (openFn) => {
       await page.evaluate(openFn);
-      await page.waitForTimeout(900);   // tab switches close + reopen the sheet
+      await page.waitForTimeout(800);
       const r = await page.evaluate(() => {
         const m = document.querySelector("#modal.open, .modal.open");
         if(!m) return null;
-        const tabs = [...m.querySelectorAll(".wk-tab")].map(t => t.textContent.trim());
-        const more = [...m.querySelectorAll(".wk-more")].map(t => t.textContent.trim());
-        const active = (m.querySelector(".wk-tab.active") || {}).textContent;
-        const title = (m.querySelector(".modal-head h3, .modal-title, h3") || {}).textContent || "";
-        // v37: the strip overflowed at 390px and the active tab sat half
-        // off-screen. Every tab must be fully inside its own row.
-        const strip = m.querySelector(".wk-tabs");
-        const sb = strip ? strip.getBoundingClientRect() : null;
-        const clipped = !strip || [...strip.querySelectorAll(".wk-tab")].some(t => {
-          const r = t.getBoundingClientRect();
-          return r.left < sb.left - 1 || r.right > sb.right + 1 || r.width < 40;
-        });
-        return { tabs, more, clipped, active: (active||"").trim(), title: title.trim() };
+        return {
+          title: ((m.querySelector(".modal-head h3, .modal-title, #modalTitle") || {}).textContent || "").trim(),
+          build: !!m.querySelector("#dsBuild"),
+          timer: !!m.querySelector("#dsTimer"),
+          time:  !!m.querySelector("#dsTime"),
+          type:  !!m.querySelector("#dsType"),
+        };
       });
       await page.evaluate(() => {
         if(typeof closeModal === "function") closeModal();
@@ -1072,30 +1077,18 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       await page.waitForTimeout(250);
       return r;
     };
-
-    // the header is ONE button now; the variants are tabs inside the sheet
-    const fromWrite  = await shot(() => { const b = document.getElementById("fitWriteOut"); if(b) b.click(); });
-    const fromHeader = await shot(() => {
-      const b = document.getElementById("fitWriteOut"); if(b) b.click();
-      setTimeout(() => { const t = document.querySelector('[data-wktab="lift"]'); if(t) t.click(); }, 150);
-    });
-    const fromCardio = await shot(() => {
-      const b = document.getElementById("fitWriteOut"); if(b) b.click();
-      setTimeout(() => { const t = document.querySelector('[data-wktab="cardio"]'); if(t) t.click(); }, 150);
-    });
-
-    const all = [fromHeader, fromCardio, fromWrite].filter(x => x && x.tabs);
-    const sameTabs = all.length === 3
-      && all.every(x => x.tabs.length === 3 && x.tabs.join("|") === all[0].tabs.join("|"));
-    const sameTitle = all.every(x => x.title === all[0].title && /add a workout/i.test(x.title));
-    const rightActive = /lift/i.test(fromHeader.active) && /cardio/i.test(fromCardio.active)
-      && /write/i.test(fromWrite.active);
-    const noClip  = all.every(x => x.clipped === false);
-    const hasMore = all.every(x => x.more.length === 2);
-    (sameTabs && sameTitle && rightActive && noClip && hasMore)
-      ? ok(`v37 one add-workout sheet, 3 tabs fit at 390px, 2 footer links`)
-      : fail("v37 workout sheet consistency", JSON.stringify(all));
-  } catch (e) { fail("v35 workout sheet consistency", e); }
+    const fromHeader = await shot(() => { const b = document.getElementById("fitWriteOut"); if(b) b.click(); });
+    const fromWeek   = await shot(() => { const r = document.querySelector("#fitWeekList .fw-row"); if(r) r.click(); });
+    const fromPlan   = await shot(() => { const b = document.getElementById("fdEdit"); if(b) b.click(); });
+    const all = [fromHeader, fromWeek, fromPlan].filter(Boolean);
+    // Titles differ on purpose — each entry point carries its own day.
+    // What must be identical is the SCREEN.
+    const same = all.length === 3
+      && all.every(x => x.build && x.timer && x.time && x.type)
+      && all.every(x => /^[A-Z][a-z]{2}, [A-Z][a-z]{2} \d{1,2}$/.test(x.title));
+    same ? ok("v39 every fitness entry point opens the same day sheet")
+         : fail("v39 one fitness screen", JSON.stringify(all));
+  } catch (e) { fail("v39 one fitness screen", e); }
 
   await browser.close();
   print();

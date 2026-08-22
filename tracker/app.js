@@ -1719,6 +1719,7 @@ function resetAll(){
 
 // ---------- BOOT ----------
 onReady(init);
+onReady(() => { try{ exPhotoLoadAll().then(() => { if(typeof renderAll === "function") renderAll(); }); }catch(e){ console.warn("photos", e); } });
 
 
 // =================================================================
@@ -6520,6 +6521,17 @@ function logPlannedDay(dateKey){
 }
 
 function openPlanDayModal(wkKey, dayName){
+  // v39: superseded by the day sheet. Kept as a wrapper because several
+  // screens still call it by name; it must not open a second UI.
+  const days = ["sun","mon","tue","wed","thu","fri","sat"];
+  let key = currentDate;
+  try{
+    const d = new Date(wkKey + "T12:00:00");
+    if(!isNaN(d)) key = todayKey(new Date(d.getTime() + days.indexOf(dayName)*86400000));
+  }catch(e){}
+  return openDaySheet(key);
+}
+function _openPlanDayModal_legacy(wkKey, dayName){
   const plan = getPlan();
   if(!plan[wkKey]) plan[wkKey] = {};
   const cur = plan[wkKey][dayName] || {};
@@ -6952,6 +6964,697 @@ function mrowHtml(o){
   </li>`;
 }
 
+
+// =================================================================
+// v39 — ONE FITNESS SCREEN
+// Her spec, verbatim: "This one screen is the same for fitness page.
+// There should be no other add fitness options outside this. This
+// feeds all of it."
+//
+//   week list -> tap a day -> THE DAY SHEET
+//     dropdown: activity / create new / saved  (saved autofills)
+//     Save now, or fill out the rest below
+//     Build workout · Start timer · Add time
+//     the workout list, blank or filled; tap a lift for sets
+//
+//   Build workout -> full-screen picker, filter pills (lift type,
+//   machine, body part, workout type), multi-select that SURVIVES
+//   changing filters, photo per row, Save autofills the day sheet.
+//
+//   Saved -> the Strong template list.
+//
+// Everything else that used to add fitness now routes here.
+// =================================================================
+
+// ---- Exercise photos live in IndexedDB, not localStorage --------
+// localStorage is ~5MB and save() sheds exPhotos FIRST when the quota
+// blows, so a photo she took would vanish without warning. Downscaled
+// to 320px on capture.
+const EXPHOTO_DB = "bermo.exphotos", EXPHOTO_STORE = "photos";
+let _exPhotoDB = null, _exPhotoCache = {};
+function _exPhotoOpen(){
+  if(_exPhotoDB) return Promise.resolve(_exPhotoDB);
+  return new Promise((res, rej) => {
+    let req;
+    try{ req = indexedDB.open(EXPHOTO_DB, 1); }catch(e){ return rej(e); }
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if(!db.objectStoreNames.contains(EXPHOTO_STORE)) db.createObjectStore(EXPHOTO_STORE);
+    };
+    req.onsuccess = () => { _exPhotoDB = req.result; res(_exPhotoDB); };
+    req.onerror = () => rej(req.error);
+  });
+}
+function exPhotoSet(name, dataUrl){
+  _exPhotoCache[name] = dataUrl;
+  return _exPhotoOpen().then(db => new Promise((res, rej) => {
+    const tx = db.transaction(EXPHOTO_STORE, "readwrite");
+    tx.objectStore(EXPHOTO_STORE).put(dataUrl, name);
+    tx.oncomplete = res; tx.onerror = () => rej(tx.error);
+  })).catch(e => { console.warn("photo save", e); });
+}
+function exPhotoLoadAll(){
+  return _exPhotoOpen().then(db => new Promise((res) => {
+    const tx = db.transaction(EXPHOTO_STORE, "readonly");
+    const st = tx.objectStore(EXPHOTO_STORE);
+    const out = {};
+    const cur = st.openCursor();
+    cur.onsuccess = () => {
+      const c = cur.result;
+      if(c){ out[c.key] = c.value; c.continue(); }
+      else { _exPhotoCache = out; res(out); }
+    };
+    cur.onerror = () => res({});
+  })).catch(() => ({}));
+}
+function exPhoto(name){ return _exPhotoCache[name] || (state.exPhotos || {})[name] || null; }
+
+// Downscale before storing so a 4MB phone photo becomes ~30KB.
+function _downscale(file, max){
+  return new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const s = Math.min(1, max / Math.max(img.width, img.height));
+        const w = Math.round(img.width * s), h = Math.round(img.height * s);
+        const cv = document.createElement("canvas");
+        cv.width = w; cv.height = h;
+        cv.getContext("2d").drawImage(img, 0, 0, w, h);
+        res(cv.toDataURL("image/jpeg", 0.72));
+      };
+      img.onerror = rej;
+      img.src = fr.result;
+    };
+    fr.onerror = rej;
+    fr.readAsDataURL(file);
+  });
+}
+
+// ---- Facets, all derived from data we already have --------------
+let _LIFT_CAT_OF = null;
+function liftCatOf(name){
+  if(!_LIFT_CAT_OF){
+    _LIFT_CAT_OF = {};
+    LIFT_CATEGORIES.forEach(c => c.lifts.forEach(l => { _LIFT_CAT_OF[l.toLowerCase()] = c.name; }));
+  }
+  return _LIFT_CAT_OF[(name || "").toLowerCase()] || null;
+}
+function equipOf(name){
+  const n = (name || "").toLowerCase();
+  if(MACHINE_LIST.some(m => m.toLowerCase() === n)) return "Machine";
+  if(/smith/.test(n))                               return "Smith machine";
+  if(/cable|pulldown|pushdown|pull.?through/.test(n)) return "Cable";
+  if(/dumbbell|\bdb\b|goblet|arnold/.test(n))       return "Dumbbell";
+  if(/kettlebell|\bkb\b|swing/.test(n))             return "Kettlebell";
+  if(/run|walk|jog|bike|cycle|treadmill|elliptical|stair|row erg|erg\b|ski erg|assault/.test(n)) return "Cardio";
+  if(/push.?up|pull.?up|chin.?up|\bdip\b|plank|crunch|sit.?up|air squat|bodyweight|hollow|l-sit|burpee/.test(n)) return "Bodyweight";
+  if(/barbell|bench press|squat|deadlift|clean|snatch|jerk|\brdl\b|thruster|shrug|row\b|press/.test(n)) return "Barbell";
+  return "Other";
+}
+function isCardioName(name){ return equipOf(name) === "Cardio"; }
+const BODY_PART_LABEL = {
+  chest:"Chest", back:"Back", legs:"Legs", glutes:"Glutes",
+  shoulders:"Shoulders", arms:"Arms", core:"Core",
+};
+
+// ---- The picker's filter state (module-level so it survives a
+//      re-render but resets per open) ------------------------------
+let _bwSel = null, _bwFilters = null, _bwDate = null, _bwOnSave = null;
+
+function _bwFacetOptions(facet){
+  const all = allLibraryExercises();
+  const set = new Set();
+  all.forEach(n => {
+    if(facet === "lift"){ const c = liftCatOf(n); if(c) set.add(c); }
+    if(facet === "equip") set.add(equipOf(n));
+    if(facet === "part")  (partsForExercise(n) || []).forEach(p => set.add(BODY_PART_LABEL[p] || p));
+  });
+  if(facet === "type") return WORKOUT_TYPES.slice();
+  return Array.from(set).sort();
+}
+function _bwMatches(name){
+  const f = _bwFilters;
+  if(f.lift  && liftCatOf(name) !== f.lift) return false;
+  if(f.equip && equipOf(name)   !== f.equip) return false;
+  if(f.part){
+    const parts = (partsForExercise(name) || []).map(p => BODY_PART_LABEL[p] || p);
+    if(!parts.includes(f.part)) return false;
+  }
+  if(f.type){
+    // workout type is a loose bucket — match it against body parts and the name
+    const t = f.type.toLowerCase();
+    const hay = (name + " " + (partsForExercise(name) || []).join(" ")).toLowerCase();
+    const alias = { "upper body":"chest back shoulders arms", "lower body":"legs glutes",
+                    push:"chest shoulders arms", pull:"back arms", "full body":"" }[t];
+    if(alias !== "" ){
+      const probe = alias || t;
+      if(!probe.split(" ").some(w => w && hay.includes(w))) return false;
+    }
+  }
+  if(f.q){
+    if(!name.toLowerCase().includes(f.q.toLowerCase())) return false;
+  }
+  return true;
+}
+
+function _bwThumb(name){
+  const src = exPhoto(name);
+  if(src) return `<div class="mrow-thumb"><img src="${src}" alt=""></div>`;
+  return mrowThumb(name);
+}
+
+function bwRender(overlay){
+  const all = allLibraryExercises().filter(_bwMatches);
+  const f = _bwFilters;
+  const pill = (key, label) => `<button type="button" class="fpill ${f[key] ? "on" : ""}" data-facet="${key}">${escape(f[key] || label)}</button>`;
+  const anyFilter = f.lift || f.equip || f.part || f.type;
+
+  overlay.innerHTML = `
+    <header class="workout-head">
+      <button class="workout-back" id="bwBack" aria-label="Close"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <div class="workout-title">
+        <div class="wt-eyebrow">${_bwSel.size} selected</div>
+        <div class="wt-name">Build workout</div>
+      </div>
+      <button class="workout-done" id="bwSave">Save</button>
+    </header>
+    <div class="workout-body">
+      <div class="sfield">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="search" id="bwSearch" placeholder="Search movements" autocomplete="off" value="${escape(f.q || "")}">
+      </div>
+      <div class="fpills">
+        ${anyFilter ? `<button type="button" class="fpill clear" id="bwClear" title="Clear filters">&times;</button>` : ""}
+        ${pill("lift","Lift type")}
+        ${pill("equip","Machine")}
+        ${pill("part","Body part")}
+        ${pill("type","Workout type")}
+      </div>
+      <ul class="lrows" id="bwList">
+        ${all.length ? all.map(n => `
+          <li class="mrow bw-row ${_bwSel.has(n) ? "sel" : ""}" data-pick="${escape(n)}">
+            ${_bwThumb(n)}
+            <div class="mrow-main">
+              <div class="mrow-eyebrow">${escape(liftCatOf(n) || equipOf(n))}</div>
+              <div class="mrow-title">${escape(n)}</div>
+              <div class="mrow-meta">${escape((partsForExercise(n) || []).map(p => BODY_PART_LABEL[p] || p).join(", ") || "Movement")}</div>
+            </div>
+            <span class="bw-check" aria-hidden="true"></span>
+          </li>`).join("")
+        : `<li class="sr-empty"><div class="sr-empty-h">Nothing matches those filters</div>
+             <div class="sr-empty-b">Clear one, or add it as a new movement.</div>
+             ${f.q ? `<button type="button" class="btn btn-cyan btn-sm" id="bwCustom">Add “${escape(f.q)}”</button>` : ""}</li>`}
+      </ul>
+    </div>
+    <div class="bw-foot ${_bwSel.size ? "on" : ""}">
+      <button type="button" class="btn btn-cyan" id="bwSave2">Save ${_bwSel.size} exercise${_bwSel.size === 1 ? "" : "s"}</button>
+    </div>`;
+  bwBind(overlay);
+}
+
+function bwBind(overlay){
+  const close = () => { overlay.classList.remove("open"); document.body.style.overflow = ""; };
+  overlay.querySelector("#bwBack").onclick = close;
+
+  const commit = () => {
+    const picked = Array.from(_bwSel);
+    close();
+    if(_bwOnSave) _bwOnSave(picked);
+  };
+  overlay.querySelector("#bwSave").onclick = commit;
+  const s2 = overlay.querySelector("#bwSave2"); if(s2) s2.onclick = commit;
+
+  // multi-select — toggling a row must NOT re-render, or the list jumps
+  overlay.querySelectorAll("[data-pick]").forEach(li => li.addEventListener("click", () => {
+    const n = li.getAttribute("data-pick");
+    if(_bwSel.has(n)) _bwSel.delete(n); else _bwSel.add(n);
+    li.classList.toggle("sel", _bwSel.has(n));
+    const hd = overlay.querySelector(".wt-eyebrow");
+    if(hd) hd.textContent = `${_bwSel.size} selected`;
+    const foot = overlay.querySelector(".bw-foot");
+    if(foot){
+      foot.classList.toggle("on", _bwSel.size > 0);
+      const b = foot.querySelector("button");
+      if(b) b.textContent = `Save ${_bwSel.size} exercise${_bwSel.size === 1 ? "" : "s"}`;
+    }
+  }));
+
+  const search = overlay.querySelector("#bwSearch");
+  if(search){
+    let t = null;
+    search.addEventListener("input", () => {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        _bwFilters.q = search.value;
+        bwRender(overlay);
+        const s = overlay.querySelector("#bwSearch");
+        if(s){ s.focus(); s.setSelectionRange(s.value.length, s.value.length); }
+      }, 220);
+    });
+  }
+
+  const clear = overlay.querySelector("#bwClear");
+  if(clear) clear.onclick = () => { _bwFilters = { q:_bwFilters.q }; bwRender(overlay); };
+
+  const custom = overlay.querySelector("#bwCustom");
+  if(custom) custom.onclick = () => {
+    const n = (_bwFilters.q || "").trim();
+    if(!n) return;
+    if(!state.customExercises) state.customExercises = [];
+    if(!state.customExercises.includes(n)) state.customExercises.push(n);
+    _bwSel.add(n); save(); bwRender(overlay);
+  };
+
+  // facet pills open a picker sheet
+  overlay.querySelectorAll("[data-facet]").forEach(b => b.addEventListener("click", () => {
+    const facet = b.getAttribute("data-facet");
+    const label = { lift:"Lift type", equip:"Machine", part:"Body part", type:"Workout type" }[facet];
+    const opts = _bwFacetOptions(facet);
+    openModal(label, `
+      <ul class="lrows" id="facetList">
+        <li class="mrow facet-row" data-val=""><div class="mrow-main"><div class="mrow-title">Any ${escape(label.toLowerCase())}</div></div><span class="mrow-chev">›</span></li>
+        ${opts.map(o => `<li class="mrow facet-row ${_bwFilters[facet] === o ? "sel" : ""}" data-val="${escape(o)}">
+          <div class="mrow-main"><div class="mrow-title">${escape(o)}</div></div><span class="mrow-chev">›</span></li>`).join("")}
+      </ul>`, (root) => {
+      root.querySelectorAll("[data-val]").forEach(li => li.addEventListener("click", () => {
+        const v = li.getAttribute("data-val");
+        _bwFilters[facet] = v || null;
+        closeModal();
+        bwRender(overlay);
+      }));
+    });
+  }));
+}
+
+// entry point: opts.preselect = array of names already on the day
+function openBuildWorkout(dateKey, preselect, onSave){
+  _bwDate = dateKey || currentDate;
+  _bwSel = new Set(preselect || []);
+  _bwFilters = {};
+  _bwOnSave = onSave;
+  let overlay = document.getElementById("bwOverlay");
+  if(!overlay){
+    overlay = document.createElement("div");
+    overlay.id = "bwOverlay";
+    overlay.className = "workout-overlay";
+    document.body.appendChild(overlay);
+  }
+  bwRender(overlay);
+  overlay.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+// ---- Sets / weights for one lift on the day ---------------------
+// "You can also click in each lift and add your sets and weights.
+//  There is a fill in and you click + to add another. Then save.
+//  If cardio I can add uphill grade and speed."
+function openLiftSets(dateKey, name, after){
+  const key = dateKey || currentDate;
+  const ex = _dayExercises(key).find(e => e.name === name) || { name, sets:[] };
+  const cardio = isCardioName(name);
+  const rows = (ex.sets && ex.sets.length) ? ex.sets.slice()
+             : [cardio ? { durationMin:"", speed:"", incline:"" } : { reps:"", weight:"" }];
+
+  const setRow = (s, i) => cardio ? `
+    <div class="lset" data-i="${i}">
+      <span class="lset-n">${i+1}</span>
+      <label><span>Min</span><input class="lset-dur" type="number" min="0" step="any" inputmode="decimal" value="${s.durationMin ?? ""}" placeholder="30"></label>
+      <label><span>Speed</span><input class="lset-spd" type="number" min="0" step="any" inputmode="decimal" value="${s.speed ?? ""}" placeholder="3.5"></label>
+      <label><span>Grade %</span><input class="lset-inc" type="number" min="0" step="any" inputmode="decimal" value="${s.incline ?? ""}" placeholder="12"></label>
+      <button type="button" class="lset-del" title="Remove">&times;</button>
+    </div>` : `
+    <div class="lset" data-i="${i}">
+      <span class="lset-n">${i+1}</span>
+      <label><span>Reps</span><input class="lset-reps" type="number" min="0" step="1" inputmode="numeric" value="${s.reps ?? ""}" placeholder="10"></label>
+      <label><span>${unit()}</span><input class="lset-w" type="number" min="0" step="any" inputmode="decimal" value="${s.weight ?? ""}" placeholder="45"></label>
+      <button type="button" class="lset-del" title="Remove">&times;</button>
+    </div>`;
+
+  openModal(name, `
+    <div class="lset-list" id="lsList">${rows.map(setRow).join("")}</div>
+    <button type="button" class="btn btn-ghost btn-sm" id="lsAdd" style="margin-top:10px">+ Add ${cardio ? "block" : "set"}</button>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-cyan" id="lsSave">Save</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    const list = document.getElementById("lsList");
+    const renumber = () => list.querySelectorAll(".lset").forEach((r, i) => {
+      r.dataset.i = i; r.querySelector(".lset-n").textContent = i + 1;
+    });
+    const wire = (row) => row.querySelector(".lset-del").addEventListener("click", () => {
+      if(list.children.length > 1) row.remove(); else
+        row.querySelectorAll("input").forEach(i => i.value = "");
+      renumber();
+    });
+    list.querySelectorAll(".lset").forEach(wire);
+    document.getElementById("lsAdd").addEventListener("click", () => {
+      // a new set copies the last one — that is how every lifting app does it
+      const last = list.lastElementChild;
+      const div = document.createElement("div");
+      div.innerHTML = setRow(cardio
+        ? { durationMin:(last?.querySelector(".lset-dur")||{}).value, speed:(last?.querySelector(".lset-spd")||{}).value, incline:(last?.querySelector(".lset-inc")||{}).value }
+        : { reps:(last?.querySelector(".lset-reps")||{}).value, weight:(last?.querySelector(".lset-w")||{}).value },
+        list.children.length);
+      const row = div.firstElementChild;
+      list.appendChild(row); wire(row); renumber();
+    });
+    document.getElementById("lsSave").addEventListener("click", () => {
+      const out = [];
+      list.querySelectorAll(".lset").forEach(r => {
+        if(cardio){
+          const d = parseFloat(r.querySelector(".lset-dur").value);
+          const sp = parseFloat(r.querySelector(".lset-spd").value);
+          const inc = parseFloat(r.querySelector(".lset-inc").value);
+          if(!isNaN(d) || !isNaN(sp) || !isNaN(inc))
+            out.push({ durationMin: isNaN(d)?null:d, speed: isNaN(sp)?null:sp, incline: isNaN(inc)?null:inc });
+        } else {
+          const rp = parseInt(r.querySelector(".lset-reps").value, 10);
+          const w = parseFloat(r.querySelector(".lset-w").value);
+          if(!isNaN(rp)) out.push({ reps: rp, weight: isNaN(w) ? 0 : w });
+        }
+      });
+      _setDayExerciseSets(key, name, out);
+      closeModal();
+      if(after) after();
+      renderAll();
+    });
+  });
+}
+
+// ---- Saved workouts, Strong's template list ---------------------
+function openSavedWorkouts(dateKey, onPick){
+  const lib = getWorkoutLib();
+  openModal("Saved workouts", lib.length ? `
+    <ul class="lrows" id="swList">
+      ${lib.map(w => `<li class="mrow sw-row" data-id="${escape(w.id)}">
+        ${mrowThumb((w.exercises[0] || {}).name || w.name)}
+        <div class="mrow-main">
+          <div class="mrow-title">${escape(w.name)}</div>
+          <div class="mrow-meta">${escape(w.exercises.slice(0,3).map(e => e.name).join(", "))}${w.exercises.length > 3 ? ` +${w.exercises.length - 3} more` : ""}</div>
+        </div>
+        <span class="mrow-chev">›</span>
+      </li>`).join("")}
+    </ul>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close>Cancel</button></div>
+  ` : `
+    <div class="sr-empty">
+      <div class="sr-empty-h">No saved workouts yet</div>
+      <div class="sr-empty-b">Build one on a day, then save it to reuse.</div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close>Close</button></div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    root.querySelectorAll("[data-id]").forEach(li => li.addEventListener("click", () => {
+      const w = lib.find(x => x.id === li.getAttribute("data-id"));
+      if(!w) return;
+      closeModal();
+      if(onPick) onPick(w);
+    }));
+  });
+}
+
+// ---- Day plan accessors — one place that reads/writes the day ----
+function _dayPlanRef(dateKey){
+  const dt = new Date(dateKey + "T12:00:00");
+  const wk = weekKey(weekStart(dt));
+  const dn = ["sun","mon","tue","wed","thu","fri","sat"][dt.getDay()];
+  const plan = getPlan();
+  if(!plan[wk]) plan[wk] = {};
+  return { plan, wk, dn };
+}
+function _dayPlan(dateKey){
+  const r = _dayPlanRef(dateKey);
+  return r.plan[r.wk][r.dn] || null;
+}
+function _dayExercises(dateKey){
+  const p = _dayPlan(dateKey);
+  return (p && p.exercises) || [];
+}
+function _writeDayPlan(dateKey, patch){
+  const r = _dayPlanRef(dateKey);
+  const cur = r.plan[r.wk][r.dn] || {};
+  r.plan[r.wk][r.dn] = Object.assign({}, cur, patch);
+  save();
+}
+function _setDayExerciseSets(dateKey, name, sets){
+  const list = _dayExercises(dateKey).slice();
+  const i = list.findIndex(e => e.name === name);
+  if(i < 0) list.push({ name, sets });
+  else list[i] = Object.assign({}, list[i], { sets });
+  _writeDayPlan(dateKey, { exercises: list });
+
+  // CONNECTEDNESS. "If I log anything anywhere it should all connect."
+  // Sets typed on a day that has already happened ARE the log — rings,
+  // PRs, the week comparison and Totals all read day.sessions, so they
+  // have to land there too. A future day stays a plan and writes nothing.
+  if(dateKey > todayKey(new Date())) return;
+  const day = dayObj(dateKey);
+  day.sessions = (day.sessions || []).filter(x => x.name !== name);   // replace, never duplicate
+  const cardio = isCardioName(name);
+  sets.forEach(sset => {
+    if(cardio){
+      if(!sset.durationMin) return;
+      logSession(dateKey, {
+        name, lift:name, type:"cardio", durationMin: sset.durationMin,
+        notes: [sset.speed ? `${sset.speed} speed` : "", sset.incline ? `${sset.incline}% grade` : ""].filter(Boolean).join(" · "),
+      }, { quiet:true });
+    } else {
+      if(!sset.reps) return;
+      logSession(dateKey, { name, weight: sset.weight || 0, reps: sset.reps, sets:1, type:"strength" }, { quiet:true });
+    }
+  });
+  save();
+}
+
+// =================================================================
+// THE DAY SHEET — the only place fitness is added, anywhere.
+// Home week list, fitness page, session card, calendar: all of them
+// open this. openAddWorkout() and openPlanDayModal() are now thin
+// wrappers so no old call site can reach a different screen.
+// =================================================================
+function openDaySheet(dateKey){
+  const key = dateKey || currentDate;
+  currentDate = key;                       // one selected-day state
+  const dt = new Date(key + "T12:00:00");
+  const cur = _dayPlan(key) || {};
+  const lib = getWorkoutLib();
+
+  const optionsHtml = () => {
+    const sel = cur.type || "";
+    const saved = lib.map(w => `<option value="saved:${w.id}" ${sel === w.name ? "selected":""}>${escape(w.name)}</option>`).join("");
+    const cats = WORKOUT_TYPES.map(t => `<option value="cat:${escape(t)}" ${sel === t ? "selected":""}>${escape(t)}</option>`).join("");
+    const isCustom = sel && !lib.some(w => w.name === sel) && !WORKOUT_TYPES.includes(sel);
+    return `<option value="">Choose an activity…</option>
+      ${saved ? `<optgroup label="Saved workouts">${saved}</optgroup>` : ""}
+      <optgroup label="Activities">${cats}</optgroup>
+      <option value="custom" ${isCustom ? "selected":""}>Create new…</option>`;
+  };
+
+  openModal(fmtDate(key), `
+    <label class="sfield-lbl"><span>Activity</span>
+      <select id="dsType" class="ds-type">${optionsHtml()}</select></label>
+    <input id="dsCustom" class="ds-custom" type="text" maxlength="40" placeholder="Name it (e.g. Legs — glute focus)"
+      value="${cur.type && !lib.some(w => w.name === cur.type) && !WORKOUT_TYPES.includes(cur.type) ? escape(cur.type) : ""}"
+      style="${cur.type && !lib.some(w => w.name === cur.type) && !WORKOUT_TYPES.includes(cur.type) ? "" : "display:none"}">
+
+    <div class="ds-acts btn-row">
+      <button type="button" class="btn btn-cyan" id="dsBuild">Build workout</button>
+      <button type="button" class="btn btn-ghost" id="dsTimer">Start timer</button>
+      <button type="button" class="btn btn-ghost" id="dsTime">Add time</button>
+    </div>
+
+    <div class="ds-list" id="dsList"></div>
+
+    <details class="wk-opts" ${(cur.gym || cur.time || cur.why) ? "open" : ""}>
+      <summary>Time, gym, why</summary>
+      <label class="sfield-lbl"><span>Time of day</span>
+        <input id="dsTimeOfDay" type="time" value="${escape(cur.time || "")}"></label>
+      <label class="sfield-lbl"><span>Gym / location</span>
+        <input id="dsGym" type="text" maxlength="40" placeholder="e.g. Planet Fitness" value="${escape(cur.gym || "")}"></label>
+      <label class="sfield-lbl"><span>Why this one today?</span>
+        <input id="dsWhy" type="text" maxlength="70" placeholder="e.g. hungover, so cardio" value="${escape(cur.why || "")}"></label>
+      <div class="pde-chips" id="dsWhyChips">${WHY_PRESETS.map(w => `<button type="button" class="pde-chip" data-why="${escape(w)}">${escape(w)}</button>`).join("")}</div>
+    </details>
+
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      ${cur.type ? `<button class="btn btn-pink" id="dsClear">Clear day</button>` : ""}
+      <button class="btn btn-cyan" id="dsSave">Save</button>
+    </div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+
+    const sel    = document.getElementById("dsType");
+    const custom = document.getElementById("dsCustom");
+    const listEl = document.getElementById("dsList");
+
+    // working copy — Save commits it
+    let draft = (cur.exercises || []).map(e => Object.assign({}, e));
+    let durationMin = cur.durationMin || null;
+
+    const setsLabel = (e) => {
+      if(!e.sets || !e.sets.length) return isCardioName(e.name) ? "Tap to add time, speed, grade" : "Tap to add sets";
+      if(isCardioName(e.name)){
+        const t = e.sets.reduce((n, s) => n + (s.durationMin || 0), 0);
+        const g = e.sets.find(s => s.incline);
+        return `${t || "—"} min${g ? ` · ${g.incline}% grade` : ""}${e.sets[0].speed ? ` · ${e.sets[0].speed} speed` : ""}`;
+      }
+      const byScheme = {};
+      e.sets.forEach(s => { const k2 = `${s.reps}x${s.weight}`; byScheme[k2] = (byScheme[k2] || 0) + 1; });
+      return Object.entries(byScheme)
+        .map(([k2, n]) => { const [r, w] = k2.split("x"); return `${n}×${r}${+w ? ` @ ${w}${unit()}` : ""}`; })
+        .join(", ");
+    };
+
+    const paint = () => {
+      listEl.innerHTML = draft.length ? `
+        <div class="ds-list-hd">${draft.length} exercise${draft.length === 1 ? "" : "s"}${durationMin ? ` · ${durationMin} min` : ""}</div>
+        <ul class="lrows">${draft.map((e, i) => `
+          <li class="mrow ds-row" data-ex="${i}">
+            ${exPhoto(e.name) ? `<div class="mrow-thumb"><img src="${exPhoto(e.name)}" alt=""></div>` : mrowThumb(e.name)}
+            <div class="mrow-main">
+              <div class="mrow-title">${escape(e.name)}</div>
+              <div class="mrow-meta">${escape(setsLabel(e))}</div>
+            </div>
+            <button type="button" class="ds-del" data-del="${i}" title="Remove">&times;</button>
+          </li>`).join("")}</ul>`
+        : `<div class="ds-empty">No exercises yet — Build workout, or save the day as-is.</div>`;
+
+      listEl.querySelectorAll("[data-ex]").forEach(li => li.addEventListener("click", (ev) => {
+        if(ev.target.closest("[data-del]")) return;
+        const e = draft[+li.getAttribute("data-ex")];
+        // commit the draft first so the sets editor reads the same day
+        commit({ silent:true });
+        openLiftSets(key, e.name, () => openDaySheet(key));
+      }));
+      listEl.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        draft.splice(+b.getAttribute("data-del"), 1);
+        paint();
+      }));
+    };
+    paint();
+
+    sel.addEventListener("change", () => {
+      custom.style.display = sel.value === "custom" ? "" : "none";
+      if(sel.value === "custom"){ custom.focus(); return; }
+      if(sel.value.startsWith("saved:")){
+        const w = lib.find(x => x.id === sel.value.slice(6));
+        // "IF you clicked a saved one it auto fills it with the one you chose."
+        if(w){
+          draft = w.exercises.map(e => Object.assign({ name:e.name }, e.sets ? { sets:e.sets } : {}));
+          paint();
+          toast(`Filled from ${w.name}`, "cyan");
+        }
+      }
+    });
+
+    document.getElementById("dsBuild").addEventListener("click", () => {
+      commit({ silent:true });
+      closeModal();
+      openBuildWorkout(key, draft.map(e => e.name), (picked) => {
+        const byName = {};
+        draft.forEach(e => byName[e.name] = e);
+        _writeDayPlan(key, { exercises: picked.map(n => byName[n] || { name:n, sets:[] }) });
+        openDaySheet(key);
+      });
+    });
+
+    document.getElementById("dsTimer").addEventListener("click", () => {
+      commit({ silent:true });
+      closeModal();
+      openWorkoutSession(key);
+    });
+
+    document.getElementById("dsTime").addEventListener("click", () => {
+      openNumberPrompt("How long, in minutes?", durationMin || "", (n) => {
+        durationMin = n;
+        paint();
+      });
+    });
+
+    const whyInput = document.getElementById("dsWhy");
+    root.querySelectorAll("#dsWhyChips .pde-chip").forEach(chip => {
+      const w = chip.getAttribute("data-why");
+      if((whyInput.value || "").split(/\s*,\s*/).includes(w)) chip.classList.add("on");
+      chip.addEventListener("click", () => {
+        const parts = whyInput.value.trim() ? whyInput.value.split(/\s*,\s*/) : [];
+        const i = parts.indexOf(w);
+        if(i > -1) parts.splice(i, 1); else parts.push(w);
+        whyInput.value = parts.join(", ");
+        chip.classList.toggle("on", i === -1);
+      });
+    });
+
+    function resolvedName(){
+      if(sel.value === "custom")            return custom.value.trim();
+      if(sel.value.startsWith("saved:"))    return (lib.find(x => x.id === sel.value.slice(6)) || {}).name || "";
+      if(sel.value.startsWith("cat:"))      return sel.value.slice(4);
+      return cur.type || "";
+    }
+
+    function commit(opts){
+      const o = opts || {};
+      const name = resolvedName();
+      // "You can either click save or fill out the rest under it" — a day
+      // with exercises but no name is still a real day.
+      if(!name && !draft.length){
+        if(!o.silent) toast("Pick an activity, or build a workout", "pink");
+        return false;
+      }
+      _writeDayPlan(key, {
+        type: name || (draft.length ? "Workout" : undefined),
+        time: (document.getElementById("dsTimeOfDay").value || undefined),
+        gym:  (document.getElementById("dsGym").value.trim() || undefined),
+        why:  (whyInput.value.trim() || undefined),
+        durationMin: durationMin || undefined,
+        exercises: draft.length ? draft : undefined,
+      });
+      return true;
+    }
+
+    document.getElementById("dsSave").addEventListener("click", () => {
+      if(!commit()) return;
+      closeModal(); renderAll();
+      toast(`${fmtDate(key)} saved`, "cyan");
+    });
+
+    const clear = document.getElementById("dsClear");
+    if(clear) clear.addEventListener("click", () => {
+      const r = _dayPlanRef(key);
+      delete r.plan[r.wk][r.dn];
+      save(); closeModal(); renderAll();
+    });
+  });
+}
+
+// A number prompt that is not window.prompt (§ no native dialogs).
+function openNumberPrompt(title, value, onOk){
+  const prev = document.getElementById("modalBody").innerHTML;
+  const prevTitle = document.getElementById("modalTitle").textContent;
+  openModal(title, `
+    <input id="npVal" type="number" min="0" step="1" inputmode="numeric" value="${value || ""}" placeholder="e.g. 45" style="width:100%">
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="npCancel">Cancel</button>
+      <button class="btn btn-cyan" id="npOk">Save</button>
+    </div>`, () => {
+    const back = () => {
+      document.getElementById("modalTitle").textContent = prevTitle;
+      document.getElementById("modalBody").innerHTML = prev;
+    };
+    document.getElementById("npCancel").onclick = () => { closeModal(); };
+    document.getElementById("npOk").onclick = () => {
+      const n = parseInt(document.getElementById("npVal").value, 10);
+      closeModal();
+      if(!isNaN(n) && n > 0 && onOk) onOk(n);
+    };
+    setTimeout(() => document.getElementById("npVal").focus(), 80);
+  });
+}
+
 // =================================================================
 // ONE ADD-WORKOUT SHELL
 // There were five different modals for "add a workout" — Log a lift, Log
@@ -6994,22 +7697,20 @@ function bindWorkoutTabs(root, active, dateKey){
     setTimeout(() => openWorkoutTab(to, key), 90);
   }));
 }
+// v39: there is ONE fitness screen. "There should be no other add
+// fitness options outside this. This feeds all of it." Every tab, every
+// old modal, every entry point lands on the day sheet. Write-it-out is
+// the one exception — it is text entry, not a different add screen, and
+// it writes into this same day.
 function openWorkoutTab(tab, dateKey){
   const key = dateKey || currentDate;
-  if(tab === "write")    return openLogWorkoutText(key);
-  if(tab === "lift")     return openLiftModal();
-  if(tab === "cardio")   return openCardioModal();
-  if(tab === "interval") return openIntervalModal();
-  if(tab === "plan"){
-    const dt = new Date(key + "T12:00:00");
-    const dayName = ["sun","mon","tue","wed","thu","fri","sat"][dt.getDay()];
-    return openPlanDayModal(weekKey(weekStart(dt)), dayName);
-  }
-  return openLogWorkoutText(key);
+  if(tab === "write") return openLogWorkoutText(key);
+  return openDaySheet(key);
 }
 // The single entry point every screen should call.
 function openAddWorkout(dateKey, tab){
-  openWorkoutTab(tab || "write", dateKey || currentDate);
+  if(tab === "write") return openLogWorkoutText(dateKey || currentDate);
+  openDaySheet(dateKey || currentDate);
 }
 
 
@@ -9416,13 +10117,10 @@ function renderDashWorkList(){
     row.addEventListener("click", () => {
       const dayName = row.dataset.day;
       const k = row.dataset.date;
-      const isToday = k === todayKey();
-      const p = wkPlan[dayName];
-      if(isToday && p && p.type && (p.exercises || []).length){
-        openWorkoutSession(todayKey());
-      } else {
-        openPlanDayModal(wk, dayName);
-      }
+      // v39: "The main screen should have the list of days planner for
+      // week. You click it." One destination, always — the day sheet.
+      // Start timer lives inside it, so there is no branch here.
+      openDaySheet(k);
     });
   });
 }
@@ -10466,7 +11164,8 @@ function renderFitWeekList(){
   }
   el.innerHTML = html;
   el.querySelectorAll(".fw-row").forEach(r => {
-    r.addEventListener("click", () => { currentDate = r.dataset.date; renderAll(); });
+    // Same list, same destination as the main screen.
+    r.addEventListener("click", () => { currentDate = r.dataset.date; renderAll(); openDaySheet(r.dataset.date); });
   });
 }
 
@@ -10604,7 +11303,7 @@ function renderSessionCard(){
   card.querySelectorAll(".se-row").forEach(r =>
     r.addEventListener("click", () => openSessionEditor(r.dataset.sid)));
   const on2 = (sel, fn) => { const el = card.querySelector(sel); if(el) el.addEventListener("click", fn); };
-  on2("#seWrite", () => openAddWorkout(currentDate, "write"));
+  on2("#seWrite", () => openDaySheet(currentDate));
 
 }
 
@@ -13419,7 +14118,7 @@ function renderPlanCard(){
 
 onReady(() => {
   const fw = document.getElementById("fitWriteOut");
-  if(fw) fw.addEventListener("click", () => openAddWorkout(currentDate, "write"));
+  if(fw) fw.addEventListener("click", () => openDaySheet(currentDate));
   const n = document.getElementById("trNoteBtn");
   if(n) n.addEventListener("click", () => openHealthNoteModal());
   const a = document.getElementById("goalPlanBtn");

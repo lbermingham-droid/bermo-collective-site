@@ -6554,26 +6554,29 @@ function openPlanDayModal(wkKey, dayName){
         <input class="pde-time" type="time" value="${escape(it.time || "")}" title="Time of day">
         <button type="button" class="pde-del" title="Remove">×</button>
       </div>
-      <textarea class="pde-moves" rows="3" placeholder="What you did — one per line or separated by commas:\nthruster machine, kickback machine, abductor machine\nwalked 20 min">${escape(moves)}</textarea>
+      <textarea class="pde-moves" rows="4" placeholder="Exercises — one per line, or commas:\nthruster machine, kickback machine\nwalked 20 min">${escape(moves)}</textarea>
       <label class="pde-dur-wrap"><span>How long (minutes)</span>
         <input class="pde-dur" type="number" min="0" max="600" step="1" inputmode="numeric"
           value="${it.durationMin || ""}" placeholder="e.g. 90"></label>
-      <div class="pde-why">
-        <span class="pde-why-lbl">Why this one today? <i>optional — it feeds your health patterns</i></span>
+      <details class="pde-why" ${it.why ? "open" : ""}>
+        <summary>Why this one today?</summary>
         <input class="pde-whytxt" type="text" maxlength="70" value="${escape(it.why || "")}"
           placeholder="e.g. hungover, so cardio">
         <div class="pde-chips">${whyChips}</div>
-      </div>
+      </details>
     </div>`;
   };
 
   openModal("Add a workout", `
     ${workoutTabsHtml("plan")}
     <div class="wk-day-label">${escape(dayName.charAt(0).toUpperCase()+dayName.slice(1))} · planning ahead</div>
-    <label style="margin-bottom:8px;display:block"><span>Gym / location (optional)</span>
-      <input id="pdeGym" type="text" maxlength="40" placeholder="e.g. Planet Fitness" value="${escape(cur.gym || "")}"></label>
     <div class="pde-list" id="pdeList">${items.map(rowHtml).join("")}</div>
-    <button type="button" class="btn btn-ghost btn-sm" id="pdeAdd" style="width:100%;margin-top:6px">+ ADD ANOTHER WORKOUT (double day)</button>
+    <details class="wk-opts" ${(cur.gym || (cur.extra||[]).length) ? "open" : ""}>
+      <summary>Gym, or a second workout</summary>
+      <label class="sfield"><span>Gym / location</span>
+        <input id="pdeGym" type="text" maxlength="40" placeholder="e.g. Planet Fitness" value="${escape(cur.gym || "")}"></label>
+      <button type="button" class="btn btn-ghost btn-sm" id="pdeAdd" style="width:100%;margin-top:8px">+ ADD ANOTHER WORKOUT (double day)</button>
+    </details>
     <p class="wb-hint" style="margin-top:8px">Saved workouts bring their exercise list into the live session logger. Time is optional.</p>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Cancel</button>
@@ -6903,18 +6906,30 @@ function openSessionSaveAs(dateKey, overlay){
 // =================================================================
 const WORKOUT_TABS = [
   { id:"write",    label:"Write it out" },
-  { id:"lift",     label:"Lift" },
+  { id:"lift",     label:"One lift" },
   { id:"cardio",   label:"Cardio" },
-  { id:"interval", label:"Intervals" },
-  { id:"plan",     label:"Plan the day" },
 ];
 function workoutTabsHtml(active){
-  return `<div class="seg seg-scroll wk-tabs">
+  // "plan" prints its own day line right below, so it does not get a second
+  // banner saying the same thing twice.
+  const isSide = active === "interval";
+  return `<div class="seg wk-tabs">
     ${WORKOUT_TABS.map(t => `<button type="button" class="seg-btn wk-tab ${t.id === active ? "active" : ""}" data-wktab="${t.id}">${t.label}</button>`).join("")}
-  </div>`;
+  </div>
+  ${isSide ? `<div class="wk-side">Interval blocks</div>` : ""}`;
+}
+// The two rarer jobs live at the BOTTOM of the sheet, not in the tab row.
+function workoutFooterHtml(active){
+  const bits = [];
+  if(active !== "plan")     bits.push(`<button type="button" class="wk-more" data-wktab="plan">Plan a day ahead instead</button>`);
+  if(active !== "interval") bits.push(`<button type="button" class="wk-more" data-wktab="interval">Log interval blocks</button>`);
+  return bits.length ? `<div class="wk-foot">${bits.join("")}</div>` : "";
 }
 function bindWorkoutTabs(root, active, dateKey){
   const key = dateKey || currentDate;
+  // The footer is appended here, not written into five modal bodies, so the
+  // five sheets cannot drift apart again.
+  if(!root.querySelector(".wk-foot")) root.insertAdjacentHTML("beforeend", workoutFooterHtml(active));
   root.querySelectorAll("[data-wktab]").forEach(b => b.addEventListener("click", () => {
     const to = b.getAttribute("data-wktab");
     if(to === active) return;
@@ -7015,8 +7030,8 @@ function renderWorkoutSession(overlay, dateKey){
     const setsHtml = exState.sets.map((s, si) => `
       <div class="ws-set ${s.logged?"logged":""}" data-ex="${exi}" data-si="${si}">
         <button class="ws-num" data-kind-cycle title="${_setKind(s.kind).lbl}" style="background:${_setKind(s.kind).c}">${s.kind === "normal" ? si+1 : _setKind(s.kind).lbl[0]}</button>
-        <input class="ws-reps" type="number" min="0" placeholder="${dReps}" value="${s.reps||""}">
-        <input class="ws-weight" type="number" step="2.5" min="0" placeholder="${dWeight||0}" value="${s.weight||""}">
+        <input class="ws-reps" type="number" min="0" placeholder="${dReps}" value="${(s.logged||s.touched) ? (s.reps||"") : ""}">
+        <input class="ws-weight" type="number" step="2.5" min="0" placeholder="${dWeight||0}" value="${(s.logged||s.touched) ? (s.weight||"") : ""}">
         <button class="ws-log" data-log title="Log this set">${s.logged ? "✓" : "Log"}</button>
       </div>
     `).join("");
@@ -7080,7 +7095,55 @@ function _woTick(){
 }
 function bindWorkoutSession(overlay, dateKey){
   const listOf = () => (dayObj(dateKey).workoutSession.list || []);
+
+  // Typing in a set marks it touched. Untouched rows show placeholders only,
+  // so a filled field always means she put it there.
+  overlay.querySelectorAll(".ws-set").forEach(setEl => {
+    const exi = +setEl.dataset.ex, si = +setEl.dataset.si;
+    setEl.querySelectorAll(".ws-reps, .ws-weight").forEach(inp => inp.addEventListener("input", () => {
+      const day = dayObj(dateKey);
+      const ex = listOf()[exi]; if(!ex) return;
+      const cur = ((day.workoutSession.exercises[ex.name] || {}).sets || [])[si];
+      if(!cur) return;
+      cur.touched = true;
+      const r = parseInt(setEl.querySelector(".ws-reps").value, 10);
+      const w = parseFloat(setEl.querySelector(".ws-weight").value);
+      if(!isNaN(r)) cur.reps = r;
+      cur.weight = isNaN(w) ? 0 : w;
+      save();
+    }));
+  });
+
+  // THE LOST WORKOUT. Sets only reached day.sessions when the per-row "Log"
+  // button was tapped. Fill in five rows, hit Done, and the whole session
+  // vanished — nothing on the dashboard, nothing in the week comparison.
+  // Anything she actually typed is now committed on the way out.
+  const sweepUnlogged = () => {
+    const day = dayObj(dateKey);
+    const sess = day.workoutSession;
+    if(!sess || !sess.exercises) return 0;
+    let n = 0;
+    (sess.list || []).forEach(ex => {
+      const st = sess.exercises[ex.name];
+      if(!st) return;
+      (st.sets || []).forEach(s => {
+        if(s.logged || !s.touched || !s.reps) return;
+        s.logged = true; s.loggedAt = Date.now();
+        logSession(dateKey, {
+          name: ex.name, weight: s.weight || 0, reps: s.reps, sets: 1,
+          type: s.kind === "warmup" ? "accessory" : "strength",
+          notes: s.kind !== "normal" ? _setKind(s.kind).lbl : ""
+        }, { quiet: true, skipPR: s.kind === "warmup" });
+        n++;
+      });
+    });
+    if(n) save();
+    return n;
+  };
+
   const finish = () => {
+    const swept = sweepUnlogged();
+    if(swept) toast(`Saved ${swept} set${swept===1?"":"s"} you'd typed but not tapped`, "cyan");
     // save optional session duration once, then close
     if(_woElapsed || _woStart){
       if(_woStart){ _woElapsed += Date.now() - _woStart; _woStart = null; }

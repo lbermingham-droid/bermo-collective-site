@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v36**.
+- Current build: **v37**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -262,6 +262,30 @@ second water button on the low-water banner.
 threw on EVERY dashboard render and killed the render chain behind it. That
 is the orphan-sweep rule in §7, ignored in a hurry. It is now guarded.
 
+**THE LOST WORKOUT (v37).** "I just did a workout and logged it and nothing
+shows or saved." She was right and it was not a save bug. Adding an exercise
+to a live session seeded five set rows **pre-filled** with a suggested rep
+count and last session's weight. Sets only reached `day.sessions` when the
+per-row `Log` button was tapped. Fill the rows in, hit Done, and the whole
+session evaporated — nothing on the dashboard, nothing in the week comparison,
+and no warning. Two changes:
+1. Untouched rows now render **placeholders, not values** (this is what
+   Strong and Hevy do), so a filled field always means she typed it.
+2. `finish()` runs `sweepUnlogged()` before closing: any set marked `touched`
+   with reps > 0 goes through `logSession()` and she is told how many were
+   saved. Test *"v37 typed sets survive Done"* covers it.
+**Never let typed input sit in `workoutSession.exercises` without a path into
+`day.sessions`.**
+
+**THREE TABS, NOT FIVE (v37).** The v35 sheet carried five tabs. At 390px the
+strip overflowed and the active tab rendered half off-screen — she sent a
+photo of it. The tab row is now a 3-column grid (Write it out / One lift /
+Cardio) that cannot overflow; `Plan a day ahead` and `Log interval blocks`
+moved to footer links via `workoutFooterHtml()`, which `bindWorkoutTabs()`
+**appends itself** so the five sheets cannot drift apart again. The Plan
+tab's optional fields (why-chips, gym, double-day) collapse behind `<details>`
+disclosures. Smoke test asserts every tab is fully inside the strip.
+
 **ONE ADD-WORKOUT SHEET, ONE ADD-FOOD SHEET (v35).** There were FIVE
 separate workout modals with five different layouts — Log a lift, Log cardio,
 Log intervals, the plan-day editor, Write it out — so reaching the same job
@@ -481,7 +505,7 @@ Playwright is already installed in the scratchpad. Launch chromium with
 `{ server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" }`.
 **Do not run `npx playwright install`.**
 
-**Expected: 44/44 and zero page errors.** (Two console errors about
+**Expected: 45/45 and zero page errors.** (Two console errors about
 `ERR_CONNECTION_RESET` are the sandbox blocking a CDN — pre-existing, ignore.)
 
 The suite covers: load, wizard, **sideways overflow on every page**, all tabs,
@@ -611,4 +635,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v33` full-app audit: no native dialogs, no dead controls, one profile source ·
 `v34` modal stacking + START WORKOUT on unplanned days ·
 `v35` one add-workout sheet and one add-food sheet from every entry point ·
-`v36` button cull — Fitness header 5 actions -> 1.
+`v36` button cull — Fitness header 5 actions -> 1 ·
+`v37` three tabs not five, collapsed optional fields, and THE LOST WORKOUT.

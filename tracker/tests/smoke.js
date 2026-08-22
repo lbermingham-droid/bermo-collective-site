@@ -972,6 +972,65 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       : fail("v34 modal stacking", JSON.stringify({ canStart, overlay, ...seen }));
   } catch (e) { fail("v34 modal stacking", e); }
 
+  // 30b. v37: THE LOST WORKOUT. Sets only reached day.sessions when the
+  //      per-row "Log" button was tapped. She filled the rows, hit Done, and
+  //      the entire session disappeared. Anything typed must survive Done.
+  try {
+    await page.evaluate(() => {
+      const KEY = "bermo.tracker.v1";
+      const st = JSON.parse(localStorage.getItem(KEY));
+      const k = new Date().toISOString().slice(0,10);
+      st.plan = {};
+      if(st.days[k]){ delete st.days[k].workoutSession; st.days[k].sessions = []; }
+      localStorage.setItem(KEY, JSON.stringify(st));
+    });
+    await page.reload({ waitUntil: "domcontentloaded", timeout: 20000 });
+    await page.waitForTimeout(1100);
+    await page.click(`${tabSel}[data-tab="fitness"]`).catch(()=>{});
+    await page.waitForTimeout(600);
+    await page.evaluate(() => { const b = document.getElementById("fdStart"); if(b) b.click(); });
+    await page.waitForTimeout(700);
+    // add one exercise through the real UI
+    await page.evaluate(() => { const b = document.getElementById("wsAddEx"); if(b) b.click(); });
+    await page.waitForTimeout(600);
+    await page.fill("#axSearch", "hip thrust").catch(()=>{});
+    await page.waitForTimeout(400);
+    await page.evaluate(() => { const li = document.querySelector("#axList .lrow"); if(li) li.click(); });
+    await page.waitForTimeout(700);
+    // untouched rows must show placeholders, not pre-filled values
+    const blankBefore = await page.evaluate(() =>
+      [...document.querySelectorAll("#workoutOverlay .ws-set .ws-reps")].every(i => i.value === ""));
+    // type into the first two rows and DO NOT tap Log
+    const dbg = await page.evaluate(() => ({
+      overlay: !!document.querySelector("#workoutOverlay.open"),
+      axSearch: !!document.getElementById("axSearch"),
+      exCount: document.querySelectorAll("#workoutOverlay .ws-ex").length,
+      setCount: document.querySelectorAll("#workoutOverlay .ws-set").length,
+      modalOpen: !!document.querySelector("#modal.open"),
+    }));
+    const typed = await page.evaluate(() => {
+      const rows = [...document.querySelectorAll("#workoutOverlay .ws-set")].slice(0,2);
+      rows.forEach((r, i) => {
+        const reps = r.querySelector(".ws-reps"), w = r.querySelector(".ws-weight");
+        reps.value = String(10 + i); reps.dispatchEvent(new Event("input", { bubbles:true }));
+        w.value = "45";              w.dispatchEvent(new Event("input", { bubbles:true }));
+      });
+      return rows.length;
+    });
+    await page.waitForTimeout(300);
+    await page.evaluate(() => { const b = document.getElementById("woDone"); if(b) b.click(); });
+    await page.waitForTimeout(900);
+    const saved = await page.evaluate(() => {
+      const st = JSON.parse(localStorage.getItem("bermo.tracker.v1"));
+      const k = new Date().toISOString().slice(0,10);
+      const s = ((st.days[k] || {}).sessions || []);
+      return { n: s.length, reps: s.map(x => x.reps).sort(), w: s.map(x => x.weight) };
+    });
+    (blankBefore && typed === 2 && saved.n === 2 && saved.w.every(x => x === 45))
+      ? ok("v37 typed sets survive Done even if the per-row Log was never tapped")
+      : fail("v37 lost workout", JSON.stringify({ blankBefore, typed, saved, dbg }));
+  } catch (e) { fail("v37 lost workout", e); }
+
   // 30. v35: every "add a workout" and "add food" entry point must open the
   //     SAME sheet. Before this there were five different workout modals with
   //     five different layouts, and reaching the same job from Home, Fitness
@@ -992,10 +1051,19 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       const r = await page.evaluate(() => {
         const m = document.querySelector("#modal.open, .modal.open");
         if(!m) return null;
-        const tabs = [...m.querySelectorAll("[data-wktab]")].map(t => t.textContent.trim());
-        const active = (m.querySelector("[data-wktab].active") || {}).textContent;
+        const tabs = [...m.querySelectorAll(".wk-tab")].map(t => t.textContent.trim());
+        const more = [...m.querySelectorAll(".wk-more")].map(t => t.textContent.trim());
+        const active = (m.querySelector(".wk-tab.active") || {}).textContent;
         const title = (m.querySelector(".modal-head h3, .modal-title, h3") || {}).textContent || "";
-        return { tabs, active: (active||"").trim(), title: title.trim() };
+        // v37: the strip overflowed at 390px and the active tab sat half
+        // off-screen. Every tab must be fully inside its own row.
+        const strip = m.querySelector(".wk-tabs");
+        const sb = strip ? strip.getBoundingClientRect() : null;
+        const clipped = !strip || [...strip.querySelectorAll(".wk-tab")].some(t => {
+          const r = t.getBoundingClientRect();
+          return r.left < sb.left - 1 || r.right > sb.right + 1 || r.width < 40;
+        });
+        return { tabs, more, clipped, active: (active||"").trim(), title: title.trim() };
       });
       await page.evaluate(() => {
         if(typeof closeModal === "function") closeModal();
@@ -1018,13 +1086,15 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
 
     const all = [fromHeader, fromCardio, fromWrite].filter(x => x && x.tabs);
     const sameTabs = all.length === 3
-      && all.every(x => x.tabs.length === 5 && x.tabs.join("|") === all[0].tabs.join("|"));
+      && all.every(x => x.tabs.length === 3 && x.tabs.join("|") === all[0].tabs.join("|"));
     const sameTitle = all.every(x => x.title === all[0].title && /add a workout/i.test(x.title));
     const rightActive = /lift/i.test(fromHeader.active) && /cardio/i.test(fromCardio.active)
       && /write/i.test(fromWrite.active);
-    (sameTabs && sameTitle && rightActive)
-      ? ok(`v35 one add-workout sheet from every entry (${all[0].tabs.length} tabs, same title)`)
-      : fail("v35 workout sheet consistency", JSON.stringify(all));
+    const noClip  = all.every(x => x.clipped === false);
+    const hasMore = all.every(x => x.more.length === 2);
+    (sameTabs && sameTitle && rightActive && noClip && hasMore)
+      ? ok(`v37 one add-workout sheet, 3 tabs fit at 390px, 2 footer links`)
+      : fail("v37 workout sheet consistency", JSON.stringify(all));
   } catch (e) { fail("v35 workout sheet consistency", e); }
 
   await browser.close();

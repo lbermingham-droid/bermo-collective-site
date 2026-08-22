@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v37**.
+- Current build: **v38**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -261,6 +261,38 @@ second water button on the low-water banner.
 `renderWodCard()` writing into four elements that no longer existed, so it
 threw on EVERY dashboard render and killed the render chain behind it. That
 is the orphan-sweep rule in §7, ignored in a hurry. It is now guarded.
+
+**BUILD TO THE REFERENCE (v38).** She sent Ladder/Flex screenshots four
+separate times and asked why the app did not look like them. It did not,
+and the reason was that I kept fixing bugs inside my own layout instead of
+building their components. The gap was measurable: **146** uppercase CSS
+rules, **56** full-width solid buttons, **0** thumbnails, **21** paragraphs
+explaining the UI. `.btn` had `text-transform:uppercase; letter-spacing:2px`
+at the base class, so every action in the app was a billboard by
+construction.
+
+What v38 added:
+- **`mrowHtml()` / `mrowThumb()` — THE media row.** thumb → grey eyebrow →
+  bold sentence-case title → grey meta → chevron. This is the row every
+  Ladder list uses. Use it for any new list. Do not write another bespoke row.
+- **Sentence case everywhere.** 81 hard-coded ALL-CAPS labels rewritten in
+  `index.html` and `app.js`, plus a CSS layer neutralising `.btn`.
+  Small-caps survives only on card eyebrows — that *is* the reference.
+- **Filter pills** (`.fpill`) and one unified nav component: `.food-tab`,
+  `.sub-chip`, `.sm-tab`, `.meal-slot` all resolve to the same 38px pill.
+  Smoke test 15 enforces it — making one a pill and leaving the rest at 9px
+  is precisely the "different on every screen" complaint.
+- **`renderFitTotals()`** — the Ladder TOTALS block: big numbers with filled
+  bars, plus a 4-week completion grid. Ladder compares to a team percentile;
+  we have no team, so it compares against **her own best week**. Never invent
+  a cohort.
+- **Empty states show content, not instructions.** The live session used to
+  be a headline, two full-width neon slabs and a paragraph explaining what
+  "Log" does. It now lists her actual lifts (planned → recent → favourites),
+  tappable. **Ladder never explains its own UI. Neither do we.**
+
+STILL NOT CONVERTED: the nutrition diary, food search results and the
+dashboard cards still use the older row styles. Convert them to `.mrow`.
 
 **THE LOST WORKOUT (v37).** "I just did a workout and logged it and nothing
 shows or saved." She was right and it was not a save bug. Adding an exercise
@@ -636,4 +668,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v34` modal stacking + START WORKOUT on unplanned days ·
 `v35` one add-workout sheet and one add-food sheet from every entry point ·
 `v36` button cull — Fitness header 5 actions -> 1 ·
-`v37` three tabs not five, collapsed optional fields, and THE LOST WORKOUT.
+`v37` three tabs not five, collapsed optional fields, and THE LOST WORKOUT ·
+`v38` built to the reference: media rows, filter pills, totals block, no shouting.

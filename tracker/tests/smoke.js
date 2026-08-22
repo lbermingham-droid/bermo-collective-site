@@ -705,7 +705,7 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
     await page.waitForTimeout(500);
     await page.fill("#axSearch", "hip thrust").catch(()=>{});
     await page.waitForTimeout(350);
-    await page.evaluate(() => { const li = document.querySelector("#axList .lrow"); if(li) li.click(); });
+    await page.evaluate(() => { const li = document.querySelector("#axList .mrow"); if(li) li.click(); });
     await page.waitForTimeout(500);
     // log a set — this is where the rest timer fires
     await page.evaluate(() => {
@@ -995,7 +995,7 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
     await page.waitForTimeout(600);
     await page.fill("#axSearch", "hip thrust").catch(()=>{});
     await page.waitForTimeout(400);
-    await page.evaluate(() => { const li = document.querySelector("#axList .lrow"); if(li) li.click(); });
+    await page.evaluate(() => { const li = document.querySelector("#axList .mrow"); if(li) li.click(); });
     await page.waitForTimeout(700);
     // untouched rows must show placeholders, not pre-filled values
     const blankBefore = await page.evaluate(() =>

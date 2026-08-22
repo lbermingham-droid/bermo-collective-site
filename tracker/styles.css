@@ -4404,3 +4404,214 @@ html, body, #app, .app{
 /* rows="4" was being overridden by min-height:56px, so the placeholder
    clipped mid-word. */
 .pde-moves{ min-height:84px !important; line-height:1.45; }
+
+/* ============================================================
+   v38 — BUILD TO THE REFERENCE, NOT AROUND IT
+   She sent Ladder/Flex screenshots four times. I kept fixing bugs
+   inside my own layout instead of building their components. The
+   gap was measurable: 146 uppercase rules, 56 full-width solid
+   buttons, 0 thumbnails, 21 paragraphs explaining the UI.
+   Ladder never explains its own UI. Neither do we now.
+   ============================================================ */
+
+/* --- 1. STOP SHOUTING -------------------------------------- */
+/* .btn was uppercase + 2px letter-spacing at the base class, so
+   every action in the app was a billboard. Titles follow. */
+.btn, .btn-sm{
+  text-transform:none !important; letter-spacing:0 !important;
+  font-size:14px !important; font-weight:600 !important;
+  padding:10px 18px !important; border-radius:100px !important;
+}
+.btn-sm{ font-size:13px !important; padding:8px 14px !important; }
+.view-h1, .modal-title, #modalTitle, .wt-name, .card-title{
+  text-transform:none !important; letter-spacing:-.01em !important;
+}
+/* Eyebrows stay small-caps — that IS the reference (grey "Strength"
+   above a bold title). Everything else goes sentence case. */
+.lrow-title, .sr-name, .mi-name, .ws-ex-name, .hn-h{
+  text-transform:none !important; letter-spacing:0 !important;
+}
+
+/* --- 2. ONE ACCENT PER SCREEN ------------------------------ */
+/* Solid accent is for THE action. Everything else is quiet. */
+.btn-ghost{
+  background:rgba(255,255,255,.045) !important;
+  border:1px solid var(--iron-line) !important;
+  color:#dfe5ee !important;
+}
+.btn-row{ display:flex; gap:8px; flex-wrap:wrap; }
+.btn-row .btn{ flex:0 0 auto; }
+
+/* --- 3. FILTER PILLS (Flex: "Strength ∨  Duration ∨") ------- */
+.fpills{
+  display:flex; gap:8px; overflow-x:auto; padding:2px 0 10px;
+  scrollbar-width:none; -webkit-overflow-scrolling:touch;
+}
+.fpills::-webkit-scrollbar{ display:none; }
+.fpill{
+  flex:0 0 auto; display:inline-flex; align-items:center; gap:6px;
+  height:38px; padding:0 16px; border-radius:100px; cursor:pointer;
+  background:rgba(255,255,255,.05); border:1px solid var(--iron-line);
+  color:#dfe5ee; font-size:14px; font-weight:600; white-space:nowrap;
+}
+.fpill::after{ content:"⌄"; font-size:13px; opacity:.6; margin-top:-4px; }
+.fpill.plain::after{ content:none; }
+.fpill.on{
+  background:var(--iron-volt); border-color:var(--iron-volt); color:#03251f;
+}
+.fpill.clear{ width:38px; padding:0; justify-content:center; }
+.fpill.clear::after{ content:none; }
+
+/* --- 4. THE MEDIA ROW — the pattern every Ladder list uses --
+   thumb -> eyebrow -> title -> meta -> chevron. Same row for
+   exercises, saved workouts, foods. One component, everywhere. */
+.mrow{
+  display:grid; grid-template-columns:56px 1fr 16px;
+  gap:14px; align-items:center;
+  padding:10px 4px; cursor:pointer; background:none; border:0;
+  border-radius:12px; width:100%; text-align:left;
+}
+.mrow:hover{ background:rgba(255,255,255,.035); }
+.mrow + .mrow{ box-shadow:inset 0 1px 0 rgba(255,255,255,.05); }
+.mrow-thumb{
+  width:56px; height:56px; border-radius:10px; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(150deg, #1d2632, #141a24);
+  border:1px solid var(--iron-line); position:relative;
+}
+/* the accent stripe along the bottom of Flex's thumbnails */
+.mrow-thumb::after{
+  content:""; position:absolute; left:0; right:0; bottom:0; height:3px;
+  background:var(--iron-volt); opacity:.85;
+}
+.mrow-thumb svg{ width:24px; height:24px; stroke:#93a0b3; }
+.mrow-thumb .mrow-initial{
+  font-size:19px; font-weight:800; color:#93a0b3; letter-spacing:-.02em;
+}
+.mrow-eyebrow{
+  font-size:13px; color:var(--iron-mute); font-weight:500;
+  margin-bottom:1px; text-transform:none; letter-spacing:0;
+}
+.mrow-title{
+  font-size:16px; font-weight:700; color:#fff; letter-spacing:-.01em;
+  line-height:1.25; text-transform:none;
+}
+.mrow-meta{ font-size:13px; color:var(--iron-mute); margin-top:2px; }
+.mrow-chev{ color:#55607080; font-size:17px; justify-self:end; }
+.mrow-tag{
+  display:inline-block; margin-left:7px; padding:1px 7px; border-radius:5px;
+  background:var(--iron-volt); color:#03251f;
+  font-size:10px; font-weight:800; vertical-align:2px;
+}
+.mrow-group{
+  font-size:13px; font-weight:600; color:var(--iron-mute);
+  padding:16px 4px 4px; text-transform:none; letter-spacing:0;
+}
+
+/* --- 5. PERCENTILE STAT ROWS (Ladder "TOTALS") -------------- */
+.pstats{ display:flex; flex-direction:column; gap:14px; }
+.pstat-hd{
+  display:flex; justify-content:space-between; align-items:baseline;
+  font-size:10px; font-weight:800; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--iron-mute); margin-bottom:2px;
+}
+.pstat{ display:grid; grid-template-columns:1fr 1.35fr; gap:12px; align-items:center; }
+.pstat-l{ min-width:0; }
+.pstat-lbl{ font-size:13px; color:var(--iron-mute); }
+.pstat-val{ font-size:26px; font-weight:800; color:#fff; letter-spacing:-.02em; line-height:1.1; }
+.pstat-r{ display:flex; flex-direction:column; gap:5px; }
+.pstat-pct{ font-size:12px; font-weight:700; color:var(--iron-volt); text-align:right; }
+.pstat-track{ height:11px; border-radius:100px; background:rgba(255,255,255,.07); overflow:hidden; }
+.pstat-fill{ height:100%; border-radius:100px; background:var(--iron-volt); }
+.pstat-fill.dim{ background:#3d4b5c; }
+
+/* --- 6. WEEK GRID (Ladder's W1..W4 completion squares) ------ */
+.wgrid{ display:flex; flex-direction:column; gap:6px; margin-top:4px; }
+.wgrid-hd, .wgrid-row{
+  display:grid; grid-template-columns:26px repeat(7,1fr); gap:6px; align-items:center;
+}
+.wgrid-hd span{ font-size:11px; color:var(--iron-mute); text-align:center; font-weight:600; }
+.wgrid-lbl{ font-size:11px; color:var(--iron-mute); font-weight:700; }
+.wgrid-cell{ aspect-ratio:1; border-radius:7px; background:rgba(255,255,255,.05); }
+.wgrid-cell.on{ background:var(--iron-volt); }
+.wgrid-cell.half{ background:color-mix(in srgb, var(--iron-volt) 42%, transparent); }
+.wgrid-cell.today{ box-shadow:inset 0 0 0 2px #fff3; }
+
+/* --- 7. EMPTY STATES SHOW CONTENT, NOT INSTRUCTIONS -------- */
+.ws-empty{ text-align:left !important; padding:4px 0 !important; }
+.ws-empty-h{
+  font-size:19px !important; font-weight:700 !important; color:#fff !important;
+  text-transform:none !important; letter-spacing:-.01em !important; margin-bottom:3px;
+}
+.ws-empty-b{ font-size:14px !important; color:var(--iron-mute) !important; line-height:1.45 !important; }
+/* the paragraph at the bottom of the session explaining what "Log"
+   does is exactly the tell she spotted. Gone. */
+.workout-foot{ display:none !important; }
+
+/* --- 8. SESSION HEADER + ACTIONS ---------------------------- */
+/* The header wrapped onto four lines at 390px because the eyebrow
+   was 2px-tracked uppercase and the title was two words in a narrow
+   column. Reference headers are one compact line. */
+.workout-head{ gap:10px !important; padding:12px 14px !important; border-bottom-width:2px !important; }
+.workout-title{ min-width:0; flex:1; }
+.wt-eyebrow{
+  font-size:11px !important; letter-spacing:0 !important;
+  text-transform:none !important; font-weight:500 !important;
+  color:var(--iron-mute) !important; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis;
+}
+.wt-name{
+  font-size:17px !important; font-weight:700 !important;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.workout-done{
+  text-transform:none !important; letter-spacing:0 !important;
+  font-size:14px !important; font-weight:600 !important; padding:9px 16px !important;
+}
+.wo-clock{ font-size:13px !important; padding:8px 12px !important; }
+
+/* Actions are pills sized to their label, not stacked slabs. */
+.ws-actions{ flex-direction:row !important; flex-wrap:wrap; gap:8px !important; padding:16px 0 0 !important; }
+.ws-actions .btn{ width:auto !important; flex:0 0 auto !important; }
+
+/* Empty-state text aligns with the rows beneath it. */
+.ws-empty-h, .ws-empty-b{ padding-left:4px; }
+
+/* --- 9. SUB-NAV AS FILTER PILLS ----------------------------- */
+/* Her Flex screenshot: "Strength ∨  Workout Type ∨  Duration ∨" —
+   pill chips, sentence case, one filled with the accent. */
+.sub-chip{
+  text-transform:none !important; letter-spacing:0 !important;
+  font-size:14px !important; font-weight:600 !important;
+  height:38px !important; padding:0 16px !important;
+  border-radius:100px !important;
+  background:rgba(255,255,255,.05) !important;
+  border:1px solid var(--iron-line) !important;
+  color:#dfe5ee !important;
+}
+.sub-chip.active{
+  background:var(--iron-volt) !important; border-color:var(--iron-volt) !important;
+  color:#03251f !important;
+}
+/* Card eyebrows keep their small-caps look — that IS the reference —
+   but drop to the reference's weight so they read as labels. */
+.card-eyebrow{ font-size:10px !important; letter-spacing:.09em !important; }
+
+/* ONE nav component, everywhere. Making .sub-chip a pill and leaving
+   .food-tab / .sm-tab / .meal-slot at 9px is exactly the "different on
+   every screen" problem. The smoke test caught it. */
+.food-tab, .sub-chip, .sm-tab, .meal-slot{
+  text-transform:none !important; letter-spacing:0 !important;
+  font-size:14px !important; font-weight:600 !important;
+  height:38px !important; padding:0 16px !important;
+  border-radius:100px !important;
+  display:inline-flex !important; align-items:center !important; justify-content:center !important;
+  background:rgba(255,255,255,.05) !important;
+  border:1px solid var(--iron-line) !important;
+  color:#dfe5ee !important;
+}
+.food-tab.active, .sub-chip.active, .sm-tab.active, .meal-slot.active,
+.food-tab.on, .sm-tab.on, .meal-slot.on{
+  background:var(--iron-volt) !important; border-color:var(--iron-volt) !important;
+  color:#03251f !important;
+}

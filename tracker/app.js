@@ -107,7 +107,7 @@ function openStorageFullModal(){
     <p class="hn-intro">Export a backup first — that file is your whole history and it never expires. Then clear out older days to make room.</p>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Close</button>
-      <button class="btn btn-cyan" id="sfExport">EXPORT A BACKUP</button>
+      <button class="btn btn-cyan" id="sfExport">Export a backup</button>
     </div>
   `, (root) => {
     root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
@@ -527,7 +527,7 @@ function openFoodModal(meal, forceTab){
       <button type="button" class="btn btn-ghost btn-sm" id="foodAISetupBtn" style="width:100%;font-size:11px"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.77-.32 1.6 1.6 0 0 0-1 1.47V21a2 2 0 1 1-4 0v-.11a1.6 1.6 0 0 0-1.05-1.46 1.6 1.6 0 0 0-1.77.32l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.6 1.6 0 0 0 .32-1.77 1.6 1.6 0 0 0-1.47-1H3a2 2 0 1 1 0-4h.11A1.6 1.6 0 0 0 4.57 8.8a1.6 1.6 0 0 0-.32-1.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.6 1.6 0 0 0 1.77.32H9a1.6 1.6 0 0 0 1-1.47V3a2 2 0 1 1 4 0v.11a1.6 1.6 0 0 0 1 1.47 1.6 1.6 0 0 0 1.77-.32l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.6 1.6 0 0 0-.32 1.77V9a1.6 1.6 0 0 0 1.47 1H21a2 2 0 1 1 0 4h-.11a1.6 1.6 0 0 0-1.47 1Z"/></svg></span> Set up / change API key</button>
     </div>
     <div class="food-pane" data-pane="barcode">
-      <button type="button" class="btn btn-cyan" id="foodBarcodeBtn" style="width:100%;margin-bottom:8px">SCAN A BARCODE</button>
+      <button type="button" class="btn btn-cyan" id="foodBarcodeBtn" style="width:100%;margin-bottom:8px">Scan a barcode</button>
       <button type="button" class="btn btn-ghost" id="foodBarcodeManualBtn" style="width:100%;margin-bottom:14px">Type the UPC instead</button>
       <div class="lgroup">Or describe it</div>
       <button type="button" class="btn btn-ghost" id="foodAIPhotoBtn2" style="width:100%;margin-bottom:8px">Photo of the plate</button>
@@ -619,8 +619,8 @@ function openFoodModal(meal, forceTab){
         <div class="sr-empty-h">Couldn't reach the online food database</div>
         <div class="sr-empty-b">Your connection or their server. Your ${allFoods.length} saved + built-in foods still search fine — or add this one by hand.</div>
         <div class="sr-empty-acts">
-          <button type="button" class="btn btn-ghost btn-sm" data-retry="${escape(q)}">RETRY</button>
-          <button type="button" class="btn btn-cyan btn-sm" data-create="${escape(q)}">+ ADD IT</button>
+          <button type="button" class="btn btn-ghost btn-sm" data-retry="${escape(q)}">Retry</button>
+          <button type="button" class="btn btn-cyan btn-sm" data-create="${escape(q)}">+ Add it</button>
         </div>
       </li>`;
     const wireEmpty = () => {
@@ -1166,13 +1166,13 @@ function openLiftModal(prefillName){
     </div>
     <div class="sess-timer">
       <div class="sess-clock" id="liftClock">0:00</div>
-      <button type="button" class="btn btn-ghost btn-sm" id="liftTimerBtn">START TIMER</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="liftTimerBtn">Start timer</button>
       <span class="sess-timer-hint">optional</span>
     </div>
     <label><span>Notes</span><input id="liftNotes" type="text" placeholder="Felt strong, RPE 8"></label>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Cancel</button>
-      <button class="btn btn-cyan" id="liftSave">SAVE</button>
+      <button class="btn btn-cyan" id="liftSave">Save</button>
     </div>
   `, (root) => {
     bindWorkoutTabs(root, "lift", (document.getElementById("liftDate")||{}).value || currentDate);
@@ -1692,7 +1692,7 @@ function confirmDestructive(opts, onYes){
     ${o.warn ? `<div class="cd-warn">${escape(o.warn)}</div>` : ""}
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Cancel</button>
-      ${o.exportFirst ? `<button class="btn btn-ghost" id="cdExport">EXPORT A BACKUP</button>` : ""}
+      ${o.exportFirst ? `<button class="btn btn-ghost" id="cdExport">Export a backup</button>` : ""}
       <button class="btn btn-pink" id="cdYes">${escape(o.cta || "DO IT")}</button>
     </div>
   `, (root) => {
@@ -4052,8 +4052,8 @@ function openBrainDumpModal(mode){
     <div id="bdNote" class="bd-note"></div>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Cancel</button>
-      <button class="btn btn-ghost" id="bdWorkoutSave">LOG WORKOUT</button>
-      <button class="btn btn-ghost" id="bdNoteSave">SAVE HEALTH NOTE</button>
+      <button class="btn btn-ghost" id="bdWorkoutSave">Log workout</button>
+      <button class="btn btn-ghost" id="bdNoteSave">Save health note</button>
       <button class="btn btn-cyan" id="bdGo">Parse with AI</button>
     </div>
   `, (root) => {
@@ -5893,21 +5893,21 @@ function openQuickCheckin(){
     <div class="quick-q">
       <div class="qq-text">Did you move today?<br><span>Walk, lift, anything ≥10 min</span></div>
       <div class="qq-buttons">
-        <button class="qq-yes ${c.qMove===1?"on":""}" data-q="qMove" data-v="1">YES</button>
+        <button class="qq-yes ${c.qMove===1?"on":""}" data-q="qMove" data-v="1">Yes</button>
         <button class="qq-no ${c.qMove===0?"on":""}" data-q="qMove" data-v="0">NO</button>
       </div>
     </div>
     <div class="quick-q">
       <div class="qq-text">Protein at every meal?<br><span>Goal: ${state.goals.protein}g total</span></div>
       <div class="qq-buttons">
-        <button class="qq-yes ${c.qProtein===1?"on":""}" data-q="qProtein" data-v="1">YES</button>
+        <button class="qq-yes ${c.qProtein===1?"on":""}" data-q="qProtein" data-v="1">Yes</button>
         <button class="qq-no ${c.qProtein===0?"on":""}" data-q="qProtein" data-v="0">NO</button>
       </div>
     </div>
     <div class="quick-q">
       <div class="qq-text">Sleep 7+ hours last night?<br><span>If no, we'll know</span></div>
       <div class="qq-buttons">
-        <button class="qq-yes ${c.qSleep===1?"on":""}" data-q="qSleep" data-v="1">YES</button>
+        <button class="qq-yes ${c.qSleep===1?"on":""}" data-q="qSleep" data-v="1">Yes</button>
         <button class="qq-no ${c.qSleep===0?"on":""}" data-q="qSleep" data-v="0">NO</button>
       </div>
     </div>
@@ -6363,7 +6363,7 @@ function openLogWorkoutText(dateKey, prefill){
     <div id="lwPreview" class="hn-preview"></div>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Cancel</button>
-      <button class="btn btn-cyan" id="lwSave" disabled>LOG IT</button>
+      <button class="btn btn-cyan" id="lwSave" disabled>Log it</button>
     </div>
   `, (root) => {
     bindWorkoutTabs(root, "write", key);
@@ -6580,8 +6580,8 @@ function openPlanDayModal(wkKey, dayName){
     <p class="wb-hint" style="margin-top:8px">Saved workouts bring their exercise list into the live session logger. Time is optional.</p>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Cancel</button>
-      ${cur.type ? `<button class="btn btn-pink" id="pdeClear">CLEAR DAY</button>` : ""}
-      <button class="btn btn-cyan" id="pdeSave">SAVE</button>
+      ${cur.type ? `<button class="btn btn-pink" id="pdeClear">Clear day</button>` : ""}
+      <button class="btn btn-cyan" id="pdeSave">Save</button>
     </div>
   `, (root) => {
     bindWorkoutTabs(root, "plan", currentDate);
@@ -6701,7 +6701,7 @@ function startRestTimer(seconds){
     bar = document.createElement("div");
     bar.id = "restTimerBar";
     bar.className = "rest-bar";
-    bar.innerHTML = `<div class="rt-icon">⏱</div><div class="rt-time" id="rtTime">${formatRest(seconds)}</div><button class="rt-skip" id="rtSkip">Skip</button><button class="rt-add" id="rtAdd">+ 30s</button>`;
+    bar.innerHTML = `<div class="rt-icon">⏱</div><div class="rt-time" id="rtTime">${formatRest(seconds)}</div><button class="rt-skip" id="rtSkip">Skip</button><button class="rt-add" id="rtAdd">+ 30S</button>`;
     document.body.appendChild(bar);
   }
   bar.classList.add("show");
@@ -6792,24 +6792,33 @@ function openSessionAddExercise(dateKey, overlay){
       if(overlay) renderWorkoutSession(overlay, dateKey);
       toast(`Added ${name}`, "cyan");
     };
-    const row = (n, tag) => `<li class="lrow" data-add="${escape(n)}">
-      <div class="lrow-main"><div class="lrow-title">${escape(n)}</div>
-        <div class="lrow-sub">${escape(tag || (partsForExercise(n).join(", ") || "movement"))}</div></div>
-      <button type="button" class="lrow-add">+</button></li>`;
+    const row = (n, tag) => {
+      const prev = (typeof getPreviousSet === "function") ? getPreviousSet(n) : null;
+      const parts = (partsForExercise(n) || []);
+      return mrowHtml({
+        attr: `data-add="${escape(n)}"`,
+        thumb: mrowThumb(n),
+        eyebrow: parts.length ? parts[0].charAt(0).toUpperCase() + parts[0].slice(1) : "Movement",
+        title: n,
+        tag: tag === "logged recently" ? "" : "",
+        meta: prev ? `Last: ${prev.weight || "BW"}${prev.weight ? unit() : ""} \u00d7 ${prev.reps} \u00b7 ${fmtDate(prev.date)}`
+                   : (parts.length > 1 ? parts.slice(1).map(x => x.charAt(0).toUpperCase()+x.slice(1)).join(", ") : "Not logged yet"),
+      });
+    };
     const render = (q) => {
       const term = (q || "").trim().toLowerCase();
       let html = "";
       if(!term){
-        if(favs.length) html += `<div class="lgroup">Favourites</div>` + favs.slice(0,8).map(n => row(n)).join("");
-        if(recents.length) html += `<div class="lgroup">Recent</div>` + recents.map(n => row(n, "logged recently")).join("");
-        html += `<div class="lgroup">All movements</div>` + all.slice(0, 40).map(n => row(n)).join("");
+        if(favs.length) html += `<div class="mrow-group">Favourites</div>` + favs.slice(0,8).map(n => row(n)).join("");
+        if(recents.length) html += `<div class="mrow-group">Recent</div>` + recents.map(n => row(n, "logged recently")).join("");
+        html += `<div class="mrow-group">All movements</div>` + all.slice(0, 40).map(n => row(n)).join("");
       } else {
         const hits = all.filter(n => n.toLowerCase().includes(term)).slice(0, 40);
         html = hits.length ? hits.map(n => row(n)).join("")
           : `<li class="sr-empty">
                <div class="sr-empty-h">No movement called "${escape(q)}"</div>
                <div class="sr-empty-b">Add it anyway — it'll be in your library from now on.</div>
-               <button type="button" class="btn btn-cyan btn-sm" data-custom="${escape(q)}">+ ADD "${escape(q.toUpperCase())}"</button>
+               <button type="button" class="btn btn-cyan btn-sm" data-custom="${escape(q)}">Add \u201c${escape(q)}\u201d</button>
              </li>`;
       }
       list.innerHTML = html;
@@ -6876,7 +6885,7 @@ function openSessionSaveAs(dateKey, overlay){
     <label><span>Call it</span><input id="swName" type="text" maxlength="40" value="${escape(planType || "")}" placeholder="e.g. Legs — glute focus"></label>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Cancel</button>
-      <button class="btn btn-cyan" id="swSave">SAVE</button>
+      <button class="btn btn-cyan" id="swSave">Save</button>
     </div>
   `, (root) => {
     root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
@@ -6893,6 +6902,54 @@ function openSessionSaveAs(dateKey, overlay){
       toast(existing ? `Updated ${name}` : `Saved ${name}`, "cyan");
     });
   });
+}
+
+
+// =================================================================
+// v38 THE MEDIA ROW — one component for every list in the app.
+// Her Ladder/Flex screenshots use the identical row everywhere:
+// thumbnail, grey category eyebrow, bold sentence-case title, grey
+// meta line, chevron. We had text-only rows and zero thumbnails.
+// =================================================================
+const _MG_ICON = {
+  chest:'<path d="M4 7h16v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/>',
+  back:'<path d="M12 3v18M6 7l6-4 6 4M6 17l6 4 6-4"/>',
+  legs:'<path d="M8 3v7l-2 11M16 3v7l2 11M8 10h8"/>',
+  glutes:'<path d="M5 9a4 4 0 0 1 7-2 4 4 0 0 1 7 2v4a4 4 0 0 1-7 2 4 4 0 0 1-7-2z"/>',
+  shoulders:'<path d="M3 15a9 9 0 0 1 18 0M8 15V9a4 4 0 0 1 8 0v6"/>',
+  arms:'<path d="M6 20V9a3 3 0 0 1 6 0v3h3a3 3 0 0 1 0 6h-3"/>',
+  core:'<rect x="7" y="4" width="10" height="16" rx="3"/><path d="M7 10h10M7 15h10"/>',
+  cardio:'<path d="M3 12h4l2-5 3 10 2-5h7"/>',
+};
+function _mgKey(name){
+  const parts = (typeof partsForExercise === "function" ? partsForExercise(name) : []) || [];
+  const hay = (parts.join(" ") + " " + name).toLowerCase();
+  if(/chest|press|fly|push/.test(hay))            return "chest";
+  if(/back|row|pull|lat|deadlift/.test(hay))      return "back";
+  if(/glute|hip thrust|bridge/.test(hay))         return "glutes";
+  if(/quad|hamstring|calf|leg|squat|lunge/.test(hay)) return "legs";
+  if(/shoulder|delt|raise|overhead/.test(hay))    return "shoulders";
+  if(/bicep|tricep|curl|extension|arm/.test(hay)) return "arms";
+  if(/ab|core|plank|crunch|oblique/.test(hay))    return "core";
+  if(/run|walk|bike|row erg|cardio|treadmill/.test(hay)) return "cardio";
+  return "core";
+}
+function mrowThumb(name){
+  const g = _MG_ICON[_mgKey(name)];
+  return `<div class="mrow-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${g}</svg></div>`;
+}
+// eyebrow / title / meta / optional tag / chevron
+function mrowHtml(o){
+  return `<li class="mrow" ${o.attr || ""}>
+    ${o.thumb || ""}
+    <div class="mrow-main">
+      ${o.eyebrow ? `<div class="mrow-eyebrow">${escape(o.eyebrow)}</div>` : ""}
+      <div class="mrow-title">${escape(o.title)}${o.tag ? `<span class="mrow-tag">${escape(o.tag)}</span>` : ""}</div>
+      ${o.meta ? `<div class="mrow-meta">${escape(o.meta)}</div>` : ""}
+    </div>
+    <span class="mrow-chev">\u203a</span>
+  </li>`;
 }
 
 // =================================================================
@@ -6953,6 +7010,31 @@ function openWorkoutTab(tab, dateKey){
 // The single entry point every screen should call.
 function openAddWorkout(dateKey, tab){
   openWorkoutTab(tab || "write", dateKey || currentDate);
+}
+
+
+// Empty-session content instead of instructions: what she actually
+// lifts. Planned day first, then last session, then favourites.
+function _sessionQuickPicks(dateKey){
+  const out = [], seen = new Set();
+  const push = (name, eyebrow) => {
+    if(!name || seen.has(name) || out.length >= 8) return;
+    seen.add(name);
+    const prev = (typeof getPreviousSet === "function") ? getPreviousSet(name) : null;
+    out.push({ name, eyebrow,
+      meta: prev ? `Last: ${prev.weight || "BW"}${prev.weight ? unit() : ""} \u00d7 ${prev.reps}` : "Not logged yet" });
+  };
+  const dt = new Date(dateKey + "T12:00:00");
+  const dayName = ["sun","mon","tue","wed","thu","fri","sat"][dt.getDay()];
+  const planned = (state.plan && state.plan[weekKey(weekStart(dt))] && state.plan[weekKey(weekStart(dt))][dayName]) || {};
+  (planned.exercises || []).forEach(e => push(e.name, "Today's plan"));
+  Object.keys(state.days).sort().reverse().slice(0, 30).forEach(k => {
+    ((state.days[k] || {}).sessions || []).forEach(x => {
+      if(x.type !== "cardio") push(x.name, "Recent");
+    });
+  });
+  (state.favLifts || []).forEach(n => push(n, "Favourite"));
+  return out;
 }
 
 // ---- Workout Session overlay ----
@@ -7070,12 +7152,19 @@ function renderWorkoutSession(overlay, dateKey){
     <div class="workout-body">
       ${exHtml || `<div class="ws-empty">
         <div class="ws-empty-h">Clock's running.</div>
-        <div class="ws-empty-b">Add each lift as you get to it — reps and weight can go in during the set or after you're done.</div>
-      </div>`}
-      <div class="ws-actions">
-        <button type="button" class="btn btn-cyan" id="wsAddEx">+ ADD EXERCISE</button>
-        <button type="button" class="btn btn-ghost" id="wsLoadSaved">LOAD A SAVED WORKOUT</button>
-        ${list.length ? `<button type="button" class="btn btn-ghost" id="wsSaveAs">SAVE THIS AS A WORKOUT</button>` : ""}
+        <div class="ws-empty-b">Tap a lift to start it.</div>
+      </div>
+      <ul class="lrows" id="wsQuick">${_sessionQuickPicks(dateKey).map(q => mrowHtml({
+        attr: `data-quick="${escape(q.name)}"`,
+        thumb: mrowThumb(q.name),
+        eyebrow: q.eyebrow,
+        title: q.name,
+        meta: q.meta,
+      })).join("")}</ul>`}
+      <div class="ws-actions btn-row">
+        <button type="button" class="btn btn-cyan" id="wsAddEx">Add exercise</button>
+        <button type="button" class="btn btn-ghost" id="wsLoadSaved">Saved workout</button>
+        ${list.length ? `<button type="button" class="btn btn-ghost" id="wsSaveAs">Save this</button>` : ""}
       </div>
       <div class="workout-foot">
         <p style="font-size:12px;color:#888;text-align:center;line-height:1.5;margin:20px 0 0">Tap the set number to cycle Normal → Warm-up → Drop → Failure. "Log" records it and starts the rest timer. Leave weight blank for bodyweight.</p>
@@ -7171,6 +7260,16 @@ function bindWorkoutSession(overlay, dateKey){
       _woTick();
     };
   }
+
+  overlay.querySelectorAll("[data-quick]").forEach(li => li.addEventListener("click", () => {
+    const name = li.getAttribute("data-quick");
+    const day = dayObj(dateKey);
+    if(!day.workoutSession) day.workoutSession = { exercises:{} };
+    if(!Array.isArray(day.workoutSession.list)) day.workoutSession.list = [];
+    if(day.workoutSession.list.some(x => x.name === name)) return;
+    day.workoutSession.list.push({ name, scheme:"" });
+    save(); renderWorkoutSession(overlay, dateKey);
+  }));
 
   const addBtn = document.getElementById("wsAddEx");
   if(addBtn) addBtn.onclick = () => openSessionAddExercise(dateKey, overlay);
@@ -7557,8 +7656,8 @@ function openInBodyManualModal(){
     <p class="gd-note">If lean mass is blank it's worked out from weight and body fat %.</p>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Cancel</button>
-      ${(state.ai && state.ai.key) ? `<button class="btn btn-ghost" id="ibmPhoto">USE A PHOTO INSTEAD</button>` : ""}
-      <button class="btn btn-cyan" id="ibmSave">SAVE</button>
+      ${(state.ai && state.ai.key) ? `<button class="btn btn-ghost" id="ibmPhoto">Use a photo instead</button>` : ""}
+      <button class="btn btn-cyan" id="ibmSave">Save</button>
     </div>
   `, (root) => {
     root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
@@ -8791,8 +8890,8 @@ function openCardioModal(){
     <div class="cd-timer">
       <div class="cd-clock" id="cdClock">00:00</div>
       <div class="cd-timer-btns">
-        <button type="button" class="btn btn-lime" id="cdStart">▶ START</button>
-        <button type="button" class="btn btn-ghost" id="cdPause" disabled>⏸ PAUSE</button>
+        <button type="button" class="btn btn-lime" id="cdStart">▶ Start</button>
+        <button type="button" class="btn btn-ghost" id="cdPause" disabled>⏸ Pause</button>
       </div>
       <div class="cd-or">— or enter manually —</div>
       <label><span>Duration (min)</span><input id="cdMin" type="number" min="1" max="600" placeholder="30"></label>
@@ -8804,7 +8903,7 @@ function openCardioModal(){
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Cancel</button>
-      <button class="btn btn-cyan" id="cdSave">SAVE SESSION</button>
+      <button class="btn btn-cyan" id="cdSave">Save session</button>
     </div>
   `, (root) => {
     bindWorkoutTabs(root, "cardio", (document.getElementById("cdDate")||{}).value || currentDate);
@@ -8937,8 +9036,8 @@ function renderWorkoutLib(){
         <div class="wl-meta">${escape(w.style)} · ${w.exercises.length} exercises</div>
       </div>
       <div class="wl-actions">
-        <button class="wl-btn wl-start" data-wl-start title="Start now">START</button>
-        <button class="wl-btn" data-wl-assign title="Put on a weekday">ASSIGN</button>
+        <button class="wl-btn wl-start" data-wl-start title="Start now">Start</button>
+        <button class="wl-btn" data-wl-assign title="Put on a weekday">Assign</button>
         <button class="wl-btn" data-wl-edit title="Edit">✎</button>
         <button class="wl-btn wl-del" data-wl-del title="Delete">×</button>
       </div>
@@ -8947,7 +9046,7 @@ function renderWorkoutLib(){
   card.innerHTML = `
     <div class="card-head">
       <span class="card-eyebrow">MY WORKOUTS — build once, run forever</span>
-      <button class="link-btn-sm" id="wlNew">+ BUILD WORKOUT</button>
+      <button class="link-btn-sm" id="wlNew">+ Build workout</button>
     </div>
     ${rows || `<p class="wl-empty">No saved workouts yet. Build Leg Day, Back Day, your HIIT circuit — pick the exact machines and lifts, then assign to weekdays.</p>`}
   `;
@@ -9081,7 +9180,7 @@ function assignLibWorkout(w){
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Cancel</button>
-      <button class="btn btn-cyan" id="wbAssignGo">ASSIGN</button>
+      <button class="btn btn-cyan" id="wbAssignGo">Assign</button>
     </div>
   `, (root) => {
     root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
@@ -9994,7 +10093,7 @@ function renderDiary(){
         <b>${MEAL_LABEL[meal]}</b>
         <small>${Math.round(mt.cal)} cal · P${Math.round(mt.p)} C${Math.round(mt.c)} F${Math.round(mt.f)}</small>
         <span class="dy-meal-btns">
-          <button class="dy-add" data-dy-add="${meal}" title="Add food">+ ADD</button>
+          <button class="dy-add" data-dy-add="${meal}" title="Add food">+ Add</button>
           <button class="dy-macros" data-dy-macros="${meal}" title="Log macros only, no food item">±M</button>
         </span>
       </div>
@@ -10041,12 +10140,12 @@ function openDiaryItemSheet(meal, id){
       <div class="dy-sheet-row">
         <select id="dupMeal">${MEAL_ORDER.map(m => `<option value="${m}" ${m===meal?"selected":""}>${MEAL_LABEL[m]}</option>`).join("")}</select>
         <input type="date" id="dupDate" value="${currentDate}">
-        <button class="btn btn-cyan btn-sm" id="dupGo">COPY</button>
+        <button class="btn btn-cyan btn-sm" id="dupGo">Copy</button>
       </div>
       <div class="dy-sheet-row" style="margin-top:10px">
-        <button class="btn btn-ghost btn-sm" id="itFav">☆ FAVORITE</button>
-        <button class="btn btn-ghost btn-sm" id="itEdit">✎ EDIT</button>
-        <button class="btn btn-pink btn-sm" id="itDel">DELETE</button>
+        <button class="btn btn-ghost btn-sm" id="itFav">☆ Favorite</button>
+        <button class="btn btn-ghost btn-sm" id="itEdit">✎ Edit</button>
+        <button class="btn btn-pink btn-sm" id="itDel">Delete</button>
       </div>
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" data-close>Close</button></div>
@@ -10247,6 +10346,99 @@ function getFavLifts(){
   return state.favLifts;
 }
 
+
+// =================================================================
+// v38 TOTALS — the Ladder stats block she photographed: totals with
+// a filled bar and a completion grid. Ladder compares you to a team
+// percentile; we have no team, so the honest comparison is against
+// HER OWN best week. No invented cohort.
+// =================================================================
+function renderFitTotals(){
+  const card = document.getElementById("fitTotalsCard");
+  if(!card) return;
+  const sun = weekStart(new Date(currentDate + "T12:00:00"));
+
+  const statsFor = (start) => {
+    const t = { workouts:0, minutes:0, reps:0, volume:0 };
+    const dayHit = [];
+    for(let i = 0; i < 7; i++){
+      const k = todayKey(new Date(start.getTime() + i*86400000));
+      const day = state.days[k] || {};
+      const ss = day.sessions || [];
+      dayHit.push(ss.length > 0);
+      if(ss.length) t.workouts++;
+      if(day.workoutSession && day.workoutSession.durationMin) t.minutes += day.workoutSession.durationMin;
+      ss.forEach(x => {
+        if(x.type === "cardio"){ t.minutes += x.durationMin || 0; return; }
+        const r = (x.reps || 0) * (x.sets || 1);
+        t.reps += r;
+        t.volume += r * (x.weight || 0);
+        t.minutes += (x.durationMin || 0);
+      });
+    }
+    return { t, dayHit };
+  };
+
+  const cur = statsFor(sun);
+  // best week she has ever had, for each measure independently
+  let best = { workouts:0, minutes:0, reps:0, volume:0 };
+  const keys = Object.keys(state.days).sort();
+  if(keys.length){
+    const seen = new Set();
+    keys.forEach(k => {
+      const ws = weekStart(new Date(k + "T12:00:00"));
+      const wk = weekKey(ws);
+      if(seen.has(wk)) return;
+      seen.add(wk);
+      const s2 = statsFor(ws).t;
+      Object.keys(best).forEach(m => { if(s2[m] > best[m]) best[m] = s2[m]; });
+    });
+  }
+
+  const fmt = (n) => n >= 1000 ? (n/1000).toFixed(n >= 10000 ? 0 : 2).replace(/\.?0+$/,"") + "k" : String(Math.round(n));
+  const ROWS = [
+    { m:"workouts", lbl:"Workouts" },
+    { m:"minutes",  lbl:"Minutes" },
+    { m:"reps",     lbl:"Total reps" },
+    { m:"volume",   lbl:`Total volume (${unit()})` },
+  ];
+  const rows = ROWS.map(r => {
+    const v = cur.t[r.m], b = best[r.m] || 0;
+    const pct = b > 0 ? Math.min(100, Math.round(v / b * 100)) : (v > 0 ? 100 : 0);
+    const isBest = b > 0 && v >= b;
+    return `<div class="pstat">
+      <div class="pstat-l">
+        <div class="pstat-lbl">${escape(r.lbl)}</div>
+        <div class="pstat-val">${fmt(v)}</div>
+      </div>
+      <div class="pstat-r">
+        <div class="pstat-pct">${isBest && v > 0 ? "Best week" : (b > 0 ? pct + "% of best" : "\u2014")}</div>
+        <div class="pstat-track"><div class="pstat-fill ${v > 0 ? "" : "dim"}" style="width:${pct}%"></div></div>
+      </div>
+    </div>`;
+  }).join("");
+
+  // four-week completion grid
+  const today = todayKey(new Date());
+  let grid = `<div class="wgrid-hd"><span></span>${
+    ["S","M","T","W","T","F","S"].map(d => `<span>${d}</span>`).join("")}</div>`;
+  for(let w = 3; w >= 0; w--){
+    const ws = new Date(sun.getTime() - w*7*86400000);
+    const hits = statsFor(ws).dayHit;
+    grid += `<div class="wgrid-row"><span class="wgrid-lbl">${w === 0 ? "Now" : "W-" + w}</span>${
+      hits.map((h, i) => {
+        const k = todayKey(new Date(ws.getTime() + i*86400000));
+        return `<div class="wgrid-cell ${h ? "on" : ""} ${k === today ? "today" : ""}"></div>`;
+      }).join("")}</div>`;
+  }
+
+  card.innerHTML = `
+    <div class="card-head"><span class="card-eyebrow">Your numbers</span></div>
+    <div class="pstat-hd"><span>Totals</span><span>vs your best week</span></div>
+    <div class="pstats">${rows}</div>
+    <div class="wgrid">${grid}</div>`;
+}
+
 // Compact Sun–Sat plan list (mirrors the nutrition diary's density);
 // tapping a row selects that day (shared currentDate) and shows it below.
 function renderFitWeekList(){
@@ -10299,7 +10491,7 @@ function renderFitDayCard(){
     // go and plan it first. That is the opposite of build-as-you-go.
     card.innerHTML = head + `<p class="wl-empty">Nothing planned. Start the clock and add lifts as you go, or log it after.</p>
       <div class="fd-actions">
-        <button class="btn btn-lime" id="fdStart">▶ START WORKOUT</button>
+        <button class="btn btn-lime" id="fdStart">▶ Start workout</button>
       </div>
       ${sessions.length ? `<p class="fd-logged">✓ ${sessions.length} entr${sessions.length===1?"y":"ies"} logged today</p>` : ""}`;
     on2(card, "#fdStart", () => openWorkoutSession(currentDate));
@@ -10320,9 +10512,9 @@ function renderFitDayCard(){
           : `<p class="fd-nomoves">No movements planned. START WORKOUT runs the clock and you add lifts as you go.</p>`}
       </div>`).join("") + `
       <div class="fd-actions">
-        <button class="btn btn-lime" id="fdStart">▶ START WORKOUT</button>
+        <button class="btn btn-lime" id="fdStart">▶ Start workout</button>
         ${(workouts.some(w => (w.exercises||[]).length) && !sessions.length)
-          ? `<button class="btn btn-ghost" id="fdDone">ALREADY DID IT</button>` : ""}
+          ? `<button class="btn btn-ghost" id="fdDone">Already did it</button>` : ""}
       </div>
       ${sessions.length ? `<p class="fd-logged">✓ ${sessions.length} entr${sessions.length===1?"y":"ies"} logged</p>` : ""}`;
     on2(card, "#fdStart", () => openWorkoutSession(currentDate));
@@ -10406,7 +10598,7 @@ function renderSessionCard(){
     </div>` : ""}
     <div class="se-list">${sessions.map(row).join("") || `<p class="wl-empty">Nothing here yet — write out what you did, or add one at a time.</p>`}</div>
     <div class="se-actions">
-      <button class="btn btn-cyan" id="seWrite">+ ADD TO THIS DAY</button>
+      <button class="btn btn-cyan" id="seWrite">+ Add to this day</button>
     </div>`;
 
   card.querySelectorAll(".se-row").forEach(r =>
@@ -10464,8 +10656,8 @@ function openSessionEditor(sid){
     <label><span>Notes</span><input id="seNotes" type="text" value="${escape(item.notes || "")}"></label>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Cancel</button>
-      <button class="btn btn-pink" id="seDel">DELETE</button>
-      <button class="btn btn-cyan" id="seSave">SAVE</button>
+      <button class="btn btn-pink" id="seDel">Delete</button>
+      <button class="btn btn-cyan" id="seSave">Save</button>
     </div>
   `, (root) => {
     root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
@@ -10539,10 +10731,10 @@ function openIntervalModal(){
     <label><span>Session name</span><input id="ivName" type="text" maxlength="40" placeholder="e.g. Cardio intervals"></label>
     <p class="wb-hint">One block per line — type, minutes, and (for walks/bikes) speed + incline. Each block is logged separately so calories are accurate.</p>
     <div class="iv-list" id="ivList">${blockRow(0)}${blockRow(1)}${blockRow(2)}</div>
-    <button type="button" class="btn btn-ghost btn-sm" id="ivAdd" style="width:100%;margin-top:6px">+ ADD BLOCK</button>
+    <button type="button" class="btn btn-ghost btn-sm" id="ivAdd" style="width:100%;margin-top:6px">+ Add block</button>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Cancel</button>
-      <button class="btn btn-cyan" id="ivSave">SAVE ALL</button>
+      <button class="btn btn-cyan" id="ivSave">Save all</button>
     </div>
   `, (root) => {
     bindWorkoutTabs(root, "interval", (document.getElementById("ivDate")||{}).value || currentDate);
@@ -10603,7 +10795,7 @@ function openScheduleWorkoutModal(name, exercises){
     ${(exercises||[]).length ? `<p class="wb-hint">${exercises.length} movements come with it.</p>` : ""}
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Cancel</button>
-      <button class="btn btn-cyan" id="swSave">ADD TO DAY</button>
+      <button class="btn btn-cyan" id="swSave">Add to day</button>
     </div>
   `, (root) => {
     root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
@@ -10722,8 +10914,8 @@ function openPrEditModal(name){
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Cancel</button>
-      ${existing ? `<button class="btn btn-pink" id="prDel">DELETE</button>` : ""}
-      <button class="btn btn-cyan" id="prSave">SAVE</button>
+      ${existing ? `<button class="btn btn-pink" id="prDel">Delete</button>` : ""}
+      <button class="btn btn-cyan" id="prSave">Save</button>
     </div>
   `, (root) => {
     root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
@@ -10843,7 +11035,7 @@ function renderMacroCalc(hostId){
       <button class="btn btn-cyan btn-sm" id="${hostId}_apply">APPLY ${Math.abs(Math.round(diff))} KCAL</button>
       <div class="mc-preview" id="${hostId}_preview"></div>
     </div>
-    <button class="btn btn-cyan" id="${hostId}_save" style="width:100%;margin-top:10px">SAVE GOALS</button>
+    <button class="btn btn-cyan" id="${hostId}_save" style="width:100%;margin-top:10px">Save goals</button>
   `;
 
   const $$id = (suffix) => document.getElementById(hostId + suffix);
@@ -11080,7 +11272,7 @@ function openEquipmentModal(){
         </div>`).join("")}
     </div>
     <div class="modal-foot">
-      <button class="btn btn-ghost" id="eqClear">USE EVERYTHING</button>
+      <button class="btn btn-ghost" id="eqClear">Use everything</button>
       <button class="btn btn-cyan" id="eqSave">SAVE <span id="eqCount"></span></button>
     </div>
   `, (root) => {
@@ -11226,7 +11418,7 @@ function openExerciseSheet(name){
       </div>
       <div class="ex-photo-actions">
         <button class="btn btn-ghost btn-sm" id="exSnap">${ph ? "REPLACE PHOTO" : "ADD PHOTO"}</button>
-        ${ph ? `<button class="btn btn-ghost btn-sm" id="exRmPhoto">REMOVE</button>` : ""}
+        ${ph ? `<button class="btn btn-ghost btn-sm" id="exRmPhoto">Remove</button>` : ""}
         <input type="file" id="exFile" accept="image/*" capture="environment" style="display:none">
       </div>
       <div class="ex-meta">
@@ -11235,7 +11427,7 @@ function openExerciseSheet(name){
         <span><i>Your PR</i><b>${pr ? `${pr.val} ${pr.unit || unit()}` : "—"}</b></span>
       </div>
       <div class="ex-actions">
-        <button class="btn btn-cyan" id="exLog">LOG THIS LIFT</button>
+        <button class="btn btn-cyan" id="exLog">Log this lift</button>
         <button class="btn btn-ghost" id="exFav">${favs.includes(name) ? "♥ FAVORITED" : "♡ FAVORITE"}</button>
       </div>
     </div>
@@ -12976,8 +13168,8 @@ function openGoalDesigner(){
     <div id="gdResult" class="gd-result hidden"></div>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Cancel</button>
-      <button class="btn btn-cyan" id="gdBuild">BUILD MY PLAN</button>
-      <button class="btn btn-lime hidden" id="gdApply">SAVE AS MY GOALS</button>
+      <button class="btn btn-cyan" id="gdBuild">Build my plan</button>
+      <button class="btn btn-lime hidden" id="gdApply">Save as my goals</button>
     </div>
   `, (root) => {
     root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
@@ -13196,14 +13388,14 @@ function renderPlanCard(){
   const prog = g.program;
   const progRow = prog ? `<div class="plan-prog-link">
       <div><b>${escape(prog.split)}</b><span>${prog.days} training days · ${prog.cardio.total} min cardio · ${prog.food.meals} meals a day</span></div>
-      <button type="button" class="btn btn-ghost btn-sm" id="planShowProg">VIEW</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="planShowProg">View</button>
     </div>` : "";
   host.innerHTML = progress + progRow + `<div class="plan-rows">
     ${rows.map(([k,v,sub]) => `<div class="plan-row"><span>${escape(k)}</span><b>${escape(v)}</b><em>${escape(sub||"")}</em></div>`).join("")}
   </div>
   <div class="plan-acts">
-    <button type="button" class="btn btn-ghost btn-sm" id="planRedo">REDESIGN</button>
-    <button type="button" class="btn btn-ghost btn-sm" id="planWhatIs">WHAT IS BMR VS BMI?</button>
+    <button type="button" class="btn btn-ghost btn-sm" id="planRedo">Redesign</button>
+    <button type="button" class="btn btn-ghost btn-sm" id="planWhatIs">What is BMR vs BMI?</button>
   </div>`;
   const redo = document.getElementById("planRedo");
   if(redo) redo.addEventListener("click", openGoalDesigner);
@@ -13213,7 +13405,7 @@ function renderPlanCard(){
   if(sp) sp.addEventListener("click", () => openModal("Your program", programHtml(prog) + `
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Close</button>
-      <button class="btn btn-cyan" id="pgApply">ADD TO THIS WEEK</button>
+      <button class="btn btn-cyan" id="pgApply">Add to this week</button>
     </div>`, (root) => {
       root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
       const a = document.getElementById("pgApply");
@@ -13282,7 +13474,7 @@ function openExplainer(key){
         <button type="button" class="xsheet-x" data-xclose aria-label="Close">×</button>
       </div>
       <div class="xsheet-body"><div class="explainer">${e.body}</div></div>
-      <div class="xsheet-foot"><button type="button" class="btn btn-cyan" data-xclose>GOT IT</button></div>
+      <div class="xsheet-foot"><button type="button" class="btn btn-cyan" data-xclose>Got it</button></div>
     </div>`;
   document.body.appendChild(wrap);
   const close = () => wrap.remove();
@@ -13450,7 +13642,7 @@ function openHealthNoteModal(prefill){
     <div id="hnPreview" class="hn-preview"></div>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Cancel</button>
-      <button class="btn btn-cyan" id="hnSave" disabled>SAVE TO TODAY</button>
+      <button class="btn btn-cyan" id="hnSave" disabled>Save to today</button>
     </div>
   `, (root) => {
     root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
@@ -13803,7 +13995,7 @@ function openApplyProgramModal(program){
     <p class="gd-note">It replaces anything already planned for those days. You can edit any day afterwards from Fitness.</p>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close>Not now</button>
-      <button class="btn btn-cyan" id="apYes">ADD IT TO MY WEEK</button>
+      <button class="btn btn-cyan" id="apYes">Add it to my week</button>
     </div>
   `, (root) => {
     root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => {
@@ -13866,7 +14058,7 @@ function renderProgramCallout(){
     <div class="pc-title">${escape(a.title)}</div>
     <div class="pc-body">${escape(a.body)}</div>
     ${a.cost ? `<div class="pc-cost">${escape(a.cost)}</div>` : ""}
-    ${a.tone !== "good" ? `<button type="button" class="btn btn-cyan btn-sm" id="pcGo">START ONE NOW</button>` : ""}
+    ${a.tone !== "good" ? `<button type="button" class="btn btn-cyan btn-sm" id="pcGo">Start one now</button>` : ""}
   </div>`;
   const b = document.getElementById("pcGo");
   if(b) b.addEventListener("click", () => { go("fitness"); });
@@ -13974,6 +14166,7 @@ function renderFitness(){
   renderFitnessBase();
   renderLiftsList();
   renderBodyCoverage();
+  try{ renderFitTotals(); }catch(e){ console.warn("fit totals", e); }
   try{ renderFitWeekList(); }catch(e){ console.warn("fit week", e); }
   try{ renderFitDayCard(); }catch(e){ console.warn("fit day", e); }
   try{ renderSessionCard(); }catch(e){ console.warn("session card", e); }

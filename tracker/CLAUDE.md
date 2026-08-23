@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v39**.
+- Current build: **v40**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -261,6 +261,33 @@ second water button on the low-water banner.
 `renderWodCard()` writing into four elements that no longer existed, so it
 threw on EVERY dashboard render and killed the render chain behind it. That
 is the orphan-sweep rule in §7, ignored in a hurry. It is now guarded.
+
+**WEEK DURABILITY (v40) — and the data-loss bug it caught.** She said *"Fix
+it! My week of workouts ruined if this does not work."* So the answer was to
+stop shipping features and prove the data survives. `tracker/tests/week.js`
+plans a real week, logs it, reloads, edits, cancels, re-saves, and reloads
+again. **Run it alongside `smoke.js` before every push.**
+
+It immediately found a bug I had introduced in v39 that would have done
+exactly what she feared:
+
+> `_setDayExerciseSets()` **replaces** the day's rows for one exercise. But
+> `openLiftSets()` seeded its rows from `plan.exercises[].sets` only. A
+> workout logged in the **live session** never writes `sets` onto the plan —
+> it writes `day.sessions`. So tapping that lift on the day sheet opened a
+> **blank** editor, and saving a single set **deleted all five logged sets**.
+
+Two fixes, both required:
+1. `_loggedSetsFor(dateKey, name)` — the editor now seeds from `day.sessions`
+   whenever the plan carries no sets, so it always shows the truth no matter
+   which surface wrote it (live session, write-it-out, brain dump).
+2. `_setDayExerciseSets()` returns early on an empty set list. An empty editor
+   must never silently delete a logged workout; the row's `×` is for removing
+   a lift.
+
+**RULE: any code that REPLACES rows in `day.sessions` must first read what is
+already there.** Replacing is fine; replacing something you never loaded is
+destruction.
 
 **ONE FITNESS SCREEN (v39).** Her spec, verbatim: *"This one screen is the
 same for fitness page. There should be no other add fitness options outside
@@ -569,7 +596,7 @@ Playwright is already installed in the scratchpad. Launch chromium with
 `{ server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" }`.
 **Do not run `npx playwright install`.**
 
-**Expected: 45/45 and zero page errors.** (Two console errors about
+**Expected: 45/45 and zero page errors**, plus `node tracker/tests/week.js` at **10/10**. (Two console errors about
 `ERR_CONNECTION_RESET` are the sandbox blocking a CDN — pre-existing, ignore.)
 
 The suite covers: load, wizard, **sideways overflow on every page**, all tabs,
@@ -702,4 +729,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v36` button cull — Fitness header 5 actions -> 1 ·
 `v37` three tabs not five, collapsed optional fields, and THE LOST WORKOUT ·
 `v38` built to the reference: media rows, filter pills, totals block, no shouting ·
-`v39` ONE fitness screen — the day sheet, the build-workout picker, sets/weights.
+`v39` ONE fitness screen — the day sheet, the build-workout picker, sets/weights ·
+`v40` week durability: the sets editor no longer deletes a logged workout.

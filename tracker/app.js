@@ -7269,11 +7269,24 @@ function openBuildWorkout(dateKey, preselect, onSave){
 // "You can also click in each lift and add your sets and weights.
 //  There is a fill in and you click + to add another. Then save.
 //  If cardio I can add uphill grade and speed."
+// Sets already logged for this exercise on this day, whatever wrote them —
+// the live session, write-it-out, brain dump. The editor MUST show these.
+function _loggedSetsFor(dateKey, name){
+  return ((dayObj(dateKey).sessions || []).filter(x => x.name === name)).map(x =>
+    x.type === "cardio"
+      ? { durationMin: x.durationMin || "", speed:"", incline:"" }
+      : { reps: x.reps || "", weight: x.weight || 0 });
+}
 function openLiftSets(dateKey, name, after){
   const key = dateKey || currentDate;
   const ex = _dayExercises(key).find(e => e.name === name) || { name, sets:[] };
   const cardio = isCardioName(name);
-  const rows = (ex.sets && ex.sets.length) ? ex.sets.slice()
+  // DATA LOSS BUG (found before it shipped to her): saving here REPLACES the
+  // day's rows for this exercise. If she had logged five sets in the live
+  // session, the plan carried no `sets`, so this opened blank and one save
+  // wiped all five. Seed from the log when the plan has nothing.
+  const seeded = (ex.sets && ex.sets.length) ? ex.sets.slice() : _loggedSetsFor(key, name);
+  const rows = seeded.length ? seeded
              : [cardio ? { durationMin:"", speed:"", incline:"" } : { reps:"", weight:"" }];
 
   const setRow = (s, i) => cardio ? `
@@ -7411,6 +7424,9 @@ function _setDayExerciseSets(dateKey, name, sets){
   // PRs, the week comparison and Totals all read day.sessions, so they
   // have to land there too. A future day stays a plan and writes nothing.
   if(dateKey > todayKey(new Date())) return;
+  // Belt and braces: an empty editor must never silently delete a logged
+  // workout. Removing a lift is what the row's × is for.
+  if(!sets.length) return;
   const day = dayObj(dateKey);
   day.sessions = (day.sessions || []).filter(x => x.name !== name);   // replace, never duplicate
   const cardio = isCardioName(name);

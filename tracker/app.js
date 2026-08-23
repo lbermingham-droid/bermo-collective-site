@@ -361,6 +361,16 @@ function enterApp(){
 
 // ---------- TABS ----------
 function goBase(tab){
+  // A button pointing at a deleted view used to unmount every view and
+  // leave a BLACK SCREEN with no way back. "Edit week" did exactly that —
+  // view-plan was deleted in v18 and the button still said go("plan").
+  // Never trust the caller: if the view is missing, fall back rather than
+  // stranding her.
+  if(!document.getElementById("view-" + tab)){
+    console.warn("go(): no view-" + tab + " — falling back to dashboard");
+    tab = document.getElementById("view-dashboard") ? "dashboard" : (($$(".view")[0] || {}).id || "").replace("view-", "");
+    if(!tab) return;
+  }
   currentTab = tab;
   $$(".view").forEach(v => v.classList.toggle("active", v.id === "view-"+tab));
   $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tab));
@@ -10142,7 +10152,9 @@ function renderDashWorkList(){
 }
 
 onReady(() => {
-  on("#dwEditPlan", "click", () => go("plan"));
+  // v41: was go("plan") — a view deleted in v18. The week lives on Fitness,
+  // and tapping a day there opens the day sheet.
+  on("#dwEditPlan", "click", () => go("fitness"));
 });
 
 

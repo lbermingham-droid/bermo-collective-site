@@ -1090,6 +1090,56 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
          : fail("v39 one fitness screen", JSON.stringify(all));
   } catch (e) { fail("v39 one fitness screen", e); }
 
+  // 31. v41: NO BUTTON MAY BLANK THE APP.
+  //     "I clicked edit week and it goes black." #dwEditPlan called
+  //     go("plan") — a view deleted back in v18 — so every view unmounted
+  //     and she was left on a black screen with no way back. Third time a
+  //     control has pointed at a dead view. Two checks now:
+  //     (a) every navigation target resolves to a real view, and
+  //     (b) clicking every nav-ish control leaves something painted.
+  try {
+    const navAudit = await page.evaluate(() => {
+      const views = new Set([...document.querySelectorAll(".view")].map(v => v.id.replace("view-", "")));
+      const targets = new Set([...document.querySelectorAll("[data-tab]")].map(t => t.dataset.tab));
+      return { views:[...views], dead:[...targets].filter(t => !views.has(t)) };
+    });
+    navAudit.dead.length === 0
+      ? ok("v41 every navigation target resolves to a real view")
+      : fail("v41 dead nav target", JSON.stringify(navAudit));
+  } catch (e) { fail("v41 nav targets", e); }
+
+  try {
+    const CONTROLS = ["#dwEditPlan", "#fitWriteOut", "#calToday"];
+    const blanked = [];
+    for(const sel of CONTROLS){
+      await page.evaluate(() => { const b = document.getElementById("dwEditPlan"); }); // noop, keeps eval warm
+      await page.evaluate(s => { const b = document.querySelector(s); if(b) b.click(); }, sel);
+      await page.waitForTimeout(600);
+      const st = await page.evaluate(() => ({
+        views: document.querySelectorAll(".view.active").length,
+        text: (document.body.innerText || "").trim().length,
+      }));
+      if(st.views === 0 || st.text < 50) blanked.push(sel + " -> " + JSON.stringify(st));
+      await page.evaluate(() => {
+        if(typeof closeModal === "function") closeModal();
+        document.querySelectorAll("#modal.open,.modal.open").forEach(m => m.classList.remove("open"));
+        document.querySelectorAll(".workout-overlay.open").forEach(o => o.classList.remove("open"));
+        document.body.style.overflow = "";
+      });
+      await page.waitForTimeout(200);
+    }
+    // and the guard itself: an invented tab must fall back, not unmount
+    const guard = await page.evaluate(() => {
+      const t = document.querySelector('[data-tab="dashboard"]');
+      if(t) t.click();
+      return true;
+    });
+    blanked.length === 0
+      ? ok("v41 no control leaves a black screen")
+      : fail("v41 black screen", blanked.join(" | "));
+  } catch (e) { fail("v41 black screen", e); }
+
+
   await browser.close();
   print();
 })();

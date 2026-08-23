@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v40**.
+- Current build: **v41**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -261,6 +261,28 @@ second water button on the low-water banner.
 `renderWodCard()` writing into four elements that no longer existed, so it
 threw on EVERY dashboard render and killed the render chain behind it. That
 is the orphan-sweep rule in §7, ignored in a hurry. It is now guarded.
+
+**THE BLACK SCREEN (v41).** *"I clicked edit week and it goes black."*
+`#dwEditPlan` called `go("plan")`. **`view-plan` was deleted in v18.**
+`goBase()` toggles `.active` onto `view-<tab>` and off everything else, so a
+missing view unmounted the entire app and left her staring at black with no
+way back — mid-workout.
+
+This was the **third** control found pointing at a dead view (`FULL PLANNER`
+in v36, a `[data-tab="plan"]` click inside a `confirm()` in v30). So the fix
+is not just the button:
+
+1. `goBase()` now **refuses to unmount**. If `view-<tab>` does not exist it
+   logs, falls back to the dashboard, and carries on. A bad target can no
+   longer produce a blank screen.
+2. `#dwEditPlan` goes to **Fitness**, where the week list lives and tapping a
+   day opens the day sheet.
+3. **Smoke test 31** greps every `[data-tab]` in the DOM against the views
+   that actually exist and fails on any orphan, then clicks the nav controls
+   and fails if the body is left empty. Run it before every push.
+
+**RULE: never let a navigation target be trusted.** Views get deleted;
+buttons outlive them.
 
 **WEEK DURABILITY (v40) — and the data-loss bug it caught.** She said *"Fix
 it! My week of workouts ruined if this does not work."* So the answer was to
@@ -596,7 +618,7 @@ Playwright is already installed in the scratchpad. Launch chromium with
 `{ server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" }`.
 **Do not run `npx playwright install`.**
 
-**Expected: 45/45 and zero page errors**, plus `node tracker/tests/week.js` at **10/10**. (Two console errors about
+**Expected: 47/47 and zero page errors**, plus `node tracker/tests/week.js` at **10/10**. (Two console errors about
 `ERR_CONNECTION_RESET` are the sandbox blocking a CDN — pre-existing, ignore.)
 
 The suite covers: load, wizard, **sideways overflow on every page**, all tabs,
@@ -730,4 +752,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v37` three tabs not five, collapsed optional fields, and THE LOST WORKOUT ·
 `v38` built to the reference: media rows, filter pills, totals block, no shouting ·
 `v39` ONE fitness screen — the day sheet, the build-workout picker, sets/weights ·
-`v40` week durability: the sets editor no longer deletes a logged workout.
+`v40` week durability: the sets editor no longer deletes a logged workout ·
+`v41` BLACK SCREEN — a button pointed at a view deleted in v18.

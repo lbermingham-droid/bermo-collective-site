@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v43**.
+- Current build: **v44**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -261,6 +261,30 @@ second water button on the low-water banner.
 `renderWodCard()` writing into four elements that no longer existed, so it
 threw on EVERY dashboard render and killed the render chain behind it. That
 is the orphan-sweep rule in §7, ignored in a hurry. It is now guarded.
+
+**EVERYTHING ROUTES, NOTHING DUPLICATES (v44).** *"Make sure everything is
+clickable and usable but not replicated — it all goes to connected places
+within its category. And I should be able to scroll the rings to previous
+weeks or calendar view like Apple."*
+
+- Every element on Home carries `data-go="<view>"` or opens the one sheet
+  for its job. Fitness ring, the four fitness stats, Left This Week cells
+  and the five fitness deltas → **Workouts** (`fitness`). Nutrition ring,
+  the four nutrition stats and the two nutrition deltas → **Nutrition**.
+  Date → the month calendar. Gear → Settings. Row day/date → selects that
+  day; ▷ and ··· → the day sheet; + → focuses the row's text. **No element
+  on Home opens a second copy of anything.** `bindHome()` binds `[data-go]`
+  in one loop — add the attribute, do not add a handler.
+- **The rings strip is a snap-scrolling track** (`#hmTrack`) of five week
+  panels (−2…+2). The centre panel keeps `id="hmStrip"` so the calendar-sync
+  test still reads it. Landing on another panel shifts `currentDate` by
+  whole weeks and re-renders, which re-centres the track — so it scrolls
+  forever in either direction. `calshot.js` verifies: Sep 6 → Aug 30 and
+  re-centred at panel 2.
+- **`openHomeCalendar()`** — month grid, each day with its two mini rings,
+  prev/next month, Today. Tap a day to select it. Like Apple Fitness.
+- The selected tile is `#25262e`, one step above the ring track `#1a1b21`,
+  or the ring vanishes on the selected day.
 
 **HOME TO THE MOCKUP (v43).** She sent a rendered mockup and said
 *"Replicate this look exactly."* v42's Home was replaced wholesale — same
@@ -849,4 +873,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v40` week durability: the sets editor no longer deletes a logged workout ·
 `v41` BLACK SCREEN — a button pointed at a view deleted in v18 ·
 `v42` HOME — week strip, two rings, notepad plan, Left this week (step 1 of the rebuild) ·
-`v43` HOME rebuilt to her mockup: five-tab nav, brain dump bar, gradient rings, This Week rows, vs Last Week.
+`v43` HOME rebuilt to her mockup: five-tab nav, brain dump bar, gradient rings, This Week rows, vs Last Week ·
+`v44` everything on Home routes into its category; the rings strip scrolls by week; month calendar with rings.

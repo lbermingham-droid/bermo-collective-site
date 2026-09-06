@@ -4828,3 +4828,35 @@ body.on-home .main{ padding-top:8px !important; }
 .hm-row-d{ font-size:13px; } .hm-row-date{ font-size:12px; } .hm-row-text{ font-size:14px; }
 .hm-left-cell b{ font-size:13px; }
 .home{ max-width:100%; overflow-x:clip; }
+
+/* --- v44: everything on Home routes to its category; strip scrolls --- */
+.hm-track{ display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; -webkit-overflow-scrolling:touch; margin:0 -12px 14px; padding:0 12px; scroll-padding:0 12px; }
+.hm-track::-webkit-scrollbar{ display:none; }
+.hm-track .hm-strip{ flex:0 0 100%; scroll-snap-align:start; scroll-snap-stop:always; margin:0; }
+.hm-day.today .hm-day-n{ color:#ff2d95; }
+.hm-day.today.sel .hm-day-n{ color:#fff; }
+
+.hm-ringwrap{ cursor:pointer; border-radius:50%; }
+.hm-ringwrap:active{ transform:scale(.985); }
+.hm-stats > button, .hm-deltas > button, .hm-left-cell{ background:none; border:0; border-left:1px solid var(--line); color:inherit; font:inherit; cursor:pointer; text-align:center; }
+.hm-stats > button:first-child, .hm-deltas > button:first-child, .hm-left-cell:first-child{ border-left:0; }
+.hm-stats > button, .hm-deltas > button{ display:flex; flex-direction:column; align-items:center; gap:3px; padding:4px 0; min-width:0; }
+.hm-deltas > button{ gap:4px; padding:6px 2px; }
+.hm-left-cell{ text-align:left; }
+.hm-row-d, .hm-row-date{ cursor:pointer; }
+
+/* month calendar with rings, like Apple Fitness */
+.hm-cal-h{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.hm-cal-h b{ font-size:17px; font-weight:700; color:#fff; }
+.hm-cal-h .hm-nav{ width:34px; height:34px; }
+.hm-cal-h .hm-nav svg{ width:18px; height:18px; }
+.hm-cal-dow{ display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); margin-bottom:4px; }
+.hm-cal-dow span{ text-align:center; font-size:11px; font-weight:700; color:#8b93a1; }
+.hm-cal{ display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px 2px; }
+.hm-cal-day{ display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 0 5px; border:0; border-radius:12px; background:transparent; color:#dfe5ee; cursor:pointer; }
+.hm-cal-day span{ font-size:12px; font-weight:600; }
+.hm-cal-day.sel{ background:#1a1b21; color:#fff; }
+.hm-cal-day.today span{ color:#ff2d95; }
+.hm-cal-day.future{ opacity:.5; }
+.hm-cal-pad{ display:block; }
+.hm-cal-day.sel, .hm-day.sel{ background:#25262e; }   /* a step above the ring track so the ring stays visible */

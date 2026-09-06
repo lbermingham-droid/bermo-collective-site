@@ -7848,14 +7848,25 @@ function renderHome(){
   const days = [];
   for(let i = 0; i < 8; i++) days.push(_homeDay(todayKey(new Date(sun.getTime() + i*86400000))));   // 8: next Sunday too, like the mockup
 
-  // --- week strip ---
-  const strip = days.slice(0, 7).map((x, i) => {
+  // --- week strip: like Apple Fitness, the rings scroll sideways by week.
+  //     Five panels (two back, this, two forward) in a snap track; landing
+  //     on another panel moves currentDate by whole weeks and re-centres.
+  const dayCell = (x, i) => {
     const dt = new Date(x.key + "T12:00:00");
-    return `<button type="button" class="hm-day ${x.key === currentDate ? "sel" : ""}" data-date="${x.key}">
+    return `<button type="button" class="hm-day ${x.key === currentDate ? "sel" : ""} ${x.key === today ? "today" : ""}" data-date="${x.key}">
       <span class="hm-day-l">${["SUN","MON","TUE","WED","THU","FRI","SAT"][i]}</span>
       ${ringSvg(44, [{ pct: x.fitPct, stops: HM_FIT_STOPS, stroke: 5 }, { pct: x.nutPct, stops: HM_NUT_STOPS, stroke: 5 }], { gap: 2 })}
       <span class="hm-day-n">${dt.getDate()}</span>
     </button>`;
+  };
+  const strip = [-2, -1, 0, 1, 2].map(w => {
+    const ws = new Date(sun.getTime() + w*7*86400000);
+    const cells = [];
+    for(let i = 0; i < 7; i++){
+      const k = todayKey(new Date(ws.getTime() + i*86400000));
+      cells.push(dayCell(w === 0 ? days[i] : _homeDay(k), i));
+    }
+    return `<div class="hm-strip" ${w === 0 ? 'id="hmStrip"' : ""} data-w="${w}">${cells.join("")}</div>`;
   }).join("");
 
   // --- this week rows ---
@@ -7893,10 +7904,10 @@ function renderHome(){
     missing = missing.filter(m => { if(seen.has(m.label)) return false; seen.add(m.label); return true; }).slice(0, 3);
     leftHtml = missing.length
       ? `<div class="hm-left-grid">${missing.map(m => `
-          <div class="hm-left-cell">
+          <button type="button" class="hm-left-cell" data-go="fitness">
             <span class="hm-left-ic" style="color:${_PART_COLOR[m.part] || "#00f5d4"}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${_MG_ICON[_PART_ICON[m.part]] || _MG_ICON.core}</svg></span>
             <div><b>${escape(m.label.replace(/(^|\s|\/)([a-z])/g, (a, b, c) => b + c.toUpperCase()))}</b><span>0 sets</span></div>
-          </div>`).join("")}</div>`
+          </button>`).join("")}</div>`
       : `<div class="hm-left-ok">${HM_ICON.check} Coverage complete</div>`;
   }
 
@@ -7905,13 +7916,13 @@ function renderHome(){
   const pr = _periodRanges(period, currentDate);
   const cur = _periodStats(pr.cur[0], pr.cur[1]), prev = _periodStats(pr.prev[0], pr.prev[1]);
   const deltas = [
-    { v: fmtDelta(Math.round(cur.activeMin - prev.activeMin), "min"), l:"active time" },
-    { v: (cur.calSynced || prev.calSynced) ? fmtDelta(Math.round(cur.activeCal - prev.activeCal)) : "—", l:"active cal" },
-    { v: fmtDelta(cur.liftDays - prev.liftDays), l:"lift day" + (Math.abs(cur.liftDays - prev.liftDays) === 1 ? "" : "s") },
-    { v: fmtDelta(Math.round(cur.load - prev.load), unit()), l:"weight load" },
-    { v: fmtDelta(Math.round(cur.cardioMin - prev.cardioMin), "min"), l:"cardio" },
-    { v: fmtDelta(cur.proteinDays - prev.proteinDays), l:"protein target" },
-    { v: fmtDelta(cur.calDays - prev.calDays), l:"calories on target" },
+    { v: fmtDelta(Math.round(cur.activeMin - prev.activeMin), "min"), l:"active time", go:"fitness" },
+    { v: (cur.calSynced || prev.calSynced) ? fmtDelta(Math.round(cur.activeCal - prev.activeCal)) : "—", l:"active cal", go:"fitness" },
+    { v: fmtDelta(cur.liftDays - prev.liftDays), l:"lift day" + (Math.abs(cur.liftDays - prev.liftDays) === 1 ? "" : "s"), go:"fitness" },
+    { v: fmtDelta(Math.round(cur.load - prev.load), unit()), l:"weight load", go:"fitness" },
+    { v: fmtDelta(Math.round(cur.cardioMin - prev.cardioMin), "min"), l:"cardio", go:"fitness" },
+    { v: fmtDelta(cur.proteinDays - prev.proteinDays), l:"protein target", go:"nutrition" },
+    { v: fmtDelta(cur.calDays - prev.calDays), l:"calories on target", go:"nutrition" },
   ];
 
   root.innerHTML = `
@@ -7928,26 +7939,26 @@ function renderHome(){
       <button type="button" class="hm-brain-b js-brain" data-bmode="speak">${HM_ICON.mic}<span>Voice</span></button>
     </div>
 
-    <div class="hm-strip" id="hmStrip">${strip}</div>
+    <div class="hm-track" id="hmTrack">${strip}</div>
 
     <div class="hm-rings">
-      <div class="hm-ringwrap fit">${ringSvg(176, [{ pct: d.fitPct, stops: HM_FIT_STOPS, stroke: 17 }])}
+      <div class="hm-ringwrap fit" role="button" tabindex="0" data-go="fitness" title="Workouts">${ringSvg(176, [{ pct: d.fitPct, stops: HM_FIT_STOPS, stroke: 17 }])}
         <div class="hm-ringmid"><i style="color:#ff2d95">${HM_ICON.run}</i><b>Fitness</b><span>Today${d.synced ? "" : " · not synced"}</span></div>
       </div>
-      <div class="hm-ringwrap nut">${ringSvg(176, [{ pct: d.nutPct, stops: HM_NUT_STOPS, stroke: 17 }])}
+      <div class="hm-ringwrap nut" role="button" tabindex="0" data-go="nutrition" title="Nutrition">${ringSvg(176, [{ pct: d.nutPct, stops: HM_NUT_STOPS, stroke: 17 }])}
         <div class="hm-ringmid"><i style="color:#00f5d4">${HM_ICON.fork}</i><b>Nutrition</b><span>Today</span></div>
       </div>
     </div>
 
     <div class="hm-stats">
-      <div><b>${Math.round(d.act.exercise || 0)}</b><span>active min</span></div>
-      <div><b>${d.synced ? Math.round(d.act.move || 0) : "—"}</b><span>active cal</span></div>
-      <div><b>${d.sets}</b><span>working sets</span></div>
-      <div><b>${fmtK(d.load)}</b><span>${unit()} load</span></div>
-      <div><b>${left(g.cal, d.totals.cal)}</b><span>cal left</span></div>
-      <div><b>${left(g.protein, d.totals.p)}g</b><span>protein</span></div>
-      <div><b>${left(g.carbs, d.totals.c)}g</b><span>carbs</span></div>
-      <div><b>${left(g.fat, d.totals.f)}g</b><span>fat</span></div>
+      <button type="button" data-go="fitness"><b>${Math.round(d.act.exercise || 0)}</b><span>active min</span></button>
+      <button type="button" data-go="fitness"><b>${d.synced ? Math.round(d.act.move || 0) : "—"}</b><span>active cal</span></button>
+      <button type="button" data-go="fitness"><b>${d.sets}</b><span>working sets</span></button>
+      <button type="button" data-go="fitness"><b>${fmtK(d.load)}</b><span>${unit()} load</span></button>
+      <button type="button" data-go="nutrition"><b>${left(g.cal, d.totals.cal)}</b><span>cal left</span></button>
+      <button type="button" data-go="nutrition"><b>${left(g.protein, d.totals.p)}g</b><span>protein</span></button>
+      <button type="button" data-go="nutrition"><b>${left(g.carbs, d.totals.c)}g</b><span>carbs</span></button>
+      <button type="button" data-go="nutrition"><b>${left(g.fat, d.totals.f)}g</b><span>fat</span></button>
     </div>
 
     <section class="hm-card">
@@ -7964,27 +7975,80 @@ function renderHome(){
       <div class="hm-card-h"><b>${pr.label}</b>
         <div class="hm-seg" id="hmPeriod">${["week","month","year"].map(p => `<button type="button" class="${p === period ? "on" : ""}" data-period="${p}">${p.charAt(0).toUpperCase() + p.slice(1)}</button>`).join("")}</div>
       </div>
-      <div class="hm-deltas">${deltas.map(x => `<div><b>${x.v}</b><span>${x.l}</span></div>`).join("")}</div>
+      <div class="hm-deltas">${deltas.map(x => `<button type="button" data-go="${x.go}"><b>${x.v}</b><span>${x.l}</span></button>`).join("")}</div>
     </section>`;
 
   bindHome(root);
 }
 
+
+// Month view behind the date — every day carries its two rings, like the
+// calendar in Apple Fitness. Tap a day to select it.
+let _hmCalMonth = null;
+function openHomeCalendar(){
+  const sel = new Date(currentDate + "T12:00:00");
+  if(!_hmCalMonth) _hmCalMonth = new Date(sel.getFullYear(), sel.getMonth(), 1);
+  const paint = () => {
+    const m = _hmCalMonth, today = todayKey(new Date());
+    const first = new Date(m.getFullYear(), m.getMonth(), 1);
+    const daysIn = new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate();
+    let cells = "";
+    for(let i = 0; i < first.getDay(); i++) cells += `<span class="hm-cal-pad"></span>`;
+    for(let dn = 1; dn <= daysIn; dn++){
+      const k = todayKey(new Date(m.getFullYear(), m.getMonth(), dn));
+      const x = _homeDay(k);
+      cells += `<button type="button" class="hm-cal-day ${k === currentDate ? "sel" : ""} ${k === today ? "today" : ""} ${k > today ? "future" : ""}" data-date="${k}">
+        ${ringSvg(36, [{ pct: x.fitPct, stops: HM_FIT_STOPS, stroke: 4 }, { pct: x.nutPct, stops: HM_NUT_STOPS, stroke: 4 }], { gap: 2 })}
+        <span>${dn}</span></button>`;
+    }
+    document.getElementById("modalBody").innerHTML = `
+      <div class="hm-cal-h">
+        <button type="button" class="hm-nav" id="hmCalPrev" aria-label="Previous month">${HM_ICON.chev.replace('d="M9 6l6 6-6 6"', 'd="M15 6l-6 6 6 6"')}</button>
+        <b>${m.toLocaleDateString(undefined, { month:"long", year:"numeric" })}</b>
+        <button type="button" class="hm-nav" id="hmCalNext" aria-label="Next month">${HM_ICON.chev}</button>
+      </div>
+      <div class="hm-cal-dow">${["S","M","T","W","T","F","S"].map(d => `<span>${d}</span>`).join("")}</div>
+      <div class="hm-cal">${cells}</div>
+      <div class="modal-foot"><button class="btn btn-ghost" id="hmCalToday">Today</button><button class="btn btn-ghost" data-close>Close</button></div>`;
+    const body = document.getElementById("modalBody");
+    body.querySelector("#hmCalPrev").onclick = () => { _hmCalMonth = new Date(m.getFullYear(), m.getMonth() - 1, 1); paint(); };
+    body.querySelector("#hmCalNext").onclick = () => { _hmCalMonth = new Date(m.getFullYear(), m.getMonth() + 1, 1); paint(); };
+    body.querySelector("#hmCalToday").onclick = () => { currentDate = today; _hmCalMonth = null; closeModal(); renderAll(); };
+    body.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    body.querySelectorAll(".hm-cal-day").forEach(b => b.addEventListener("click", () => {
+      currentDate = b.getAttribute("data-date"); _hmCalMonth = null; closeModal(); renderAll();
+    }));
+  };
+  openModal("Calendar", "", () => paint());
+}
+
 let _hmSaveT = null;
 function bindHome(root){
   const shift = (n) => { const dt = new Date(currentDate + "T12:00:00"); dt.setDate(dt.getDate() + n); currentDate = todayKey(dt); renderAll(); };
-  root.querySelector("#hmToday").onclick = () => { currentDate = todayKey(new Date()); renderAll(); };
+  root.querySelector("#hmToday").onclick = () => openHomeCalendar();
   root.querySelector("#hmGear").onclick = () => go("settings");
 
-  // swipe the strip between weeks
-  const strip = root.querySelector("#hmStrip");
-  let sx = null, sy = null;
-  strip.addEventListener("touchstart", (e) => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive:true });
-  strip.addEventListener("touchend", (e) => {
-    if(sx === null) return;
-    const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
-    sx = sy = null;
-    if(Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.5) shift(dx < 0 ? 7 : -7);
+  // everything routes into its own category — no second copy of anything
+  root.querySelectorAll("[data-go]").forEach(el => {
+    const goTo = () => go(el.getAttribute("data-go"));
+    el.addEventListener("click", goTo);
+    el.addEventListener("keydown", (e) => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); goTo(); } });
+  });
+
+  // the rings strip scrolls by week and snaps; landing on another panel
+  // moves the selected day by whole weeks and re-centres the track
+  const track = root.querySelector("#hmTrack");
+  const centre = () => { track.scrollLeft = track.clientWidth * 2; };
+  centre();
+  requestAnimationFrame(centre);
+  let settleT = null;
+  track.addEventListener("scroll", () => {
+    clearTimeout(settleT);
+    settleT = setTimeout(() => {
+      const w = track.clientWidth; if(!w) return;
+      const idx = Math.round(track.scrollLeft / w) - 2;
+      if(idx !== 0) shift(idx * 7);
+    }, 90);
   }, { passive:true });
   root.querySelectorAll(".hm-day").forEach(b => b.addEventListener("click", () => { currentDate = b.getAttribute("data-date"); renderAll(); }));
 
@@ -8003,6 +8067,9 @@ function bindHome(root){
   };
   root.querySelectorAll(".hm-row").forEach(row => {
     const t = row.querySelector("[data-text]");
+    row.querySelectorAll(".hm-row-d, .hm-row-date").forEach(c => c.addEventListener("click", () => {
+      currentDate = row.getAttribute("data-date"); renderAll();
+    }));
     t.addEventListener("focus", () => { row.classList.add("editing"); t.classList.remove("empty"); });
     t.addEventListener("input", () => { clearTimeout(_hmSaveT); _hmSaveT = setTimeout(() => commitRow(row), 400); });
     t.addEventListener("keydown", (e) => { if(e.key === "Enter"){ e.preventDefault(); t.blur(); } });

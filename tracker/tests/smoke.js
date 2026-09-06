@@ -178,7 +178,7 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       rings: document.querySelectorAll(".hm-ringwrap .hm-ring").length === 2,
       water: true,                                   // v42: water moved off Home by spec
       work: document.querySelectorAll("#hmRows .hm-row").length,
-      cmp: document.querySelectorAll(".hm-deltas > div").length,   // v43: the vs-last-period row
+      cmp: document.querySelectorAll(".hm-deltas > *").length,   // v43: the vs-last-period row
       brain: document.querySelectorAll(".js-brain").length >= 3,
     }));
     (dash.days === 7 && dash.rings && dash.water && dash.work >= 7 && dash.cmp === 7 && dash.brain)

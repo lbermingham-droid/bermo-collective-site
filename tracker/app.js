@@ -372,6 +372,7 @@ function goBase(tab){
     if(!tab) return;
   }
   currentTab = tab;
+  document.body.classList.toggle("on-home", tab === "dashboard");
   $$(".view").forEach(v => v.classList.toggle("active", v.id === "view-"+tab));
   $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tab));
   $$(".mtab").forEach(t => t.classList.toggle("active", t.dataset.tab === tab));
@@ -7687,24 +7688,21 @@ function openNumberPrompt(title, value, onOk){
 
 
 // =================================================================
-// v42 — HOME. Apple Fitness on top, a Notes-style week under it.
+// v43 — HOME, built to her mockup. One scoped module (.hm-*).
 //
-//   week strip (7 days, each with its two rings; swipe weeks)
-//   today's two rings: Fitness (Apple's numbers) · Nutrition (what's left)
-//   the week as a notepad: tap a line to type, arrow opens the workout
-//   Left this week
+//   date + gear · brain dump bar (photo / voice)
+//   week strip: 7 days, concentric gradient rings, date
+//   two big gradient rings: Fitness TODAY · Nutrition TODAY
+//   8-cell stat row: active min · active cal · working sets · load
+//                    cal left · protein · carbs · fat
+//   THIS WEEK card: day · date · tick · editable text · ▷ ··· / +
+//   LEFT THIS WEEK: three regions with icons
+//   VS LAST WEEK: Week / Month / Year · seven deltas
 //
-// Built as ONE scoped module (.hm-*). It does not inherit the legacy
-// dashboard's CSS layers, which is why the old screen looked homegrown:
-// twenty overrides stacked on each other. The legacy dashboard DOM stays
-// in the page, hidden, until step 6 removes it with a proper orphan
-// sweep — its renders still run, so nothing throws.
+// The legacy dashboard DOM stays hidden in #dashLegacy until step 6.
 // =================================================================
 
 // ---- plan lines: the notepad model --------------------------------
-// A day's plan is a list of short lines ("Legs AM", "Cardio PM"). The
-// first line stays mirrored into `type` and the rest into `extra[]`, so
-// every existing consumer (day sheet, program, week list) keeps working.
 function _ampm(t){ if(!t) return ""; const h = parseInt(t.split(":")[0], 10); return isNaN(h) ? "" : (h < 12 ? "AM" : "PM"); }
 function _stripAmPm(s){ return (s || "").replace(/\s+(AM|PM)$/i, "").trim(); }
 function planLinesFor(dateKey){
@@ -7736,10 +7734,10 @@ function setPlanLines(dateKey, lines){
   save();
 }
 const _NOT_A_LIFT = /\b(rest|off|cardio|walk|walking|run|running|jog|bike|cycling|spin|stair|stairmaster|swim|row(?:ing)?\s*(?:erg|machine)|elliptical|yoga|stretch|mobility|pilates|hike|hiit)\b/i;
+const _IS_REST = /^\s*(rest|off|day off|—|-)\s*$/i;
 function _lineIsLift(text){ return !!(text || "").trim() && !_NOT_A_LIFT.test(text); }
-function _lineIsCardio(text){ return /\b(cardio|walk|walking|run|running|jog|bike|cycling|spin|stair|stairmaster|swim|elliptical|hike|hiit)\b/i.test(text || ""); }
 
-// ---- per-day numbers ---------------------------------------------
+// ---- per-day / per-period numbers ---------------------------------
 function _homeDay(key){
   const day = state.days[key] || {};
   const ss = day.sessions || [];
@@ -7750,182 +7748,235 @@ function _homeDay(key){
   const t = totalsFor(key);
   const g = state.goals || {};
   return {
-    key, act, ag,
+    key, act, ag, totals: t,
     fitPct: ag.exercise ? Math.min(1, (act.exercise || 0) / ag.exercise) : 0,
     nutPct: g.cal ? Math.min(1, (t.cal || 0) / g.cal) : 0,
     synced: act.source === "applehealth",
     lifted: strength.length > 0,
-    cardioMin: cardio.reduce((n, s) => n + (s.durationMin || 0), 0),
-    load: strength.reduce((n, s) => n + (s.weight || 0) * (s.reps || 0) * (s.sets || 1), 0),
     sets: strength.reduce((n, s) => n + (s.sets || 1), 0),
-    totals: t,
+    load: strength.reduce((n, s) => n + (s.weight || 0) * (s.reps || 0) * (s.sets || 1), 0),
+    cardioMin: cardio.reduce((n, s) => n + (s.durationMin || 0), 0),
   };
 }
-function _homeWeek(sun){
-  const days = [];
-  for(let i = 0; i < 7; i++) days.push(_homeDay(todayKey(new Date(sun.getTime() + i*86400000))));
-  const liftPlanned = days.filter(d => planLinesFor(d.key).some(l => _lineIsLift(l.text))).length;
-  const liftDone = days.filter(d => d.lifted).length;
-  return {
-    days,
-    liftPlanned: Math.max(liftPlanned, liftDone),   // a lift you did but never planned still counts
-    liftDone,
-    load: days.reduce((n, d) => n + d.load, 0),
-    sets: days.reduce((n, d) => n + d.sets, 0),
-  };
+function _periodStats(startKey, endKey){
+  const g = state.goals || {};
+  const out = { activeMin:0, activeCal:0, calSynced:false, liftDays:0, load:0, cardioMin:0, proteinDays:0, calDays:0 };
+  let d = new Date(startKey + "T12:00:00");
+  const end = new Date(endKey + "T12:00:00");
+  while(d <= end){
+    const k = todayKey(d);
+    if(state.days[k]){
+      const h = _homeDay(k);
+      out.activeMin += h.act.exercise || 0;
+      if(h.synced){ out.activeCal += h.act.move || 0; out.calSynced = true; }
+      if(h.lifted) out.liftDays++;
+      out.load += h.load;
+      out.cardioMin += h.cardioMin;
+      if(g.protein && h.totals.p >= g.protein) out.proteinDays++;
+      if(g.cal && h.totals.cal > 0 && Math.abs(h.totals.cal - g.cal) <= g.cal * 0.1) out.calDays++;
+    }
+    d = new Date(d.getTime() + 86400000);
+  }
+  return out;
+}
+function _periodRanges(period, anchorKey){
+  const a = new Date(anchorKey + "T12:00:00");
+  if(period === "month"){
+    const s = new Date(a.getFullYear(), a.getMonth(), 1), e = new Date(a.getFullYear(), a.getMonth() + 1, 0);
+    const ps = new Date(a.getFullYear(), a.getMonth() - 1, 1), pe = new Date(a.getFullYear(), a.getMonth(), 0);
+    return { cur:[todayKey(s), todayKey(e)], prev:[todayKey(ps), todayKey(pe)], label:"vs Last Month" };
+  }
+  if(period === "year"){
+    const y = a.getFullYear();
+    return { cur:[`${y}-01-01`, `${y}-12-31`], prev:[`${y-1}-01-01`, `${y-1}-12-31`], label:"vs Last Year" };
+  }
+  const sun = weekStart(a), sat = new Date(sun.getTime() + 6*86400000);
+  const psun = new Date(sun.getTime() - 7*86400000), psat = new Date(sun.getTime() - 86400000);
+  return { cur:[todayKey(sun), todayKey(sat)], prev:[todayKey(psun), todayKey(psat)], label:"vs Last Week" };
 }
 
 // ---- rings ---------------------------------------------------------
-// Apple's look: round caps, a track at ~14% of the ring colour, and a
-// slightly darker tip where the arc overlaps itself past 100%.
-function ringSvg(size, rings){
+function ringSvg(size, rings, opts){
+  const o = opts || {};
   const cx = size / 2;
   let defs = "", arcs = "";
   rings.forEach((r, i) => {
     const sw = r.stroke;
-    const radius = cx - sw / 2 - (i * (sw + 3));
+    const radius = cx - sw / 2 - (i * (sw + (o.gap || 3)));
     const C = 2 * Math.PI * radius;
     const pct = Math.max(0, Math.min(1, r.pct || 0));
-    const gid = `hmg${size}${i}${(r.color || "").replace("#", "")}`;
-    defs += `<linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="${r.color}"/><stop offset="1" stop-color="${r.color2 || r.color}"/></linearGradient>`;
-    arcs += `<circle cx="${cx}" cy="${cx}" r="${radius}" fill="none" stroke="${r.color}" stroke-opacity=".14" stroke-width="${sw}"/>`;
-    if(pct > 0) arcs += `<circle cx="${cx}" cy="${cx}" r="${radius}" fill="none" stroke="url(#${gid})" stroke-width="${sw}"
-      stroke-linecap="round" stroke-dasharray="${(C * pct).toFixed(2)} ${C.toFixed(2)}"
-      transform="rotate(-90 ${cx} ${cx})"/>`;
+    const gid = `g${size}${i}${(r.stops[0] || "").replace("#", "")}`;
+    defs += `<linearGradient id="${gid}" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${size}" y2="${size}">
+      ${r.stops.map((c, j) => `<stop offset="${j / (r.stops.length - 1)}" stop-color="${c}"/>`).join("")}</linearGradient>`;
+    arcs += `<circle cx="${cx}" cy="${cx}" r="${radius}" fill="none" stroke="${r.track || "#1a1b21"}" stroke-width="${sw}"/>`;
+    if(pct > 0) arcs += `<circle class="hm-arc" cx="${cx}" cy="${cx}" r="${radius}" fill="none" stroke="url(#${gid})" stroke-width="${sw}"
+      stroke-linecap="round" stroke-dasharray="${(C * pct).toFixed(2)} ${C.toFixed(2)}" transform="rotate(-90 ${cx} ${cx})"/>`;
   });
   return `<svg class="hm-ring" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><defs>${defs}</defs>${arcs}</svg>`;
 }
-const HM_FIT = "#00f5d4", HM_FIT2 = "#5cffe6", HM_NUT = "#4db8ff", HM_NUT2 = "#8ad0ff";
+const HM_FIT_STOPS = ["#ff2d95", "#ff4dcc", "#b788ff"];
+const HM_NUT_STOPS = ["#00f5d4", "#4dd8ff", "#4db8ff"];
+const HM_ICON = {
+  run:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="4" r="1.6"/><path d="M13.5 8.5 10 10l-1.5 4M13.5 8.5l2.5 3-1 5.5-3 3M13.5 8.5 16 7l3 2.5M10 10 7 13.5M12 14l-4 6"/></svg>`,
+  fork: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 2v7a3 3 0 0 0 3 3v10M7 2v5M10 2v5M13 2v5M18 2c-2 1-3 4-3 8v2h3v10"/></svg>`,
+  gear: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>`,
+  camera: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.2"/></svg>`,
+  mic: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6"/></svg>`,
+  play: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M7 5v14l11-7z"/></svg>`,
+  dots: `<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>`,
+  plus: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`,
+  chev: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>`,
+  down: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>`,
+  check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`,
+};
+const _PART_ICON = { legs:"legs", glutes:"glutes", back:"back", chest:"chest", shoulders:"shoulders", arms:"arms", core:"core" };
+const _PART_COLOR = { legs:"#ff2d95", glutes:"#ff2d95", arms:"#b788ff", back:"#b788ff", chest:"#4db8ff", shoulders:"#4db8ff", core:"#00f5d4" };
 
 // ---- render --------------------------------------------------------
 function renderHome(){
   const root = document.getElementById("home");
   if(!root) return;
+  document.body.classList.toggle("on-home", !!document.getElementById("view-dashboard") && document.getElementById("view-dashboard").classList.contains("active"));
   const today = todayKey(new Date());
   const sel = new Date(currentDate + "T12:00:00");
   const sun = weekStart(sel);
-  const wk = _homeWeek(sun);
   const d = _homeDay(currentDate);
   const g = state.goals || {};
   const left = (goal, have) => Math.max(0, Math.round((goal || 0) - (have || 0)));
-  const fmtK = (n) => n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, "") + "K" : String(Math.round(n));
-  const isThisWeek = todayKey(sun) === todayKey(weekStart(new Date()));
-  const sat = new Date(sun.getTime() + 6*86400000);
-  const rangeLabel = sun.toLocaleDateString(undefined, { month:"short", day:"numeric" }) + " – " +
-                     sat.toLocaleDateString(undefined, { month:"short", day:"numeric" });
+  const fmtK = (n) => Math.abs(n) >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, "") + "K" : String(Math.round(n));
+  const fmtDelta = (n, unit) => (n > 0 ? "+" : n < 0 ? "−" : "") + (Math.abs(n) >= 1000 ? Math.abs(n).toLocaleString() : Math.abs(n)) + (unit ? `<em>${unit}</em>` : "");
+  const days = [];
+  for(let i = 0; i < 8; i++) days.push(_homeDay(todayKey(new Date(sun.getTime() + i*86400000))));   // 8: next Sunday too, like the mockup
 
   // --- week strip ---
-  const strip = wk.days.map((x, i) => {
+  const strip = days.slice(0, 7).map((x, i) => {
     const dt = new Date(x.key + "T12:00:00");
-    return `<button type="button" class="hm-day ${x.key === currentDate ? "sel" : ""} ${x.key === today ? "today" : ""} ${x.key > today ? "future" : ""}" data-date="${x.key}">
-      <span class="hm-day-l">${"SMTWTFS"[i]}</span>
-      ${ringSvg(34, [{ pct: x.fitPct, color: HM_FIT, stroke: 4.5 }, { pct: x.nutPct, color: HM_NUT, stroke: 4.5 }])}
+    return `<button type="button" class="hm-day ${x.key === currentDate ? "sel" : ""}" data-date="${x.key}">
+      <span class="hm-day-l">${["SUN","MON","TUE","WED","THU","FRI","SAT"][i]}</span>
+      ${ringSvg(44, [{ pct: x.fitPct, stops: HM_FIT_STOPS, stroke: 5 }, { pct: x.nutPct, stops: HM_NUT_STOPS, stroke: 5 }], { gap: 2 })}
       <span class="hm-day-n">${dt.getDate()}</span>
     </button>`;
   }).join("");
 
-  // --- notepad ---
-  const pad = wk.days.map((x, i) => {
+  // --- this week rows ---
+  const rows = days.map((x) => {
     const dt = new Date(x.key + "T12:00:00");
     const lines = planLinesFor(x.key);
-    const day = state.days[x.key] || {};
-    const hasCardio = (day.sessions || []).some(s => s.type === "cardio");
-    const rows = lines.map((l, li) => {
-      const auto = (li === 0 && x.lifted && _lineIsLift(l.text)) || (_lineIsCardio(l.text) && hasCardio);
-      const done = l.done || auto;
-      const openable = !/^\s*(rest|off|day off)\s*$/i.test(l.text);   // a rest line has no workout to open
-      return `<div class="hm-line ${done ? "done" : ""} ${openable ? "" : "no-open"}" data-date="${x.key}" data-line="${escape(l.id)}">
-        <button type="button" class="hm-tick" data-tick title="${done ? "Done" : "Mark done"}" aria-label="Mark done"></button>
-        <div class="hm-text" contenteditable="true" spellcheck="false" data-text>${escape(l.text)}</div>
-        <button type="button" class="hm-go" data-open title="Open workout" aria-label="Open workout">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
-        </button>
-      </div>`;
-    }).join("");
-    return `<div class="hm-pday ${x.key === today ? "today" : ""} ${x.key === currentDate ? "sel" : ""}" data-date="${x.key}">
-      <div class="hm-pday-h"><span>${dt.toLocaleDateString(undefined, { weekday:"long" })}</span><i>${dt.getDate()}</i></div>
-      <div class="hm-lines">${rows}
-        <div class="hm-line new" data-date="${x.key}">
-          <span class="hm-tick ghost"></span>
-          <div class="hm-text placeholder" contenteditable="true" spellcheck="false" data-new data-ph="${lines.length ? "Add" : "\u2014"}"></div>
-        </div>
-      </div>
+    const text = lines.map(l => l.text).join(", ");
+    const rest = !lines.length || (lines.length === 1 && _IS_REST.test(lines[0].text));
+    const hasWork = lines.some(l => !_IS_REST.test(l.text));
+    const done = x.lifted || x.cardioMin > 0 || lines.some(l => l.done);
+    return `<div class="hm-row ${x.key === currentDate ? "sel" : ""} ${done ? "done" : ""}" data-date="${x.key}">
+      <span class="hm-row-d">${dt.toLocaleDateString(undefined, { weekday:"short" })}</span>
+      <span class="hm-row-date">${dt.toLocaleDateString(undefined, { month:"short", day:"numeric" })}</span>
+      <button type="button" class="hm-tick ${rest ? "rest" : ""}" data-tick aria-label="Mark done">${done ? HM_ICON.check : ""}</button>
+      <div class="hm-row-text ${rest && !lines.length ? "empty" : ""}" contenteditable="true" spellcheck="false" data-text data-ph="—">${escape(text)}</div>
+      <div class="hm-row-acts">${hasWork
+        ? `<button type="button" class="hm-ib" data-open aria-label="Open workout">${HM_ICON.play}</button>
+           <button type="button" class="hm-ib" data-more aria-label="More">${HM_ICON.dots}</button>`
+        : `<button type="button" class="hm-ib" data-add aria-label="Add">${HM_ICON.plus}</button>`}</div>
     </div>`;
   }).join("");
 
   // --- left this week ---
   let leftHtml;
-  if(wk.sets === 0){
+  const weekSets = days.slice(0, 7).reduce((n, x) => n + x.sets, 0);
+  if(weekSets === 0){
     leftHtml = `<div class="hm-left-empty">Nothing logged this week yet</div>`;
   } else {
     let missing = [];
     try{
       const gaps = subMuscleGaps("week");
-      (gaps.report || gaps || []).forEach(p => (p.missing || []).forEach(m => missing.push(m.label)));
+      (gaps.report || []).forEach(p => (p.missing || []).forEach(m => missing.push({ part: p.part, label: m.label })));
     }catch(e){ console.warn("left this week", e); }
-    missing = Array.from(new Set(missing)).slice(0, 5)
-      .map(m => m.replace(/(^|\s|\/)([a-z])/g, (a, b, c) => b + c.toUpperCase()));
+    const seen = new Set();
+    missing = missing.filter(m => { if(seen.has(m.label)) return false; seen.add(m.label); return true; }).slice(0, 3);
     leftHtml = missing.length
-      ? `<ul class="hm-left-list">${missing.map(m => `<li>${escape(m)}</li>`).join("")}</ul>`
-      : `<div class="hm-left-ok">Coverage complete</div>`;
+      ? `<div class="hm-left-grid">${missing.map(m => `
+          <div class="hm-left-cell">
+            <span class="hm-left-ic" style="color:${_PART_COLOR[m.part] || "#00f5d4"}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${_MG_ICON[_PART_ICON[m.part]] || _MG_ICON.core}</svg></span>
+            <div><b>${escape(m.label.replace(/(^|\s|\/)([a-z])/g, (a, b, c) => b + c.toUpperCase()))}</b><span>0 sets</span></div>
+          </div>`).join("")}</div>`
+      : `<div class="hm-left-ok">${HM_ICON.check} Coverage complete</div>`;
   }
 
+  // --- vs last period ---
+  const period = (state.ui && state.ui.hmPeriod) || "week";
+  const pr = _periodRanges(period, currentDate);
+  const cur = _periodStats(pr.cur[0], pr.cur[1]), prev = _periodStats(pr.prev[0], pr.prev[1]);
+  const deltas = [
+    { v: fmtDelta(Math.round(cur.activeMin - prev.activeMin), "min"), l:"active time" },
+    { v: (cur.calSynced || prev.calSynced) ? fmtDelta(Math.round(cur.activeCal - prev.activeCal)) : "—", l:"active cal" },
+    { v: fmtDelta(cur.liftDays - prev.liftDays), l:"lift day" + (Math.abs(cur.liftDays - prev.liftDays) === 1 ? "" : "s") },
+    { v: fmtDelta(Math.round(cur.load - prev.load), unit()), l:"weight load" },
+    { v: fmtDelta(Math.round(cur.cardioMin - prev.cardioMin), "min"), l:"cardio" },
+    { v: fmtDelta(cur.proteinDays - prev.proteinDays), l:"protein target" },
+    { v: fmtDelta(cur.calDays - prev.calDays), l:"calories on target" },
+  ];
+
   root.innerHTML = `
-    <div class="hm-top">
-      <button type="button" class="hm-nav" id="hmPrev" aria-label="Previous week"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
-      <div class="hm-range">${isThisWeek ? "This week" : rangeLabel}<small>${isThisWeek ? rangeLabel : ""}</small></div>
-      <button type="button" class="hm-nav" id="hmNext" aria-label="Next week"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+    <div class="hm-head">
+      <button type="button" class="hm-date" id="hmToday">${fmtDate(currentDate)} <i>${HM_ICON.down}</i></button>
+      <button type="button" class="hm-gear" id="hmGear" aria-label="Settings">${HM_ICON.gear}</button>
     </div>
+
+    <div class="hm-brain">
+      <button type="button" class="hm-brain-in js-brain" data-bmode="">
+        <b>Brain dump...</b><span>e.g. Legs 8am, cardio 6pm, coffee, eggs, 1/2 bagel...</span>
+      </button>
+      <button type="button" class="hm-brain-b js-brain" data-bmode="photo">${HM_ICON.camera}<span>Photo</span></button>
+      <button type="button" class="hm-brain-b js-brain" data-bmode="speak">${HM_ICON.mic}<span>Voice</span></button>
+    </div>
+
     <div class="hm-strip" id="hmStrip">${strip}</div>
 
     <div class="hm-rings">
-      <div class="hm-ringcol">
-        <div class="hm-ringwrap">${ringSvg(150, [{ pct: d.fitPct, color: HM_FIT, color2: HM_FIT2, stroke: 15 }])}
-          <div class="hm-ringmid"><b>${Math.round(d.act.exercise || 0)}</b><span>min</span></div>
-        </div>
-        <div class="hm-ringlbl">Fitness${d.synced ? "" : ` <i title="Apple Health not synced yet today">not synced</i>`}</div>
-        <div class="hm-stats">
-          <div><b>${Math.round(d.act.exercise || 0)}<small>m</small></b><span>Active</span></div>
-          <div><b>${d.synced ? Math.round(d.act.move || 0) : "\u2014"}</b><span>Cal</span></div>
-          <div><b>${wk.liftDone}<small>/${wk.liftPlanned}</small></b><span>Lifts</span></div>
-          <div><b>${fmtK(wk.load)}</b><span>Load</span></div>
-        </div>
+      <div class="hm-ringwrap fit">${ringSvg(176, [{ pct: d.fitPct, stops: HM_FIT_STOPS, stroke: 17 }])}
+        <div class="hm-ringmid"><i style="color:#ff2d95">${HM_ICON.run}</i><b>Fitness</b><span>Today${d.synced ? "" : " · not synced"}</span></div>
       </div>
-      <div class="hm-ringcol">
-        <div class="hm-ringwrap">${ringSvg(150, [{ pct: d.nutPct, color: HM_NUT, color2: HM_NUT2, stroke: 15 }])}
-          <div class="hm-ringmid"><b>${left(g.cal, d.totals.cal)}</b><span>cal left</span></div>
-        </div>
-        <div class="hm-ringlbl">Nutrition</div>
-        <div class="hm-stats hm-stats-3">
-          <div><b>${left(g.protein, d.totals.p)}<small>g</small></b><span>Protein</span></div>
-          <div><b>${left(g.carbs, d.totals.c)}<small>g</small></b><span>Carbs</span></div>
-          <div><b>${left(g.fat, d.totals.f)}<small>g</small></b><span>Fat</span></div>
-        </div>
+      <div class="hm-ringwrap nut">${ringSvg(176, [{ pct: d.nutPct, stops: HM_NUT_STOPS, stroke: 17 }])}
+        <div class="hm-ringmid"><i style="color:#00f5d4">${HM_ICON.fork}</i><b>Nutrition</b><span>Today</span></div>
       </div>
     </div>
 
-    <div class="hm-pad" id="hmPad">${pad}</div>
+    <div class="hm-stats">
+      <div><b>${Math.round(d.act.exercise || 0)}</b><span>active min</span></div>
+      <div><b>${d.synced ? Math.round(d.act.move || 0) : "—"}</b><span>active cal</span></div>
+      <div><b>${d.sets}</b><span>working sets</span></div>
+      <div><b>${fmtK(d.load)}</b><span>${unit()} load</span></div>
+      <div><b>${left(g.cal, d.totals.cal)}</b><span>cal left</span></div>
+      <div><b>${left(g.protein, d.totals.p)}g</b><span>protein</span></div>
+      <div><b>${left(g.carbs, d.totals.c)}g</b><span>carbs</span></div>
+      <div><b>${left(g.fat, d.totals.f)}g</b><span>fat</span></div>
+    </div>
 
-    <div class="hm-left">
-      <div class="hm-left-h">Left this week</div>
+    <section class="hm-card">
+      <div class="hm-card-h"><b>This Week</b><button type="button" class="hm-link" id="hmEdit">Edit</button></div>
+      <div class="hm-rows" id="hmRows">${rows}</div>
+    </section>
+
+    <section class="hm-card">
+      <div class="hm-card-h"><b>Left This Week</b><button type="button" class="hm-ib ghost" id="hmLeftMore" aria-label="Details">${HM_ICON.chev}</button></div>
       ${leftHtml}
-    </div>`;
+    </section>
+
+    <section class="hm-card">
+      <div class="hm-card-h"><b>${pr.label}</b>
+        <div class="hm-seg" id="hmPeriod">${["week","month","year"].map(p => `<button type="button" class="${p === period ? "on" : ""}" data-period="${p}">${p.charAt(0).toUpperCase() + p.slice(1)}</button>`).join("")}</div>
+      </div>
+      <div class="hm-deltas">${deltas.map(x => `<div><b>${x.v}</b><span>${x.l}</span></div>`).join("")}</div>
+    </section>`;
 
   bindHome(root);
 }
 
 let _hmSaveT = null;
 function bindHome(root){
-  // week nav + swipe
-  const shift = (n) => {
-    const dt = new Date(currentDate + "T12:00:00");
-    dt.setDate(dt.getDate() + n);
-    currentDate = todayKey(dt);
-    renderAll();
-  };
-  root.querySelector("#hmPrev").onclick = () => shift(-7);
-  root.querySelector("#hmNext").onclick = () => shift(7);
+  const shift = (n) => { const dt = new Date(currentDate + "T12:00:00"); dt.setDate(dt.getDate() + n); currentDate = todayKey(dt); renderAll(); };
+  root.querySelector("#hmToday").onclick = () => { currentDate = todayKey(new Date()); renderAll(); };
+  root.querySelector("#hmGear").onclick = () => go("settings");
+
+  // swipe the strip between weeks
   const strip = root.querySelector("#hmStrip");
   let sx = null, sy = null;
   strip.addEventListener("touchstart", (e) => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive:true });
@@ -7935,91 +7986,65 @@ function bindHome(root){
     sx = sy = null;
     if(Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.5) shift(dx < 0 ? 7 : -7);
   }, { passive:true });
-  root.querySelectorAll(".hm-day").forEach(b => b.addEventListener("click", () => {
-    currentDate = b.getAttribute("data-date"); renderAll();
-  }));
+  root.querySelectorAll(".hm-day").forEach(b => b.addEventListener("click", () => { currentDate = b.getAttribute("data-date"); renderAll(); }));
 
-  // notepad — type in place; nothing re-renders while you are typing
-  const readDayLines = (dateKey) => {
-    const out = [];
-    root.querySelectorAll(`.hm-line[data-date="${dateKey}"]`).forEach(row => {
-      const t = row.querySelector("[data-text], [data-new]");
-      const text = (t.textContent || "").trim();
-      if(!text) return;
-      const id = row.getAttribute("data-line") || uid();
-      const wasDone = row.classList.contains("done") && !row.classList.contains("auto");
-      out.push({ id, text, done: row.dataset.done === "1" });
-    });
-    return out;
-  };
-  const commitDay = (dateKey, rerender) => {
-    setPlanLines(dateKey, readDayLines(dateKey));
-    if(rerender) renderAll();
-  };
-  // keep explicit done state on the row so a re-read doesn't lose it
-  root.querySelectorAll(".hm-line[data-line]").forEach(row => {
+  // rows: the text is the notepad. Comma-separated on one line, like the mockup.
+  const commitRow = (row) => {
     const dateKey = row.getAttribute("data-date");
-    const lines = planLinesFor(dateKey);
-    const l = lines.find(x => x.id === row.getAttribute("data-line"));
-    row.dataset.done = l && l.done ? "1" : "0";
-  });
-
-  root.querySelectorAll("[data-text], [data-new]").forEach(el => {
-    const dateKey = el.closest(".hm-line").getAttribute("data-date");
-    el.addEventListener("input", () => {
-      el.classList.toggle("placeholder", !el.textContent.trim());
-      clearTimeout(_hmSaveT);
-      _hmSaveT = setTimeout(() => commitDay(dateKey, false), 350);
+    const prev = planLinesFor(dateKey);
+    const texts = (row.querySelector("[data-text]").textContent || "").split(/\s*,\s*/).map(t => t.trim()).filter(Boolean);
+    const lines = texts.map((t, i) => {
+      const old = prev.find(l => l.text.toLowerCase() === t.toLowerCase()) || prev[i];
+      return { id: old ? old.id : uid(), text: t, done: old ? !!old.done : false };
     });
-    el.addEventListener("keydown", (e) => {
-      if(e.key === "Enter"){
-        e.preventDefault();
-        commitDay(dateKey, false);
-        // new empty line under this one, then re-render and focus it
-        const lines = planLinesFor(dateKey).slice();
-        const idx = el.hasAttribute("data-new") ? lines.length : lines.findIndex(x => x.id === el.closest(".hm-line").getAttribute("data-line"));
-        const fresh = { id: uid(), text: "", done:false };
-        lines.splice(idx + 1, 0, fresh);
-        // an empty line can't be stored (setPlanLines drops blanks), so
-        // store a placeholder marker and focus the "new" row instead
-        const r = _dayPlanRef(dateKey);
-        setPlanLines(dateKey, lines.filter(x => x.text));
-        renderAll();
-        const nx = document.querySelector(`.hm-line.new[data-date="${dateKey}"] [data-new]`);
-        if(nx){ nx.focus(); }
-      }
-      if(e.key === "Backspace" && !el.textContent.trim() && !el.hasAttribute("data-new")){
-        e.preventDefault();
-        const row = el.closest(".hm-line");
-        const prev = row.previousElementSibling;
-        row.remove();
-        commitDay(dateKey, true);
-        const p = prev && document.querySelector(`.hm-line[data-line="${prev.getAttribute("data-line")}"] [data-text]`);
-        if(p){ p.focus(); document.getSelection().selectAllChildren(p); document.getSelection().collapseToEnd(); }
-      }
-    });
-    el.addEventListener("blur", () => {
-      clearTimeout(_hmSaveT);
-      const before = JSON.stringify(planLinesFor(dateKey).map(x => x.text));
-      commitDay(dateKey, false);
-      const after = JSON.stringify(planLinesFor(dateKey).map(x => x.text));
-      if(before !== after) setTimeout(renderAll, 60);
-    });
-  });
-
-  root.querySelectorAll("[data-tick]").forEach(b => b.addEventListener("click", () => {
-    const row = b.closest(".hm-line");
-    const dateKey = row.getAttribute("data-date");
-    const lines = planLinesFor(dateKey).map(l => l.id === row.getAttribute("data-line") ? Object.assign({}, l, { done: !l.done }) : l);
+    const before = JSON.stringify(prev.map(l => l.text));
     setPlanLines(dateKey, lines);
-    renderAll();
-  }));
-  root.querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", () => {
-    const dateKey = b.closest(".hm-line").getAttribute("data-date");
-    currentDate = dateKey;
-    openDaySheet(dateKey);
+    return before !== JSON.stringify(lines.map(l => l.text));
+  };
+  root.querySelectorAll(".hm-row").forEach(row => {
+    const t = row.querySelector("[data-text]");
+    t.addEventListener("focus", () => { row.classList.add("editing"); t.classList.remove("empty"); });
+    t.addEventListener("input", () => { clearTimeout(_hmSaveT); _hmSaveT = setTimeout(() => commitRow(row), 400); });
+    t.addEventListener("keydown", (e) => { if(e.key === "Enter"){ e.preventDefault(); t.blur(); } });
+    t.addEventListener("blur", () => {
+      clearTimeout(_hmSaveT);
+      row.classList.remove("editing");
+      const changed = commitRow(row);
+      if(changed || !t.textContent.trim()) setTimeout(renderAll, 40);
+    });
+    const tick = row.querySelector("[data-tick]");
+    tick.addEventListener("click", () => {
+      const dateKey = row.getAttribute("data-date");
+      const lines = planLinesFor(dateKey);
+      if(!lines.length) return;
+      const allDone = lines.every(l => l.done);
+      setPlanLines(dateKey, lines.map(l => Object.assign({}, l, { done: !allDone })));
+      renderAll();
+    });
+    const open = row.querySelector("[data-open]"), more = row.querySelector("[data-more]"), add = row.querySelector("[data-add]");
+    if(open) open.addEventListener("click", () => { currentDate = row.getAttribute("data-date"); openDaySheet(currentDate); });
+    if(more) more.addEventListener("click", () => { currentDate = row.getAttribute("data-date"); openDaySheet(currentDate); });
+    if(add)  add.addEventListener("click", () => { t.focus(); });
+  });
+  root.querySelector("#hmEdit").onclick = () => {
+    const row = root.querySelector(`.hm-row[data-date="${currentDate}"]`) || root.querySelector(".hm-row");
+    if(row){ const t = row.querySelector("[data-text]"); t.focus(); document.getSelection().selectAllChildren(t); document.getSelection().collapseToEnd(); }
+  };
+  root.querySelector("#hmLeftMore").onclick = () => go("fitness");
+  root.querySelectorAll("#hmPeriod [data-period]").forEach(b => b.addEventListener("click", () => {
+    if(!state.ui) state.ui = {};
+    state.ui.hmPeriod = b.getAttribute("data-period");
+    save(); renderHome();
   }));
 }
+
+// Progress / More hubs — rows carry data-tab and go() to the real view.
+onReady(() => {
+  document.addEventListener("click", (e) => {
+    const r = e.target.closest(".hub-row[data-tab]");
+    if(r) go(r.getAttribute("data-tab"));
+  });
+});
 
 // =================================================================
 // ONE ADD-WORKOUT SHELL

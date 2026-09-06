@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v42**.
+- Current build: **v43**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -261,6 +261,49 @@ second water button on the low-water banner.
 `renderWodCard()` writing into four elements that no longer existed, so it
 threw on EVERY dashboard render and killed the render chain behind it. That
 is the orphan-sweep rule in §7, ignored in a hurry. It is now guarded.
+
+**HOME TO THE MOCKUP (v43).** She sent a rendered mockup and said
+*"Replicate this look exactly."* v42's Home was replaced wholesale — same
+scoped module pattern (`renderHome()`, `.hm-*`), different layout. The
+mockup overrides several earlier decisions; follow the picture, not the
+transcript, where they differ:
+
+- **Five tabs**, not three: Home · Workouts · Nutrition · Progress · More.
+  `view-progress` and `view-more` are hub pages of `.hub-row[data-tab]`
+  buttons that `go()` to the real views (body, goals, trends, library,
+  history, settings). The desktop `.tab` strip still lists every view, so
+  `document.querySelector('[data-tab="trends"]').click()` works from
+  tests even though no `.mtab` for it exists — `element.click()` fires on
+  hidden elements. **Tests and audit scripts must use `[data-tab=…]`, not
+  `.mtab[data-tab=…]`** — three journey steps failed on exactly this.
+- **Brain dump bar on Home**, with Photo and Voice. The buttons carry
+  `.js-brain` + `data-bmode` ("", "photo", "speak") and the existing
+  delegated click handler picks them up. Nothing new was bound.
+- **The top bar is hidden on Home** (`body.on-home .topbar`). `goBase()`
+  toggles the class and `renderHome()` sets it on first paint — the first
+  attempt only did the former, so the logo bar showed until a tab was tapped.
+- **Under the Fitness ring: active min · active cal · working sets · load**
+  (the mockup's choice; "lift days" now lives in *vs Last Week* as a delta).
+  Active cal is "—" until Apple Health has synced today.
+- **This Week rows**: day · date · tick · one editable comma-joined line ·
+  ▷ and ··· (or + on empty/rest days). Eight rows — the mockup shows next
+  Sunday too. The text cell is `contenteditable`; blur or Enter commits it
+  by splitting on commas into `plan[wk][dn].lines[]`. The selected day gets
+  a magenta tint. Both ▷ and ··· open the day sheet until the Hevy logger
+  lands (step 2).
+- **vs Last Week / Month / Year** (`_periodStats`, `_periodRanges`) — seven
+  deltas: active time, active cal (— unless synced days exist), lift days,
+  weight load, cardio, protein-target days, calories-on-target days (±10%).
+  Persisted choice in `state.ui.hmPeriod`. **No grade, no colour by sign.**
+- **Overflow lesson**: a CSS grid of `1fr` columns has a *minimum* of its
+  content, so a `white-space:nowrap` "+6,520 lb" pushed the whole page 72px
+  wide. Every Home grid is `minmax(0,1fr)` now, and the delta unit stacks
+  under its number. The smoke suite's overflow check would have caught it;
+  the screenshot caught it first.
+
+Still honest-but-ugly: **Left This Week** shows sub-region names
+("Glute Med / Abductors") with "0 sets". Step 3 replaces this with muscle
+groups and set counts against her own targets.
 
 **THE REBUILD — HOME (v42, step 1 of 6).** After four rounds of "it looks
 homegrown," she gave a full spec (ChatGPT-assisted, then corrected by her):
@@ -669,7 +712,7 @@ Playwright is already installed in the scratchpad. Launch chromium with
 `{ server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" }`.
 **Do not run `npx playwright install`.**
 
-**Expected: 47/47 and zero page errors**, plus `node tracker/tests/week.js` at **10/10**. (Two console errors about
+**Expected: 46/46 and zero page errors**, plus `node tracker/tests/week.js` at **10/10**. (Two console errors about
 `ERR_CONNECTION_RESET` are the sandbox blocking a CDN — pre-existing, ignore.)
 
 The suite covers: load, wizard, **sideways overflow on every page**, all tabs,
@@ -805,4 +848,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v39` ONE fitness screen — the day sheet, the build-workout picker, sets/weights ·
 `v40` week durability: the sets editor no longer deletes a logged workout ·
 `v41` BLACK SCREEN — a button pointed at a view deleted in v18 ·
-`v42` HOME — week strip, two rings, notepad plan, Left this week (step 1 of the rebuild).
+`v42` HOME — week strip, two rings, notepad plan, Left this week (step 1 of the rebuild) ·
+`v43` HOME rebuilt to her mockup: five-tab nav, brain dump bar, gradient rings, This Week rows, vs Last Week.

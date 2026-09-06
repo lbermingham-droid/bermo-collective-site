@@ -177,11 +177,11 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       days: document.querySelectorAll("#hmStrip .hm-day").length,
       rings: document.querySelectorAll(".hm-ringwrap .hm-ring").length === 2,
       water: true,                                   // v42: water moved off Home by spec
-      work: document.querySelectorAll("#hmPad .hm-pday").length,
-      cmp: document.querySelectorAll("#cmpRows .cmp-row").length,
+      work: document.querySelectorAll("#hmRows .hm-row").length,
+      cmp: document.querySelectorAll(".hm-deltas > div").length,   // v43: the vs-last-period row
       brain: document.querySelectorAll(".js-brain").length >= 3,
     }));
-    (dash.days === 7 && dash.rings && dash.water && dash.work === 7 && dash.cmp >= 3 && dash.brain)
+    (dash.days === 7 && dash.rings && dash.water && dash.work >= 7 && dash.cmp === 7 && dash.brain)
       ? ok(`dashboard renders (day strip + dual rings + water + ${dash.work}-day list + compare)`)
       : fail("dashboard renders", JSON.stringify(dash));
   } catch (e) { fail("dashboard re-render", e); }
@@ -232,7 +232,7 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
     });
     await page.reload({ waitUntil: "domcontentloaded", timeout: 20000 });
     await page.waitForTimeout(1200);
-    await page.click(`${tabSel}[data-tab="trends"]`);
+    await page.evaluate(() => { const b = document.querySelector('[data-tab="trends"]'); if(b) b.click(); });
     await page.waitForTimeout(900);
     const health = await page.evaluate(() => {
       const sm = document.getElementById("smList");
@@ -286,7 +286,7 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
     });
     await page.reload({ waitUntil: "domcontentloaded", timeout: 20000 });
     await page.waitForTimeout(1200);
-    await page.click(`${tabSel}[data-tab="trends"]`);
+    await page.evaluate(() => { const b = document.querySelector('[data-tab="trends"]'); if(b) b.click(); });
     await page.waitForTimeout(1000);
     const why = await page.evaluate(() => {
       const el = document.getElementById("whyList");

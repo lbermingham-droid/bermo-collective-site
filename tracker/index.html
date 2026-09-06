@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover,user-scalable=no">
+<title>BERMO.TRACKER | Nutrition + Fitness Portal</title>
+<meta name="description" content="A nutrition and fitness tracking portal. Log food, macros, water, workouts, PRs, and body metrics. Personal data stored locally in your browser.">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="/favicon.svg">
+
+<!-- PWA: install to home screen -->
+<link rel="manifest" href="/tracker/manifest.json">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="BERMO Tracker">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<link rel="apple-touch-icon" href="/favicon.svg">
+<link rel="apple-touch-startup-image" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Inter+Tight:wght@600;700;800;900&family=Montserrat:wght@600;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles.css?v=45">
+</head>
+<body>
+
+<!-- ============ AUTH / GATE ============ -->
+<section id="gate" class="gate">
+  <div class="gate-card">
+    <div class="gate-logo">
+      <span class="gl-top">BERMO<span class="c">.</span></span>
+      <span class="gl-bot">TRACKER</span>
+      <div class="gl-bar"></div>
+    </div>
+    <p class="gate-eyebrow">Nutrition + Fitness Portal</p>
+    <h1 class="gate-headline">Track what you <em>eat</em>. Track what you <em>lift</em>. Own the data.</h1>
+    <p class="gate-sub">A private tracker built for founders, athletes, and anyone tired of paying for ads to see their own food log. Your data stays in your browser.</p>
+
+    <div class="wiz" id="wiz">
+      <div class="wiz-progress"><span class="wiz-prog-fill" id="wizProgFill"></span></div>
+      <p class="wiz-step-label" id="wizStepLabel">Step 1 of 3 — About you</p>
+
+      <!-- STEP 1: basics + body -->
+      <div class="wiz-step active" data-step="1">
+        <label>
+          <span>Athlete name</span>
+          <input type="text" id="wizName" placeholder="e.g. Lexi B." required maxlength="40">
+        </label>
+        <div class="gate-row">
+          <label>
+            <span>Sex (for BMR)</span>
+            <select id="wizSex">
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+            </select>
+          </label>
+          <label>
+            <span>Age</span>
+            <input type="number" id="wizAge" value="30" min="13" max="99" required>
+          </label>
+        </div>
+        <label>
+          <span>Units</span>
+          <select id="wizUnits">
+            <option value="imperial">Imperial (lb · ft+in)</option>
+            <option value="metric">Metric (kg · cm)</option>
+          </select>
+        </label>
+        <div class="gate-row" id="wizHtRowImperial">
+          <label>
+            <span>Height — feet</span>
+            <input type="number" id="wizHeightFt" value="5" min="3" max="7" step="1">
+          </label>
+          <label>
+            <span>Height — inches</span>
+            <input type="number" id="wizHeightIn" value="5" min="0" max="11" step="1" inputmode="numeric">
+          </label>
+        </div>
+        <label id="wizHtRowMetric" style="display:none">
+          <span>Height (cm)</span>
+          <input type="number" id="wizHeightCm" value="165" min="100" max="220" step="any" inputmode="decimal">
+        </label>
+        <label>
+          <span>Weight <em id="wizWtUnit">(lb)</em></span>
+          <input type="number" id="wizWeight" value="150" min="60" max="500" step="0.1" required>
+        </label>
+      </div>
+
+      <!-- STEP 2: goal + activity + experience + days -->
+      <div class="wiz-step" data-step="2">
+        <label>
+          <span>Primary goal</span>
+          <select id="wizGoal">
+            <option value="lose">Lose fat</option>
+            <option value="maintain" selected>Maintain</option>
+            <option value="gain">Build muscle</option>
+          </select>
+        </label>
+        <label class="wiz-rate-wrap" id="wizRateWrap" style="display:none">
+          <span id="wizRateLabel">Target rate</span>
+          <select id="wizRate">
+            <option value="0.5">0.5 lb / week (gentle)</option>
+            <option value="1" selected>1 lb / week (standard)</option>
+            <option value="1.5">1.5 lb / week (aggressive)</option>
+          </select>
+        </label>
+        <label>
+          <span>Activity level (outside of training)</span>
+          <select id="wizActivity">
+            <option value="1.2">Sedentary (desk job, little walking)</option>
+            <option value="1.375" selected>Light (some walking, light chores)</option>
+            <option value="1.55">Moderate (active job or 8k+ steps)</option>
+            <option value="1.725">Very active (manual labor, 12k+ steps)</option>
+          </select>
+        </label>
+        <div class="gate-row">
+          <label>
+            <span>Training experience</span>
+            <select id="wizExp">
+              <option value="beginner">Beginner (&lt;1 yr)</option>
+              <option value="intermediate" selected>Intermediate (1–3 yrs)</option>
+              <option value="advanced">Advanced (3+ yrs)</option>
+            </select>
+          </label>
+          <label>
+            <span>Days / week training</span>
+            <select id="wizDays">
+              <option value="3">3 days</option>
+              <option value="4" selected>4 days</option>
+              <option value="5">5 days</option>
+              <option value="6">6 days</option>
+            </select>
+          </label>
+        </div>
+        <label>
+          <span>Equipment access</span>
+          <select id="wizEquipment">
+            <option value="full" selected>Full gym (barbell + dumbbells + machines)</option>
+            <option value="db">Dumbbells + bench at home</option>
+            <option value="bw">Bodyweight only</option>
+          </select>
+        </label>
+      </div>
+
+      <!-- STEP 3: computed review -->
+      <div class="wiz-step" data-step="3">
+        <p class="wiz-review-intro">Here's what we computed. Tap <strong>Apply</strong> to lock these in, or back up to tweak.</p>
+        <div class="wiz-summary" id="wizSummary"></div>
+        <div class="wiz-split-card" id="wizSplitCard"></div>
+      </div>
+
+      <div class="wiz-actions">
+        <button type="button" class="gate-btn ghost" id="wizPrev">← Back</button>
+        <button type="button" class="gate-btn" id="wizNext">Next →</button>
+        <button type="button" class="gate-btn" id="wizApply" style="display:none">Apply &amp; enter portal →</button>
+      </div>
+      <p class="gate-foot">Your data lives in your browser. Nothing is uploaded.</p>
+    </div>
+  </div>
+  <div class="gate-aside">
+    <div class="ga-card ga-cyan">
+      <span class="ga-num">01</span>
+      <h3>Nutrition log</h3>
+      <p>Calories, macros, water. Built-in food database. Custom foods. Quick-add and copy yesterday.</p>
+    </div>
+    <div class="ga-card ga-lime">
+      <span class="ga-num">02</span>
+      <h3>Workout board</h3>
+      <p>Daily WOD, lift logs with sets/reps/weight, PR tracking, and a calendar heatmap of your training.</p>
+    </div>
+    <div class="ga-card ga-pink">
+      <span class="ga-num">03</span>
+      <h3>Body metrics</h3>
+      <p>Weight, measurements, body fat. Visual trends. Spot what's working without the noise.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ APP SHELL ============ -->
+<!-- Pull-to-refresh indicator -->
+<div class="ptr-indicator" id="ptrIndicator">
+  <span class="ptr-spin"></span>
+  <span class="ptr-text" id="ptrText">Pull to refresh</span>
+</div>
+
+<div id="app" class="app hidden">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="tb-left">
+      <div class="tb-logo">
+        <span class="tb-top">BERMO<span class="c">.</span></span>
+        <span class="tb-bot">TRACKER <span style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v45</span></span>
+      </div>
+    </div>
+    <nav class="tb-nav" id="tabNav">
+      <button class="tab active" data-tab="dashboard">Home</button>
+      <button class="tab" data-tab="fitness">Fitness</button>
+      <button class="tab" data-tab="nutrition">Nutrition</button>
+      <button class="tab" data-tab="body">Body</button>
+      <button class="tab" data-tab="goals">Goals</button>
+      <button class="tab" data-tab="trends">Health</button>
+    </nav>
+    <div class="tb-right">
+      <div class="tb-date" id="tbDate"></div>
+      <button class="tb-icon" id="tbSettingsBtn" title="Settings" aria-label="Settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <div class="tb-user" id="tbUser" tabindex="0">
+        <span class="tb-avatar" id="tbAvatar">L</span>
+        <span class="tb-name" id="tbName">Athlete</span>
+        <svg class="tb-chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>
+        <div class="tb-menu" id="tbMenu">
+          <button class="tbm-item" data-tab="settings"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.77-.32 1.6 1.6 0 0 0-1 1.47V21a2 2 0 1 1-4 0v-.11a1.6 1.6 0 0 0-1.05-1.46 1.6 1.6 0 0 0-1.77.32l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.6 1.6 0 0 0 .32-1.77 1.6 1.6 0 0 0-1.47-1H3a2 2 0 1 1 0-4h.11A1.6 1.6 0 0 0 4.57 8.8a1.6 1.6 0 0 0-.32-1.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.6 1.6 0 0 0 1.77.32H9a1.6 1.6 0 0 0 1-1.47V3a2 2 0 1 1 4 0v.11a1.6 1.6 0 0 0 1 1.47 1.6 1.6 0 0 0 1.77-.32l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.6 1.6 0 0 0-.32 1.77V9a1.6 1.6 0 0 0 1.47 1H21a2 2 0 1 1 0 4h-.11a1.6 1.6 0 0 0-1.47 1Z"/></svg></span> Profile + Goals</button>
+          <button class="tbm-item" data-tab="history"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg></span> History + Export</button>
+          <button class="tbm-item" id="pwaInstallBtn" style="display:none"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg></span> Install on phone</button>
+          <div class="tbm-sep"></div>
+          <button class="tbm-item tbm-pink" id="tbmSignOut"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4.5h3.5A1.5 1.5 0 0 1 20 6v12a1.5 1.5 0 0 1-1.5 1.5H15"/><path d="M10 16l-4-4 4-4"/><path d="M6 12h10"/></svg></span> Sign out</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MOBILE TAB BAR -->
+  <nav class="mobnav" id="mobnav">
+    <button class="mtab active" data-tab="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</button>
+    <button class="mtab" data-tab="fitness"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h3M19 12h3M6 7v10M18 7v10M9 9v6M15 9v6M9 12h6"/></svg>Workouts</button>
+    <button class="mtab" data-tab="nutrition"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 2v7a3 3 0 0 0 3 3v10M7 2v5M10 2v5M13 2v5M18 2c-2 1-3 4-3 8v2h3v10"/></svg>Nutrition</button>
+    <button class="mtab" data-tab="progress"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M5 20v-6M10 20V9M15 20v-3M20 20V4"/></svg>Progress</button>
+    <button class="mtab" data-tab="more"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>More</button>
+  </nav>
+
+  <main class="main">
+
+    <!-- ============ DASHBOARD ============ -->
+    <section class="view active" id="view-dashboard">
+      <div class="dash-greet">
+        <h1 id="dashGreeting">Let's go.</h1>
+        <span class="dg-date" id="dashDate"></span>
+      </div>
+      <div id="home" class="home"></div>
+      <div id="dashLegacy" class="dash-legacy">
+      <div class="smart-banners" id="smartBanners"></div>
+
+      <!-- BRAIN DUMP — one line: type / photo / speak -->
+      <div class="brain-row">
+        <button class="br-main js-brain" data-bmode="" title="Type your whole day — AI files everything">
+          <span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2l1.9 4.6 4.6 1.9-4.6 1.9L12 16.2l-1.9-4.6L5.5 9.7l4.6-1.9L12 3.2Z"/><path d="M18.5 15.4l.85 2.05 2.05.85-2.05.85-.85 2.05-.85-2.05-2.05-.85 2.05-.85.85-2.05Z"/></svg></span><b>Brain dump</b>
+        </button>
+        <button class="br-side js-brain" data-bmode="photo" title="Snap food / watch / whiteboard"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.4"/></svg></span></button>
+        <button class="br-side js-brain" data-bmode="speak" title="Speak your day"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/></svg></span></button>
+      </div>
+
+      <!-- RING DECK — Apple-style: day selector + fitness/nutrition rings -->
+      <div class="deck" id="commandDeck">
+        <div class="deck-days" id="deckDays"></div>
+        <div class="deck-duo">
+          <div class="dd-col" id="deckFitCol">
+            <canvas id="deckFitRings" width="132" height="132"></canvas>
+            <div class="dd-stats" id="deckFitStats"></div>
+          </div>
+          <div class="dd-col" id="deckNutCol">
+            <canvas id="deckNutRings" width="132" height="132"></canvas>
+            <div class="dd-stats" id="deckNutStats"></div>
+          </div>
+        </div>
+        <div class="deck-water" id="deckWaterRow"></div>
+        
+      </div>
+
+      <!-- WORKOUTS THIS WEEK — editable list, Fitbod/Apple style -->
+      <div class="card dash-card" id="dashWorkCard">
+        <div class="card-head">
+          <span class="card-eyebrow">Workouts · This week</span>
+          <button class="link-btn-sm" id="dwEditPlan">Edit week</button>
+        </div>
+        <div class="dw-list" id="dwList"></div>
+      </div>
+
+      <!-- COMPARE — this week vs a chosen week -->
+      <div class="card dash-card" id="dashCompareCard">
+        <div class="card-head">
+          <span class="card-eyebrow">Compared to</span>
+          <div class="cmp-pick">
+            <select id="cmpWeekSel">
+              <option value="1">Last week</option>
+              <option value="2">2 weeks ago</option>
+              <option value="4">4 weeks ago</option>
+              <option value="custom">Custom week…</option>
+            </select>
+            <input type="date" id="cmpCustom" class="cmp-date" style="display:none">
+          </div>
+        </div>
+        <div class="cmp-rows" id="cmpRows"></div>
+      </div>
+
+
+      <div class="hubs-grid">
+
+        <!-- 1. ACTIVITY RINGS HUB (Accountability Tracker) -->
+        <div class="hub" data-hub="activity">
+          <div class="hub-head">
+            <div>
+              <div class="hub-eyebrow">Accountability Tracker</div>
+              <div class="hub-title">Today's rings</div>
+            </div>
+            <button class="hub-log" data-hub-log="activity">+ Log</button>
+          </div>
+          <div class="hub-week" id="rings3Week"></div>
+          <div class="rings4-wrap">
+            <canvas id="rings3" width="180" height="180"></canvas>
+            <div class="rings4-stats">
+              <div class="r4-row r4-move"><span>Move</span><b id="r3Move">0/800</b></div>
+              <div class="r4-row r4-ex"><span>Exercise</span><b id="r3Ex">0/60</b></div>
+              <div class="r4-row r4-st"><span>Stand</span><b id="r3St">0/16</b></div>
+              <div class="r4-row r4-nut"><span>Nutrition</span><b id="r3Nut">0/2200</b></div>
+            </div>
+          </div>
+          <div class="hub-foot"><span>Tap for day / week / month / year detail</span><span class="hub-arrow">›</span></div>
+        </div>
+
+        <!-- 2. NUTRITION HUB (everything in one screen) -->
+        <div class="hub" data-hub="nutrition">
+          <div class="hub-head">
+            <div>
+              <div class="hub-eyebrow">Nutrition</div>
+              <div class="hub-title">Today's food</div>
+            </div>
+            <button class="hub-log" data-hub-log="food">+ Log food</button>
+          </div>
+          <div class="nut-week" id="nutWeek"></div>
+          <div class="nut-hero">
+            <div class="nh-block">
+              <div class="nh-num" id="hubCalNum">0</div>
+              <div class="nh-of">of <span id="hubCalGoal">2200</span> cal</div>
+            </div>
+            <div class="nh-block nh-block-right">
+              <div class="nh-left-num" id="hubCalLeft">2200</div>
+              <div class="nh-of">left</div>
+            </div>
+          </div>
+          <div class="nh-bar-row">
+            <div class="bar nh-bar-cal"><div class="bar-fill" id="hubCalBar" style="background:var(--cyan)"></div></div>
+          </div>
+          <div class="nh-macros">
+            <div class="nh-macro">
+              <div class="nm-h"><span>Protein</span><b id="pVal">0g / 0g</b></div>
+              <div class="bar"><div class="bar-fill bf-cyan" id="pBar"></div></div>
+            </div>
+            <div class="nh-macro">
+              <div class="nm-h"><span>Carbs</span><b id="cVal">0g / 0g</b></div>
+              <div class="bar"><div class="bar-fill bf-lime" id="cBar"></div></div>
+            </div>
+            <div class="nh-macro">
+              <div class="nm-h"><span>Fat</span><b id="fVal">0g / 0g</b></div>
+              <div class="bar"><div class="bar-fill bf-pink" id="fBar"></div></div>
+            </div>
+          </div>
+          <div class="nh-water">
+            <span class="nw-h">Water</span>
+            <div class="water-grid water-mini" id="waterGrid"></div>
+            <span class="nw-meta" id="waterMeta">0 / 64 oz</span>
+          </div>
+          <span id="fbVal" class="hidden">0g / 30g</span>
+          <span id="fbBar" class="hidden"></span>
+          <span id="calMeta" class="hidden">0/2200</span>
+          <span id="calConsumed" class="hidden">0</span>
+          <span id="calRem" class="hidden">2200 left</span>
+          <canvas id="calRing" width="1" height="1" class="hidden"></canvas>
+          <div class="hub-foot"><span>Tap to open food diary →</span><span class="hub-arrow">›</span></div>
+        </div>
+
+        <!-- 3. FITNESS HUB -->
+        <div class="hub" data-hub="fitness">
+          <div class="hub-head">
+            <div>
+              <div class="hub-eyebrow">Fitness</div>
+              <div class="hub-title">Lifts + workouts</div>
+            </div>
+            <button class="hub-log" data-hub-log="lift">+ Log lift</button>
+          </div>
+          <div class="hub-stats">
+            <div class="hs-cell">
+              <div class="hs-lbl">Today</div>
+              <div class="hs-val" id="hubTodaySets">0</div>
+              <div class="hs-sub">sets</div>
+            </div>
+            <div class="hs-cell">
+              <div class="hs-lbl">Last lift</div>
+              <div class="hs-val hs-val-text" id="hubLastLift">—</div>
+              <div class="hs-sub" id="hubLastLiftSub">no sessions yet</div>
+            </div>
+            <div class="hs-cell">
+              <div class="hs-lbl">Week vol.</div>
+              <div class="hs-val" id="hubWeekVol">0</div>
+              <div class="hs-sub">total reps</div>
+            </div>
+          </div>
+          <div class="hub-foot"><span>Tap to open lifts + PRs →</span><span class="hub-arrow">›</span></div>
+        </div>
+
+        <!-- 4. HEALTH HUB -->
+        <div class="hub" data-hub="health">
+          <div class="hub-head">
+            <div>
+              <div class="hub-eyebrow">Health</div>
+              <div class="hub-title">Symptoms + check-in</div>
+            </div>
+            <button class="hub-log" data-hub-log="symptom">+ Log</button>
+          </div>
+          <div class="hub-stats">
+            <div class="hs-cell">
+              <div class="hs-lbl">Sleep</div>
+              <div class="hs-val" id="hubSleep">—</div>
+              <div class="hs-sub">last night</div>
+            </div>
+            <div class="hs-cell">
+              <div class="hs-lbl">Mood</div>
+              <div class="hs-val" id="hubMood">—</div>
+              <div class="hs-sub" id="hubMoodSub">no check-in</div>
+            </div>
+            <div class="hs-cell">
+              <div class="hs-lbl">Symptoms</div>
+              <div class="hs-val" id="hubSymCount">0</div>
+              <div class="hs-sub">last 7 days</div>
+            </div>
+          </div>
+          <div class="hub-foot"><span>Tap for trends + insights →</span><span class="hub-arrow">›</span></div>
+        </div>
+
+        <!-- 5. TRENDS HUB -->
+        <div class="hub" data-hub="trends">
+          <div class="hub-head">
+            <div>
+              <div class="hub-eyebrow">Trends</div>
+              <div class="hub-title">Patterns + insights</div>
+            </div>
+            <button class="hub-log" data-hub-log="checkin">+ Check-in</button>
+          </div>
+          <div id="hubInsights" class="hub-insights">
+            <div class="hi-empty">Log consistently for ~10 days and patterns surface here.</div>
+          </div>
+          <div class="hub-foot"><span>Tap to open all insights →</span><span class="hub-arrow">›</span></div>
+        </div>
+
+        <!-- 6. WEIGHT vs GOAL HUB -->
+        <div class="hub" data-hub="weight">
+          <div class="hub-head">
+            <div>
+              <div class="hub-eyebrow">Weight vs Goal</div>
+              <div class="hub-title">Body trend</div>
+            </div>
+            <button class="hub-log" data-hub-log="weigh">+ Weigh in</button>
+          </div>
+          <div class="hub-stats">
+            <div class="hs-cell">
+              <div class="hs-lbl">Current</div>
+              <div class="hs-val" id="hubWeightCur">—</div>
+              <div class="hs-sub" id="weightDelta">no weigh-in</div>
+            </div>
+            <div class="hs-cell">
+              <div class="hs-lbl">Goal</div>
+              <div class="hs-val" id="hubWeightGoal">—</div>
+              <div class="hs-sub" id="hubWeightDelta">—</div>
+            </div>
+          </div>
+          <div class="hub-mini-chart">
+            <canvas id="hubWeightChart" height="60"></canvas>
+          </div>
+          <span id="weightBig" class="hidden">—</span>
+          <span id="lastLift" class="hidden"></span>
+          <span id="streakNum" class="hidden">0</span>
+          <span id="streakFoot" class="hidden"></span>
+          <span id="weeklyAvg" class="hidden">avg —</span>
+          <canvas id="weeklyChart" height="1" class="hidden"></canvas>
+          <div class="hub-foot"><span>Tap for body metrics →</span><span class="hub-arrow">›</span></div>
+        </div>
+
+      </div>
+
+      <!-- WOD CARD AT BOTTOM (de-emphasized, not a hub) -->
+      
+
+    </div><!-- /dashLegacy -->
+    </section>
+
+    <!-- ============ NUTRITION ============ -->
+        <section class="view" id="view-progress">
+      <div class="view-head"><div><h1 class="view-h1">Progress</h1></div></div>
+      <div class="hub">
+        <button type="button" class="hub-row" data-tab="fitness"><div><b>Lifts &amp; PRs</b><span>Exercise history, rep records, volume</span></div><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></i></button>
+        <button type="button" class="hub-row" data-tab="body"><div><b>Body</b><span>Weight, measurements, body composition</span></div><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></i></button>
+        <button type="button" class="hub-row" data-tab="goals"><div><b>Goals</b><span>Your target, macros, the program</span></div><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></i></button>
+        <button type="button" class="hub-row" data-tab="trends"><div><b>Health</b><span>Sleep, symptoms, food quality, patterns</span></div><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></i></button>
+      </div>
+    </section>
+    <section class="view" id="view-more">
+      <div class="view-head"><div><h1 class="view-h1">More</h1></div></div>
+      <div class="hub">
+        <button type="button" class="hub-row" data-tab="library"><div><b>Exercise library</b><span>Movements, photos, saved workouts</span></div><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></i></button>
+        <button type="button" class="hub-row" data-tab="history"><div><b>History</b><span>Everything you have logged</span></div><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></i></button>
+        <button type="button" class="hub-row" data-tab="settings"><div><b>Settings</b><span>Goals, units, backup, Apple Health</span></div><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></i></button>
+      </div>
+    </section>
+    <section class="view" id="view-nutrition">
+      <header class="view-head">
+        <div>
+          <p class="eyebrow">Nutrition · <span id="nutDate"></span></p>
+          <h1 class="view-h1">Food log</h1>
+        </div>
+        
+        <div class="view-head-actions">
+          <div class="date-picker">
+            <button class="dp-btn" id="nutPrev" aria-label="Previous day">‹</button>
+            <input type="date" id="nutDateInput">
+            <button class="dp-btn" id="nutNext" aria-label="Next day">›</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="brain-row brain-row--sm">
+        <button class="br-main js-brain" data-bmode="" title="Type your whole day — AI files everything"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2l1.9 4.6 4.6 1.9-4.6 1.9L12 16.2l-1.9-4.6L5.5 9.7l4.6-1.9L12 3.2Z"/><path d="M18.5 15.4l.85 2.05 2.05.85-2.05.85-.85 2.05-.85-2.05-2.05-.85 2.05-.85.85-2.05Z"/></svg></span><b>Brain dump</b></button>
+        <button class="br-side js-brain" data-bmode="photo" title="Snap food / watch"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.4"/></svg></span></button>
+        <button class="br-side js-brain" data-bmode="speak" title="Speak your day"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/></svg></span></button>
+      </div>
+      <div class="stat-band" id="nutPageRings">
+        <div class="page-stats" id="nutTopStats"></div>
+      </div>
+
+      <div class="subnav" id="nutSubnav">
+        <button class="sub-chip active" data-nsub="diary">Diary</button>
+        <button class="sub-chip" data-nsub="calories">Calories</button>
+        <button class="sub-chip" data-nsub="nutrients">Nutrients</button>
+        <button class="sub-chip" data-nsub="macros">Macros</button>
+      </div>
+
+      <div class="over-banner hidden" id="overBanner"></div>
+
+      <!-- DIARY — one box, MFP-style meals with per-meal macros + item actions -->
+      <div class="card" id="diaryCard" data-nsec="diary">
+        <div class="card-head">
+          <span class="card-eyebrow">Diary</span>
+          <button class="link-btn-sm" id="dySelectBtn">Select</button>
+        </div>
+        <div id="diaryList"></div>
+        <div class="dy-selectbar hidden" id="dySelectBar">
+          <span id="dySelCount">0 selected</span>
+          <button class="btn btn-cyan btn-sm" id="dySaveMeal">Save as meal</button>
+          <button class="btn btn-ghost btn-sm" id="dySelCancel">Cancel</button>
+        </div>
+      </div>
+
+      <!-- CALORIES — MFP-style meal breakdown donut + totals -->
+      <div class="card nsec-hide" id="calSubCard" data-nsec="calories">
+        <div class="card-head"><span class="card-eyebrow">Calories · by meal</span></div>
+        <div class="donut-wrap"><canvas id="calDonut"></canvas></div>
+        <div class="donut-legend" id="calLegend"></div>
+        <div class="mfp-rows" id="calTotals"></div>
+      </div>
+
+      <!-- MACROS — MFP-style split donut + % vs goal -->
+      <div class="card nsec-hide" id="macroSubCard" data-nsec="macros">
+        <div class="card-head"><span class="card-eyebrow">Macros · split</span></div>
+        <div class="donut-wrap"><canvas id="macroDonut"></canvas></div>
+        <div class="mfp-rows" id="macroRows"></div>
+      </div>
+
+      <div class="card nsec-hide" id="nutSummaryCard" data-nsec="nutrients">
+        <div class="card-head">
+          <span class="card-eyebrow">Nutrients · today</span>
+          <span class="card-meta">total / goal / left</span>
+        </div>
+        <div class="nt-table" id="ntTable"></div>
+      </div>
+
+      <div class="card nsec-hide" id="microCard" data-nsec="nutrients">
+        <div class="card-head">
+          <span class="card-eyebrow">Micronutrients · today</span>
+          <span class="card-meta" id="microMeta">—</span>
+        </div>
+        <div class="micro-table" id="microTable"></div>
+      </div>
+
+      <div class="card nsec-hide" id="nutCalcCard" data-nsec="nutrients">
+        <div class="card-head"><span class="card-eyebrow">Macro ⇄ calorie calculator</span></div>
+        <div class="macro-calc" id="nutMacroCalc"></div>
+      </div>
+
+      <details class="detail-card nsec-hide" id="detailCard" data-nsec="nutrients">
+        <summary>
+          <span>Detailed Nutrition <span class="detail-sub">fiber · sugar · per-meal breakdown</span></span>
+        </summary>
+        <div class="detail-grid" id="detailGrid"></div>
+        <div class="detail-note" id="detailNote"></div>
+      </details>
+
+      <div class="usuals-row" id="usualsRow">
+        <div class="usuals-head">
+          <h4>My Usuals · one-tap meals</h4>
+          <span class="usuals-hint">Save any logged meal as a template, re-log it with one tap.</span>
+        </div>
+        <div class="usuals-grid" id="usualsGrid"></div>
+      </div>
+    </section>
+
+    <!-- ============ FITNESS ============ -->
+    <section class="view" id="view-fitness">
+      <header class="view-head">
+        <div>
+          <p class="eyebrow">Fitness · <span id="fitDate"></span></p>
+          <h1 class="view-h1">Workout board</h1>
+        </div>
+        
+        <div class="view-head-actions">
+          <button class="btn btn-cyan" id="fitWriteOut">+ Log a workout</button>
+        </div>
+      </header>
+
+      <div class="subnav" id="fitSubnav">
+        <button class="sub-chip active" data-fsub="summary">Summary</button>
+        <button class="sub-chip" data-fsub="prs">PRs</button>
+        <button class="sub-chip" data-fsub="progress">Progress</button>
+        <button class="sub-chip" data-fsub="calendar">Calendar</button>
+        <button class="sub-chip" data-fsub="saved">Saved</button>
+      </div>
+      <div class="brain-row brain-row--sm">
+        <button class="br-main js-brain" data-bmode=""><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2l1.9 4.6 4.6 1.9-4.6 1.9L12 16.2l-1.9-4.6L5.5 9.7l4.6-1.9L12 3.2Z"/><path d="M18.5 15.4l.85 2.05 2.05.85-2.05.85-.85 2.05-.85-2.05-2.05-.85 2.05-.85.85-2.05Z"/></svg></span><b>Brain dump</b></button>
+        <button class="br-side js-brain" data-bmode="photo"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.4"/></svg></span></button>
+        <button class="br-side js-brain" data-bmode="speak"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/></svg></span></button>
+      </div>
+      <div class="stat-band" id="fitPageRings">
+        <div class="page-stats" id="fitTopStats"></div>
+      </div>
+      <div id="progCallout" class="nsec-hide"></div>
+
+
+      <div class="grid-12">
+        <!-- Week plan mini-list + selected-day view (mirrors nutrition diary) -->
+        <div class="card span-12" id="fitTotalsCard" data-fsec="summary"></div>
+        <div class="card span-12" id="fitWeekCard" data-fsec="summary">
+          <div class="card-head">
+            <span class="card-eyebrow">This week</span>
+
+          </div>
+          <div class="fw-list" id="fitWeekList"></div>
+        </div>
+        <div class="card span-12" id="fitDayCard" data-fsec="summary"></div>
+        <div class="card span-12" id="sessionCard" data-fsec="summary"></div>
+
+        <!-- MONTH CALENDAR (replaces the old weekly planner page) -->
+        <div class="card span-12" id="calCard" data-fsec="calendar">
+          <div class="card-head">
+            <div class="cal-nav">
+              <button class="cal-arrow" id="calPrev" aria-label="Previous month">‹</button>
+              <span class="cal-label" id="calLabel">—</span>
+              <button class="cal-arrow" id="calNext" aria-label="Next month">›</button>
+            </div>
+            <button class="link-btn-sm" id="calToday">Today</button>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+          <div class="cal-key">
+            <span><i class="cal-dot food hit"></i> food goal met</span>
+            <span><i class="cal-dot work hit"></i> trained</span>
+            <span><i class="cal-dot food miss"></i> missed</span>
+          </div>
+        </div>
+
+        <!-- PROGRESS — weekly volume trend (Fitbod Overall Strength style) -->
+        <div class="card span-12" id="fitProgressCard" data-fsec="progress">
+          <div class="card-head">
+            <span class="card-eyebrow">Training volume</span>
+            <div class="fp-scales">
+              <button class="fp-scale" data-fp="w">W</button>
+              <button class="fp-scale active" data-fp="m">M</button>
+              <button class="fp-scale" data-fp="6m">6M</button>
+              <button class="fp-scale" data-fp="y">Y</button>
+            </div>
+          </div>
+          <div class="fp-big" id="fpBig">—</div>
+          <div class="fp-sub" id="fpSub">total volume this period</div>
+          <canvas id="fpChart" height="120"></canvas>
+          <div class="fp-rows">
+            <div class="fp-row"><span>Best period</span><b id="fpBest">—</b></div>
+            <div class="fp-row"><span>Average</span><b id="fpAvg">—</b></div>
+            <div class="fp-row"><span>Trend</span><b id="fpTrend">—</b></div>
+          </div>
+        </div>
+
+        <!-- PRs: callout + readable editable list -->
+        <div class="card span-12" id="prCalloutCard" data-fsec="prs">
+          <div class="card-head"><span class="card-eyebrow">PR watch</span></div>
+          <div id="prCallout"></div>
+        </div>
+        <div class="card span-12" id="liftsCard" data-fsec="prs">
+          <div class="card-head">
+            <span class="card-eyebrow" id="liftsCardEyebrow">Personal records</span>
+            <button class="link-btn-sm" id="prAddBtn">+ add PR</button>
+          </div>
+          <div class="prl-list" id="prSimpleList"></div>
+        </div>
+
+
+
+        <!-- Heatmap -->
+        <div class="card span-12">
+          <div class="card-head">
+            <span class="card-eyebrow">Activity · last 12 weeks</span>
+            <span class="card-meta" id="heatMeta">—</span>
+          </div>
+          <div class="heatmap" id="heatmap"></div>
+          <div class="heat-legend">
+            <span>less</span>
+            <span class="heat-cell h0"></span>
+            <span class="heat-cell h1"></span>
+            <span class="heat-cell h2"></span>
+            <span class="heat-cell h3"></span>
+            <span class="heat-cell h4"></span>
+            <span>more</span>
+          </div>
+        </div>
+
+        <!-- WOD CARD AT BOTTOM (footer) -->
+        <div class="card span-12 card-black wod-bottom">
+          <div class="card-head">
+            <span class="card-eyebrow eb-lime">Today's WOD Suggestion</span>
+            <span class="card-meta" id="fitWodType">—</span>
+          </div>
+          <h2 class="wod-title-lg" id="fitWodTitle">—</h2>
+          <pre class="wod-script" id="fitWodScript">—</pre>
+          <div class="wod-actions">
+            <button class="btn btn-lime" id="fitLogResult">+ Log result</button>
+            <button class="btn btn-ghost-light" id="fitShuffle">Shuffle</button>
+            <select id="fitWodPicker" class="wod-picker"></select>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="view" id="view-library">
+      <header class="view-head">
+        <div>
+          <p class="eyebrow">Exercise Library</p>
+          <h1 class="view-h1">Movements</h1>
+        </div>
+        <div class="view-head-actions">
+          <button class="btn btn-cyan" id="libNewWorkout">+ Build workout</button>
+        </div>
+      </header>
+
+      <div class="brain-row brain-row--sm">
+        <button class="br-main js-brain" data-bmode=""><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2l1.9 4.6 4.6 1.9-4.6 1.9L12 16.2l-1.9-4.6L5.5 9.7l4.6-1.9L12 3.2Z"/><path d="M18.5 15.4l.85 2.05 2.05.85-2.05.85-.85 2.05-.85-2.05-2.05-.85 2.05-.85.85-2.05Z"/></svg></span><b>Brain dump</b></button>
+        <button class="br-side js-brain" data-bmode="photo"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.4"/></svg></span></button>
+        <button class="br-side js-brain" data-bmode="speak"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/></svg></span></button>
+      </div>
+
+      <div class="subnav" id="libSubnav">
+        <button class="sub-chip active" data-lsub="all">All</button>
+        <button class="sub-chip" data-lsub="favs">Favorites</button>
+        <button class="sub-chip" data-lsub="workouts">My workouts</button>
+      </div>
+
+      <div class="lib-search">
+        <input type="search" id="libSearch" placeholder="Search movements, machines…" autocomplete="off">
+      </div>
+      <div class="lib-filters" id="libFilters"></div>
+
+      <div class="card" id="libListCard">
+        <div class="card-head">
+          <span class="card-eyebrow" id="libCount">—</span>
+          <button class="link-btn-sm" id="libSort">A–Z</button>
+        </div>
+        <div class="lib-list" id="libList"></div>
+      </div>
+
+      <div class="card nsec-hide" id="libWorkoutsCard">
+        <div class="card-head"><span class="card-eyebrow">My workouts</span></div>
+        <div id="workoutLibHost"></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-body">
+      <header class="view-head">
+        <div>
+          <p class="eyebrow">Body · metrics</p>
+          <h1 class="view-h1">Body</h1>
+        </div>
+        
+        <div class="view-head-actions">
+          <button class="btn btn-cyan" id="weighInBtn">+ Weigh in</button>
+          <button class="btn btn-ghost" id="measureBtn">+ Measurements</button>
+          <button class="btn btn-ghost" id="inbodyBtn">InBody scan</button>
+          <button class="btn btn-ghost" id="inbodyManualBtn">Enter body comp</button>
+        </div>
+      </header>
+      <div class="brain-row brain-row--sm">
+        <button class="br-main js-brain" data-bmode=""><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2l1.9 4.6 4.6 1.9-4.6 1.9L12 16.2l-1.9-4.6L5.5 9.7l4.6-1.9L12 3.2Z"/><path d="M18.5 15.4l.85 2.05 2.05.85-2.05.85-.85 2.05-.85-2.05-2.05-.85 2.05-.85.85-2.05Z"/></svg></span><b>Brain dump</b></button>
+        <button class="br-side js-brain" data-bmode="photo"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.4"/></svg></span></button>
+        <button class="br-side js-brain" data-bmode="speak"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/></svg></span></button>
+      </div>
+      <div class="stat-band"><div class="page-stats" id="bodyTopStats"></div></div>
+
+
+      <div class="grid-12">
+        <div class="card span-4 stat-tile">
+          <div class="card-head"><span class="card-eyebrow">Current</span></div>
+          <div class="stat">
+            <span class="stat-big" id="bodyCurrent">—</span>
+            <span class="stat-sub" id="bodyDelta">—</span>
+          </div>
+        </div>
+        <div class="card span-4 stat-tile">
+          <div class="card-head"><span class="card-eyebrow">7-day avg</span></div>
+          <div class="stat">
+            <span class="stat-big" id="body7">—</span>
+            <span class="stat-sub">smoothed</span>
+          </div>
+        </div>
+        <div class="card span-4 stat-tile">
+          <div class="card-head"><span class="card-eyebrow">Goal</span></div>
+          <div class="stat">
+            <span class="stat-big" id="bodyGoal">—</span>
+            <span class="stat-sub" id="bodyGoalDelta">set in settings</span>
+          </div>
+        </div>
+        <div class="card span-12" id="bodyCompCard">
+          <div class="card-head"><span class="card-eyebrow">Body composition</span><span class="card-meta" id="bcMeta">from weigh-ins + measurements</span></div>
+          <div class="bc-grid" id="bcGrid"></div>
+        </div>
+        <div class="card span-12">
+          <div class="card-head">
+            <span class="card-eyebrow">Weight trend</span>
+            <span class="card-meta" id="bodyRange">—</span>
+          </div>
+          <canvas id="weightChart" height="110"></canvas>
+        </div>
+        <div class="card span-6">
+          <div class="card-head"><span class="card-eyebrow">Measurements</span></div>
+          <ul class="meas-list" id="measList"></ul>
+        </div>
+        <div class="card span-6">
+          <div class="card-head"><span class="card-eyebrow">Recent weigh-ins</span></div>
+          <ul class="weigh-list" id="weighList"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ GOALS + PROGRESS ============ -->
+    <section class="view" id="view-goals">
+      <header class="view-head">
+        <div>
+          <p class="eyebrow">Goals + Progress</p>
+          <h1 class="view-h1">The mission</h1>
+        </div>
+        <div class="view-head-actions">
+          <button class="btn btn-cyan" id="goalPlanBtn">Design my plan</button>
+          <button class="btn btn-ghost" id="goalsEditBtn">Edit goals</button>
+        </div>
+      </header>
+      <div class="brain-row brain-row--sm">
+        <button class="br-main js-brain" data-bmode=""><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2l1.9 4.6 4.6 1.9-4.6 1.9L12 16.2l-1.9-4.6L5.5 9.7l4.6-1.9L12 3.2Z"/><path d="M18.5 15.4l.85 2.05 2.05.85-2.05.85-.85 2.05-.85-2.05-2.05-.85 2.05-.85.85-2.05Z"/></svg></span><b>Brain dump</b></button>
+        <button class="br-side js-brain" data-bmode="photo"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.4"/></svg></span></button>
+        <button class="br-side js-brain" data-bmode="speak"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/></svg></span></button>
+      </div>
+
+      <!-- Active plan: what you're eating and why -->
+      <div class="card" id="planCard">
+        <div class="card-head">
+          <span class="card-eyebrow">My plan</span>
+          <span class="card-meta" id="planMeta">—</span>
+        </div>
+        <div class="plan-wrap" id="planBody"></div>
+      </div>
+
+<!-- Goal Contract card -->
+      <div class="contract-card" id="contractCard">
+        <div class="cc-grid">
+          <div class="cc-main">
+            <div class="cc-eyebrow">My Contract</div>
+            <div class="cc-identity" id="ccIdentity">I am someone who shows up — even when it's hard.</div>
+            <div class="cc-goal" id="ccGoal">Set your goal in one sentence — what, by when.</div>
+            <div class="cc-row">
+              <div class="cc-pair"><span class="cc-lbl">Deadline</span><span class="cc-val" id="ccDeadline">—</span></div>
+              <div class="cc-pair"><span class="cc-lbl">Days left</span><span class="cc-val" id="ccDaysLeft">—</span></div>
+              <div class="cc-pair"><span class="cc-lbl">Streak</span><span class="cc-val" id="ccStreak">0 d</span></div>
+            </div>
+          </div>
+          <div class="cc-side">
+            <div class="cc-chain-eyebrow">Consistency · last 30 days</div>
+            <div class="cc-chain" id="ccChain" title="Each link = one day. Filled when you logged food, water, or a workout. Updates automatically — nothing to tap."></div>
+            <div class="cc-chain-text" id="ccChainText">No chain yet</div>
+            <button class="cc-edit" id="ccEditBtn">✎ Edit contract</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Restart card (only shows when struggling) -->
+      <div class="restart-card hidden" id="restartCard">
+        
+        <div class="rs-body">
+          <div class="rs-title" id="rsTitle">Last few days happened. No guilt.</div>
+          <div class="rs-sub" id="rsSub">One small action restarts it. You don't have to be perfect.</div>
+        </div>
+        <div class="rs-actions">
+          <button class="btn btn-lime" id="rsLogWorkout">Log a quick workout</button>
+          <button class="btn btn-ghost" id="rsDismiss">Maybe later</button>
+        </div>
+      </div>
+
+
+      <div class="card" id="goalsCalcCard">
+        <div class="card-head"><span class="card-eyebrow">Macro ⇄ calorie calculator</span></div>
+        <div class="macro-calc" id="goalsMacroCalc"></div>
+      </div>
+      <div class="card" id="goalsSummaryCard">
+        <div class="card-head"><span class="card-eyebrow">Current targets</span></div>
+        <div class="gs-grid" id="gsGrid"></div>
+      </div>
+      <div class="card" id="goalsProgressCard">
+        <div class="card-head">
+          <span class="card-eyebrow">Weight vs goal</span>
+          <span class="card-meta" id="gpMeta">—</span>
+        </div>
+        <div class="hub-mini-chart"><canvas id="gpChart" height="70"></canvas></div>
+      </div>
+    </section>
+
+    <!-- ============ TRENDS ============ -->
+    <section class="view" id="view-trends">
+      <header class="view-head">
+        <div>
+          <p class="eyebrow">Health · everything connected</p>
+          <h1 class="view-h1">Health</h1>
+        </div>
+        <div class="view-head-actions">
+          <button class="btn btn-ghost" id="trNoteBtn">+ Note</button>
+          <button class="btn btn-ghost" id="trCheckinBtn">+ Check-in</button>
+          <button class="btn btn-cyan" id="trRefreshBtn">Recompute</button>
+        </div>
+      </header>
+      <div class="brain-row brain-row--sm">
+        <button class="br-main js-brain" data-bmode=""><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2l1.9 4.6 4.6 1.9-4.6 1.9L12 16.2l-1.9-4.6L5.5 9.7l4.6-1.9L12 3.2Z"/><path d="M18.5 15.4l.85 2.05 2.05.85-2.05.85-.85 2.05-.85-2.05-2.05-.85 2.05-.85.85-2.05Z"/></svg></span><b>Brain dump</b></button>
+        <button class="br-side js-brain" data-bmode="photo"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.4"/></svg></span></button>
+        <button class="br-side js-brain" data-bmode="speak"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/></svg></span></button>
+      </div>
+
+
+      <div class="trend-hero" id="trendHero">
+        
+        <div class="trend-hero-body">
+          <div class="trend-hero-title">Add a few weeks of data, then come back.</div>
+          <div class="trend-hero-sub">Insights need at least ~10 days of meals, workouts, sleep, or weigh-ins to spot patterns. Log consistently and patterns surface automatically.</div>
+        </div>
+      </div>
+
+      <div class="grid-12">
+        <!-- THE BIGGER PICTURE — every factor together, not in pairs -->
+        <div class="card span-12" id="bigPicCard">
+          <div class="card-head">
+            <span class="card-eyebrow">The bigger picture</span>
+            <span class="card-meta" id="bigPicMeta">—</span>
+          </div>
+          <div class="bp-wrap" id="bigPicList"></div>
+        </div>
+
+        <!-- HEALTH NOTES — parsed on-device, no AI -->
+        <div class="card span-12" id="notesCard">
+          <div class="card-head">
+            <span class="card-eyebrow">Health notes</span>
+            <span class="card-meta" id="notesMeta">—</span>
+          </div>
+          <div class="notes-wrap" id="notesList"></div>
+        </div>
+
+        <!-- WHY — the reason line she writes on a planned workout -->
+        <div class="card span-12" id="whyCard">
+          <div class="card-head">
+            <span class="card-eyebrow">Why you changed the plan</span>
+            <span class="card-meta" id="whyMeta">—</span>
+          </div>
+          <div class="why-wrap" id="whyList"></div>
+        </div>
+
+        <!-- FOOD QUALITY — gluten / processed vs real / fat / dairy -->
+        <div class="card span-12" id="fqCard">
+          <div class="card-head">
+            <span class="card-eyebrow">Food quality</span>
+            <span class="card-meta" id="fqMeta">—</span>
+          </div>
+          <div class="fq-wrap" id="fqList"></div>
+        </div>
+
+        <!-- MUSCLE COVERAGE — did the back day actually hit the whole back? -->
+        <div class="card span-12" id="smCard">
+          <div class="card-head">
+            <span class="card-eyebrow">Muscle coverage</span>
+            <span class="card-meta" id="smMeta">This week</span>
+          </div>
+          <div class="sm-scope">
+            <button type="button" class="sm-tab on" data-smscope="week">This week</button>
+            <button type="button" class="sm-tab" data-smscope="month">Last 4 weeks</button>
+          </div>
+          <div class="sm-list" id="smList"></div>
+        </div>
+
+        <!-- FOOD -> TRAINING -> HEALTH correlations -->
+        <div class="card span-12" id="corrCard">
+          <div class="card-head">
+            <span class="card-eyebrow">What your data connects</span>
+            <span class="card-meta" id="corrMeta">—</span>
+          </div>
+          <div class="corr-list" id="corrList"></div>
+        </div>
+
+        <!-- BODY PART PROGRESS -->
+        <div class="card span-12" id="bpTrendCard">
+          <div class="card-head">
+            <span class="card-eyebrow">Body part · 4-week trend</span>
+            <span class="card-meta">volume vs previous 4 weeks</span>
+          </div>
+          <div class="bpt-list" id="bpTrendList"></div>
+        </div>
+
+        <div class="card span-12">
+          <div class="card-head">
+            <span class="card-eyebrow">Detected patterns</span>
+            <span class="card-meta" id="trCount">0 insights</span>
+          </div>
+          <div class="insights" id="insightsList"></div>
+        </div>
+
+        <div class="card span-6">
+          <div class="card-head">
+            <span class="card-eyebrow">Day-of-week · calories</span>
+            <span class="card-meta" id="dowCalMeta">—</span>
+          </div>
+          <canvas id="dowCalChart" height="140"></canvas>
+        </div>
+
+        <div class="card span-6">
+          <div class="card-head">
+            <span class="card-eyebrow">Sleep · last 30 days</span>
+            <span class="card-meta" id="sleepMeta">—</span>
+          </div>
+          <canvas id="sleepChart" height="140"></canvas>
+        </div>
+
+        <div class="card span-12">
+          <div class="card-head">
+            <span class="card-eyebrow">Cycle tracking</span>
+            <button class="link-btn-sm" id="trCyclePeriod">+ Log period start</button>
+          </div>
+          <div id="cyclePanel" class="cycle-panel">Cycle tracking is off. Log a period start date to enable phase-based pattern detection.</div>
+        </div>
+
+        <div class="card span-12">
+          <div class="card-head">
+            <span class="card-eyebrow">Workout quality vs context</span>
+            <span class="card-meta">strength + WOD days</span>
+          </div>
+          <div class="ctx-grid" id="ctxGrid"></div>
+        </div>
+
+        <div class="card span-12">
+          <div class="card-head">
+            <span class="card-eyebrow eb-pink">Symptoms + Health</span>
+            <button class="link-btn-sm" id="trSymptomBtn" style="background:var(--pink);color:#fff">+ Log symptom</button>
+          </div>
+          <div id="symptomPanel" class="symptom-panel">No symptoms logged yet. Use the button to add one — patterns surface in your insights.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ HISTORY ============ -->
+    <section class="view" id="view-history">
+      <header class="view-head">
+        <div>
+          <p class="eyebrow">History · timeline</p>
+          <h1 class="view-h1">Everything you've logged</h1>
+        </div>
+        <div class="view-head-actions">
+          <select id="historyFilter" class="select">
+            <option value="all">All entries</option>
+            <option value="meal">Meals only</option>
+            <option value="workout">Workouts only</option>
+            <option value="weight">Weigh-ins only</option>
+          </select>
+          <button class="btn btn-ghost" id="exportBtn">Export JSON</button>
+          <button class="btn btn-cyan" id="importBtn">⇡ Import Apple Health CSV</button>
+          <input type="file" id="importFile" accept=".csv,.json" hidden>
+        </div>
+      </header>
+      <ul class="timeline" id="timeline"></ul>
+    </section>
+
+    <!-- ============ SETTINGS ============ -->
+    <section class="view" id="view-settings">
+      <header class="view-head">
+        <div>
+          <p class="eyebrow">Settings</p>
+          <h1 class="view-h1">Goals + preferences</h1>
+        </div>
+      </header>
+
+      <div class="grid-12">
+        <div class="card span-6">
+          <div class="card-head"><span class="card-eyebrow">Profile</span></div>
+          <form id="profileForm" class="form">
+            <label><span>Athlete name</span><input type="text" name="name" id="setName" maxlength="40"></label>
+            <label><span>Units</span>
+              <select name="units" id="setUnits">
+                <option value="imperial">Imperial</option>
+                <option value="metric">Metric</option>
+              </select>
+            </label>
+            <button type="submit" class="btn btn-cyan">Save profile</button>
+            <button type="button" class="btn btn-ghost" id="rerunSetupBtn" style="margin-top:8px"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.77-.32 1.6 1.6 0 0 0-1 1.47V21a2 2 0 1 1-4 0v-.11a1.6 1.6 0 0 0-1.05-1.46 1.6 1.6 0 0 0-1.77.32l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.6 1.6 0 0 0 .32-1.77 1.6 1.6 0 0 0-1.47-1H3a2 2 0 1 1 0-4h.11A1.6 1.6 0 0 0 4.57 8.8a1.6 1.6 0 0 0-.32-1.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.6 1.6 0 0 0 1.77.32H9a1.6 1.6 0 0 0 1-1.47V3a2 2 0 1 1 4 0v.11a1.6 1.6 0 0 0 1 1.47 1.6 1.6 0 0 0 1.77-.32l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.6 1.6 0 0 0-.32 1.77V9a1.6 1.6 0 0 0 1.47 1H21a2 2 0 1 1 0 4h-.11a1.6 1.6 0 0 0-1.47 1Z"/></svg></span> Re-run smart setup wizard</button>
+          </form>
+        </div>
+        <div class="card span-6">
+          <div class="card-head">
+            <span class="card-eyebrow">Daily goals</span>
+            <button type="button" class="link-btn-sm" id="goalPlanBtn2">Design my plan</button>
+            <button type="button" class="link-btn-sm" id="macroCalcBtn"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5Z"/></svg></span> Calculate for me</button>
+          </div>
+          <form id="goalsForm" class="form form-grid">
+            <label><span>Calories</span><input type="number" id="setCal" min="800" max="6000" step="1" inputmode="numeric"></label>
+            <label><span>Protein (g)</span><input type="number" id="setP" min="0" max="500"></label>
+            <label><span>Carbs (g)</span><input type="number" id="setC" min="0" max="800"></label>
+            <label><span>Fat (g)</span><input type="number" id="setF" min="0" max="300"></label>
+            <label><span>Fiber (g)</span><input type="number" id="setFiber" min="0" max="120"></label>
+            <label><span>Sugar cap (g)</span><input type="number" id="setSugar" min="0" max="300"></label>
+            <label><span>Water (oz)</span><input type="number" id="setWater" min="0" max="200"></label>
+            <label><span>Goal weight</span><input type="number" id="setGoalWeight" min="50" max="500" step="0.1"></label>
+            <button type="submit" class="btn btn-cyan span-2">Save goals</button>
+          </form>
+        </div>
+        <div class="card span-12">
+          <div class="card-head"><span class="card-eyebrow">Custom foods</span></div>
+          <form id="customFoodForm" class="form form-grid">
+            <label><span>Name</span><input type="text" id="cfName" required maxlength="40"></label>
+            <label><span>Serving</span><input type="text" id="cfServing" placeholder="1 cup, 4 oz…" required maxlength="30"></label>
+            <label><span>Calories</span><input type="number" id="cfCal" min="0" max="3000" required></label>
+            <label><span>Protein g</span><input type="number" id="cfP" min="0" max="200" step="0.1" required></label>
+            <label><span>Carbs g</span><input type="number" id="cfC" min="0" max="500" step="0.1" required></label>
+            <label><span>Fat g</span><input type="number" id="cfF" min="0" max="200" step="0.1" required></label>
+            <div class="cf-detail-row">
+              <label><span>Fiber g <em style="font-style:normal;color:#bbb;font-size:9px">optional</em></span><input type="number" id="cfFiber" min="0" max="100" step="0.1"></label>
+              <label><span>Sugar g <em style="font-style:normal;color:#bbb;font-size:9px">optional</em></span><input type="number" id="cfSugar" min="0" max="200" step="0.1"></label>
+            </div>
+            <button type="submit" class="btn btn-lime span-2">+ Save custom food</button>
+          </form>
+          <ul class="cf-list" id="cfList"></ul>
+        </div>
+        <div class="card span-12">
+          <div class="card-head">
+            <span class="card-eyebrow eb-cyan">AI Setup · photo + text food parsing</span>
+            <span class="card-meta" id="aiStatusMeta">not configured</span>
+          </div>
+          <p style="font-size:13px;color:#555;line-height:1.6;margin:0 0 12px">
+            Paste your <b>Anthropic</b> or <b>OpenAI</b> API key to unlock photo + text food logging.
+            Cost: ~$0.005 per photo (Claude) or ~$0.005 (GPT-4o-mini). Get a key at
+            <a href="https://console.anthropic.com" target="_blank" style="color:var(--cyan)">console.anthropic.com</a>
+            or <a href="https://platform.openai.com" target="_blank" style="color:var(--cyan)">platform.openai.com</a>.
+          </p>
+          <p style="font-size:12px;color:#888;line-height:1.5;margin:0 0 14px">
+            <b>Privacy:</b> The key is stored ONLY in this browser (localStorage). Photos and
+            text are sent directly from your browser to the AI provider for parsing. Set a spend
+            limit on your account to cap monthly cost.
+          </p>
+          <form id="aiSetupForm" class="form form-grid">
+            <label><span>Provider</span>
+              <select id="aiProvider">
+                <option value="claude">Anthropic Claude (Sonnet 4.5)</option>
+                <option value="openai">OpenAI (GPT-4o-mini)</option>
+              </select>
+            </label>
+            <label><span>API key</span><input type="password" id="aiKey" placeholder="sk-... or sk-ant-..." autocomplete="off"></label>
+            <button type="submit" class="btn btn-cyan span-2">Save AI key</button>
+            <button type="button" id="aiTestBtn" class="btn btn-ghost span-2">Test connection</button>
+            <button type="button" id="aiClearBtn" class="btn btn-pink span-2">Remove key</button>
+          </form>
+        </div>
+
+        <div class="card span-12">
+          <div class="card-head"><span class="card-eyebrow eb-cyan">Reminders + accountability</span></div>
+          <p style="font-size:13px;color:#555;line-height:1.6;margin:0 0 12px">
+            Three nudges built for "get your ass to the gym" / "drink water" / "don't end the day with nothing tracked." No meal-time pings.
+          </p>
+          <ol style="font-size:12px;color:#666;line-height:1.6;margin:0 0 14px;padding-left:18px">
+            <li><b>In-app banners</b> show on the dashboard the moment you open the app and a trigger fires. Always on if enabled, no permissions needed.</li>
+            <li><b>Browser notifications</b> are best-effort — they fire while the app is open or recently in the background. Without a backend they can't wake your phone after hours of being closed. Add to Home Screen on iPhone for the best chance.</li>
+          </ol>
+          <div class="form form-grid">
+            <label class="span-2" style="display:flex;align-items:center;gap:8px;font-size:13px">
+              <input type="checkbox" id="remEnabled" style="width:auto"> <span>Show in-app reminder banners</span>
+            </label>
+
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px">
+              <input type="checkbox" id="remWorkoutOn" style="width:auto"> <span>Morning workout call</span>
+            </label>
+            <label><span>Time</span><input type="time" id="remWorkout" value="05:30"></label>
+
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px">
+              <input type="checkbox" id="remWaterOn" style="width:auto"> <span>Water-too-low check</span>
+            </label>
+            <label><span>Check at</span><input type="time" id="remWater" value="14:00"></label>
+
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px">
+              <input type="checkbox" id="remEodOn" style="width:auto"> <span>End-of-day untracked alert</span>
+            </label>
+            <label><span>Time</span><input type="time" id="remEod" value="21:00"></label>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+            <button type="button" class="btn btn-cyan" id="remSaveBtn">Save reminders</button>
+            <button type="button" class="btn btn-ghost" id="remPermBtn">Enable browser notifications</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="remTestBtn">Test notification</button>
+          </div>
+          <p id="remStatus" style="font-size:11px;color:#888;margin:8px 0 0"></p>
+        </div>
+
+        <div class="card span-12">
+          <div class="card-head"><span class="card-eyebrow eb-cyan">Layout — what you see first</span></div>
+          <div class="form form-grid">
+            <label>
+              <span>Open this screen on launch</span>
+              <select id="setStartTab">
+                <option value="dashboard">Dashboard (rings)</option>
+                <option value="nutrition">Nutrition (food log)</option>
+                <option value="fitness">Fitness (lift today)</option>
+                <option value="library">Library (exercises)</option>
+                <option value="body">Body (weight)</option>
+                <option value="goals">Goals</option>
+                <option value="trends">Health</option>
+              </select>
+            </label>
+            <label>
+              <span>Default food modal mode</span>
+              <select id="setFoodMode">
+                <option value="search">Search bar</option>
+                <option value="quicklog">1-tap quick log</option>
+                <option value="ai">AI photo</option>
+              </select>
+            </label>
+          </div>
+          <button type="button" class="btn btn-cyan" id="setLayoutSave" style="margin-top:10px">Save layout</button>
+        </div>
+
+        <div class="card span-12">
+          <div class="card-head"><span class="card-eyebrow eb-cyan">Apple Health sync (workaround)</span></div>
+          <p style="font-size:13px;color:#555;line-height:1.6;margin:0 0 12px">
+            Web apps can't read Apple Health directly. Use the iOS Shortcut below — it exports today's
+            weight, steps, sleep, and active energy to a JSON file in iCloud Drive. Then tap "Import"
+            to pull it in.
+          </p>
+          <ol style="font-size:13px;color:#555;line-height:1.7;margin:0 0 14px;padding-left:20px">
+            <li>Open Shortcuts on iPhone → tap <b>+</b> → name it "BERMO Health Export".</li>
+            <li>Add actions: <i>Find Health Samples</i> (Weight, Steps, Sleep, Active Energy — today) → <i>Combine Text</i> as JSON → <i>Save File</i> to iCloud Drive folder <code>BERMO</code> as <code>health-today.json</code>.</li>
+            <li>Run it once a day (or set an Automation at 11pm).</li>
+            <li>Come back here and tap <b>Import latest export</b>.</li>
+          </ol>
+          <div class="ah-actions">
+            <button type="button" class="btn btn-ghost" id="ahCopyTemplate">📋 Copy JSON template</button>
+            <button type="button" class="btn btn-cyan" id="ahImportBtn">⬇️ Import latest export</button>
+            <input type="file" id="ahFileInput" accept="application/json,.json" hidden>
+          </div>
+          <p id="ahStatus" style="font-size:12px;color:#888;margin:10px 0 0">No imports yet.</p>
+        </div>
+
+        <div class="card span-12 card-danger">
+          <div class="card-head"><span class="card-eyebrow eb-pink">Danger zone</span></div>
+          <p class="danger-text">Reset wipes all your local data. There's no undo.</p>
+          <div class="danger-actions">
+            <button class="btn btn-ghost" id="logoutBtn">Sign out (keep data)</button>
+            <button class="btn btn-pink" id="resetBtn">Wipe all data</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ============ DETAIL OVERLAY (drill-down for dashboard cards) ============ -->
+<div class="detail-overlay" id="detailOverlay" aria-hidden="true">
+  <header class="detail-header">
+    <button class="detail-back" id="detailBack" aria-label="Back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="detail-title-block">
+      <div class="detail-eyebrow" id="detailEyebrow">—</div>
+      <div class="detail-title" id="detailTitle">—</div>
+    </div>
+    <button class="detail-log" id="detailLogBtn" aria-label="Log this metric">+ Log</button>
+    <button class="detail-close" id="detailClose" aria-label="Close">×</button>
+  </header>
+  <div class="detail-body">
+    <div class="detail-current">
+      <div class="dc-num" id="dcNum">—</div>
+      <div class="dc-sub" id="dcSub">today</div>
+    </div>
+    <div class="detail-scale">
+      <button class="ds-btn" data-scale="1d">Day</button>
+      <button class="ds-btn on" data-scale="7d">Week</button>
+      <button class="ds-btn" data-scale="30d">Month</button>
+      <button class="ds-btn" data-scale="90d">90 Days</button>
+      <button class="ds-btn" data-scale="365d">Year</button>
+    </div>
+    <div class="detail-nav">
+      <button class="dn-arrow" id="detailPrev" aria-label="Previous">‹</button>
+      <button class="dn-label" id="detailNavLabel">—</button>
+      <button class="dn-arrow" id="detailNext" aria-label="Next">›</button>
+      <input type="date" id="detailDatePicker" class="dn-picker">
+    </div>
+    <div class="detail-chart-wrap">
+      <canvas id="detailChart"></canvas>
+    </div>
+    <div class="detail-stats" id="detailStats"></div>
+    <div class="detail-section-h">Recent</div>
+    <ul class="detail-list" id="detailList"></ul>
+  </div>
+</div>
+
+<!-- ============ FLOATING ACTION BUTTON (always visible) ============ -->
+<button class="fab" id="fab" title="Quick log" aria-label="Quick log">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+</button>
+
+<div class="fab-sheet" id="fabSheet" aria-hidden="true">
+  <div class="fab-sheet-back" data-fab-close></div>
+  <div class="fab-sheet-card">
+    <div class="fab-sheet-handle"></div>
+    <div class="fab-sheet-title">Quick log</div>
+    <div class="fab-sheet-grid">
+      <button class="fab-action" data-fab="food">
+        <span class="fa-icon" style="background:var(--cyan)">🍴</span>
+        <span class="fa-label">Add food</span>
+        <span class="fa-sub">Search database or quick add</span>
+      </button>
+      <button class="fab-action" data-fab="photo">
+        <span class="fa-icon" style="background:var(--lime)"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.4"/></svg></span></span>
+        <span class="fa-label">Snap food photo</span>
+        <span class="fa-sub">AI fills in calories + macros</span>
+      </button>
+      <button class="fab-action" data-fab="text">
+        <span class="fa-icon" style="background:#ffb347">💬</span>
+        <span class="fa-label">Type what you ate</span>
+        <span class="fa-sub">"2 eggs and oatmeal"</span>
+      </button>
+      <button class="fab-action" data-fab="water">
+        <span class="fa-icon" style="background:#7cd9f1"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 6.4 6 10.4A6 6 0 0 1 6 13.4C6 9.4 12 3 12 3Z"/></svg></span></span>
+        <span class="fa-label">+ 8 oz water</span>
+        <span class="fa-sub">Quick add</span>
+      </button>
+      <button class="fab-action" data-fab="workout">
+        <span class="fa-icon" style="background:var(--pink)">💪</span>
+        <span class="fa-label">Log a lift</span>
+        <span class="fa-sub">Sets + reps + weight</span>
+      </button>
+      <button class="fab-action" data-fab="weigh">
+        <span class="fa-icon" style="background:#0a8538;color:#fff">⚖</span>
+        <span class="fa-label">Weigh in</span>
+        <span class="fa-sub">Today's weight</span>
+      </button>
+      <button class="fab-action" data-fab="checkin">
+        <span class="fa-icon" style="background:#a78bfa">✦</span>
+        <span class="fa-label">Daily check-in</span>
+        <span class="fa-sub">Sleep + mood + energy</span>
+      </button>
+      <button class="fab-action" data-fab="symptom">
+        <span class="fa-icon" style="background:var(--pink)">🩹</span>
+        <span class="fa-label">Log symptom</span>
+        <span class="fa-sub">Pain, sickness, mood</span>
+      </button>
+    </div>
+    <button class="btn btn-ghost" data-fab-close style="width:100%;justify-content:center;margin-top:12px">Cancel</button>
+  </div>
+</div>
+
+<!-- ============ HELP BANNER (first-time hint) ============ -->
+<!-- ============ MODAL ============ -->
+<div class="modal" id="modal" aria-hidden="true">
+  <div class="modal-back" data-close></div>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <header class="modal-head">
+      <h3 id="modalTitle">—</h3>
+      <button class="modal-close" data-close aria-label="Close">×</button>
+    </header>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- ============ TOAST ============ -->
+<div class="toast" id="toast" aria-live="polite"></div>
+
+<script src="/tracker/vendor/chart.umd.js"></script>
+<script src="./data.js?v=45"></script>
+<script src="./app.js?v=45"></script>
+</body>
+</html>

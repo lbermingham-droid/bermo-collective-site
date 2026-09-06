@@ -786,7 +786,7 @@ Playwright is already installed in the scratchpad. Launch chromium with
 `{ server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" }`.
 **Do not run `npx playwright install`.**
 
-**Expected: 46/46 and zero page errors**, `node tracker/tests/week.js` **10/10**, and the scratchpad's `hvdrive.js` **13/13**, plus `node tracker/tests/week.js` at **10/10**. (Two console errors about
+**Expected: 46/46 and zero page errors**, `node tracker/tests/week.js` **10/10**, and the scratchpad's `hvdrive.js` **13/13**. (Two console errors about
 `ERR_CONNECTION_RESET` are the sandbox blocking a CDN — pre-existing, ignore.)
 
 The suite covers: load, wizard, **sideways overflow on every page**, all tabs,

@@ -912,7 +912,7 @@ function renderDashboardBase(){
   const g = state.goals;
 
   $("#dashDate").textContent = fmtMed(currentDate);
-  $("#dashGreeting").textContent = greeting();
+  $("#dashGreeting").textContent = "Home";
 
   // Calorie ring
   const consumed = t.cal;
@@ -7510,8 +7510,12 @@ function openDaySheet(dateKey){
       ${cur.type ? `<button class="btn btn-pink" id="dsClear">Clear day</button>` : ""}
       <button class="btn btn-cyan" id="dsSave">Save</button>
     </div>
+    <div class="wk-foot"><button type="button" class="wk-more" id="dsWrite">Write it out instead</button></div>
   `, (root) => {
     root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    // v42: the only route to free-text logging had been removed with the
+    // tab sheet in v39 — an orphan. It lives here now, on the one screen.
+    document.getElementById("dsWrite").addEventListener("click", () => { closeModal(); setTimeout(() => openLogWorkoutText(key), 80); });
 
     const sel    = document.getElementById("dsType");
     const custom = document.getElementById("dsCustom");
@@ -7679,6 +7683,342 @@ function openNumberPrompt(title, value, onOk){
     };
     setTimeout(() => document.getElementById("npVal").focus(), 80);
   });
+}
+
+
+// =================================================================
+// v42 — HOME. Apple Fitness on top, a Notes-style week under it.
+//
+//   week strip (7 days, each with its two rings; swipe weeks)
+//   today's two rings: Fitness (Apple's numbers) · Nutrition (what's left)
+//   the week as a notepad: tap a line to type, arrow opens the workout
+//   Left this week
+//
+// Built as ONE scoped module (.hm-*). It does not inherit the legacy
+// dashboard's CSS layers, which is why the old screen looked homegrown:
+// twenty overrides stacked on each other. The legacy dashboard DOM stays
+// in the page, hidden, until step 6 removes it with a proper orphan
+// sweep — its renders still run, so nothing throws.
+// =================================================================
+
+// ---- plan lines: the notepad model --------------------------------
+// A day's plan is a list of short lines ("Legs AM", "Cardio PM"). The
+// first line stays mirrored into `type` and the rest into `extra[]`, so
+// every existing consumer (day sheet, program, week list) keeps working.
+function _ampm(t){ if(!t) return ""; const h = parseInt(t.split(":")[0], 10); return isNaN(h) ? "" : (h < 12 ? "AM" : "PM"); }
+function _stripAmPm(s){ return (s || "").replace(/\s+(AM|PM)$/i, "").trim(); }
+function planLinesFor(dateKey){
+  const r = _dayPlanRef(dateKey);
+  const d = r.plan[r.wk][r.dn];
+  if(!d) return [];
+  if(Array.isArray(d.lines)) return d.lines;
+  const lines = [];
+  if(d.type) lines.push({ id: uid(), text: (d.type + " " + _ampm(d.time)).trim(), done: !!d.done });
+  (d.extra || []).forEach(x => lines.push({ id: uid(), text: (x.name + " " + _ampm(x.time)).trim(), done: false }));
+  d.lines = lines;
+  return lines;
+}
+function setPlanLines(dateKey, lines){
+  const r = _dayPlanRef(dateKey);
+  const cur = r.plan[r.wk][r.dn] || {};
+  const clean = lines.map(l => ({ id: l.id || uid(), text: (l.text || "").replace(/\s+/g, " ").trim(), done: !!l.done }))
+                     .filter(l => l.text);
+  if(!clean.length){
+    if(cur.exercises && cur.exercises.length){ cur.lines = []; cur.type = cur.type || "Workout"; r.plan[r.wk][r.dn] = cur; }
+    else delete r.plan[r.wk][r.dn];
+    save(); return;
+  }
+  cur.lines = clean;
+  cur.type = _stripAmPm(clean[0].text);
+  cur.extra = clean.slice(1).map((l, i) => Object.assign({}, (cur.extra || [])[i] || {}, { name: _stripAmPm(l.text) }));
+  if(!cur.extra.length) delete cur.extra;
+  r.plan[r.wk][r.dn] = cur;
+  save();
+}
+const _NOT_A_LIFT = /\b(rest|off|cardio|walk|walking|run|running|jog|bike|cycling|spin|stair|stairmaster|swim|row(?:ing)?\s*(?:erg|machine)|elliptical|yoga|stretch|mobility|pilates|hike|hiit)\b/i;
+function _lineIsLift(text){ return !!(text || "").trim() && !_NOT_A_LIFT.test(text); }
+function _lineIsCardio(text){ return /\b(cardio|walk|walking|run|running|jog|bike|cycling|spin|stair|stairmaster|swim|elliptical|hike|hiit)\b/i.test(text || ""); }
+
+// ---- per-day numbers ---------------------------------------------
+function _homeDay(key){
+  const day = state.days[key] || {};
+  const ss = day.sessions || [];
+  const strength = ss.filter(s => s.type !== "cardio");
+  const cardio = ss.filter(s => s.type === "cardio");
+  const act = getActivityForDay(key);
+  const ag = state.activityGoals || { move:800, exercise:60, stand:16 };
+  const t = totalsFor(key);
+  const g = state.goals || {};
+  return {
+    key, act, ag,
+    fitPct: ag.exercise ? Math.min(1, (act.exercise || 0) / ag.exercise) : 0,
+    nutPct: g.cal ? Math.min(1, (t.cal || 0) / g.cal) : 0,
+    synced: act.source === "applehealth",
+    lifted: strength.length > 0,
+    cardioMin: cardio.reduce((n, s) => n + (s.durationMin || 0), 0),
+    load: strength.reduce((n, s) => n + (s.weight || 0) * (s.reps || 0) * (s.sets || 1), 0),
+    sets: strength.reduce((n, s) => n + (s.sets || 1), 0),
+    totals: t,
+  };
+}
+function _homeWeek(sun){
+  const days = [];
+  for(let i = 0; i < 7; i++) days.push(_homeDay(todayKey(new Date(sun.getTime() + i*86400000))));
+  const liftPlanned = days.filter(d => planLinesFor(d.key).some(l => _lineIsLift(l.text))).length;
+  const liftDone = days.filter(d => d.lifted).length;
+  return {
+    days,
+    liftPlanned: Math.max(liftPlanned, liftDone),   // a lift you did but never planned still counts
+    liftDone,
+    load: days.reduce((n, d) => n + d.load, 0),
+    sets: days.reduce((n, d) => n + d.sets, 0),
+  };
+}
+
+// ---- rings ---------------------------------------------------------
+// Apple's look: round caps, a track at ~14% of the ring colour, and a
+// slightly darker tip where the arc overlaps itself past 100%.
+function ringSvg(size, rings){
+  const cx = size / 2;
+  let defs = "", arcs = "";
+  rings.forEach((r, i) => {
+    const sw = r.stroke;
+    const radius = cx - sw / 2 - (i * (sw + 3));
+    const C = 2 * Math.PI * radius;
+    const pct = Math.max(0, Math.min(1, r.pct || 0));
+    const gid = `hmg${size}${i}${(r.color || "").replace("#", "")}`;
+    defs += `<linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="${r.color}"/><stop offset="1" stop-color="${r.color2 || r.color}"/></linearGradient>`;
+    arcs += `<circle cx="${cx}" cy="${cx}" r="${radius}" fill="none" stroke="${r.color}" stroke-opacity=".14" stroke-width="${sw}"/>`;
+    if(pct > 0) arcs += `<circle cx="${cx}" cy="${cx}" r="${radius}" fill="none" stroke="url(#${gid})" stroke-width="${sw}"
+      stroke-linecap="round" stroke-dasharray="${(C * pct).toFixed(2)} ${C.toFixed(2)}"
+      transform="rotate(-90 ${cx} ${cx})"/>`;
+  });
+  return `<svg class="hm-ring" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><defs>${defs}</defs>${arcs}</svg>`;
+}
+const HM_FIT = "#00f5d4", HM_FIT2 = "#5cffe6", HM_NUT = "#4db8ff", HM_NUT2 = "#8ad0ff";
+
+// ---- render --------------------------------------------------------
+function renderHome(){
+  const root = document.getElementById("home");
+  if(!root) return;
+  const today = todayKey(new Date());
+  const sel = new Date(currentDate + "T12:00:00");
+  const sun = weekStart(sel);
+  const wk = _homeWeek(sun);
+  const d = _homeDay(currentDate);
+  const g = state.goals || {};
+  const left = (goal, have) => Math.max(0, Math.round((goal || 0) - (have || 0)));
+  const fmtK = (n) => n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, "") + "K" : String(Math.round(n));
+  const isThisWeek = todayKey(sun) === todayKey(weekStart(new Date()));
+  const sat = new Date(sun.getTime() + 6*86400000);
+  const rangeLabel = sun.toLocaleDateString(undefined, { month:"short", day:"numeric" }) + " – " +
+                     sat.toLocaleDateString(undefined, { month:"short", day:"numeric" });
+
+  // --- week strip ---
+  const strip = wk.days.map((x, i) => {
+    const dt = new Date(x.key + "T12:00:00");
+    return `<button type="button" class="hm-day ${x.key === currentDate ? "sel" : ""} ${x.key === today ? "today" : ""} ${x.key > today ? "future" : ""}" data-date="${x.key}">
+      <span class="hm-day-l">${"SMTWTFS"[i]}</span>
+      ${ringSvg(34, [{ pct: x.fitPct, color: HM_FIT, stroke: 4.5 }, { pct: x.nutPct, color: HM_NUT, stroke: 4.5 }])}
+      <span class="hm-day-n">${dt.getDate()}</span>
+    </button>`;
+  }).join("");
+
+  // --- notepad ---
+  const pad = wk.days.map((x, i) => {
+    const dt = new Date(x.key + "T12:00:00");
+    const lines = planLinesFor(x.key);
+    const day = state.days[x.key] || {};
+    const hasCardio = (day.sessions || []).some(s => s.type === "cardio");
+    const rows = lines.map((l, li) => {
+      const auto = (li === 0 && x.lifted && _lineIsLift(l.text)) || (_lineIsCardio(l.text) && hasCardio);
+      const done = l.done || auto;
+      const openable = !/^\s*(rest|off|day off)\s*$/i.test(l.text);   // a rest line has no workout to open
+      return `<div class="hm-line ${done ? "done" : ""} ${openable ? "" : "no-open"}" data-date="${x.key}" data-line="${escape(l.id)}">
+        <button type="button" class="hm-tick" data-tick title="${done ? "Done" : "Mark done"}" aria-label="Mark done"></button>
+        <div class="hm-text" contenteditable="true" spellcheck="false" data-text>${escape(l.text)}</div>
+        <button type="button" class="hm-go" data-open title="Open workout" aria-label="Open workout">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+      </div>`;
+    }).join("");
+    return `<div class="hm-pday ${x.key === today ? "today" : ""} ${x.key === currentDate ? "sel" : ""}" data-date="${x.key}">
+      <div class="hm-pday-h"><span>${dt.toLocaleDateString(undefined, { weekday:"long" })}</span><i>${dt.getDate()}</i></div>
+      <div class="hm-lines">${rows}
+        <div class="hm-line new" data-date="${x.key}">
+          <span class="hm-tick ghost"></span>
+          <div class="hm-text placeholder" contenteditable="true" spellcheck="false" data-new data-ph="${lines.length ? "Add" : "\u2014"}"></div>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+
+  // --- left this week ---
+  let leftHtml;
+  if(wk.sets === 0){
+    leftHtml = `<div class="hm-left-empty">Nothing logged this week yet</div>`;
+  } else {
+    let missing = [];
+    try{
+      const gaps = subMuscleGaps("week");
+      (gaps.report || gaps || []).forEach(p => (p.missing || []).forEach(m => missing.push(m.label)));
+    }catch(e){ console.warn("left this week", e); }
+    missing = Array.from(new Set(missing)).slice(0, 5)
+      .map(m => m.replace(/(^|\s|\/)([a-z])/g, (a, b, c) => b + c.toUpperCase()));
+    leftHtml = missing.length
+      ? `<ul class="hm-left-list">${missing.map(m => `<li>${escape(m)}</li>`).join("")}</ul>`
+      : `<div class="hm-left-ok">Coverage complete</div>`;
+  }
+
+  root.innerHTML = `
+    <div class="hm-top">
+      <button type="button" class="hm-nav" id="hmPrev" aria-label="Previous week"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+      <div class="hm-range">${isThisWeek ? "This week" : rangeLabel}<small>${isThisWeek ? rangeLabel : ""}</small></div>
+      <button type="button" class="hm-nav" id="hmNext" aria-label="Next week"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+    </div>
+    <div class="hm-strip" id="hmStrip">${strip}</div>
+
+    <div class="hm-rings">
+      <div class="hm-ringcol">
+        <div class="hm-ringwrap">${ringSvg(150, [{ pct: d.fitPct, color: HM_FIT, color2: HM_FIT2, stroke: 15 }])}
+          <div class="hm-ringmid"><b>${Math.round(d.act.exercise || 0)}</b><span>min</span></div>
+        </div>
+        <div class="hm-ringlbl">Fitness${d.synced ? "" : ` <i title="Apple Health not synced yet today">not synced</i>`}</div>
+        <div class="hm-stats">
+          <div><b>${Math.round(d.act.exercise || 0)}<small>m</small></b><span>Active</span></div>
+          <div><b>${d.synced ? Math.round(d.act.move || 0) : "\u2014"}</b><span>Cal</span></div>
+          <div><b>${wk.liftDone}<small>/${wk.liftPlanned}</small></b><span>Lifts</span></div>
+          <div><b>${fmtK(wk.load)}</b><span>Load</span></div>
+        </div>
+      </div>
+      <div class="hm-ringcol">
+        <div class="hm-ringwrap">${ringSvg(150, [{ pct: d.nutPct, color: HM_NUT, color2: HM_NUT2, stroke: 15 }])}
+          <div class="hm-ringmid"><b>${left(g.cal, d.totals.cal)}</b><span>cal left</span></div>
+        </div>
+        <div class="hm-ringlbl">Nutrition</div>
+        <div class="hm-stats hm-stats-3">
+          <div><b>${left(g.protein, d.totals.p)}<small>g</small></b><span>Protein</span></div>
+          <div><b>${left(g.carbs, d.totals.c)}<small>g</small></b><span>Carbs</span></div>
+          <div><b>${left(g.fat, d.totals.f)}<small>g</small></b><span>Fat</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hm-pad" id="hmPad">${pad}</div>
+
+    <div class="hm-left">
+      <div class="hm-left-h">Left this week</div>
+      ${leftHtml}
+    </div>`;
+
+  bindHome(root);
+}
+
+let _hmSaveT = null;
+function bindHome(root){
+  // week nav + swipe
+  const shift = (n) => {
+    const dt = new Date(currentDate + "T12:00:00");
+    dt.setDate(dt.getDate() + n);
+    currentDate = todayKey(dt);
+    renderAll();
+  };
+  root.querySelector("#hmPrev").onclick = () => shift(-7);
+  root.querySelector("#hmNext").onclick = () => shift(7);
+  const strip = root.querySelector("#hmStrip");
+  let sx = null, sy = null;
+  strip.addEventListener("touchstart", (e) => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive:true });
+  strip.addEventListener("touchend", (e) => {
+    if(sx === null) return;
+    const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+    sx = sy = null;
+    if(Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.5) shift(dx < 0 ? 7 : -7);
+  }, { passive:true });
+  root.querySelectorAll(".hm-day").forEach(b => b.addEventListener("click", () => {
+    currentDate = b.getAttribute("data-date"); renderAll();
+  }));
+
+  // notepad — type in place; nothing re-renders while you are typing
+  const readDayLines = (dateKey) => {
+    const out = [];
+    root.querySelectorAll(`.hm-line[data-date="${dateKey}"]`).forEach(row => {
+      const t = row.querySelector("[data-text], [data-new]");
+      const text = (t.textContent || "").trim();
+      if(!text) return;
+      const id = row.getAttribute("data-line") || uid();
+      const wasDone = row.classList.contains("done") && !row.classList.contains("auto");
+      out.push({ id, text, done: row.dataset.done === "1" });
+    });
+    return out;
+  };
+  const commitDay = (dateKey, rerender) => {
+    setPlanLines(dateKey, readDayLines(dateKey));
+    if(rerender) renderAll();
+  };
+  // keep explicit done state on the row so a re-read doesn't lose it
+  root.querySelectorAll(".hm-line[data-line]").forEach(row => {
+    const dateKey = row.getAttribute("data-date");
+    const lines = planLinesFor(dateKey);
+    const l = lines.find(x => x.id === row.getAttribute("data-line"));
+    row.dataset.done = l && l.done ? "1" : "0";
+  });
+
+  root.querySelectorAll("[data-text], [data-new]").forEach(el => {
+    const dateKey = el.closest(".hm-line").getAttribute("data-date");
+    el.addEventListener("input", () => {
+      el.classList.toggle("placeholder", !el.textContent.trim());
+      clearTimeout(_hmSaveT);
+      _hmSaveT = setTimeout(() => commitDay(dateKey, false), 350);
+    });
+    el.addEventListener("keydown", (e) => {
+      if(e.key === "Enter"){
+        e.preventDefault();
+        commitDay(dateKey, false);
+        // new empty line under this one, then re-render and focus it
+        const lines = planLinesFor(dateKey).slice();
+        const idx = el.hasAttribute("data-new") ? lines.length : lines.findIndex(x => x.id === el.closest(".hm-line").getAttribute("data-line"));
+        const fresh = { id: uid(), text: "", done:false };
+        lines.splice(idx + 1, 0, fresh);
+        // an empty line can't be stored (setPlanLines drops blanks), so
+        // store a placeholder marker and focus the "new" row instead
+        const r = _dayPlanRef(dateKey);
+        setPlanLines(dateKey, lines.filter(x => x.text));
+        renderAll();
+        const nx = document.querySelector(`.hm-line.new[data-date="${dateKey}"] [data-new]`);
+        if(nx){ nx.focus(); }
+      }
+      if(e.key === "Backspace" && !el.textContent.trim() && !el.hasAttribute("data-new")){
+        e.preventDefault();
+        const row = el.closest(".hm-line");
+        const prev = row.previousElementSibling;
+        row.remove();
+        commitDay(dateKey, true);
+        const p = prev && document.querySelector(`.hm-line[data-line="${prev.getAttribute("data-line")}"] [data-text]`);
+        if(p){ p.focus(); document.getSelection().selectAllChildren(p); document.getSelection().collapseToEnd(); }
+      }
+    });
+    el.addEventListener("blur", () => {
+      clearTimeout(_hmSaveT);
+      const before = JSON.stringify(planLinesFor(dateKey).map(x => x.text));
+      commitDay(dateKey, false);
+      const after = JSON.stringify(planLinesFor(dateKey).map(x => x.text));
+      if(before !== after) setTimeout(renderAll, 60);
+    });
+  });
+
+  root.querySelectorAll("[data-tick]").forEach(b => b.addEventListener("click", () => {
+    const row = b.closest(".hm-line");
+    const dateKey = row.getAttribute("data-date");
+    const lines = planLinesFor(dateKey).map(l => l.id === row.getAttribute("data-line") ? Object.assign({}, l, { done: !l.done }) : l);
+    setPlanLines(dateKey, lines);
+    renderAll();
+  }));
+  root.querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", () => {
+    const dateKey = b.closest(".hm-line").getAttribute("data-date");
+    currentDate = dateKey;
+    openDaySheet(dateKey);
+  }));
 }
 
 // =================================================================
@@ -14907,6 +15247,9 @@ function renderFitness(){
 }
 
 function renderDashboard(){
+  // v42: HOME renders first. The legacy dashboard renders below it into a
+  // hidden container until step 6 removes it with a proper orphan sweep.
+  try{ renderHome(); }catch(e){ console.warn("home", e); }
   renderDashboardBase();
   drawActivityRings();
   applyRedFlags();

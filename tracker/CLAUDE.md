@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v41**.
+- Current build: **v42**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -261,6 +261,57 @@ second water button on the low-water banner.
 `renderWodCard()` writing into four elements that no longer existed, so it
 threw on EVERY dashboard render and killed the render chain behind it. That
 is the orphan-sweep rule in §7, ignored in a hurry. It is now guarded.
+
+**THE REBUILD — HOME (v42, step 1 of 6).** After four rounds of "it looks
+homegrown," she gave a full spec (ChatGPT-assisted, then corrected by her):
+Apple Fitness on the main screen, Hevy when you open a workout, MyFitnessPal
+for food, one app, three tabs. The agreed build order is in the transcript
+and repeated here so the next step is unambiguous:
+
+1. **Home** ✅ — week strip · two rings · notepad plan · Left this week
+2. **The Hevy logger** — data change first for order + supersets
+3. **Fitness numbers** — set-counted coverage with fractional credit for
+   indirect work, editable targets inferred from her trailing 4 weeks
+4. **Change** — WEEK · MONTH · YEAR deltas vs the previous period, no grade
+5. **Apple Watch Shortcut** — reads Health, opens the tracker with the
+   numbers; runs hourly. A PWA cannot read HealthKit; this is the bridge.
+6. **Progress** tab + delete the legacy dashboard with a proper orphan sweep
+
+How Home is built, and why it is the first thing that has not looked
+homegrown: it is **one scoped module** (`renderHome()`, `.hm-*` CSS, ~300
+lines) that inherits nothing from the legacy dashboard's stacked layers.
+The legacy dashboard DOM is still in `index.html` inside `#dashLegacy`
+(`display:none`) and its renders still run into it, so nothing throws.
+**Step 6 removes it — do not remove it piecemeal before then** (see §7).
+
+Decisions she made, verbatim where it matters — do not relitigate:
+- **Both rings are TODAY**, like Apple Watch. Fitness = Apple's Exercise
+  minutes vs her goal; until the Shortcut has run today it fills from logged
+  minutes and shows a "not synced" chip. **Active calories show "—" when
+  not synced** — the auto-estimate (`sets×reps×weight×0.0008`) is a guess
+  and read as "4 Cal", which is worse than nothing.
+- **Lifting accountability is the `4 / 5` number, not the ring.** A cardio
+  day closes the ring; seven full rings cannot hide a 2/5.
+- **Weeks start Sunday** (her rule; the ChatGPT spec said Monday).
+- **No motivational copy.** `#dashGreeting` is now just "Home".
+- **The plan is a notepad.** `plan[wk][dn].lines[]` — `{id,text,done}`.
+  `planLinesFor()` migrates `type`/`extra[]` into lines on first read and
+  `setPlanLines()` mirrors line 0 back into `type` and the rest into
+  `extra[]`, so every older consumer (day sheet, program, week list) keeps
+  working. Tap the text to edit; the arrow opens the workout (day sheet now,
+  Hevy logger after step 2). Enter adds a line, Backspace on an empty line
+  removes it, blur saves. **Typing never re-renders** — that is what makes
+  it feel like Notes.
+- A line is a *lift* unless it matches `_NOT_A_LIFT` (rest/cardio words).
+  Lift days planned = days with a lift line; done = days with a strength
+  session; planned is never shown lower than done.
+- **Left this week** currently lists sub-regions with zero sets this week
+  from `subMuscleGaps("week")`. Step 3 replaces this with set counts against
+  targets. It is honest data now, but the labels are jargon — known.
+
+Orphan caught in this step: v39 removed the tab sheet, and with it the only
+UI route to `openLogWorkoutText()`. The day sheet now carries a
+"Write it out instead" link (`#dsWrite`). The journey script found it.
 
 **THE BLACK SCREEN (v41).** *"I clicked edit week and it goes black."*
 `#dwEditPlan` called `go("plan")`. **`view-plan` was deleted in v18.**
@@ -753,4 +804,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v38` built to the reference: media rows, filter pills, totals block, no shouting ·
 `v39` ONE fitness screen — the day sheet, the build-workout picker, sets/weights ·
 `v40` week durability: the sets editor no longer deletes a logged workout ·
-`v41` BLACK SCREEN — a button pointed at a view deleted in v18.
+`v41` BLACK SCREEN — a button pointed at a view deleted in v18 ·
+`v42` HOME — week strip, two rings, notepad plan, Left this week (step 1 of the rebuild).

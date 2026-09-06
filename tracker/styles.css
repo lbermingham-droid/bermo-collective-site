@@ -4692,3 +4692,81 @@ html, body, #app, .app{
 /* .lrows caps at 46vh for modals. Inside the full-screen picker the
    overlay body is the scroller, so the cap left 5 rows and dead space. */
 #bwOverlay .lrows{ max-height:none !important; overflow:visible !important; }
+
+/* ============================================================
+   v42 — HOME. One scoped module. Nothing here inherits the
+   legacy dashboard layers; that stacking is what looked homegrown.
+   ============================================================ */
+.dash-legacy{ display:none !important; }
+.dash-greet h1{ text-transform:none !important; font-size:20px !important; font-weight:700 !important; }
+.dg-date{ display:none !important; }
+
+.home{ --hm-fit:#00f5d4; --hm-nut:#4db8ff; --hm-mute:#8b95a1; --hm-line:rgba(255,255,255,.07); font-variant-numeric:tabular-nums; }
+
+/* week nav */
+.hm-top{ display:flex; align-items:center; justify-content:space-between; margin:2px 0 8px; }
+.hm-range{ font-size:15px; font-weight:700; color:#fff; letter-spacing:-.01em; text-align:center; }
+.hm-range small{ display:block; font-size:12px; font-weight:500; color:var(--hm-mute); margin-top:1px; }
+.hm-nav{ width:36px; height:36px; border-radius:50%; border:0; background:rgba(255,255,255,.06); color:#dfe5ee; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.hm-nav svg{ width:18px; height:18px; }
+
+/* week strip */
+.hm-strip{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:18px; touch-action:pan-y; }
+.hm-day{ display:flex; flex-direction:column; align-items:center; gap:4px; padding:8px 0 6px; border:0; border-radius:14px; background:transparent; cursor:pointer; color:var(--hm-mute); }
+.hm-day-l{ font-size:11px; font-weight:700; letter-spacing:.02em; }
+.hm-day-n{ font-size:12px; font-weight:600; }
+.hm-day.sel{ background:rgba(255,255,255,.07); color:#fff; }
+.hm-day.today .hm-day-n{ color:var(--hm-fit); }
+.hm-day.future{ opacity:.55; }
+.hm-day .hm-ring{ display:block; }
+
+/* the two rings */
+.hm-rings{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:22px; }
+.hm-ringcol{ display:flex; flex-direction:column; align-items:center; }
+.hm-ringwrap{ position:relative; width:150px; height:150px; }
+.hm-ringwrap .hm-ring{ display:block; filter:drop-shadow(0 0 10px rgba(0,0,0,.35)); }
+.hm-ringmid{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none; }
+.hm-ringmid b{ font-family:'Inter Tight',Inter,sans-serif; font-size:30px; font-weight:800; color:#fff; letter-spacing:-.03em; line-height:1; }
+.hm-ringmid span{ font-size:11px; font-weight:600; color:var(--hm-mute); margin-top:3px; }
+.hm-ringlbl{ margin:10px 0 8px; font-size:13px; font-weight:700; color:#fff; }
+.hm-ringlbl i{ font-style:normal; font-weight:600; font-size:10px; color:var(--hm-mute); margin-left:6px; padding:2px 6px; border-radius:6px; background:rgba(255,255,255,.06); }
+.hm-stats{ display:grid; grid-template-columns:repeat(4,auto); gap:0 12px; }
+.hm-stats-3{ grid-template-columns:repeat(3,auto); gap:0 14px; }
+.hm-stats > div{ display:flex; flex-direction:column; align-items:center; }
+.hm-stats b{ font-family:'Inter Tight',Inter,sans-serif; font-size:17px; font-weight:800; color:#fff; letter-spacing:-.02em; line-height:1.1; }
+.hm-stats b small{ font-size:11px; font-weight:700; color:var(--hm-mute); margin-left:1px; }
+.hm-stats span{ font-size:10px; font-weight:600; color:var(--hm-mute); margin-top:3px; }
+.hm-ringcol:first-child .hm-stats b{ color:#fff; }
+
+/* the notepad */
+.hm-pad{ display:flex; flex-direction:column; gap:2px; margin-bottom:22px; }
+.hm-pday{ padding:10px 0 6px; border-top:1px solid var(--hm-line); }
+.hm-pday:first-child{ border-top:0; }
+.hm-pday-h{ display:flex; align-items:baseline; gap:8px; margin-bottom:4px; }
+.hm-pday-h span{ font-size:13px; font-weight:700; color:#fff; letter-spacing:-.01em; }
+.hm-pday-h i{ font-style:normal; font-size:12px; font-weight:600; color:var(--hm-mute); }
+.hm-pday.today .hm-pday-h span{ color:var(--hm-fit); }
+.hm-lines{ display:flex; flex-direction:column; }
+.hm-line{ display:grid; grid-template-columns:24px 1fr 32px; align-items:center; gap:8px; min-height:34px; }
+.hm-line.new{ min-height:30px; }
+.hm-tick{ width:20px; height:20px; border-radius:50%; border:1.5px solid #3a4451; background:transparent; cursor:pointer; padding:0; margin-left:2px; }
+.hm-tick.ghost{ border-color:transparent; }
+.hm-line.done .hm-tick{ background:var(--hm-fit); border-color:var(--hm-fit);
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23032620' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>");
+  background-size:12px; background-repeat:no-repeat; background-position:center; }
+.hm-text{ font-size:16px; font-weight:500; color:#fff; line-height:1.35; padding:5px 0; outline:none; min-height:1.35em; caret-color:var(--hm-fit); word-break:break-word; }
+.hm-line.done .hm-text{ color:#c9d1dc; }
+.hm-text.placeholder:empty::before, .hm-text[data-new]:empty::before{ content:attr(data-ph); color:#4a5462; font-weight:500; }
+.hm-text[data-new]:focus:empty::before{ content:""; }
+.hm-go{ width:32px; height:32px; border-radius:50%; border:0; background:rgba(255,255,255,.06); color:#dfe5ee; display:flex; align-items:center; justify-content:center; cursor:pointer; justify-self:end; }
+.hm-go svg{ width:16px; height:16px; }
+.hm-line.done .hm-go{ color:var(--hm-fit); }
+
+/* left this week */
+.hm-left{ padding:14px 0 8px; border-top:1px solid var(--hm-line); }
+.hm-left-h{ font-size:10px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:var(--hm-mute); margin-bottom:8px; }
+.hm-left-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px; }
+.hm-left-list li{ font-size:15px; font-weight:600; color:#fff; }
+.hm-left-ok{ font-size:15px; font-weight:700; color:var(--hm-fit); }
+.hm-left-empty{ font-size:14px; color:var(--hm-mute); }
+.hm-line.no-open .hm-go{ visibility:hidden; }

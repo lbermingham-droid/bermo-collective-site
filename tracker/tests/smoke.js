@@ -174,10 +174,10 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
     await page.waitForTimeout(600);
     // v8 IA: hubs are hidden — dashboard = deck rings + nutrition card + workouts week list
     const dash = await page.evaluate(() => ({
-      days: document.querySelectorAll("#deckDays .dk-dc").length,
-      rings: !!document.getElementById("deckFitRings") && !!document.getElementById("deckNutRings"),
-      water: !!document.getElementById("deckWaterAdd"),
-      work: document.querySelectorAll("#dwList .dw-row").length,
+      days: document.querySelectorAll("#hmStrip .hm-day").length,
+      rings: document.querySelectorAll(".hm-ringwrap .hm-ring").length === 2,
+      water: true,                                   // v42: water moved off Home by spec
+      work: document.querySelectorAll("#hmPad .hm-pday").length,
       cmp: document.querySelectorAll("#cmpRows .cmp-row").length,
       brain: document.querySelectorAll(".js-brain").length >= 3,
     }));
@@ -190,8 +190,8 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
   try {
     await page.click(`${tabSel}[data-tab="dashboard"]`);
     await page.waitForTimeout(500);
-    const tapped = await page.$eval("#deckDays .dk-dc:first-child", el => el.dataset.date);
-    await page.click("#deckDays .dk-dc:first-child");
+    const tapped = await page.$eval("#hmStrip .hm-day:first-child", el => el.dataset.date);
+    await page.click("#hmStrip .hm-day:first-child");
     await page.waitForTimeout(400);
     await page.click(`${tabSel}[data-tab="nutrition"]`);
     await page.waitForTimeout(400);
@@ -204,7 +204,7 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
     });
     await page.click(`${tabSel}[data-tab="dashboard"]`);
     await page.waitForTimeout(400);
-    const deckSel = await page.$eval("#deckDays .dk-dc.sel", el => el.dataset.date).catch(() => null);
+    const deckSel = await page.$eval("#hmStrip .hm-day.sel", el => el.dataset.date).catch(() => null);
     (nutDate === tapped && deckSel === prev)
       ? ok("calendars connected (dashboard day strip <-> nutrition date)")
       : fail("calendars connected", JSON.stringify({ tapped, nutDate, prev, deckSel }));

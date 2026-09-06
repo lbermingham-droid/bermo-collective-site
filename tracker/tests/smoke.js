@@ -671,29 +671,13 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       : fail("v29 compare card", cmp.slice(0, 120));
   } catch (e) { fail("v29 compare card", e); }
 
-  // 22. v30: start a workout with NOTHING planned and build it as you go.
-  //     It used to refuse — a confirm() then a click on a "plan" tab that
-  //     was deleted in v18, so OK did nothing either. Two constants used
-  //     by the session (SET_KINDS, the rest-timer state) were also never
-  //     declared, so the overlay threw the moment an exercise rendered.
+  // 22. v45: START WORKOUT on a day with nothing planned opens the workout
+  //     flow, the clock runs, and an exercise can be added from search.
   try {
-    const dialogs = [];
-    const onDialog = async (d) => { dialogs.push(d.message()); await d.dismiss(); };
-    page.on("dialog", onDialog);
     await page.evaluate(() => {
       const KEY = "bermo.tracker.v1";
       const st = JSON.parse(localStorage.getItem(KEY));
-      const names = ["sun","mon","tue","wed","thu","fri","sat"];
-      const d = new Date();
-      const ws = new Date(d); ws.setHours(0,0,0,0); ws.setDate(ws.getDate() - ws.getDay());
-      const wk = (date) => { const x = new Date(date); x.setHours(0,0,0,0);
-        x.setDate(x.getDate() + 4 - (x.getDay()||7));
-        const y0 = new Date(x.getFullYear(),0,1);
-        return x.getFullYear() + "-W" + String(Math.ceil(((x - y0)/86400000 + 1)/7)).padStart(2,"0"); };
-      st.plan = st.plan || {};
-      st.plan[wk(ws)] = st.plan[wk(ws)] || {};
-      st.plan[wk(ws)][names[d.getDay()]] = { type:"LEGS" };   // a type, but NO exercises
-      delete (st.days[new Date().toISOString().slice(0,10)] || {}).workoutSession;
+      st.plan = {};
       localStorage.setItem(KEY, JSON.stringify(st));
     });
     await page.reload({ waitUntil: "domcontentloaded", timeout: 20000 });
@@ -702,44 +686,40 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
     await page.waitForTimeout(600);
     await page.evaluate(() => { const b = document.getElementById("fdStart"); if(b) b.click(); });
     await page.waitForTimeout(700);
-    const sess = await page.evaluate(() => {
-      const o = document.getElementById("workoutOverlay");
-      return { open: !!o && getComputedStyle(o).display !== "none",
-               clock: (document.getElementById("woClock")||{}).textContent || "",
-               canAdd: !!document.getElementById("wsAddEx") };
-    });
-    page.off("dialog", onDialog);
-    (sess.open && sess.canAdd && dialogs.length === 0 && /⏸/.test(sess.clock))
-      ? ok("v30 empty session opens, clock auto-starts, exercises addable")
-      : fail("v30 empty session", JSON.stringify({ ...sess, dialogs }));
-  } catch (e) { fail("v30 empty session", e); }
+    await page.evaluate(() => { const b = document.getElementById("hvStart"); if(b) b.click(); });
+    await page.waitForTimeout(700);
+    await page.evaluate(() => { const b = document.getElementById("hvAddEx"); if(b) b.click(); });
+    await page.waitForTimeout(600);
+    await page.fill("#hvQ", "hip thrust");
+    await page.waitForTimeout(400);
+    await page.evaluate(() => { const r = document.querySelector("#hvResults .hv-ex"); if(r) r.click(); });
+    await page.waitForTimeout(700);
+    const sess = await page.evaluate(() => ({
+      open: !!document.querySelector("#hvOverlay.open"),
+      ex: document.querySelectorAll("#hvOverlay .hv-ex").length,
+      clock: (document.getElementById("hvClock") || {}).textContent || "",
+    }));
+    (sess.open && sess.ex === 1 && /^\d\d:\d\d/.test(sess.clock))
+      ? ok("v45 unplanned day: start, clock runs, exercise added from search")
+      : fail("v45 empty workout", JSON.stringify(sess));
+  } catch (e) { fail("v45 empty workout", e); }
 
-  // 23. Drive the WHOLE session flow and require zero page errors.
-  //     A regex scan for undeclared identifiers was tried here and produced
-  //     false positives; exercising the path is both simpler and stricter.
-  //     This is what would have caught SET_KINDS and the rest-timer state:
-  //     both were referenced and never declared, and only threw once an
-  //     exercise actually rendered and a set was actually logged.
+  // 23. v45: log a set through the flow and require zero page errors.
   try {
     const before = pageErrors.length;
-    await page.evaluate(() => { const b = document.getElementById("wsAddEx"); if(b) b.click(); });
-    await page.waitForTimeout(500);
-    await page.fill("#axSearch", "hip thrust").catch(()=>{});
-    await page.waitForTimeout(350);
-    await page.evaluate(() => { const li = document.querySelector("#axList .mrow"); if(li) li.click(); });
-    await page.waitForTimeout(500);
-    // log a set — this is where the rest timer fires
-    await page.evaluate(() => {
-      const set = document.querySelector(".ws-set");
-      if(!set) return;
-      const reps = set.querySelector(".ws-reps");
-      reps.value = "12";
-      reps.dispatchEvent(new Event("change", { bubbles:true }));
-      set.querySelector("[data-log]").click();
-    });
+    await page.evaluate(() => { const r = document.querySelector('#hvOverlay [data-ex="0"]'); if(r) r.click(); });
+    await page.waitForTimeout(600);
+    await page.evaluate(() => { const b = document.getElementById("hvAddSet"); if(b) b.click(); });
+    await page.waitForTimeout(400);
+    // the set just added is the LAST row — earlier rows may be seeded from
+    // sets already logged today, and ticking one of those un-ticks it
+    const si = await page.evaluate(() => document.querySelectorAll("#hvOverlay .hv-set[data-si]").length - 1);
+    await page.fill(`#hvOverlay .hv-set[data-si="${si}"] [data-f="reps"]`, "12");
+    await page.fill(`#hvOverlay .hv-set[data-si="${si}"] [data-f="weight"]`, "0");
+    await page.evaluate((i) => { const b = document.querySelector(`#hvOverlay .hv-set[data-si="${i}"] [data-tick]`); if(b) b.click(); }, si);
     await page.waitForTimeout(700);
-    // cycle a set kind — this is where SET_KINDS was referenced
-    await page.evaluate(() => { const b = document.querySelector("[data-kind-cycle]"); if(b) b.click(); });
+    const rest = await page.evaluate(() => !!document.querySelector(".hv-rest"));
+    await page.evaluate(() => { const b = document.getElementById("hvSkip"); if(b) b.click(); });
     await page.waitForTimeout(400);
     const logged = await page.evaluate(() => {
       const st = JSON.parse(localStorage.getItem("bermo.tracker.v1"));
@@ -747,11 +727,12 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       const sess = ((st.days[k] || {}).sessions || []);
       return { rows: sess.length, hasHipThrust: sess.some(x => /hip thrust/i.test(x.name || "")) };
     });
-    const newErrors = pageErrors.slice(before);
-    (newErrors.length === 0 && logged.hasHipThrust)
-      ? ok("v30 full session flow (add lift, log a bodyweight set, cycle set kind) throws nothing")
-      : fail("v30 session flow", JSON.stringify({ newErrors: newErrors.slice(0,3), logged }));
-  } catch (e) { fail("v30 session flow", e); }
+    (pageErrors.length === before && rest && logged.hasHipThrust)
+      ? ok("v45 bodyweight set logs, rest timer opens, no page errors")
+      : fail("v45 set flow", JSON.stringify({ errs: pageErrors.slice(before), rest, logged }));
+    await page.evaluate(() => { const b = document.querySelector("#hvOverlay [data-hv-back]"); if(b) b.click(); });
+    await page.waitForTimeout(400);
+  } catch (e) { fail("v45 set flow", e); }
 
   // 24. v31: what she actually typed into the day editor.
   //     "1.5 hours." became an EXERCISE and the whole comma-separated line
@@ -938,119 +919,90 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       : fail("v33 native dialogs", natives.slice(0,4).join(" | "));
   } catch (e) { fail("v33 native dialogs", e); }
 
-  // 29. v34: modals opened from INSIDE the workout overlay must be VISIBLE,
-  //     not merely present. The overlay is z-index 350 and modals were 200,
-  //     so "+ ADD EXERCISE" opened behind an opaque full-screen layer: in the
-  //     DOM, marked .open, and completely invisible. The earlier test asserted
-  //     presence, which is why it passed while the button looked dead.
-  //     Also: START WORKOUT only existed on a PLANNED day, so an unplanned
-  //     day had no way to start a session at all.
+  // 29. v45: modals opened from inside the workout flow must be PAINTED on
+  //     top of the overlay (presence is not visibility — the v34 lesson).
   try {
-    await page.evaluate(() => {
-      const KEY = "bermo.tracker.v1";
-      const st = JSON.parse(localStorage.getItem(KEY));
-      const k = new Date().toISOString().slice(0,10);
-      st.plan = {};                                  // deliberately UNPLANNED
-      if(st.days[k]) delete st.days[k].workoutSession;
-      localStorage.setItem(KEY, JSON.stringify(st));
-    });
-    await page.reload({ waitUntil: "domcontentloaded", timeout: 20000 });
-    await page.waitForTimeout(1100);
+    // the flow may have been closed by a reload in between — open it fresh
     await page.click(`${tabSel}[data-tab="fitness"]`).catch(()=>{});
+    await page.waitForTimeout(500);
+    await page.evaluate(() => { if(document.querySelector("#hvOverlay.open")) return; const b = document.getElementById("fdStart"); if(b) b.click(); });
     await page.waitForTimeout(600);
-    const canStart = await page.evaluate(() => !!document.getElementById("fdStart"));
-    await page.evaluate(() => { const b = document.getElementById("fdStart"); if(b) b.click(); });
-    await page.waitForTimeout(700);
-    const overlay = await page.evaluate(() => !!document.querySelector("#workoutOverlay.open"));
-
-    const seen = {};
-    for(const id of ["wsAddEx","wsLoadSaved"]){
-      await page.evaluate((i) => { const b = document.getElementById(i); if(b) b.click(); }, id);
+    await page.evaluate(() => { const b = document.getElementById("hvStart"); if(b) b.click(); });
+    await page.waitForTimeout(600);
+    if(!(await page.evaluate(() => !!document.querySelector('#hvOverlay [data-ex="0"]')))){
+      await page.evaluate(() => { const b = document.getElementById("hvAddEx"); if(b) b.click(); });
       await page.waitForTimeout(500);
-      seen[id] = await page.evaluate(() => {
-        const m = document.querySelector("#modal.open, .modal.open");
-        if(!m) return "absent";
-        const card = m.querySelector(".modal-card, .modal-inner, .modal > div") || m;
-        const r = card.getBoundingClientRect();
-        if(r.width < 10 || r.height < 10) return "zero-size";
-        // the real check: what is actually painted on top at that point
-        const top = document.elementFromPoint(r.left + r.width/2, r.top + Math.min(r.height/2, 200));
-        return (top && (m === top || m.contains(top))) ? "visible" : "covered";
-      });
-      await page.evaluate(() => {
-        if(typeof closeModal === "function") closeModal();
-        document.querySelectorAll("#modal.open,.modal.open").forEach(x => x.classList.remove("open"));
-      });
-      await page.waitForTimeout(250);
+      await page.fill("#hvQ", "hip thrust");
+      await page.waitForTimeout(400);
+      await page.evaluate(() => { const r = document.querySelector("#hvResults .hv-ex"); if(r) r.click(); });
+      await page.waitForTimeout(600);
     }
-    await page.evaluate(() => {
-      const o = document.getElementById("workoutOverlay");
-      if(o) o.classList.remove("open");
-      document.body.style.overflow = "";
-    });
-    (canStart && overlay && seen.wsAddEx === "visible" && seen.wsLoadSaved === "visible")
-      ? ok("v34 unplanned day can start a session, and in-session modals are visible above the overlay")
-      : fail("v34 modal stacking", JSON.stringify({ canStart, overlay, ...seen }));
-  } catch (e) { fail("v34 modal stacking", e); }
-
-  // 30b. v37: THE LOST WORKOUT. Sets only reached day.sessions when the
-  //      per-row "Log" button was tapped. She filled the rows, hit Done, and
-  //      the entire session disappeared. Anything typed must survive Done.
-  try {
-    await page.evaluate(() => {
-      const KEY = "bermo.tracker.v1";
-      const st = JSON.parse(localStorage.getItem(KEY));
-      const k = new Date().toISOString().slice(0,10);
-      st.plan = {};
-      if(st.days[k]){ delete st.days[k].workoutSession; st.days[k].sessions = []; }
-      localStorage.setItem(KEY, JSON.stringify(st));
-    });
-    await page.reload({ waitUntil: "domcontentloaded", timeout: 20000 });
-    await page.waitForTimeout(1100);
-    await page.click(`${tabSel}[data-tab="fitness"]`).catch(()=>{});
+    await page.evaluate(() => { const r = document.querySelector('#hvOverlay [data-ex="0"]'); if(r) r.click(); });
     await page.waitForTimeout(600);
-    await page.evaluate(() => { const b = document.getElementById("fdStart"); if(b) b.click(); });
-    await page.waitForTimeout(700);
-    // add one exercise through the real UI
-    await page.evaluate(() => { const b = document.getElementById("wsAddEx"); if(b) b.click(); });
-    await page.waitForTimeout(600);
-    await page.fill("#axSearch", "hip thrust").catch(()=>{});
+    await page.evaluate(() => { const b = document.querySelector("#hvOverlay [data-exmore]"); if(b) b.click(); });
+    await page.waitForTimeout(500);
+    const seen = await page.evaluate(() => {
+      const m = document.querySelector("#modal.open, .modal.open");
+      if(!m) return "absent";
+      const card = m.querySelector(".modal-card, .modal-inner, .modal > div") || m;
+      const r = card.getBoundingClientRect();
+      if(r.width < 10 || r.height < 10) return "zero-size";
+      const top = document.elementFromPoint(r.left + r.width/2, r.top + Math.min(r.height/2, 200));
+      return (top && (m === top || m.contains(top))) ? "visible" : "covered";
+    });
+    await page.evaluate(() => {
+      if(typeof closeModal === "function") closeModal();
+      document.querySelectorAll("#modal.open,.modal.open").forEach(x => x.classList.remove("open"));
+    });
+    await page.waitForTimeout(250);
+    seen === "visible"
+      ? ok("v45 in-flow modals are visible above the workout overlay")
+      : fail("v45 modal stacking", seen);
+    await page.evaluate(() => { const b = document.querySelector("#hvOverlay [data-hv-back]"); if(b) b.click(); });
     await page.waitForTimeout(400);
-    await page.evaluate(() => { const li = document.querySelector("#axList .mrow"); if(li) li.click(); });
-    await page.waitForTimeout(700);
-    // untouched rows must show placeholders, not pre-filled values
-    const blankBefore = await page.evaluate(() =>
-      [...document.querySelectorAll("#workoutOverlay .ws-set .ws-reps")].every(i => i.value === ""));
-    // type into the first two rows and DO NOT tap Log
-    const dbg = await page.evaluate(() => ({
-      overlay: !!document.querySelector("#workoutOverlay.open"),
-      axSearch: !!document.getElementById("axSearch"),
-      exCount: document.querySelectorAll("#workoutOverlay .ws-ex").length,
-      setCount: document.querySelectorAll("#workoutOverlay .ws-set").length,
-      modalOpen: !!document.querySelector("#modal.open"),
-    }));
-    const typed = await page.evaluate(() => {
-      const rows = [...document.querySelectorAll("#workoutOverlay .ws-set")].slice(0,2);
-      rows.forEach((r, i) => {
-        const reps = r.querySelector(".ws-reps"), w = r.querySelector(".ws-weight");
-        reps.value = String(10 + i); reps.dispatchEvent(new Event("input", { bubbles:true }));
-        w.value = "45";              w.dispatchEvent(new Event("input", { bubbles:true }));
-      });
-      return rows.length;
-    });
-    await page.waitForTimeout(300);
-    await page.evaluate(() => { const b = document.getElementById("woDone"); if(b) b.click(); });
-    await page.waitForTimeout(900);
+  } catch (e) { fail("v45 modal stacking", e); }
+
+  // 30b. v45: THE LOST WORKOUT. Type into a set, never tick it, Finish,
+  //      Save. It must be in the log.
+  try {
+    // the flow may have been closed by a reload in between — open it fresh
+    await page.click(`${tabSel}[data-tab="fitness"]`).catch(()=>{});
+    await page.waitForTimeout(500);
+    await page.evaluate(() => { if(document.querySelector("#hvOverlay.open")) return; const b = document.getElementById("fdStart"); if(b) b.click(); });
+    await page.waitForTimeout(600);
+    await page.evaluate(() => { const b = document.getElementById("hvStart"); if(b) b.click(); });
+    await page.waitForTimeout(600);
+    if(!(await page.evaluate(() => !!document.querySelector('#hvOverlay [data-ex="0"]')))){
+      await page.evaluate(() => { const b = document.getElementById("hvAddEx"); if(b) b.click(); });
+      await page.waitForTimeout(500);
+      await page.fill("#hvQ", "hip thrust");
+      await page.waitForTimeout(400);
+      await page.evaluate(() => { const r = document.querySelector("#hvResults .hv-ex"); if(r) r.click(); });
+      await page.waitForTimeout(600);
+    }
+    await page.evaluate(() => { const r = document.querySelector('#hvOverlay [data-ex="0"]'); if(r) r.click(); });
+    await page.waitForTimeout(600);
+    await page.evaluate(() => { const b = document.getElementById("hvAddSet"); if(b) b.click(); });
+    await page.waitForTimeout(400);
+    const last = await page.evaluate(() => document.querySelectorAll("#hvOverlay .hv-set[data-si]").length - 1);
+    await page.fill(`#hvOverlay .hv-set[data-si="${last}"] [data-f="weight"]`, "185");
+    await page.fill(`#hvOverlay .hv-set[data-si="${last}"] [data-f="reps"]`, "7");
+    await page.evaluate(() => { const b = document.querySelector("#hvOverlay [data-hv-back]"); if(b) b.click(); });
+    await page.waitForTimeout(400);
+    await page.evaluate(() => { const b = document.getElementById("hvFinish"); if(b) b.click(); });
+    await page.waitForTimeout(500);
+    await page.evaluate(() => { const b = document.getElementById("hvSave"); if(b) b.click(); });
+    await page.waitForTimeout(800);
     const saved = await page.evaluate(() => {
       const st = JSON.parse(localStorage.getItem("bermo.tracker.v1"));
-      const k = new Date().toISOString().slice(0,10);
-      const s = ((st.days[k] || {}).sessions || []);
-      return { n: s.length, reps: s.map(x => x.reps).sort(), w: s.map(x => x.weight) };
+      const k = new Date().toISOString().slice(0, 10);
+      return ((st.days[k] || {}).sessions || []).filter(x => x.weight === 185 && x.reps === 7).length;
     });
-    (blankBefore && typed === 2 && saved.n === 2 && saved.w.every(x => x === 45))
-      ? ok("v37 typed sets survive Done even if the per-row Log was never tapped")
-      : fail("v37 lost workout", JSON.stringify({ blankBefore, typed, saved, dbg }));
-  } catch (e) { fail("v37 lost workout", e); }
+    const closed = await page.evaluate(() => !document.querySelector("#hvOverlay.open"));
+    (saved === 1 && closed)
+      ? ok("v45 typed-but-unticked set survives Save Workout")
+      : fail("v45 lost workout", JSON.stringify({ saved, closed }));
+  } catch (e) { fail("v45 lost workout", e); }
 
   // 30. v39: ONE fitness screen. "There should be no other add fitness
   //     options outside this." Every entry point must land on the SAME

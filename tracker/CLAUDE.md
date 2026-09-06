@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v44**.
+- Current build: **v45**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -262,6 +262,56 @@ second water button on the low-water banner.
 threw on EVERY dashboard render and killed the render chain behind it. That
 is the orphan-sweep rule in §7, ignored in a hurry. It is now guarded.
 
+**THE WORKOUT FLOW (v45, step 2 of 6).** She sent a ten-screen mockup:
+*"Exact replica — this is how it should look for each thing you click."*
+One module (`HV_SCREENS` / `HV_BIND`, `.hv-*` CSS), one overlay
+(`#hvOverlay`, z 360, under modals at 400), a tiny screen stack
+(`hvOpen` / `hvPush` / `hvReplace` / `hvBack` / `hvClose`).
+
+    1 select   ← Home row ▷, Fitness START WORKOUT      (hvOpen(date,"select"))
+    2 logger   ← Start Workout, day sheet "Start timer"  (clock runs from p.startedAt)
+    3 sets     ← tap an exercise: Log · History · Stats tabs (6 lives here)
+    4 rest     ← ticking a set: ring countdown, ±15s, bell, Skip/Stop, Next Up
+    5 finish   ← Finish: duration · working sets · volume · PRs · Save/Note/Share
+    7 search   ← Add Exercise: All / Favorites / Custom, tap adds; replace mode
+    8 edit     ← Edit Exercises: pointer-drag reorder, Add Superset / Circuit
+    9 notes    ← workout note, or per-exercise note (params.idx)
+    10 more    ← ···: rename, move day, duplicate, save as template, replace,
+                  note, view stats, share, delete
+
+**Data.** The workout *is* the day's plan: `plan[wk][dn].exercises[]` =
+`{ name, sets:[{reps, weight, done, warmup, pr, touched}], note, group }`.
+`group` ties consecutive exercises into a superset ("A") or circuit ("CA").
+Order is array order. `_wkSeed()` seeds sets from `day.sessions` so a lift
+logged anywhere else shows up done — the v40 rule. `_wkSyncLog(date, name)`
+rewrites that exercise's log rows from its done, non-warm-up sets through
+`logSession()`; unticking rewrites honestly; a future date writes no log.
+PR flag: a set is `pr` when its Epley estimate beats the prior best.
+
+**Three things that bit during the build — do not repeat:**
+- A screen's bind threw on the History/Stats tabs (`#hvWarm` only exists on
+  Log), and because the back button was bound *after* the screen bind, she
+  would have been trapped on that screen. `hvRender()` now binds navigation
+  FIRST and wraps the screen bind in try/catch. **A screen bug must never
+  trap her.**
+- Smoke test 23 ticked set 0 — which in the suite's accumulated state was a
+  set seeded from today's log, so "ticking" un-ticked it. **Tests must target
+  the set they just added (the last row), never index 0.**
+- Tests 29/30b assumed the flow was still open after earlier tests reloaded
+  the page. They open it themselves now.
+- **The v37 rule again:** typed-but-unticked sets (`touched`) are swept into
+  the log on Save Workout, and she is told how many.
+
+**Honest limits, stated in the UI:** the rest alert (beep + vibrate +
+Notification) works while the app is open; iOS suspends page timers in the
+background, and a background alert needs web push from a server. Exercise
+"photos" are the glyph tile unless she has added her own (`exPhoto`).
+
+**Orphan to sweep in step 6:** `openWorkoutSession()` (the old live
+session overlay, `#workoutOverlay`, `.ws-*`) is no longer reachable from any
+UI — `#fdStart`, the day sheet and Home all open the new flow. Its tests
+were rewritten against the new flow. Remove it with its CSS in step 6.
+
 **EVERYTHING ROUTES, NOTHING DUPLICATES (v44).** *"Make sure everything is
 clickable and usable but not replicated — it all goes to connected places
 within its category. And I should be able to scroll the rings to previous
@@ -336,7 +386,7 @@ for food, one app, three tabs. The agreed build order is in the transcript
 and repeated here so the next step is unambiguous:
 
 1. **Home** ✅ — week strip · two rings · notepad plan · Left this week
-2. **The Hevy logger** — data change first for order + supersets
+2. **The Hevy logger** ✅ (v45) — see THE WORKOUT FLOW
 3. **Fitness numbers** — set-counted coverage with fractional credit for
    indirect work, editable targets inferred from her trailing 4 weeks
 4. **Change** — WEEK · MONTH · YEAR deltas vs the previous period, no grade
@@ -736,7 +786,7 @@ Playwright is already installed in the scratchpad. Launch chromium with
 `{ server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" }`.
 **Do not run `npx playwright install`.**
 
-**Expected: 46/46 and zero page errors**, plus `node tracker/tests/week.js` at **10/10**. (Two console errors about
+**Expected: 46/46 and zero page errors**, `node tracker/tests/week.js` **10/10**, and the scratchpad's `hvdrive.js` **13/13**, plus `node tracker/tests/week.js` at **10/10**. (Two console errors about
 `ERR_CONNECTION_RESET` are the sandbox blocking a CDN — pre-existing, ignore.)
 
 The suite covers: load, wizard, **sideways overflow on every page**, all tabs,
@@ -874,4 +924,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v41` BLACK SCREEN — a button pointed at a view deleted in v18 ·
 `v42` HOME — week strip, two rings, notepad plan, Left this week (step 1 of the rebuild) ·
 `v43` HOME rebuilt to her mockup: five-tab nav, brain dump bar, gradient rings, This Week rows, vs Last Week ·
-`v44` everything on Home routes into its category; the rings strip scrolls by week; month calendar with rings.
+`v44` everything on Home routes into its category; the rings strip scrolls by week; month calendar with rings ·
+`v45` THE WORKOUT FLOW — ten Hevy-style screens behind ▷ (step 2 of the rebuild).

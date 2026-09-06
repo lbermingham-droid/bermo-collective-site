@@ -7597,7 +7597,8 @@ function openDaySheet(dateKey){
     document.getElementById("dsTimer").addEventListener("click", () => {
       commit({ silent:true });
       closeModal();
-      openWorkoutSession(key);
+      const pw = _wkGet(key); if(!pw.startedAt){ pw.startedAt = Date.now(); delete pw.durationMin; save(); }
+      hvOpen(key, "logger");
     });
 
     document.getElementById("dsTime").addEventListener("click", () => {
@@ -8089,8 +8090,8 @@ function bindHome(root){
       renderAll();
     });
     const open = row.querySelector("[data-open]"), more = row.querySelector("[data-more]"), add = row.querySelector("[data-add]");
-    if(open) open.addEventListener("click", () => { currentDate = row.getAttribute("data-date"); openDaySheet(currentDate); });
-    if(more) more.addEventListener("click", () => { currentDate = row.getAttribute("data-date"); openDaySheet(currentDate); });
+    if(open) open.addEventListener("click", () => { hvOpen(row.getAttribute("data-date"), "select"); });
+    if(more) more.addEventListener("click", () => { hvOpen(row.getAttribute("data-date"), "more"); });
     if(add)  add.addEventListener("click", () => { t.focus(); });
   });
   root.querySelector("#hmEdit").onclick = () => {
@@ -8112,6 +8113,737 @@ onReady(() => {
     if(r) go(r.getAttribute("data-tab"));
   });
 });
+
+// =================================================================
+// v45 — THE WORKOUT FLOW (Hevy style). Step 2 of the rebuild.
+// Her ten screens, one per tap:
+//   1 select · 2 logger · 3 log sets · 4 rest · 5 finish
+//   6 history/stats (tabs on 3) · 7 search · 8 reorder/superset
+//   9 notes · 10 more options
+// One overlay (#hvOverlay), a tiny screen stack, scoped .hv-* CSS.
+//
+// DATA. The workout IS the day's plan: plan[wk][dn].exercises[] =
+//   { name, sets:[{reps, weight, done, warmup, pr}], note, group }
+// `group` ties consecutive exercises into a superset ("A","B"…) or a
+// circuit ("C1"…). Order is array order. Ticking a set writes the log
+// through _syncLog() -> logSession(), the one write path; unticking
+// rewrites honestly. A future date is a plan and writes no log.
+// =================================================================
+
+function _wkGet(dateKey){
+  const r = _dayPlanRef(dateKey);
+  if(!r.plan[r.wk][r.dn]) r.plan[r.wk][r.dn] = { type: "Workout" };
+  const p = r.plan[r.wk][r.dn];
+  if(!Array.isArray(p.exercises)) p.exercises = [];
+  p.exercises.forEach(e => { if(!Array.isArray(e.sets)) e.sets = []; });
+  if(!p.type) p.type = "Workout";
+  return p;
+}
+// Sets logged elsewhere (live session, write-it-out, brain dump, day
+// sheet) must show up here as done — never open blank over a logged lift.
+function _wkSeed(dateKey){
+  const p = _wkGet(dateKey);
+  p.exercises.forEach(e => {
+    const logged = _loggedSetsFor(dateKey, e.name).filter(s => s.reps);
+    if(!e.sets.length && logged.length){
+      e.sets = logged.map(s => ({ reps: s.reps, weight: s.weight || 0, done: true }));
+    } else if(e.sets.length && logged.length && !e.sets.some(s => "done" in s)){
+      e.sets.forEach((s, i) => { s.done = i < logged.length; });
+    }
+  });
+  return p;
+}
+function _wkSyncLog(dateKey, name){
+  const p = _wkGet(dateKey);
+  const ex = p.exercises.find(e => e.name === name);
+  save();
+  if(!ex || dateKey > todayKey(new Date())) return;
+  const cardio = isCardioName(name);
+  const day = dayObj(dateKey);
+  const priorBest = (state.prs && state.prs[name] && state.prs[name].val) || 0;
+  day.sessions = (day.sessions || []).filter(x => x.name !== name);
+  ex.sets.forEach(s => {
+    if(!s.done || s.warmup) return;
+    if(cardio){
+      if(!s.durationMin) return;
+      logSession(dateKey, { name, lift:name, type:"cardio", durationMin:s.durationMin }, { quiet:true });
+      return;
+    }
+    if(!s.reps) return;
+    const est = s.weight > 0 && s.reps <= 10 ? Math.round(s.weight * (1 + s.reps / 30)) : 0;
+    if(est > priorBest && !("pr" in s)) s.pr = true;
+    logSession(dateKey, { name, weight: s.weight || 0, reps: s.reps, sets:1, type:"strength" }, { quiet:true });
+  });
+  save();
+}
+function _wkStats(dateKey){
+  const p = _wkGet(dateKey);
+  let sets = 0, vol = 0, prs = 0;
+  p.exercises.forEach(e => e.sets.forEach(s => {
+    if(!s.done || s.warmup || !s.reps) return;
+    sets++; vol += (s.weight || 0) * s.reps; if(s.pr) prs++;
+  }));
+  const mins = p.startedAt ? Math.max(0, Math.round((Date.now() - p.startedAt) / 60000)) : (p.durationMin || 0);
+  return { sets, vol, prs, mins, secs: p.startedAt ? Math.floor((Date.now() - p.startedAt) / 1000) : (p.durationMin || 0) * 60 };
+}
+function _wkThumb(name){
+  const src = exPhoto(name);
+  return src ? `<div class="hv-thumb"><img src="${src}" alt=""></div>` : mrowThumb(name).replace("mrow-thumb", "mrow-thumb hv-thumb");
+}
+function _wkScheme(e){
+  const n = e.sets.length;
+  if(!n) return "Tap to add sets";
+  const reps = e.sets.map(s => +s.reps || 0).filter(Boolean);
+  if(!reps.length) return `${n} set${n === 1 ? "" : "s"}`;
+  const lo = Math.min(...reps), hi = Math.max(...reps);
+  return `${n} set${n === 1 ? "" : "s"} · ${lo === hi ? lo : lo + "–" + hi} reps`;
+}
+function _wkLastDone(type){
+  const keys = Object.keys(state.days).sort().reverse();
+  for(const k of keys){
+    if(k >= todayKey(new Date())) continue;
+    const pl = _dayPlan(k);
+    if(pl && pl.type === type && ((state.days[k] || {}).sessions || []).length) return k;
+  }
+  return null;
+}
+function _fmtClock(secs){
+  const h = Math.floor(secs / 3600), m = Math.floor((secs % 3600) / 60), s = secs % 60;
+  return (h ? h + ":" : "") + String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+}
+
+// ---- router --------------------------------------------------------
+const HV = { stack: [], date: null, timer: null };
+const HV_I = {
+  back: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>`,
+  dots: `<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>`,
+  chev: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>`,
+  play: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l11-7z"/></svg>`,
+  clock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>`,
+  check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`,
+  plus: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`,
+  minus: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg>`,
+  bell: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20a2 2 0 0 0 4 0"/></svg>`,
+  bellOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 9.3-5M18 11v5l1.5 2h-15M10 20a2 2 0 0 0 4 0M4 4l16 16"/></svg>`,
+  handle: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8h14M5 12h14M5 16h14"/></svg>`,
+  trophy: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 3h10v2h3v3a4 4 0 0 1-4 4h-.3A5 5 0 0 1 13 15v2h3v2H8v-2h3v-2a5 5 0 0 1-2.7-3H8a4 4 0 0 1-4-4V5h3zm-1 4v1a2 2 0 0 0 2 2V7zm12 0h-2v3a2 2 0 0 0 2-2z"/></svg>`,
+  search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>`,
+  pencil: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10-4-4L4 16z"/></svg>`,
+  note: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>`,
+  swap: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h13l-3-3M20 17H7l3 3"/></svg>`,
+  trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>`,
+  history: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 7v5l3 2"/></svg>`,
+  cal: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>`,
+  copy: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>`,
+  bookmark: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg>`,
+  bars: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M5 20v-6M10 20V9M15 20v-3M20 20V4"/></svg>`,
+  share: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5M5 14v6h14v-6"/></svg>`,
+  star: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>`,
+  link: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>`,
+  loop: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8M20 4v4h-4M20 12a8 8 0 0 1-13.7 5.7L4 16M4 20v-4h4"/></svg>`,
+};
+function hvEl(){
+  let o = document.getElementById("hvOverlay");
+  if(!o){ o = document.createElement("div"); o.id = "hvOverlay"; o.className = "workout-overlay hv"; document.body.appendChild(o); }
+  return o;
+}
+function hvOpen(dateKey, screen, params){
+  HV.date = dateKey || currentDate; currentDate = HV.date;
+  HV.stack = [{ screen: screen || "select", params: params || {} }];
+  hvRender();
+}
+function hvPush(screen, params){ HV.stack.push({ screen, params: params || {} }); hvRender(); }
+function hvReplace(screen, params){ HV.stack[HV.stack.length - 1] = { screen, params: params || {} }; hvRender(); }
+function hvBack(){ HV.stack.pop(); if(!HV.stack.length) return hvClose(); hvRender(); }
+function hvClose(){
+  clearInterval(HV.timer); HV.timer = null;
+  const o = document.getElementById("hvOverlay");
+  if(o) o.classList.remove("open");
+  document.body.style.overflow = "";
+  HV.stack = [];
+  if(typeof renderAll === "function") renderAll();
+}
+function hvRender(){
+  clearInterval(HV.timer); HV.timer = null;
+  const o = hvEl();
+  const top = HV.stack[HV.stack.length - 1];
+  const fn = HV_SCREENS[top.screen];
+  if(!fn){ console.warn("hv: no screen", top.screen); return hvClose(); }
+  o.innerHTML = fn(HV.date, top.params);
+  o.classList.add("open");
+  document.body.style.overflow = "hidden";
+  o.scrollTop = 0;
+  o.querySelectorAll("[data-hv-back]").forEach(b => b.addEventListener("click", hvBack));
+  const bind = HV_BIND[top.screen];
+  if(bind){ try{ bind(o, HV.date, top.params); }catch(e){ console.warn("hv bind", top.screen, e); } }
+}
+function hvHead(o){
+  return `<header class="hv-head">
+    ${o.back === false ? `<span class="hv-hb"></span>` : `<button type="button" class="hv-hb" data-hv-back aria-label="Back">${HV_I.back}</button>`}
+    <div class="hv-ht"><b>${escape(o.title || "")}</b>${o.sub ? `<span>${o.sub}</span>` : ""}</div>
+    <div class="hv-hr">${o.right || ""}</div>
+  </header>`;
+}
+function hvTabs(list, active, attr){
+  return `<div class="hv-tabs">${list.map(t => `<button type="button" class="${t.id === active ? "on" : ""}" data-${attr || "tab"}="${t.id}">${escape(t.label)}</button>`).join("")}</div>`;
+}
+function hvShareText(dateKey){
+  const p = _wkGet(dateKey), st = _wkStats(dateKey);
+  const lines = p.exercises.map(e => {
+    const done = e.sets.filter(s => s.done && !s.warmup && s.reps);
+    return done.length ? `${e.name}: ${done.map(s => `${s.weight || "BW"}×${s.reps}`).join(", ")}` : null;
+  }).filter(Boolean);
+  return `${p.type} · ${fmtDate(dateKey)}\n${st.mins} min · ${st.sets} sets · ${Math.round(st.vol).toLocaleString()} ${unit()}${st.prs ? ` · ${st.prs} PR${st.prs === 1 ? "" : "s"}` : ""}\n${lines.join("\n")}`;
+}
+function hvShare(dateKey){
+  const text = hvShareText(dateKey);
+  if(navigator.share) navigator.share({ text }).catch(() => {});
+  else if(navigator.clipboard) navigator.clipboard.writeText(text).then(() => toast("Copied", "cyan"));
+}
+
+const HV_SCREENS = {}, HV_BIND = {};
+
+// ---- 1. SELECT WORKOUT --------------------------------------------
+HV_SCREENS.select = (dateKey) => {
+  const p = _wkSeed(dateKey);
+  const last = _wkLastDone(p.type);
+  const running = !!p.startedAt;
+  return hvHead({ title: fmtDate(dateKey), right: `<button type="button" class="hv-hb" data-more aria-label="More">${HV_I.dots}</button>` }) + `
+  <div class="hv-body">
+    <h1 class="hv-h1">${escape(p.type)}</h1>
+    <p class="hv-sub">${running ? "Workout in progress." : "Start your workout or edit the plan."}</p>
+    <button type="button" class="hv-cta" id="hvStart">${HV_I.play}<span>${running ? "Resume Workout" : "Start Workout"}</span></button>
+    <div class="hv-list">
+      <button type="button" class="hv-li" data-act="previous"><i>${HV_I.history}</i><div><b>View Previous</b><span>${last ? "Last done " + fmtDate(last) : "Not done before"}</span></div>${HV_I.chev}</button>
+      <button type="button" class="hv-li" data-act="edit"><i>${HV_I.pencil}</i><div><b>Edit Exercises</b></div>${HV_I.chev}</button>
+      <button type="button" class="hv-li" data-act="note"><i>${HV_I.note}</i><div><b>Add Note</b></div>${HV_I.chev}</button>
+      <button type="button" class="hv-li" data-act="replace"><i>${HV_I.swap}</i><div><b>Replace with Different Workout</b></div>${HV_I.chev}</button>
+      <button type="button" class="hv-li danger" data-act="delete"><i>${HV_I.trash}</i><div><b>Delete Workout</b></div></button>
+    </div>
+    <div class="hv-card">
+      <div class="hv-card-h">Planned</div>
+      <button type="button" class="hv-li flat" data-act="rename"><i>${HV_I.pencil}</i><div><b>${escape(p.type)}</b><span>Tap to edit</span></div>${HV_I.chev}</button>
+    </div>
+  </div>`;
+};
+HV_BIND.select = (o, dateKey) => {
+  const p = _wkGet(dateKey);
+  o.querySelector("#hvStart").onclick = () => { if(!p.startedAt){ p.startedAt = Date.now(); delete p.durationMin; save(); } hvPush("logger"); };
+  o.querySelector("[data-more]").onclick = () => hvPush("more");
+  o.querySelectorAll("[data-act]").forEach(b => b.addEventListener("click", () => {
+    const a = b.getAttribute("data-act");
+    if(a === "previous"){ const last = _wkLastDone(p.type); if(last){ hvOpen(last, "logger"); } else toast("Not done before", "cyan"); }
+    if(a === "edit")     hvPush("edit");
+    if(a === "note")     hvPush("notes");
+    if(a === "replace")  openSavedWorkouts(dateKey, (w) => { p.type = w.name; p.exercises = w.exercises.map(e => ({ name: e.name, sets: [] })); setPlanLines(dateKey, [{ id: uid(), text: w.name, done:false }]); save(); hvRender(); });
+    if(a === "rename")   openNameModal({ title:"Workout name", value:p.type, cta:"Save" }, (v) => { p.type = v; const l = planLinesFor(dateKey); if(l.length){ l[0].text = v; setPlanLines(dateKey, l); } save(); hvRender(); });
+    if(a === "delete")   confirmDestructive({ title:"Delete this workout?", body:`${p.type} on ${fmtDate(dateKey)}, including anything logged for it.`, cta:"Delete" }, () => {
+      const names = p.exercises.map(e => e.name);
+      const day = state.days[dateKey]; if(day) day.sessions = (day.sessions || []).filter(x => !names.includes(x.name));
+      const r = _dayPlanRef(dateKey); delete r.plan[r.wk][r.dn]; save(); hvClose();
+    });
+  }));
+};
+
+// ---- 2. WORKOUT LOGGER --------------------------------------------
+HV_SCREENS.logger = (dateKey, params) => {
+  const p = _wkSeed(dateKey);
+  const tab = params.tab || "workout";
+  const st = _wkStats(dateKey);
+  let group = null;
+  const rows = p.exercises.map((e, i) => {
+    const g = e.group || null;
+    const head = g && g !== group ? `<div class="hv-group ${/^C/.test(g) ? "circuit" : ""}">${/^C/.test(g) ? "Circuit" : "Superset"} ${escape(g.replace(/^C/, ""))}</div>` : "";
+    group = g;
+    const doneN = e.sets.filter(s => s.done && !s.warmup).length;
+    return head + `<button type="button" class="hv-ex ${g ? "grouped" : ""}" data-ex="${i}">
+      ${_wkThumb(e.name)}
+      <div class="hv-ex-m"><b>${i + 1}. ${escape(e.name)}</b><span>${escape(_wkScheme(e))}${doneN ? ` · ${doneN} done` : ""}</span></div>
+      ${HV_I.chev}
+    </button>`;
+  }).join("");
+  return hvHead({ title: p.type, sub: `<i class="hv-clock">${HV_I.clock}<span id="hvClock">${_fmtClock(st.secs)}</span></i>`,
+    right: `<button type="button" class="hv-pill" id="hvFinish">Finish</button><button type="button" class="hv-hb" data-more aria-label="More">${HV_I.dots}</button>` }) + `
+  <div class="hv-body">
+    ${hvTabs([{ id:"workout", label:"Workout" }, { id:"notes", label:"Notes" }], tab)}
+    ${tab === "workout" ? `
+      <div class="hv-exlist">${rows || `<div class="hv-empty">No exercises yet.</div>`}</div>
+      <button type="button" class="hv-outline pink" id="hvAddEx">${HV_I.plus}<span>Add Exercise</span></button>
+    ` : `
+      <textarea class="hv-notes" id="hvWkNotes" placeholder="How did it feel? What to change next time…">${escape(p.notes || "")}</textarea>
+      <button type="button" class="hv-cta" id="hvSaveNotes">Save</button>
+    `}
+  </div>`;
+};
+HV_BIND.logger = (o, dateKey, params) => {
+  const p = _wkGet(dateKey);
+  if(p.startedAt){
+    HV.timer = setInterval(() => { const el = document.getElementById("hvClock"); if(el) el.textContent = _fmtClock(_wkStats(dateKey).secs); }, 1000);
+  }
+  o.querySelectorAll("[data-tab]").forEach(b => b.addEventListener("click", () => hvReplace("logger", { tab: b.getAttribute("data-tab") })));
+  o.querySelector("#hvFinish").onclick = () => hvPush("finish");
+  o.querySelector("[data-more]").onclick = () => hvPush("more");
+  o.querySelectorAll("[data-ex]").forEach(b => b.addEventListener("click", () => hvPush("sets", { idx: +b.getAttribute("data-ex") })));
+  const add = o.querySelector("#hvAddEx"); if(add) add.onclick = () => hvPush("search");
+  const sn = o.querySelector("#hvSaveNotes"); if(sn) sn.onclick = () => { p.notes = document.getElementById("hvWkNotes").value.trim(); save(); toast("Saved", "cyan"); hvReplace("logger", { tab:"workout" }); };
+};
+
+// ---- 3. LOG SETS (+ 6. history / stats tabs) ----------------------
+HV_SCREENS.sets = (dateKey, params) => {
+  const p = _wkSeed(dateKey);
+  const e = p.exercises[params.idx];
+  if(!e) return hvHead({ title:"Exercise" }) + `<div class="hv-body"><div class="hv-empty">Gone.</div></div>`;
+  const tab = params.tab || "log";
+  const cardio = isCardioName(e.name);
+  const warm = e.sets.filter(s => s.warmup).length;
+  const active = e.sets.find(s => !s.done) || e.sets[e.sets.length - 1] || { reps: 10, weight: 0 };
+  const img = exPhoto(e.name);
+  const rows = e.sets.map((s, i) => cardio ? `
+    <div class="hv-set ${s.done ? "done" : ""} ${s.warmup ? "warm" : ""}" data-si="${i}">
+      <span class="hv-set-n">${s.warmup ? "W" : e.sets.slice(0, i).filter(x => !x.warmup).length + 1}</span>
+      <input class="hv-in" data-f="durationMin" type="number" inputmode="decimal" step="any" min="0" value="${s.durationMin ?? ""}" placeholder="min">
+      <input class="hv-in" data-f="incline" type="number" inputmode="decimal" step="any" min="0" value="${s.incline ?? ""}" placeholder="grade">
+      <button type="button" class="hv-tick" data-tick aria-label="Log set">${s.done ? HV_I.check : ""}</button>
+    </div>` : `
+    <div class="hv-set ${s.done ? "done" : ""} ${s.warmup ? "warm" : ""}" data-si="${i}">
+      <span class="hv-set-n">${s.warmup ? "W" : e.sets.slice(0, i).filter(x => !x.warmup).length + 1}</span>
+      <input class="hv-in" data-f="weight" type="number" inputmode="decimal" step="any" min="0" value="${s.weight ?? ""}" placeholder="${unit()}">
+      <input class="hv-in" data-f="reps" type="number" inputmode="numeric" step="1" min="0" value="${s.reps ?? ""}" placeholder="reps">
+      <button type="button" class="hv-tick" data-tick aria-label="Log set">${s.done ? HV_I.check : ""}</button>
+    </div>`).join("");
+
+  let body = "";
+  if(tab === "log"){
+    body = `
+      <div class="hv-hero">${img ? `<img src="${img}" alt="">` : _wkThumb(e.name)}</div>
+      <label class="hv-row-toggle"><i>${HV_I.star}</i><div><b>Warm up</b><span>${warm ? warm + " sets" : "off"}</span></div>
+        <span class="hv-switch ${warm ? "on" : ""}" id="hvWarm"></span></label>
+      <div class="hv-table">
+        <div class="hv-set head"><span>Set</span><span>${cardio ? "Min" : unit()}</span><span>${cardio ? "Grade" : "Reps"}</span><span></span></div>
+        ${rows || `<div class="hv-empty small">No sets yet.</div>`}
+      </div>
+      <button type="button" class="hv-outline pink" id="hvAddSet">${HV_I.plus}<span>Add Set</span></button>
+      ${cardio ? "" : `
+      <div class="hv-stepper"><button type="button" data-step="weight" data-d="-5">${HV_I.minus}</button><b id="hvStepW">${active.weight || 0} ${unit()}</b><button type="button" data-step="weight" data-d="5">${HV_I.plus}</button></div>
+      <div class="hv-stepper"><button type="button" data-step="reps" data-d="-1">${HV_I.minus}</button><b id="hvStepR">${active.reps || 0} reps</b><button type="button" data-step="reps" data-d="1">${HV_I.plus}</button></div>`}
+      ${e.note ? `<div class="hv-exnote">${escape(e.note)}</div>` : ""}
+    `;
+  } else if(tab === "history"){
+    const byDay = {};
+    Object.keys(state.days).sort().reverse().forEach(k => {
+      ((state.days[k] || {}).sessions || []).forEach(x => { if(x.name === e.name && x.type !== "cardio"){ (byDay[k] = byDay[k] || []).push(x); } });
+    });
+    const bestEst = Math.max(0, ...Object.values(byDay).flat().map(x => x.reps <= 10 && x.weight > 0 ? x.weight * (1 + x.reps / 30) : 0));
+    const items = Object.entries(byDay).slice(0, 30).map(([k, ss]) => {
+      const top = Math.max(...ss.map(x => x.weight || 0));
+      const est = Math.max(...ss.map(x => x.reps <= 10 && x.weight > 0 ? x.weight * (1 + x.reps / 30) : 0));
+      return `<button type="button" class="hv-hist" data-day="${k}">
+        <span class="hv-hist-d">${fmtDate(k)}</span>
+        <b>${est && est === bestEst ? `<i class="hv-pr">${HV_I.star}</i>` : ""}${ss.length} × ${top} ${unit()}</b>
+        <span class="hv-hist-r">${ss.map(x => x.reps).join(", ")}</span>
+        <i class="hv-hist-h">${HV_I.handle}</i>
+      </button>`;
+    }).join("");
+    body = `<div class="hv-histlist">${items || `<div class="hv-empty">Not logged before.</div>`}</div>`;
+  } else {
+    const s = getExerciseStats(e.name);
+    body = s ? `
+      <div class="hv-tiles">
+        <div><b>${s.proj1RM}</b><span>Est. 1RM (${unit()})</span></div>
+        <div><b>${s.heaviest.weight}</b><span>Heaviest (${unit()})</span></div>
+        <div><b>${s.mostReps.reps}</b><span>Most reps</span></div>
+        <div><b>${s.total}</b><span>Total sets</span></div>
+        <div><b>${Math.round(s.bestSessionVol).toLocaleString()}</b><span>Best session vol</span></div>
+        <div><b>${s.delta > 0 ? "+" : ""}${s.delta}</b><span>1RM vs 30 days ago</span></div>
+      </div>` : `<div class="hv-empty">No numbers yet.</div>`;
+  }
+  return hvHead({ title: e.name, right: `<button type="button" class="hv-hb" data-exmore aria-label="More">${HV_I.dots}</button>` }) + `
+  <div class="hv-body">
+    ${hvTabs([{ id:"log", label:"Log" }, { id:"history", label:"History" }, { id:"stats", label:"Stats" }], tab)}
+    ${body}
+  </div>`;
+};
+HV_BIND.sets = (o, dateKey, params) => {
+  const p = _wkGet(dateKey);
+  const e = p.exercises[params.idx];
+  if(!e) return;
+  const cardio = isCardioName(e.name);
+  o.querySelectorAll("[data-tab]").forEach(b => b.addEventListener("click", () => hvReplace("sets", { idx: params.idx, tab: b.getAttribute("data-tab") })));
+  o.querySelector("[data-exmore]").onclick = () => {
+    openModal(e.name, `
+      <ul class="lrows">
+        <li class="mrow" data-a="note"><div class="mrow-main"><div class="mrow-title">Exercise note</div></div><span class="mrow-chev">›</span></li>
+        <li class="mrow" data-a="replace"><div class="mrow-main"><div class="mrow-title">Replace exercise</div></div><span class="mrow-chev">›</span></li>
+        <li class="mrow" data-a="fav"><div class="mrow-main"><div class="mrow-title">${(state.favLifts || []).includes(e.name) ? "Remove from favorites" : "Add to favorites"}</div></div><span class="mrow-chev">›</span></li>
+        <li class="mrow" data-a="remove"><div class="mrow-main"><div class="mrow-title" style="color:#ff4d9d">Remove from workout</div></div><span class="mrow-chev">›</span></li>
+      </ul>
+      <div class="modal-foot"><button class="btn btn-ghost" data-close>Cancel</button></div>`, (root) => {
+      root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+      root.querySelectorAll("[data-a]").forEach(li => li.addEventListener("click", () => {
+        const a = li.getAttribute("data-a"); closeModal();
+        if(a === "note") hvPush("notes", { idx: params.idx });
+        if(a === "replace") hvPush("search", { replace: params.idx });
+        if(a === "fav"){ const f = state.favLifts = state.favLifts || []; const i = f.indexOf(e.name); if(i >= 0) f.splice(i, 1); else f.unshift(e.name); save(); toast(i >= 0 ? "Removed" : "Favorited", "cyan"); }
+        if(a === "remove"){ p.exercises.splice(params.idx, 1); save(); _wkSyncLog(dateKey, e.name); hvBack(); }
+      }));
+    });
+  };
+  const readSet = (row) => {
+    const i = +row.getAttribute("data-si"), s = e.sets[i];
+    row.querySelectorAll(".hv-in").forEach(inp => { const v = parseFloat(inp.value); s[inp.getAttribute("data-f")] = isNaN(v) ? (inp.getAttribute("data-f") === "weight" ? 0 : null) : v; });
+    return s;
+  };
+  o.querySelectorAll(".hv-set[data-si] .hv-in").forEach(inp => inp.addEventListener("change", () => {
+    const row = inp.closest(".hv-set"), s = readSet(row);
+    s.touched = true; save();
+    if(s.done) _wkSyncLog(dateKey, e.name);
+  }));
+  o.querySelectorAll("[data-tick]").forEach(b => b.addEventListener("click", () => {
+    const row = b.closest(".hv-set"), i = +row.getAttribute("data-si");
+    const s = readSet(row);
+    if(!s.done && !cardio && !s.reps){ toast("How many reps?", "pink"); row.querySelector('[data-f="reps"]').focus(); return; }
+    s.done = !s.done;
+    if(!s.done) delete s.pr;
+    _wkSyncLog(dateKey, e.name);
+    if(s.done && !s.warmup){
+      const next = e.sets.slice(i + 1).find(x => !x.done);
+      hvPush("rest", { idx: params.idx, next: next ? { n: e.sets.indexOf(next) + 1, weight: next.weight, reps: next.reps } : null });
+    } else hvRender();
+  }));
+  const warmEl = o.querySelector("#hvWarm");
+  if(warmEl) warmEl.onclick = () => {
+    const on = e.sets.some(s => s.warmup);
+    e.sets.forEach((s, i) => { if(on) delete s.warmup; else if(i < 2) s.warmup = true; });
+    save(); _wkSyncLog(dateKey, e.name); hvRender();
+  };
+  const addSetEl = o.querySelector("#hvAddSet");
+  if(addSetEl) addSetEl.onclick = () => {
+    const last = e.sets[e.sets.length - 1];
+    e.sets.push(cardio ? { durationMin: last ? last.durationMin : null, incline: last ? last.incline : null, done:false }
+                       : { reps: last ? last.reps : 10, weight: last ? last.weight : 0, done:false });
+    save(); hvRender();
+  };
+  o.querySelectorAll("[data-step]").forEach(b => b.addEventListener("click", () => {
+    const f = b.getAttribute("data-step"), d = +b.getAttribute("data-d");
+    let s = e.sets.find(x => !x.done);
+    if(!s){ s = { reps: 10, weight: 0, done:false }; e.sets.push(s); }
+    s[f] = Math.max(0, (+s[f] || 0) + d);
+    save(); hvRender();
+  }));
+  o.querySelectorAll("[data-day]").forEach(b => b.addEventListener("click", () => {
+    const k = b.getAttribute("data-day");
+    const pk = _wkGet(k); const idx = pk.exercises.findIndex(x => x.name === e.name);
+    if(idx >= 0) hvOpen(k, "sets", { idx }); else { pk.exercises.push({ name: e.name, sets: [] }); save(); hvOpen(k, "sets", { idx: pk.exercises.length - 1 }); }
+  }));
+};
+
+// ---- 4. REST TIMER ---------------------------------------------------
+// Counts down in-app with a ring, bell toggle, ±15s, Skip / Stop, and
+// "Next Up". Fires a beep, a vibration, and a Notification if permitted.
+// HONEST LIMIT: on an iPhone the page's timers stop when the app is
+// backgrounded; a background alert needs web push from a server. Until
+// that exists this works while the app is open, and says so.
+let _hvRest = { end: 0, total: 0, iv: null, fired: false };
+function _hvBeep(){
+  try{
+    const AC = window.AudioContext || window.webkitAudioContext; if(!AC) return;
+    const ctx = new AC(); const o = ctx.createOscillator(); const g = ctx.createGain();
+    o.type = "sine"; o.frequency.value = 880; g.gain.value = 0.001;
+    o.connect(g); g.connect(ctx.destination); o.start();
+    g.gain.exponentialRampToValueAtTime(0.4, ctx.currentTime + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+    o.stop(ctx.currentTime + 0.65);
+  }catch(e){}
+}
+function _hvRestFire(){
+  if(_hvRest.fired) return; _hvRest.fired = true;
+  if(state.restSound !== false) _hvBeep();
+  try{ if(navigator.vibrate) navigator.vibrate([200, 100, 200]); }catch(e){}
+  try{ if("Notification" in window && Notification.permission === "granted") new Notification("Rest over", { body: "Next set.", silent: state.restSound === false }); }catch(e){}
+}
+HV_SCREENS.rest = (dateKey, params) => {
+  const total = state.restDefault || 90;
+  const p = _wkGet(dateKey), e = p.exercises[params.idx];
+  const nx = params.next;
+  const size = 220, sw = 14, r = size / 2 - sw / 2, C = 2 * Math.PI * r;
+  return `<div class="hv-rest">
+    <div class="hv-rest-top"><button type="button" class="hv-link pink" data-hv-back>Close</button><button type="button" class="hv-link" id="hvSkip">Skip</button></div>
+    <div class="hv-rest-lbl">Rest</div>
+    <div class="hv-rest-ring">
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><defs><linearGradient id="hvRestG" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${size}" y2="${size}"><stop offset="0" stop-color="#b788ff"/><stop offset="1" stop-color="#ff2d95"/></linearGradient></defs>
+        <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#1a1b21" stroke-width="${sw}"/>
+        <circle id="hvRestArc" cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="url(#hvRestG)" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${C.toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="0" transform="rotate(-90 ${size/2} ${size/2})"/></svg>
+      <div class="hv-rest-time" id="hvRestTime">${_fmtClock(total)}</div>
+    </div>
+    <div class="hv-rest-adj"><button type="button" data-adj="-15">−15s</button><button type="button" class="hv-bell ${state.restSound === false ? "off" : ""}" id="hvBell" aria-label="Sound">${state.restSound === false ? HV_I.bellOff : HV_I.bell}</button><button type="button" data-adj="15">+15s</button></div>
+    <button type="button" class="hv-outline" id="hvStop">Stop</button>
+    ${nx ? `<div class="hv-next"><div class="hv-next-h">Next Up</div>
+      <div class="hv-next-card">${_wkThumb(e.name)}<div><b>Set ${nx.n}</b><span>${nx.weight || "BW"}${nx.weight ? " " + unit() : ""} × ${nx.reps || "—"} reps</span><span>${escape(e.name)}</span></div></div></div>` : `<div class="hv-next"><div class="hv-next-h">Last set logged</div></div>`}
+    <div class="hv-rest-note">Alerts work while the app is open.</div>
+  </div>`;
+};
+HV_BIND.rest = (o, dateKey, params) => {
+  const total = state.restDefault || 90;
+  _hvRest = { end: Date.now() + total * 1000, total, iv: null, fired: false };
+  const arc = o.querySelector("#hvRestArc"), C = parseFloat(arc.getAttribute("stroke-dasharray"));
+  const tick = () => {
+    const left = Math.max(0, Math.ceil((_hvRest.end - Date.now()) / 1000));
+    const t = o.querySelector("#hvRestTime"); if(t) t.textContent = _fmtClock(left);
+    arc.setAttribute("stroke-dashoffset", (C * (1 - left / _hvRest.total)).toFixed(2));
+    if(left <= 0){ clearInterval(_hvRest.iv); _hvRestFire(); }
+  };
+  tick(); _hvRest.iv = setInterval(tick, 250);
+  HV.timer = _hvRest.iv;
+  const done = () => { clearInterval(_hvRest.iv); hvBack(); };
+  o.querySelector("#hvSkip").onclick = done;
+  o.querySelector("#hvStop").onclick = done;
+  o.querySelectorAll("[data-adj]").forEach(b => b.addEventListener("click", () => {
+    const d = +b.getAttribute("data-adj");
+    _hvRest.end += d * 1000; _hvRest.total = Math.max(15, _hvRest.total + d);
+    state.restDefault = Math.max(15, (state.restDefault || 90) + d); save(); tick();
+  }));
+  o.querySelector("#hvBell").onclick = () => { state.restSound = state.restSound === false ? true : false; save(); hvRender(); };
+  try{ if("Notification" in window && Notification.permission === "default") Notification.requestPermission(); }catch(e){}
+};
+
+// ---- 5. FINISH -------------------------------------------------------
+HV_SCREENS.finish = (dateKey) => {
+  const p = _wkGet(dateKey), st = _wkStats(dateKey);
+  return `<div class="hv-finish">
+    <i class="hv-trophy">${HV_I.trophy}</i>
+    <h1>Workout Complete!</h1>
+    <div class="hv-finish-sub">${escape(p.type)}</div>
+    <div class="hv-tiles two">
+      <div><b>${_fmtClock(st.secs)}</b><span>Duration</span></div>
+      <div><b>${st.sets}</b><span>Working Sets</span></div>
+      <div><b>${st.vol >= 1000 ? (st.vol / 1000).toFixed(1) + "K" : Math.round(st.vol)}</b><span>Total Volume</span></div>
+      <div><b>${st.prs}</b><span>PR${st.prs === 1 ? "" : "s"}</span></div>
+    </div>
+    <button type="button" class="hv-cta" id="hvSave">Save Workout</button>
+    <button type="button" class="hv-outline" id="hvNote">Add Note</button>
+    <button type="button" class="hv-outline" id="hvShare">Share</button>
+    <button type="button" class="hv-link" data-hv-back>Back to workout</button>
+  </div>`;
+};
+HV_BIND.finish = (o, dateKey) => {
+  const p = _wkGet(dateKey);
+  o.querySelector("#hvSave").onclick = () => {
+    // THE LOST WORKOUT rule (v37): anything she typed is saved, ticked or not.
+    let swept = 0;
+    p.exercises.forEach(e => {
+      let changed = false;
+      e.sets.forEach(s => { if(!s.done && s.touched && !s.warmup && (s.reps || s.durationMin)){ s.done = true; changed = true; swept++; } });
+      if(changed) _wkSyncLog(dateKey, e.name);
+    });
+    if(swept) toast(`Saved ${swept} set${swept === 1 ? "" : "s"} you'd typed but not ticked`, "cyan");
+    const st = _wkStats(dateKey);
+    p.durationMin = st.mins; delete p.startedAt; p.done = true;
+    const day = dayObj(dateKey);
+    if(!day.workoutSession) day.workoutSession = { exercises: {} };
+    day.workoutSession.durationMin = st.mins;
+    const lines = planLinesFor(dateKey); if(lines.length){ lines[0].done = true; setPlanLines(dateKey, lines); }
+    save(); hvClose();
+    toast(`${p.type} saved · ${st.sets} sets · ${st.mins} min`, "cyan");
+  };
+  o.querySelector("#hvNote").onclick = () => hvPush("notes");
+  o.querySelector("#hvShare").onclick = () => hvShare(dateKey);
+};
+
+// ---- 7. ADD / SEARCH EXERCISE ---------------------------------------
+HV_SCREENS.search = (dateKey, params) => {
+  const chip = params.chip || "all";
+  return `<div class="hv-searchbar">
+      <label class="hv-search">${HV_I.search}<input type="search" id="hvQ" placeholder="Search exercises..." autocomplete="off" value="${escape(params.q || "")}"></label>
+      <button type="button" class="hv-link pink" data-hv-back>Cancel</button>
+    </div>
+    <div class="hv-chips">${[["all","All"],["fav","Favorites"],["custom","Custom"]].map(([id, l]) => `<button type="button" class="${id === chip ? "on" : ""}" data-chip="${id}">${l}</button>`).join("")}</div>
+    <div class="hv-body" id="hvResults"></div>`;
+};
+HV_BIND.search = (o, dateKey, params) => {
+  const p = _wkGet(dateKey);
+  const list = o.querySelector("#hvResults"), q = o.querySelector("#hvQ");
+  const pool = () => {
+    const chip = params.chip || "all";
+    if(chip === "fav") return (state.favLifts || []).slice();
+    if(chip === "custom") return (state.customExercises || []).slice();
+    return allLibraryExercises();
+  };
+  const paint = () => {
+    const term = (q.value || "").trim().toLowerCase();
+    const hits = pool().filter(n => !term || n.toLowerCase().includes(term)).slice(0, 80);
+    list.innerHTML = hits.length ? hits.map(n => `
+      <button type="button" class="hv-ex" data-pick="${escape(n)}">
+        ${_wkThumb(n)}
+        <div class="hv-ex-m"><b>${escape(n)}</b><span>${escape(((partsForExercise(n) || [])[0] || "movement").replace(/^./, c => c.toUpperCase()))}</span></div>
+        <i class="hv-handle">${HV_I.handle}</i>
+      </button>`).join("")
+    : `<div class="hv-empty">No match.${term ? ` <button type="button" class="hv-link pink" id="hvCustom">Add “${escape(q.value.trim())}”</button>` : ""}</div>`;
+    list.querySelectorAll("[data-pick]").forEach(b => b.addEventListener("click", () => add(b.getAttribute("data-pick"))));
+    const c = list.querySelector("#hvCustom"); if(c) c.onclick = () => { const n = q.value.trim(); state.customExercises = state.customExercises || []; if(!state.customExercises.includes(n)) state.customExercises.push(n); save(); add(n); };
+  };
+  const add = (n) => {
+    if(typeof params.replace === "number"){
+      const old = p.exercises[params.replace];
+      if(old){ const oldName = old.name; old.name = n; old.sets = old.sets.map(s => ({ reps: s.reps, weight: s.weight, done:false })); save(); _wkSyncLog(dateKey, oldName); }
+      hvBack(); return;
+    }
+    if(p.exercises.some(e => e.name === n)){ toast("Already in this workout", "cyan"); return; }
+    p.exercises.push({ name: n, sets: [] }); save();
+    if(!planLinesFor(dateKey).length) setPlanLines(dateKey, [{ id: uid(), text: p.type, done:false }]);
+    hvBack();
+  };
+  let t = null; q.addEventListener("input", () => { clearTimeout(t); t = setTimeout(paint, 120); });
+  o.querySelectorAll("[data-chip]").forEach(b => b.addEventListener("click", () => hvReplace("search", Object.assign({}, params, { chip: b.getAttribute("data-chip"), q: q.value }))));
+  paint(); setTimeout(() => q.focus(), 80);
+};
+
+// ---- 8. REORDER / SUPERSET ---------------------------------------------
+HV_SCREENS.edit = (dateKey) => {
+  const p = _wkGet(dateKey);
+  const rows = p.exercises.map((e, i) => `
+    <div class="hv-ex drag ${e.group ? "grouped" : ""}" data-i="${i}" draggable="true">
+      ${_wkThumb(e.name)}
+      <div class="hv-ex-m"><b>${escape(e.name)}</b>${e.group ? `<span>${/^C/.test(e.group) ? "Circuit" : "Superset"} ${escape(e.group.replace(/^C/, ""))}</span>` : ""}</div>
+      <button type="button" class="hv-handle" data-handle aria-label="Drag to reorder">${HV_I.handle}</button>
+    </div>`).join("");
+  return hvHead({ title:"Edit Workout", right:`<button type="button" class="hv-link pink" data-hv-back>Done</button>` }) + `
+  <div class="hv-body">
+    <div class="hv-exlist" id="hvDrag">${rows || `<div class="hv-empty">No exercises yet.</div>`}</div>
+    <button type="button" class="hv-outline pink" id="hvAddEx2">${HV_I.plus}<span>Add Exercise</span></button>
+    <button type="button" class="hv-outline purple" id="hvSuper">${HV_I.link}<span>Add Superset</span></button>
+    <button type="button" class="hv-outline teal" id="hvCircuit">${HV_I.loop}<span>Add Circuit</span></button>
+    ${p.exercises.some(e => e.group) ? `<button type="button" class="hv-link" id="hvUngroup">Clear supersets</button>` : ""}
+  </div>`;
+};
+HV_BIND.edit = (o, dateKey) => {
+  const p = _wkGet(dateKey);
+  const list = o.querySelector("#hvDrag");
+  // pointer drag reorder — works with touch, no library
+  let dragI = null, ghost = null;
+  const rowsEl = () => [...list.querySelectorAll(".hv-ex.drag")];
+  list.querySelectorAll("[data-handle]").forEach(h => {
+    h.addEventListener("pointerdown", (ev) => {
+      ev.preventDefault();
+      const row = h.closest(".hv-ex"); dragI = +row.getAttribute("data-i");
+      row.classList.add("lifting"); h.setPointerCapture(ev.pointerId);
+      const move = (e2) => {
+        const y = e2.clientY;
+        const rs = rowsEl();
+        const over = rs.findIndex(r => { const b = r.getBoundingClientRect(); return y >= b.top && y <= b.bottom; });
+        if(over >= 0 && over !== dragI){
+          const item = p.exercises.splice(dragI, 1)[0]; p.exercises.splice(over, 0, item);
+          dragI = over; save();
+          const scrollY = list.closest(".workout-overlay").scrollTop;
+          o.innerHTML = HV_SCREENS.edit(dateKey); HV_BIND.edit(o, dateKey);
+          o.scrollTop = scrollY;
+          const nh = o.querySelectorAll("[data-handle]")[dragI];
+          if(nh){ nh.closest(".hv-ex").classList.add("lifting"); try{ nh.setPointerCapture(e2.pointerId); }catch(x){} nh.addEventListener("pointermove", move); nh.addEventListener("pointerup", up, { once:true }); }
+        }
+      };
+      const up = () => { h.removeEventListener("pointermove", move); rowsEl().forEach(r => r.classList.remove("lifting")); dragI = null; };
+      h.addEventListener("pointermove", move); h.addEventListener("pointerup", up, { once:true }); h.addEventListener("pointercancel", up, { once:true });
+    });
+  });
+  o.querySelector("#hvAddEx2").onclick = () => hvPush("search");
+  const pickGroup = (kind) => {
+    const letter = String.fromCharCode(65 + new Set(p.exercises.map(e => e.group).filter(Boolean)).size);
+    const g = kind === "circuit" ? "C" + letter : letter;
+    openModal(kind === "circuit" ? "Circuit — pick 3 or more" : "Superset — pick 2 or more", `
+      <ul class="lrows">${p.exercises.map((e, i) => `<li class="mrow" data-i="${i}"><div class="mrow-main"><div class="mrow-title">${escape(e.name)}</div>${e.group ? `<div class="mrow-meta">in ${escape(e.group)}</div>` : ""}</div><span class="bw-check"></span></li>`).join("")}</ul>
+      <div class="modal-foot"><button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-cyan" id="hvGroupOk">Group</button></div>`, (root) => {
+      root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+      const sel = new Set();
+      root.querySelectorAll("[data-i]").forEach(li => li.addEventListener("click", () => { const i = +li.getAttribute("data-i"); if(sel.has(i)) sel.delete(i); else sel.add(i); li.classList.toggle("sel", sel.has(i)); li.classList.toggle("bw-row", true); }));
+      root.querySelector("#hvGroupOk").onclick = () => {
+        const need = kind === "circuit" ? 3 : 2;
+        if(sel.size < need){ toast(`Pick at least ${need}`, "pink"); return; }
+        // grouped exercises sit together, in their current order
+        const chosen = [...sel].sort((a, b) => a - b).map(i => p.exercises[i]);
+        chosen.forEach(e => e.group = g);
+        const rest = p.exercises.filter(e => !chosen.includes(e));
+        const at = Math.min(...[...sel]);
+        p.exercises = [...rest.slice(0, at), ...chosen, ...rest.slice(at)];
+        save(); closeModal(); hvRender();
+      };
+    });
+  };
+  o.querySelector("#hvSuper").onclick = () => pickGroup("superset");
+  o.querySelector("#hvCircuit").onclick = () => pickGroup("circuit");
+  const ug = o.querySelector("#hvUngroup"); if(ug) ug.onclick = () => { p.exercises.forEach(e => delete e.group); save(); hvRender(); };
+};
+
+// ---- 9. NOTES ------------------------------------------------------------
+HV_SCREENS.notes = (dateKey, params) => {
+  const p = _wkGet(dateKey);
+  const ex = typeof params.idx === "number" ? p.exercises[params.idx] : null;
+  return hvHead({ title: ex ? ex.name : "Notes", right:`<button type="button" class="hv-link pink" id="hvNotesSave">Save</button>` }) + `
+  <div class="hv-body">
+    <textarea class="hv-notes tall" id="hvNotesTa" placeholder="${ex ? "Cues, seat height, what to change…" : "Felt strong today. Bench felt good. Increase to 140 next week."}">${escape(ex ? (ex.note || "") : (p.notes || ""))}</textarea>
+  </div>`;
+};
+HV_BIND.notes = (o, dateKey, params) => {
+  const p = _wkGet(dateKey);
+  const ta = o.querySelector("#hvNotesTa"); setTimeout(() => ta.focus(), 80);
+  o.querySelector("#hvNotesSave").onclick = () => {
+    const v = ta.value.trim();
+    if(typeof params.idx === "number"){ const ex = p.exercises[params.idx]; if(ex){ if(v) ex.note = v; else delete ex.note; } }
+    else { if(v) p.notes = v; else delete p.notes; }
+    save(); toast("Saved", "cyan"); hvBack();
+  };
+};
+
+// ---- 10. MORE OPTIONS ---------------------------------------------------
+HV_SCREENS.more = (dateKey) => {
+  const p = _wkGet(dateKey);
+  const li = (a, ic, l, danger) => `<button type="button" class="hv-li ${danger ? "danger" : ""}" data-act="${a}"><i>${ic}</i><div><b>${l}</b></div>${danger ? "" : HV_I.chev}</button>`;
+  return hvHead({ title: p.type }) + `
+  <div class="hv-body"><div class="hv-list">
+    ${li("rename", HV_I.pencil, "Edit Workout Name")}
+    ${li("move", HV_I.cal, "Move to Different Day")}
+    ${li("dup", HV_I.copy, "Duplicate Workout")}
+    ${li("template", HV_I.bookmark, "Save as Template")}
+    ${li("replace", HV_I.swap, "Replace Exercises")}
+    ${li("note", HV_I.note, "Add Note")}
+    ${li("stats", HV_I.bars, "View Stats")}
+    ${li("share", HV_I.share, "Share Workout")}
+    ${li("delete", HV_I.trash, "Delete Workout", true)}
+  </div></div>`;
+};
+HV_BIND.more = (o, dateKey) => {
+  const p = _wkGet(dateKey);
+  const pickDate = (title, cb) => openModal(title, `
+    <label class="sfield-lbl"><span>Day</span><input id="hvDate" type="date" value="${dateKey}"></label>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-cyan" id="hvDateOk">OK</button></div>`, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    root.querySelector("#hvDateOk").onclick = () => { const v = root.querySelector("#hvDate").value; if(!v || v === dateKey){ closeModal(); return; } closeModal(); cb(v); };
+  });
+  o.querySelectorAll("[data-act]").forEach(b => b.addEventListener("click", () => {
+    const a = b.getAttribute("data-act");
+    if(a === "rename") openNameModal({ title:"Workout name", value:p.type, cta:"Save" }, (v) => { p.type = v; const l = planLinesFor(dateKey); if(l.length){ l[0].text = v; setPlanLines(dateKey, l); } save(); hvRender(); });
+    if(a === "move") pickDate("Move to which day?", (to) => {
+      const src = _dayPlanRef(dateKey), dst = _dayPlanRef(to);
+      dst.plan[dst.wk][dst.dn] = src.plan[src.wk][src.dn]; delete src.plan[src.wk][src.dn];
+      const names = p.exercises.map(e => e.name);
+      const from = state.days[dateKey]; if(from && from.sessions){ const mv = from.sessions.filter(x => names.includes(x.name)); from.sessions = from.sessions.filter(x => !names.includes(x.name)); const td = dayObj(to); td.sessions = (td.sessions || []).concat(mv); }
+      save(); hvOpen(to, "select");
+    });
+    if(a === "dup") pickDate("Duplicate to which day?", (to) => {
+      const dst = _dayPlanRef(to);
+      dst.plan[dst.wk][dst.dn] = { type: p.type, lines: [{ id: uid(), text: p.type, done:false }], exercises: p.exercises.map(e => ({ name: e.name, group: e.group, sets: e.sets.map(s => ({ reps: s.reps, weight: s.weight, done:false })) })) };
+      save(); toast(`Copied to ${fmtDate(to)}`, "cyan"); hvBack();
+    });
+    if(a === "template"){ const lib = getWorkoutLib(); lib.push({ id: uid(), name: p.type, exercises: p.exercises.map(e => ({ name: e.name, scheme: e.sets.length ? `${e.sets.length}x${e.sets[0].reps || ""}` : "" })) }); save(); toast("Saved as a template", "cyan"); hvBack(); }
+    if(a === "replace") openBuildWorkout(dateKey, p.exercises.map(e => e.name), (picked) => { const by = {}; p.exercises.forEach(e => by[e.name] = e); p.exercises = picked.map(n => by[n] || { name: n, sets: [] }); save(); hvRender(); });
+    if(a === "note") hvPush("notes");
+    if(a === "stats"){ hvClose(); go("fitness"); }
+    if(a === "share") hvShare(dateKey);
+    if(a === "delete") confirmDestructive({ title:"Delete this workout?", body:`${p.type} on ${fmtDate(dateKey)}, including anything logged for it.`, cta:"Delete" }, () => {
+      const names = p.exercises.map(e => e.name);
+      const day = state.days[dateKey]; if(day) day.sessions = (day.sessions || []).filter(x => !names.includes(x.name));
+      const r = _dayPlanRef(dateKey); delete r.plan[r.wk][r.dn]; save(); hvClose();
+    });
+  }));
+};
 
 // =================================================================
 // ONE ADD-WORKOUT SHELL
@@ -11653,7 +12385,7 @@ function renderFitDayCard(){
         <button class="btn btn-lime" id="fdStart">▶ Start workout</button>
       </div>
       ${sessions.length ? `<p class="fd-logged">✓ ${sessions.length} entr${sessions.length===1?"y":"ies"} logged today</p>` : ""}`;
-    on2(card, "#fdStart", () => openWorkoutSession(currentDate));
+    on2(card, "#fdStart", () => hvOpen(currentDate, "select"));
 
   } else {
     const workouts = [{ name:p.type, time:p.time, why:p.why, exercises:p.exercises || [] }].concat(p.extra || []);
@@ -11676,7 +12408,7 @@ function renderFitDayCard(){
           ? `<button class="btn btn-ghost" id="fdDone">Already did it</button>` : ""}
       </div>
       ${sessions.length ? `<p class="fd-logged">✓ ${sessions.length} entr${sessions.length===1?"y":"ies"} logged</p>` : ""}`;
-    on2(card, "#fdStart", () => openWorkoutSession(currentDate));
+    on2(card, "#fdStart", () => hvOpen(currentDate, "select"));
 
     on2(card, "#fdDone", () => {
       const n = logPlannedDay(currentDate);

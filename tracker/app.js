@@ -6935,14 +6935,14 @@ function openSessionSaveAs(dateKey, overlay){
 // meta line, chevron. We had text-only rows and zero thumbnails.
 // =================================================================
 const _MG_ICON = {
-  chest:'<path d="M4 7h16v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/>',
-  back:'<path d="M12 3v18M6 7l6-4 6 4M6 17l6 4 6-4"/>',
-  legs:'<path d="M8 3v7l-2 11M16 3v7l2 11M8 10h8"/>',
-  glutes:'<path d="M5 9a4 4 0 0 1 7-2 4 4 0 0 1 7 2v4a4 4 0 0 1-7 2 4 4 0 0 1-7-2z"/>',
-  shoulders:'<path d="M3 15a9 9 0 0 1 18 0M8 15V9a4 4 0 0 1 8 0v6"/>',
-  arms:'<path d="M6 20V9a3 3 0 0 1 6 0v3h3a3 3 0 0 1 0 6h-3"/>',
-  core:'<rect x="7" y="4" width="10" height="16" rx="3"/><path d="M7 10h10M7 15h10"/>',
-  cardio:'<path d="M3 12h4l2-5 3 10 2-5h7"/>',
+  chest:     '<path d="M4 9c2-3 6-4 8-2 2-2 6-1 8 2 1 3-1 7-4 8-2 1-3 0-4-1-1 1-2 2-4 1-3-1-5-5-4-8z"/><path d="M12 7v9"/>',
+  back:      '<path d="M7 4h10l2 5-4 11H9L5 9z"/><path d="M12 4v16M8 9h8"/>',
+  legs:      '<path d="M8 3h8l-1 9 1 9h-3l-1-6-1 6H8l1-9z"/>',
+  glutes:    '<path d="M4 11c0-4 3-6 8-6s8 2 8 6c0 5-3 8-8 8s-8-3-8-8z"/><path d="M12 5v14"/>',
+  shoulders: '<path d="M3 14a9 9 0 0 1 18 0"/><path d="M7 14V9.5a5 5 0 0 1 10 0V14"/>',
+  arms:      '<path d="M6 20V10a4 4 0 0 1 8 0v2h2a3 3 0 0 1 0 6h-3"/><path d="M14 12c0-2-1-3-3-3"/>',
+  core:      '<rect x="7" y="4" width="10" height="16" rx="3"/><path d="M7 9.5h10M7 14.5h10M12 4v16"/>',
+  cardio:    '<path d="M3 12h4l2-5 3 10 2-5h7"/>',
 };
 function _mgKey(name){
   const parts = (typeof partsForExercise === "function" ? partsForExercise(name) : []) || [];
@@ -11434,46 +11434,83 @@ function renderMuscleMap(){
       <div class="mm-stat mm-right"><b>${fresh}</b><span>FRESH MUSCLE<br>GROUPS</span></div>
     </div>
     <div class="mm-wrap">
-      <svg class="mm-svg" viewBox="0 0 230 250" xmlns="http://www.w3.org/2000/svg">
+      <svg class="mm-svg" viewBox="0 0 240 262" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="mmSkin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#343b46"/><stop offset="1" stop-color="#232933"/></linearGradient>
+        </defs>
         <!-- FRONT -->
-        <g stroke="#0c0f13" stroke-width="1.2">
-          <ellipse cx="60" cy="18" rx="11" ry="13" fill="#2a313b"/>
-          <path d="M52 32 L68 32 L67 40 L53 40 Z" fill="#2a313b"/>
-          <path data-part="shoulders" d="M34 42 Q42 36 52 40 L50 56 Q38 54 34 48 Z" fill="${F("shoulders")}"/>
-          <path data-part="shoulders" d="M86 42 Q78 36 68 40 L70 56 Q82 54 86 48 Z" fill="${F("shoulders")}"/>
-          <path data-part="chest" d="M50 42 Q60 38 70 42 L69 62 Q60 67 51 62 Z" fill="${F("chest")}"/>
-          <path data-part="core" d="M52 64 Q60 68 68 64 L67 96 Q60 101 53 96 Z" fill="${F("core")}"/>
-          <path data-part="arms" d="M33 50 L28 88 L36 90 L42 58 Z" fill="${F("arms")}"/>
-          <path data-part="arms" d="M87 50 L92 88 L84 90 L78 58 Z" fill="${F("arms")}"/>
-          <path data-part="legs" d="M52 100 L48 168 L58 168 L60 102 Z" fill="${F("legs")}"/>
-          <path data-part="legs" d="M68 100 L72 168 L62 168 L60 102 Z" fill="${F("legs")}"/>
-          <path d="M48 170 L58 170 L57 182 L49 182 Z" fill="#2a313b"/>
-          <path d="M72 170 L62 170 L63 182 L71 182 Z" fill="#2a313b"/>
+        <g stroke="#0b0d12" stroke-width="1" stroke-linejoin="round">
+          <ellipse cx="60" cy="19" rx="11.5" ry="13.5" fill="url(#mmSkin)"/>
+          <path d="M55 31 L65 31 L66 40 L54 40 Z" fill="url(#mmSkin)"/>
+          <!-- traps (front slope) -->
+          <path data-part="back" d="M46 44 Q53 38 60 40 Q67 38 74 44 L72 46 Q60 42 48 46 Z" fill="${F("back")}"/>
+          <!-- delts -->
+          <path data-part="shoulders" d="M46 45 Q36 44 32 52 Q30 60 36 64 Q42 62 46 57 Q45 50 46 45 Z" fill="${F("shoulders")}"/>
+          <path data-part="shoulders" d="M74 45 Q84 44 88 52 Q90 60 84 64 Q78 62 74 57 Q75 50 74 45 Z" fill="${F("shoulders")}"/>
+          <!-- pecs -->
+          <path data-part="chest" d="M47 46 Q53 43 60 45 L60 66 Q52 69 46 62 Q44 54 47 46 Z" fill="${F("chest")}"/>
+          <path data-part="chest" d="M73 46 Q67 43 60 45 L60 66 Q68 69 74 62 Q76 54 73 46 Z" fill="${F("chest")}"/>
+          <!-- abs + obliques -->
+          <path data-part="core" d="M51 68 Q60 72 69 68 L68 104 Q60 109 52 104 Z" fill="${F("core")}"/>
+          <path d="M53 78 Q60 81 67 78 M53 88 Q60 91 67 88 M60 70 L60 103" fill="none" stroke="#0b0d12" stroke-width=".8" opacity=".7"/>
+          <path data-part="core" d="M46 64 L51 68 L52 104 L47 98 Q44 82 46 64 Z" fill="${F("core")}"/>
+          <path data-part="core" d="M74 64 L69 68 L68 104 L73 98 Q76 82 74 64 Z" fill="${F("core")}"/>
+          <!-- arms: bicep, forearm, hand -->
+          <path data-part="arms" d="M33 62 Q28 70 28 84 Q30 92 36 92 Q40 86 41 72 Q40 64 36 63 Z" fill="${F("arms")}"/>
+          <path data-part="arms" d="M87 62 Q92 70 92 84 Q90 92 84 92 Q80 86 79 72 Q80 64 84 63 Z" fill="${F("arms")}"/>
+          <path data-part="arms" d="M29 92 Q25 104 26 120 L33 121 Q37 106 36 93 Z" fill="${F("arms")}"/>
+          <path data-part="arms" d="M91 92 Q95 104 94 120 L87 121 Q83 106 84 93 Z" fill="${F("arms")}"/>
+          <ellipse cx="29" cy="127" rx="4.5" ry="6" fill="url(#mmSkin)"/><ellipse cx="91" cy="127" rx="4.5" ry="6" fill="url(#mmSkin)"/>
+          <!-- quads -->
+          <path data-part="legs" d="M49 106 Q44 128 46 154 Q48 168 55 170 L59 168 L59 108 Z" fill="${F("legs")}"/>
+          <path data-part="legs" d="M71 106 Q76 128 74 154 Q72 168 65 170 L61 168 L61 108 Z" fill="${F("legs")}"/>
+          <path d="M52 120 Q50 150 53 164 M68 120 Q70 150 67 164" fill="none" stroke="#0b0d12" stroke-width=".8" opacity=".6"/>
+          <ellipse cx="54" cy="175" rx="5" ry="4" fill="url(#mmSkin)"/><ellipse cx="66" cy="175" rx="5" ry="4" fill="url(#mmSkin)"/>
+          <!-- shins / calves -->
+          <path data-part="legs" d="M50 180 Q46 198 49 216 L57 217 Q60 198 58 180 Z" fill="${F("legs")}"/>
+          <path data-part="legs" d="M70 180 Q74 198 71 216 L63 217 Q60 198 62 180 Z" fill="${F("legs")}"/>
+          <path d="M48 219 L58 219 L59 228 L46 228 Z" fill="url(#mmSkin)"/><path d="M72 219 L62 219 L61 228 L74 228 Z" fill="url(#mmSkin)"/>
         </g>
         <!-- BACK -->
-        <g stroke="#0c0f13" stroke-width="1.2">
-          <ellipse cx="170" cy="18" rx="11" ry="13" fill="#2a313b"/>
-          <path d="M162 32 L178 32 L177 40 L163 40 Z" fill="#2a313b"/>
-          <path data-part="shoulders" d="M144 42 Q152 36 162 40 L160 56 Q148 54 144 48 Z" fill="${F("shoulders")}"/>
-          <path data-part="shoulders" d="M196 42 Q188 36 178 40 L180 56 Q192 54 196 48 Z" fill="${F("shoulders")}"/>
-          <path data-part="back" d="M160 42 Q170 38 180 42 L179 76 Q170 82 161 76 Z" fill="${F("back")}"/>
-          <path data-part="glutes" d="M161 80 Q170 84 179 80 L178 100 Q170 106 162 100 Z" fill="${F("glutes")}"/>
-          <path data-part="arms" d="M143 50 L138 88 L146 90 L152 58 Z" fill="${F("arms")}"/>
-          <path data-part="arms" d="M197 50 L202 88 L194 90 L188 58 Z" fill="${F("arms")}"/>
-          <path data-part="legs" d="M162 104 L158 168 L168 168 L170 106 Z" fill="${F("legs")}"/>
-          <path data-part="legs" d="M178 104 L182 168 L172 168 L170 106 Z" fill="${F("legs")}"/>
-          <path d="M158 170 L168 170 L167 182 L159 182 Z" fill="#2a313b"/>
-          <path d="M182 170 L172 170 L173 182 L181 182 Z" fill="#2a313b"/>
+        <g stroke="#0b0d12" stroke-width="1" stroke-linejoin="round">
+          <ellipse cx="180" cy="19" rx="11.5" ry="13.5" fill="url(#mmSkin)"/>
+          <path d="M175 31 L185 31 L186 40 L174 40 Z" fill="url(#mmSkin)"/>
+          <!-- traps -->
+          <path data-part="back" d="M166 44 Q173 38 180 40 Q187 38 194 44 Q190 56 180 70 Q170 56 166 44 Z" fill="${F("back")}"/>
+          <!-- rear delts -->
+          <path data-part="shoulders" d="M166 45 Q156 44 152 52 Q150 60 156 64 Q162 62 166 57 Q165 50 166 45 Z" fill="${F("shoulders")}"/>
+          <path data-part="shoulders" d="M194 45 Q204 44 208 52 Q210 60 204 64 Q198 62 194 57 Q195 50 194 45 Z" fill="${F("shoulders")}"/>
+          <!-- lats -->
+          <path data-part="back" d="M166 58 Q164 76 170 90 L180 92 L180 70 Q172 60 166 58 Z" fill="${F("back")}"/>
+          <path data-part="back" d="M194 58 Q196 76 190 90 L180 92 L180 70 Q188 60 194 58 Z" fill="${F("back")}"/>
+          <!-- erectors / lower back -->
+          <path data-part="back" d="M172 92 L188 92 L187 106 Q180 109 173 106 Z" fill="${F("back")}"/>
+          <!-- triceps, forearms -->
+          <path data-part="arms" d="M153 62 Q148 70 148 84 Q150 92 156 92 Q160 86 161 72 Q160 64 156 63 Z" fill="${F("arms")}"/>
+          <path data-part="arms" d="M207 62 Q212 70 212 84 Q210 92 204 92 Q200 86 199 72 Q200 64 204 63 Z" fill="${F("arms")}"/>
+          <path data-part="arms" d="M149 92 Q145 104 146 120 L153 121 Q157 106 156 93 Z" fill="${F("arms")}"/>
+          <path data-part="arms" d="M211 92 Q215 104 214 120 L207 121 Q203 106 204 93 Z" fill="${F("arms")}"/>
+          <ellipse cx="149" cy="127" rx="4.5" ry="6" fill="url(#mmSkin)"/><ellipse cx="211" cy="127" rx="4.5" ry="6" fill="url(#mmSkin)"/>
+          <!-- glutes -->
+          <path data-part="glutes" d="M168 106 Q162 112 164 124 Q170 130 179 126 L179 108 Q173 105 168 106 Z" fill="${F("glutes")}"/>
+          <path data-part="glutes" d="M192 106 Q198 112 196 124 Q190 130 181 126 L181 108 Q187 105 192 106 Z" fill="${F("glutes")}"/>
+          <!-- hamstrings -->
+          <path data-part="legs" d="M166 128 Q164 148 167 166 Q172 171 178 168 L179 130 Z" fill="${F("legs")}"/>
+          <path data-part="legs" d="M194 128 Q196 148 193 166 Q188 171 182 168 L181 130 Z" fill="${F("legs")}"/>
+          <ellipse cx="174" cy="175" rx="5" ry="4" fill="url(#mmSkin)"/><ellipse cx="186" cy="175" rx="5" ry="4" fill="url(#mmSkin)"/>
+          <!-- calves -->
+          <path data-part="legs" d="M169 180 Q164 196 169 216 L177 217 Q180 198 178 180 Z" fill="${F("legs")}"/>
+          <path data-part="legs" d="M191 180 Q196 196 191 216 L183 217 Q180 198 182 180 Z" fill="${F("legs")}"/>
+          <path d="M168 219 L178 219 L179 228 L166 228 Z" fill="url(#mmSkin)"/><path d="M192 219 L182 219 L181 228 L194 228 Z" fill="url(#mmSkin)"/>
         </g>
-        <text x="60" y="196" font-size="8" fill="#8b95a1" text-anchor="middle" letter-spacing="2">FRONT</text>
-        <text x="170" y="196" font-size="8" fill="#8b95a1" text-anchor="middle" letter-spacing="2">BACK</text>
-        <!-- legend -->
+        <text x="60" y="242" font-size="8" fill="#8b95a1" text-anchor="middle" letter-spacing="2">FRONT</text>
+        <text x="180" y="242" font-size="8" fill="#8b95a1" text-anchor="middle" letter-spacing="2">BACK</text>
         <g font-size="7" fill="#8b95a1">
-          <rect x="18" y="214" width="8" height="8" fill="#ff4d9d"/><text x="30" y="221">Just hit (0-2d)</text>
-          <rect x="90" y="214" width="8" height="8" fill="#b788ff"/><text x="102" y="221">Recent (3-5d)</text>
-          <rect x="162" y="214" width="8" height="8" fill="#00f5d4"/><text x="174" y="221">Fresh (6-8d)</text>
-          <rect x="18" y="230" width="8" height="8" fill="#3d4a63"/><text x="30" y="237">Going cold (9d+)</text>
-          <rect x="90" y="230" width="8" height="8" fill="#20262e"/><text x="102" y="237">No data yet</text>
+          <rect x="16" y="252" width="7" height="7" rx="2" fill="#ff4d9d"/><text x="27" y="258">0–2d</text>
+          <rect x="52" y="252" width="7" height="7" rx="2" fill="#b788ff"/><text x="63" y="258">3–5d</text>
+          <rect x="88" y="252" width="7" height="7" rx="2" fill="#00f5d4"/><text x="99" y="258">6–8d</text>
+          <rect x="124" y="252" width="7" height="7" rx="2" fill="#3d4a63"/><text x="135" y="258">9d+ cold</text>
+          <rect x="176" y="252" width="7" height="7" rx="2" fill="#20262e"/><text x="187" y="258">no data</text>
         </g>
       </svg>
     </div>

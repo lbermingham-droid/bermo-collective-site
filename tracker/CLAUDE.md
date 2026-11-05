@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v45**.
+- Current build: **v46**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -261,6 +261,17 @@ second water button on the low-water banner.
 `renderWodCard()` writing into four elements that no longer existed, so it
 threw on EVERY dashboard render and killed the render chain behind it. That
 is the orphan-sweep rule in §7, ignored in a hurry. It is now guarded.
+
+**ICONS AND THE BODY (v46).** *"Fix the body images, remove AI icons and
+clean up icons."* The muscle map figure was blocky rectangles; it is now an
+anatomical SVG — pecs, abs/obliques, delts, biceps/forearms, quads, calves on
+the front; traps, lats, erectors, glutes, hamstrings, calves on the back —
+each region still carrying `data-part` so recency colouring and tap-through
+work unchanged. The seven brain-dump buttons used a four-point sparkle (the
+universal "AI" glyph); they are a pencil now. `_MG_ICON` glyphs (used by the
+media-row thumb and Left This Week) were abstract shapes and now read as the
+muscle they stand for. **No sparkle anywhere in the UI** — grep for
+`M12 3.2l1.9 4.6` returns zero.
 
 **THE WORKOUT FLOW (v45, step 2 of 6).** She sent a ten-screen mockup:
 *"Exact replica — this is how it should look for each thing you click."*
@@ -887,7 +898,6 @@ wrapper, native — are correct, but for the tracker specifically:
 **Buildable now:**
 - **Settings never got the page-by-page design pass** that Dashboard,
   Nutrition, Fitness, Body and Health got. It's still walls of paragraph text.
-- Muscle map is geometric, not anatomical (she asked for prettier).
 - Muscle coverage reads **logged** sessions only; it could pre-check a
   **planned** workout and warn before she trains.
 - USDA FoodData Central for real whole-food micronutrients.
@@ -925,4 +935,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v42` HOME — week strip, two rings, notepad plan, Left this week (step 1 of the rebuild) ·
 `v43` HOME rebuilt to her mockup: five-tab nav, brain dump bar, gradient rings, This Week rows, vs Last Week ·
 `v44` everything on Home routes into its category; the rings strip scrolls by week; month calendar with rings ·
-`v45` THE WORKOUT FLOW — ten Hevy-style screens behind ▷ (step 2 of the rebuild).
+`v45` THE WORKOUT FLOW — ten Hevy-style screens behind ▷ (step 2 of the rebuild) ·
+`v46` anatomical body figure, muscle glyphs that read as muscles, AI sparkle removed.

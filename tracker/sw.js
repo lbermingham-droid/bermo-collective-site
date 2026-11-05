@@ -1,11 +1,12 @@
 /* BERMO TRACKER service worker — offline support + notifications */
-const CACHE = "bermo-tracker-v47";
+const CACHE = "bermo-tracker-v48";
 const ASSETS = [
   "/tracker/",
   "/tracker/index.html",
   "/tracker/styles.css",
   "/tracker/app.js",
   "/tracker/data.js",
+  "/tracker/exdb.js",
   "/tracker/vendor/chart.umd.js",
   "/tracker/manifest.json",
   "/favicon.svg"
@@ -67,6 +68,15 @@ self.addEventListener("fetch", (e) => {
         return res;
       }).catch(() => caches.match(req).then(cached => cached || caches.match("/tracker/")))
     );
+    return;
+  }
+  // Exercise photos (free-exercise-db via jsDelivr): CACHE-FIRST. They never
+  // change, and in the gym the network is the slow part.
+  if(/cdn\.jsdelivr\.net\/gh\/yuhonas\/free-exercise-db/.test(req.url)){
+    e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(res => {
+      if(res && res.ok){ const clone = res.clone(); caches.open(CACHE).then(c => c.put(req, clone)); }
+      return res;
+    })));
     return;
   }
   // Cross-origin (fonts, Chart.js CDN): network with cache fallback

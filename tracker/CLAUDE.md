@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v47**.
+- Current build: **v48**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -144,6 +144,7 @@ in chunks. Always `node --check tracker/app.js` before committing.
 | `tracker/app.js` (~12.6k) | Everything. Has a CODE MAP comment at the top. |
 | `tracker/styles.css` (~4.1k) | **Layered — bottom wins.** Has a LAYER MAP header. Because legacy layers use `!important`, hide things with a **class**, never inline `style.display`. |
 | `tracker/data.js` (~520) | Food DB (~355 items), WOD library, movements, programs, activity levels. |
+| `tracker/exdb.js` (150KB) | **free-exercise-db**, public domain (The Unlicense): 873 exercises — name, primary/secondary muscles, equipment, category, level. Photos come from jsDelivr (`EXDB_IMG(id, 0|1)`), cache-first in the SW. Regenerate from the upstream `dist/exercises.json` by dropping `instructions` and keeping `{i,n,p,s,e,c,l,m,f}`. |
 | `tracker/sw.js` + `manifest.json` | PWA. SW is **network-first for HTML/CSS/JS** so deploys land without a hard refresh; cache-first for images. |
 | `tracker/tests/smoke.js` | 26 Playwright tests. See §6. |
 | `netlify/functions/ai-parse.js` | Hosted Claude proxy for Brain Dump. Key comes from Netlify env (accepts `ANTHROPIC_API_KEY` plus `BERMO.Fit`-style aliases, with a last-resort scan for anything starting `sk-ant-`). Users need no key. |
@@ -261,6 +262,32 @@ second water button on the low-water banner.
 `renderWodCard()` writing into four elements that no longer existed, so it
 threw on EVERY dashboard render and killed the render chain behind it. That
 is the orphan-sweep rule in §7, ignored in a hurry. It is now guarded.
+
+**THE EXERCISE LIBRARY (v48).** *"There are def free libraries for
+exercises."* She was right and the handoff had said otherwise. free-exercise-db
+(github.com/yuhonas/free-exercise-db) is **The Unlicense** — public domain —
+with 873 exercises, two studio photos each, primary + secondary muscles,
+equipment, category, level. Shipped as `tracker/exdb.js` (150KB, instructions
+dropped; `EXDB_JSON(id)` fetches them on demand).
+
+How it is wired — our data wins, the library fills the gaps:
+- `allLibraryExercises()` adds every non-stretching entry.
+- `exPhoto(name)` → her own photo, else `exdbPhoto(name)`. So `mrowThumb`,
+  `_bwThumb`, `_wkThumb` and the sets-screen hero all show real photos.
+- `partsForExercise()` → `BODY_PART_MAP` first, then `exdbParts()` (library
+  muscles → our seven parts via `_EXDB_PART`), then the name regexes.
+- `equipOf()` and `liftCatOf()` read the library's equipment/category.
+- **`exdbGet(name)` is fuzzy, in four steps, cached:** exact → `_EXDB_SYN`
+  (our names → theirs: "back squat"→"barbell squat", "lat pulldown"→"wide-grip
+  lat pulldown"…) → equipment prefixes ("barbell "+name) → every token of ours
+  inside a library name, shortest wins → strip variant words (pause, box,
+  high bar, deficit, tempo…) and retry, so "Pause Squat" borrows Barbell
+  Squat's photo. Search-row photo coverage went 54/64 → 64/64 on "squat".
+- SW: `exdb.js` is precached; the jsDelivr photo host is **cache-first**.
+
+Known: the photos are one model in one studio, not Hevy's style. Honest, and
+free. Step 3 (set-counted coverage) should use `exdbGet(name).p`/`.s` for
+primary/secondary credit — that data is now in the app.
 
 **ICONS AND THE BODY (v46).** *"Fix the body images, remove AI icons and
 clean up icons."* The muscle map figure was blocky rectangles; it is now an
@@ -856,11 +883,10 @@ Fitbod or Strong. It is **not** a product yet. In priority order:
    data. This is a legal requirement and an App Store blocker. ~2 days.
 3. **No error tracking, no analytics.** If it breaks for her you will never
    know. ~2 days.
-4. **Content depth is 1–2% of the incumbents.** 355 foods vs MFP's ~20M
-   (OpenFoodFacts covers ~2M packaged goods but few whole foods); 86 exercises
-   vs Strong's ~500 and Fitbod's ~1,000 with video. Fix with **USDA FoodData
-   Central** (free, official, real micronutrients) and a licensed exercise
-   library (wger is open source; ExerciseDB ~$20/mo). ~1–2 weeks.
+4. **Food depth is 1–2% of MFP.** 355 foods vs ~20M (OpenFoodFacts covers
+   ~2M packaged goods but few whole foods). Fix with **USDA FoodData Central**
+   (free, official, real micronutrients). Exercises are solved as of v48 —
+   873 with photos, public domain.
 5. **AI cost is unmetered.** `ai-parse.js` bills the project owner per call
    with no rate limit or per-user cap.
 6. **`app.js` is 12.6k lines in one file.** It works and the pipeline
@@ -937,4 +963,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v44` everything on Home routes into its category; the rings strip scrolls by week; month calendar with rings ·
 `v45` THE WORKOUT FLOW — ten Hevy-style screens behind ▷ (step 2 of the rebuild) ·
 `v46` anatomical body figure, muscle glyphs that read as muscles, AI sparkle removed ·
-`v47` ring-centre runner and fork glyphs and the nav dumbbell/fork replaced with clean filled icons.
+`v47` ring-centre runner and fork glyphs and the nav dumbbell/fork replaced with clean filled icons ·
+`v48` free-exercise-db: 873 public-domain exercises with photos, muscles and equipment.

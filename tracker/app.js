@@ -6958,6 +6958,8 @@ function _mgKey(name){
   return "core";
 }
 function mrowThumb(name){
+  const src = exPhoto(name);
+  if(src) return `<div class="mrow-thumb"><img src="${src}" alt="" loading="lazy"></div>`;
   const g = _MG_ICON[_mgKey(name)];
   return `<div class="mrow-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
     stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${g}</svg></div>`;
@@ -7038,7 +7040,7 @@ function exPhotoLoadAll(){
     cur.onerror = () => res({});
   })).catch(() => ({}));
 }
-function exPhoto(name){ return _exPhotoCache[name] || (state.exPhotos || {})[name] || null; }
+function exPhoto(name){ return _exPhotoCache[name] || (state.exPhotos || {})[name] || exdbPhoto(name) || null; }
 
 // Downscale before storing so a 4MB phone photo becomes ~30KB.
 function _downscale(file, max){
@@ -7069,10 +7071,12 @@ function liftCatOf(name){
     _LIFT_CAT_OF = {};
     LIFT_CATEGORIES.forEach(c => c.lifts.forEach(l => { _LIFT_CAT_OF[l.toLowerCase()] = c.name; }));
   }
-  return _LIFT_CAT_OF[(name || "").toLowerCase()] || null;
+  const x = exdbGet(name);
+  return _LIFT_CAT_OF[(name || "").toLowerCase()] || (x && x.c ? x.c.replace(/^./, c => c.toUpperCase()) : null);
 }
 function equipOf(name){
   const n = (name || "").toLowerCase();
+  const fromDb = exdbEquip(n); if(fromDb) return fromDb;
   if(MACHINE_LIST.some(m => m.toLowerCase() === n)) return "Machine";
   if(/smith/.test(n))                               return "Smith machine";
   if(/cable|pulldown|pushdown|pull.?through/.test(n)) return "Cable";
@@ -7130,7 +7134,7 @@ function _bwMatches(name){
 }
 
 function _bwThumb(name){
-  const src = exPhoto(name);
+  const src = exPhoto(name);   // her photo, else the library's
   if(src) return `<div class="mrow-thumb"><img src="${src}" alt=""></div>`;
   return mrowThumb(name);
 }
@@ -8844,6 +8848,78 @@ HV_BIND.more = (o, dateKey) => {
     });
   }));
 };
+
+
+// =================================================================
+// v48 EXERCISE LIBRARY — free-exercise-db, public domain. 873 movements
+// with photos, primary/secondary muscles and equipment. Our own names
+// and the muscle resolver still win where we have them; the library
+// fills everything else. Lookup is by lowercase name.
+// =================================================================
+let _EXDB_BY = null, _EXDB_TOK = null, _EXDB_FUZZ = {};
+const _EXDB_STOP = new Set(["the","a","of","with","and","on","in","to","machine","exercise"]);
+const _EXDB_SYN = { "back squat":"barbell squat", "squat":"barbell squat", "bench press":"barbell bench press - medium grip",
+  "deadlift":"barbell deadlift", "rdl":"romanian deadlift", "romanian deadlift":"romanian deadlift", "hip thrust":"barbell hip thrust",
+  "lat pulldown":"wide-grip lat pulldown", "shoulder press":"dumbbell shoulder press", "overhead press":"standing military press",
+  "leg press":"leg press", "leg curl":"lying leg curls", "leg extension":"leg extensions", "cable curl":"cable curl",
+  "cable tricep pushdown":"triceps pushdown", "tricep pushdown":"triceps pushdown", "seated cable row":"seated cable rows",
+  "pec deck":"butterfly", "cable fly":"cable crossover", "hip abductor":"thigh abductor", "hip adductor":"thigh adductor",
+  "calf raise":"standing calf raises", "goblet squat":"goblet squat", "incline dumbbell press":"incline dumbbell press",
+  "face pull":"face pull", "dips":"dips - triceps version", "pull-up":"pullups", "pull up":"pullups", "chin-up":"chin-up", "push-up":"pushups", "push up":"pushups" };
+function _exdbToks(n){ return n.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").split(/\s+/).filter(t => t && !_EXDB_STOP.has(t)); }
+function exdbGet(name){
+  if(!window.EXDB) return null;
+  if(!_EXDB_BY){
+    _EXDB_BY = {}; _EXDB_TOK = [];
+    window.EXDB.forEach(x => { _EXDB_BY[x.n.toLowerCase()] = x; _EXDB_TOK.push([x, new Set(_exdbToks(x.n))]); });
+  }
+  const key = (name || "").toLowerCase().trim();
+  if(!key) return null;
+  if(_EXDB_BY[key]) return _EXDB_BY[key];
+  if(key in _EXDB_FUZZ) return _EXDB_FUZZ[key];
+  // 1. known synonyms for the names we use
+  let hit = _EXDB_SYN[key] ? _EXDB_BY[_EXDB_SYN[key]] : null;
+  // 2. equipment-prefixed variants ("Barbell X", "Dumbbell X", "X (barbell)")
+  if(!hit) for(const pre of ["barbell ", "dumbbell ", "cable ", "machine ", "smith machine "]){
+    if(_EXDB_BY[pre + key]){ hit = _EXDB_BY[pre + key]; break; }
+  }
+  // 3. every token of ours inside a library name; prefer the shortest such name
+  if(!hit){
+    const mine = _exdbToks(key);
+    if(mine.length){
+      let best = null;
+      _EXDB_TOK.forEach(([x, set]) => {
+        if(x.c === "stretching") return;
+        if(mine.every(t => set.has(t) || [...set].some(w => w.startsWith(t) && t.length >= 4))){
+          if(!best || set.size < best[1].size) best = [x, set];
+        }
+      });
+      hit = best ? best[0] : null;
+    }
+  }
+  // 4. our variants the library doesn't carry ("Pause Squat", "High Bar
+  //    Back Squat", "Front Box Squat") borrow the base lift's photo + muscles
+  if(!hit){
+    const base = key.replace(/\b(pause|paused|tempo|box|high bar|low bar|deficit|pin|safety bar|ssb|zercher|close.?grip|wide.?grip|single.?leg|single.?arm|one.?arm|alternating|seated|standing|incline|decline)\b/g, " ").replace(/\s+/g, " ").trim();
+    if(base && base !== key) hit = exdbGet(base);
+  }
+  _EXDB_FUZZ[key] = hit || null;
+  return hit;
+}
+const _EXDB_PART = {
+  quadriceps:"legs", hamstrings:"legs", calves:"legs", adductors:"legs", abductors:"legs",
+  glutes:"glutes", chest:"chest", lats:"back", "middle back":"back", "lower back":"back", traps:"back",
+  shoulders:"shoulders", biceps:"arms", triceps:"arms", forearms:"arms", abdominals:"core", neck:"shoulders",
+};
+function exdbParts(name){
+  const x = exdbGet(name); if(!x) return null;
+  const out = []; (x.p || []).concat(x.s || []).forEach(m => { const pt = _EXDB_PART[m]; if(pt && !out.includes(pt)) out.push(pt); });
+  return out.length ? out : null;
+}
+const _EXDB_EQUIP = { barbell:"Barbell", dumbbell:"Dumbbell", cable:"Cable", machine:"Machine", "body only":"Bodyweight",
+  kettlebells:"Kettlebell", bands:"Bands", "medicine ball":"Medicine ball", "exercise ball":"Exercise ball", "e-z curl bar":"EZ bar", "foam roll":"Foam roller" };
+function exdbEquip(name){ const x = exdbGet(name); return x && _EXDB_EQUIP[x.e] || null; }
+function exdbPhoto(name){ const x = exdbGet(name); return x ? window.EXDB_IMG(x.i, 0) : null; }
 
 // =================================================================
 // ONE ADD-WORKOUT SHELL
@@ -11123,6 +11199,8 @@ function _volumeForRange(startDate, endDate){
 function partsForExercise(name){
   const n = (name || "").toLowerCase();
   if(BODY_PART_MAP[n]) return BODY_PART_MAP[n];
+  const fromDb = (typeof exdbParts === "function") ? exdbParts(n) : null;
+  if(fromDb) return fromDb;
   const out = new Set();
   if(/squat|lunge|leg press|leg extension|leg curl|hamstring|quad|calf|step.?up|sled|thruster|\brdl\b/.test(n)){ out.add("legs"); }
   if(/squat|deadlift|\brdl\b|hip thrust|thruster|glute|kick.?back|abduct|bridge/.test(n)){ out.add("glutes"); }
@@ -13091,6 +13169,7 @@ function allLibraryExercises(){
   (state.favLifts || []).forEach(m => set.add(m));
   Object.keys(getExPhotos()).forEach(m => set.add(m));
   (state.customExercises || []).forEach(m => set.add(m));
+  if(window.EXDB) window.EXDB.forEach(x => { if(x.c !== "stretching") set.add(x.n); });
   return Array.from(set);
 }
 

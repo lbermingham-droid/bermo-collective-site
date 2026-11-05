@@ -7040,7 +7040,7 @@ function exPhotoLoadAll(){
     cur.onerror = () => res({});
   })).catch(() => ({}));
 }
-function exPhoto(name){ return _exPhotoCache[name] || (state.exPhotos || {})[name] || exdbPhoto(name) || null; }
+function exPhoto(name){ return _exPhotoCache[name] || (state.exPhotos || {})[name] || repdbArt(name) || exdbPhoto(name) || null; }
 
 // Downscale before storing so a 4MB phone photo becomes ~30KB.
 function _downscale(file, max){
@@ -7076,6 +7076,7 @@ function liftCatOf(name){
 }
 function equipOf(name){
   const n = (name || "").toLowerCase();
+  const rep = repdbGet(n); if(rep && rep.bw) return "Bodyweight";
   const fromDb = exdbEquip(n); if(fromDb) return fromDb;
   if(MACHINE_LIST.some(m => m.toLowerCase() === n)) return "Machine";
   if(/smith/.test(n))                               return "Smith machine";
@@ -8856,56 +8857,68 @@ HV_BIND.more = (o, dateKey) => {
 // and the muscle resolver still win where we have them; the library
 // fills everything else. Lookup is by lowercase name.
 // =================================================================
-let _EXDB_BY = null, _EXDB_TOK = null, _EXDB_FUZZ = {};
-const _EXDB_STOP = new Set(["the","a","of","with","and","on","in","to","machine","exercise"]);
-const _EXDB_SYN = { "back squat":"barbell squat", "squat":"barbell squat", "bench press":"barbell bench press - medium grip",
-  "deadlift":"barbell deadlift", "rdl":"romanian deadlift", "romanian deadlift":"romanian deadlift", "hip thrust":"barbell hip thrust",
+const _LIB_STOP = new Set(["the","a","of","with","and","on","in","to","machine","exercise"]);
+const _LIB_SYN = { "back squat":"barbell squat", "barbell squat":"back squat", "squat":"barbell squat", "bench press":"barbell bench press - medium grip",
+  "deadlift":"barbell deadlift", "rdl":"romanian deadlift", "hip thrust":"barbell hip thrust",
   "lat pulldown":"wide-grip lat pulldown", "shoulder press":"dumbbell shoulder press", "overhead press":"standing military press",
-  "leg press":"leg press", "leg curl":"lying leg curls", "leg extension":"leg extensions", "cable curl":"cable curl",
-  "cable tricep pushdown":"triceps pushdown", "tricep pushdown":"triceps pushdown", "seated cable row":"seated cable rows",
-  "pec deck":"butterfly", "cable fly":"cable crossover", "hip abductor":"thigh abductor", "hip adductor":"thigh adductor",
-  "calf raise":"standing calf raises", "goblet squat":"goblet squat", "incline dumbbell press":"incline dumbbell press",
-  "face pull":"face pull", "dips":"dips - triceps version", "pull-up":"pullups", "pull up":"pullups", "chin-up":"chin-up", "push-up":"pushups", "push up":"pushups" };
-function _exdbToks(n){ return n.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").split(/\s+/).filter(t => t && !_EXDB_STOP.has(t)); }
-function exdbGet(name){
-  if(!window.EXDB) return null;
-  if(!_EXDB_BY){
-    _EXDB_BY = {}; _EXDB_TOK = [];
-    window.EXDB.forEach(x => { _EXDB_BY[x.n.toLowerCase()] = x; _EXDB_TOK.push([x, new Set(_exdbToks(x.n))]); });
-  }
-  const key = (name || "").toLowerCase().trim();
-  if(!key) return null;
-  if(_EXDB_BY[key]) return _EXDB_BY[key];
-  if(key in _EXDB_FUZZ) return _EXDB_FUZZ[key];
-  // 1. known synonyms for the names we use
-  let hit = _EXDB_SYN[key] ? _EXDB_BY[_EXDB_SYN[key]] : null;
-  // 2. equipment-prefixed variants ("Barbell X", "Dumbbell X", "X (barbell)")
-  if(!hit) for(const pre of ["barbell ", "dumbbell ", "cable ", "machine ", "smith machine "]){
-    if(_EXDB_BY[pre + key]){ hit = _EXDB_BY[pre + key]; break; }
-  }
-  // 3. every token of ours inside a library name; prefer the shortest such name
+  "leg curl":"lying leg curls", "leg extension":"leg extensions", "cable tricep pushdown":"triceps pushdown", "tricep pushdown":"triceps pushdown",
+  "seated cable row":"seated cable rows", "pec deck":"butterfly", "cable fly":"cable crossover", "hip abductor":"thigh abductor",
+  "hip adductor":"thigh adductor", "calf raise":"standing calf raises", "dips":"dips - triceps version", "pull-up":"pullups", "pull up":"pullups",
+  "push-up":"pushups", "push up":"pushups" };
+const _LIB_VARIANT = /\b(pause|paused|tempo|box|high bar|low bar|deficit|pin|safety bar|ssb|zercher|close.?grip|wide.?grip|single.?leg|single.?arm|one.?arm|alternating|seated|standing|incline|decline)\b/g;
+function _libToks(n){ return n.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").split(/\s+/).filter(t => t && !_LIB_STOP.has(t)); }
+// One matcher for every exercise library: exact -> synonym -> equipment
+// prefix -> all our tokens inside a library name (shortest wins) -> drop
+// variant words and retry. Results are cached per library.
+function _libMatch(idx, key){
+  if(idx.by[key]) return idx.by[key];
+  if(key in idx.fuzz) return idx.fuzz[key];
+  let hit = _LIB_SYN[key] ? idx.by[_LIB_SYN[key]] : null;
+  if(!hit) for(const pre of ["barbell ", "dumbbell ", "cable ", "machine ", "smith machine ", "kettlebell "]){ if(idx.by[pre + key]){ hit = idx.by[pre + key]; break; } }
   if(!hit){
-    const mine = _exdbToks(key);
+    const mine = _libToks(key);
     if(mine.length){
       let best = null;
-      _EXDB_TOK.forEach(([x, set]) => {
+      idx.tok.forEach(([x, set]) => {
         if(x.c === "stretching") return;
         if(mine.every(t => set.has(t) || [...set].some(w => w.startsWith(t) && t.length >= 4))){
-          if(!best || set.size < best[1].size) best = [x, set];
+          // the same words in a different order beats a name with extra words
+          const exact = set.size === mine.length;
+          if(!best || (exact && !best[2]) || (exact === !!best[2] && set.size < best[1].size)) best = [x, set, exact];
         }
       });
       hit = best ? best[0] : null;
     }
   }
-  // 4. our variants the library doesn't carry ("Pause Squat", "High Bar
-  //    Back Squat", "Front Box Squat") borrow the base lift's photo + muscles
-  if(!hit){
-    const base = key.replace(/\b(pause|paused|tempo|box|high bar|low bar|deficit|pin|safety bar|ssb|zercher|close.?grip|wide.?grip|single.?leg|single.?arm|one.?arm|alternating|seated|standing|incline|decline)\b/g, " ").replace(/\s+/g, " ").trim();
-    if(base && base !== key) hit = exdbGet(base);
-  }
-  _EXDB_FUZZ[key] = hit || null;
+  if(!hit){ const base = key.replace(_LIB_VARIANT, " ").replace(/\s+/g, " ").trim(); if(base && base !== key) hit = _libMatch(idx, base); }
+  idx.fuzz[key] = hit || null;
   return hit;
 }
+function _libIndex(list){ const idx = { by:{}, tok:[], fuzz:{} }; list.forEach(x => { idx.by[x.n.toLowerCase()] = x; idx.tok.push([x, new Set(_libToks(x.n))]); }); return idx; }
+let _EXDB_IDX = null, _REPDB_IDX = null;
+function exdbGet(name){
+  if(!window.EXDB) return null;
+  if(!_EXDB_IDX) _EXDB_IDX = _libIndex(window.EXDB);
+  const key = (name || "").toLowerCase().trim(); return key ? _libMatch(_EXDB_IDX, key) : null;
+}
+function repdbGet(name){
+  if(!window.REPDB) return null;
+  if(!_REPDB_IDX) _REPDB_IDX = _libIndex(window.REPDB);
+  const key = (name || "").toLowerCase().trim(); return key ? _libMatch(_REPDB_IDX, key) : null;
+}
+// RepDB anatomy -> our seven parts
+const _REPDB_PART = { gluteus_maximus:"glutes", gluteus_medius:"glutes", gluteus_minimus:"glutes", quadriceps:"legs", hamstrings:"legs",
+  gastrocnemius:"legs", soleus:"legs", adductors:"legs", abductors:"legs", hip_flexors:"legs", tibialis_anterior:"legs",
+  pectoralis_major:"chest", pectoralis_minor:"chest", serratus_anterior:"chest", latissimus_dorsi:"back", trapezius:"back", rhomboids:"back",
+  erector_spinae:"back", teres_major:"back", anterior_deltoid:"shoulders", lateral_deltoid:"shoulders", posterior_deltoid:"shoulders", rotator_cuff:"shoulders",
+  biceps_brachii:"arms", brachialis:"arms", brachioradialis:"arms", triceps_brachii:"arms", forearm_flexors:"arms", forearm_extensors:"arms",
+  rectus_abdominis:"core", obliques:"core", transverse_abdominis:"core" };
+function repdbParts(name){
+  const x = repdbGet(name); if(!x) return null;
+  const out = []; (x.p || []).concat(x.s || []).forEach(m => { const pt = _REPDB_PART[m]; if(pt && !out.includes(pt)) out.push(pt); });
+  return out.length ? out : null;
+}
+function repdbArt(name){ const x = repdbGet(name); return x ? window.REPDB_IMG(x.i, x.k) : null; }
 const _EXDB_PART = {
   quadriceps:"legs", hamstrings:"legs", calves:"legs", adductors:"legs", abductors:"legs",
   glutes:"glutes", chest:"chest", lats:"back", "middle back":"back", "lower back":"back", traps:"back",
@@ -11199,6 +11212,8 @@ function _volumeForRange(startDate, endDate){
 function partsForExercise(name){
   const n = (name || "").toLowerCase();
   if(BODY_PART_MAP[n]) return BODY_PART_MAP[n];
+  const fromRep = (typeof repdbParts === "function") ? repdbParts(n) : null;
+  if(fromRep) return fromRep;
   const fromDb = (typeof exdbParts === "function") ? exdbParts(n) : null;
   if(fromDb) return fromDb;
   const out = new Set();
@@ -13169,7 +13184,10 @@ function allLibraryExercises(){
   (state.favLifts || []).forEach(m => set.add(m));
   Object.keys(getExPhotos()).forEach(m => set.add(m));
   (state.customExercises || []).forEach(m => set.add(m));
-  if(window.EXDB) window.EXDB.forEach(x => { if(x.c !== "stretching") set.add(x.n); });
+  const seen = new Set(Array.from(set, n => n.toLowerCase()));
+  const addU = (n) => { const k = n.toLowerCase(); if(!seen.has(k)){ seen.add(k); set.add(n); } };
+  if(window.REPDB) window.REPDB.forEach(x => { if(x.c !== "stretching") addU(x.n); });
+  if(window.EXDB)  window.EXDB.forEach(x => { if(x.c !== "stretching") addU(x.n); });
   return Array.from(set);
 }
 

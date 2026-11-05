@@ -4988,3 +4988,9 @@ body.on-home .main{ padding-top:8px !important; }
 /* v47: filled glyphs in the ring centres and nav */
 .hm-ringmid i svg{ width:36px; height:36px; }
 .mobnav .mtab svg{ width:26px; height:26px; }
+.credits{ margin:18px 4px 0; font-size:12px; color:#8b93a1; line-height:1.5; }
+.credits a{ color:#c9d1dc; text-decoration:underline; text-underline-offset:2px; }
+.mrow-thumb img, .hv-thumb img, .hv-hero img{ background:#1e1f26; }
+/* square 512px illustrations in a wide hero: keep the head in frame */
+.hv-hero img{ object-position:center 28%; }
+.hv-hero{ height:180px; }

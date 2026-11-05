@@ -1,5 +1,5 @@
 /* BERMO TRACKER service worker — offline support + notifications */
-const CACHE = "bermo-tracker-v49";
+const CACHE = "bermo-tracker-v50";
 const ASSETS = [
   "/tracker/",
   "/tracker/index.html",
@@ -8,6 +8,7 @@ const ASSETS = [
   "/tracker/data.js",
   "/tracker/exdb.js",
   "/tracker/repdb.js",
+  "/tracker/bryl.js",
   "/tracker/vendor/chart.umd.js",
   "/tracker/manifest.json",
   "/favicon.svg"
@@ -73,7 +74,7 @@ self.addEventListener("fetch", (e) => {
   }
   // Exercise photos (free-exercise-db via jsDelivr): CACHE-FIRST. They never
   // change, and in the gym the network is the slow part.
-  if(/cdn\.jsdelivr\.net\/gh\/(yuhonas\/free-exercise-db|RepDB\/exercise-dataset)/.test(req.url)){
+  if(/cdn\.jsdelivr\.net\/(gh\/(yuhonas\/free-exercise-db|RepDB\/exercise-dataset)|npm\/@bryllim\/workout-guide)/.test(req.url)){
     e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(res => {
       if(res && res.ok){ const clone = res.clone(); caches.open(CACHE).then(c => c.put(req, clone)); }
       return res;

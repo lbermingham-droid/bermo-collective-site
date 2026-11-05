@@ -4994,3 +4994,8 @@ body.on-home .main{ padding-top:8px !important; }
 /* square 512px illustrations in a wide hero: keep the head in frame */
 .hv-hero img{ object-position:center 28%; }
 .hv-hero{ height:180px; }
+/* v50: white line art sits on the dark tile; photos and flat art fill it */
+.mrow-thumb.art-line img, .hv-thumb.art-line img{ object-fit:contain; padding:5px; box-sizing:border-box; background:#1e1f26; }
+.hv-hero.art-line{ background:#141519; } .hv-hero.art-line img{ object-fit:contain; padding:10px; box-sizing:border-box; object-position:center; }
+.mrow-thumb.art-flat img, .hv-thumb.art-flat img{ object-fit:cover; }
+.mrow-thumb.art-line img, .hv-thumb.art-line img{ padding:2px; transform:scale(1.18); }

@@ -6959,7 +6959,7 @@ function _mgKey(name){
 }
 function mrowThumb(name){
   const src = exPhoto(name);
-  if(src) return `<div class="mrow-thumb"><img src="${src}" alt="" loading="lazy"></div>`;
+  if(src) return `<div class="mrow-thumb art-${exPhotoKind(name)}"><img src="${src}" alt="" loading="lazy"></div>`;
   const g = _MG_ICON[_mgKey(name)];
   return `<div class="mrow-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
     stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${g}</svg></div>`;
@@ -7040,7 +7040,13 @@ function exPhotoLoadAll(){
     cur.onerror = () => res({});
   })).catch(() => ({}));
 }
-function exPhoto(name){ return _exPhotoCache[name] || (state.exPhotos || {})[name] || repdbArt(name) || exdbPhoto(name) || null; }
+// ONE style per surface. Lists show her own photo, else line art, else the
+// placeholder tile — never a mix of photos, flat drawings and line art in one
+// list. The big hero may fall back to a flat drawing or a photo.
+function exPhoto(name){ return _exPhotoCache[name] || (state.exPhotos || {})[name] || brylArt(name) || null; }
+function exHero(name){ return _exPhotoCache[name] || (state.exPhotos || {})[name] || brylArt(name) || repdbArt(name) || exdbPhoto(name) || null; }
+// line art is white-on-transparent and needs the dark tile; the others fill it
+function exPhotoKind(name){ if(_exPhotoCache[name] || (state.exPhotos || {})[name]) return "photo"; if(brylArt(name)) return "line"; if(repdbArt(name)) return "flat"; if(exdbPhoto(name)) return "photo"; return null; }
 
 // Downscale before storing so a 4MB phone photo becomes ~30KB.
 function _downscale(file, max){
@@ -7136,7 +7142,7 @@ function _bwMatches(name){
 
 function _bwThumb(name){
   const src = exPhoto(name);   // her photo, else the library's
-  if(src) return `<div class="mrow-thumb"><img src="${src}" alt=""></div>`;
+  if(src) return `<div class="mrow-thumb art-${exPhotoKind(name)}"><img src="${src}" alt=""></div>`;
   return mrowThumb(name);
 }
 
@@ -8193,7 +8199,7 @@ function _wkStats(dateKey){
 }
 function _wkThumb(name){
   const src = exPhoto(name);
-  return src ? `<div class="hv-thumb"><img src="${src}" alt=""></div>` : mrowThumb(name).replace("mrow-thumb", "mrow-thumb hv-thumb");
+  return src ? `<div class="hv-thumb art-${exPhotoKind(name)}"><img src="${src}" alt=""></div>` : mrowThumb(name).replace("mrow-thumb", "mrow-thumb hv-thumb");
 }
 function _wkScheme(e){
   const n = e.sets.length;
@@ -8402,7 +8408,7 @@ HV_SCREENS.sets = (dateKey, params) => {
   const cardio = isCardioName(e.name);
   const warm = e.sets.filter(s => s.warmup).length;
   const active = e.sets.find(s => !s.done) || e.sets[e.sets.length - 1] || { reps: 10, weight: 0 };
-  const img = exPhoto(e.name);
+  const img = exHero(e.name);
   const rows = e.sets.map((s, i) => cardio ? `
     <div class="hv-set ${s.done ? "done" : ""} ${s.warmup ? "warm" : ""}" data-si="${i}">
       <span class="hv-set-n">${s.warmup ? "W" : e.sets.slice(0, i).filter(x => !x.warmup).length + 1}</span>
@@ -8420,7 +8426,7 @@ HV_SCREENS.sets = (dateKey, params) => {
   let body = "";
   if(tab === "log"){
     body = `
-      <div class="hv-hero">${img ? `<img src="${img}" alt="">` : _wkThumb(e.name)}</div>
+      <div class="hv-hero art-${exPhotoKind(e.name) || "none"}">${img ? `<img src="${img}" alt="">` : _wkThumb(e.name)}</div>
       <label class="hv-row-toggle"><i>${HV_I.star}</i><div><b>Warm up</b><span>${warm ? warm + " sets" : "off"}</span></div>
         <span class="hv-switch ${warm ? "on" : ""}" id="hvWarm"></span></label>
       <div class="hv-table">
@@ -8858,44 +8864,65 @@ HV_BIND.more = (o, dateKey) => {
 // fills everything else. Lookup is by lowercase name.
 // =================================================================
 const _LIB_STOP = new Set(["the","a","of","with","and","on","in","to","machine","exercise"]);
-const _LIB_SYN = { "back squat":"barbell squat", "barbell squat":"back squat", "squat":"barbell squat", "bench press":"barbell bench press - medium grip",
-  "deadlift":"barbell deadlift", "rdl":"romanian deadlift", "hip thrust":"barbell hip thrust",
-  "lat pulldown":"wide-grip lat pulldown", "shoulder press":"dumbbell shoulder press", "overhead press":"standing military press",
-  "leg curl":"lying leg curls", "leg extension":"leg extensions", "cable tricep pushdown":"triceps pushdown", "tricep pushdown":"triceps pushdown",
-  "seated cable row":"seated cable rows", "pec deck":"butterfly", "cable fly":"cable crossover", "hip abductor":"thigh abductor",
-  "hip adductor":"thigh adductor", "calf raise":"standing calf raises", "dips":"dips - triceps version", "pull-up":"pullups", "pull up":"pullups",
-  "push-up":"pushups", "push up":"pushups" };
-const _LIB_VARIANT = /\b(pause|paused|tempo|box|high bar|low bar|deficit|pin|safety bar|ssb|zercher|close.?grip|wide.?grip|single.?leg|single.?arm|one.?arm|alternating|seated|standing|incline|decline)\b/g;
+const _LIB_SYN = {
+  "back squat":["squat","barbell squat","barbell back squat"], "barbell squat":["squat","back squat","barbell back squat"], "squat":["squat","barbell squat"],
+  "bench press":["bench press","barbell bench press","barbell bench press - medium grip"], "barbell bench press":["bench press","barbell bench press - medium grip"],
+  "deadlift":["deadlift","barbell deadlift"], "rdl":["romanian deadlift"], "hip thrust":["hip thrust","barbell hip thrust"],
+  "lat pulldown":["lat pulldown","wide-grip lat pulldown"], "shoulder press":["overhead press","dumbbell shoulder press"], "overhead press":["overhead press","standing military press"],
+  "leg curl":["lying leg curl","lying leg curls","seated leg curl"], "leg extension":["leg extension","leg extensions"], "cable tricep pushdown":["tricep pushdown","triceps pushdown"], "tricep pushdown":["tricep pushdown","triceps pushdown"],
+  "seated cable row":["seated cable row","seated cable rows"], "pec deck":["pec deck","butterfly"], "cable fly":["cable fly","cable crossover"], "hip abductor":["hip abduction","thigh abductor"],
+  "hip adductor":["hip adduction","thigh adductor"], "calf raise":["standing calf raise","standing calf raises"], "dips":["dip","dips","dips - triceps version"], "pull-up":["pull-up","pullups"], "pull up":["pull-up","pullups"],
+  "push-up":["push-up","pushups"], "push up":["push-up","pushups"], "chin-up":["chin-up","chin up"], "face pull":["face pull","face pulls"] };
+// Words that CHANGE the movement. A library name may not carry one of these
+// unless ours does too — her rule: never substitute a visually similar
+// exercise for a different one. Show the placeholder instead.
+const _LIB_HARD = new Set(["barbell","dumbbell","kettlebell","cable","machine","smith","ez","trx","band","bands","ring","rings","medicine","ball",
+  "incline","decline","seated","standing","lying","single","one","alternating","reverse","front","back","sumo","bulgarian","split","box","jump",
+  "assisted","weighted","wide","close","neutral","overhead","behind","pause","paused","tempo","deficit","pin"]);
+// Words that do NOT change the movement — safe to drop and retry.
+const _LIB_SOFT = /\b(pause|paused|tempo|deficit|pin|regular|basic|classic|standard)\b/g;
 function _libToks(n){ return n.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").split(/\s+/).filter(t => t && !_LIB_STOP.has(t)); }
-// One matcher for every exercise library: exact -> synonym -> equipment
-// prefix -> all our tokens inside a library name (shortest wins) -> drop
-// variant words and retry. Results are cached per library.
 function _libMatch(idx, key){
   if(idx.by[key]) return idx.by[key];
   if(key in idx.fuzz) return idx.fuzz[key];
-  let hit = _LIB_SYN[key] ? idx.by[_LIB_SYN[key]] : null;
-  if(!hit) for(const pre of ["barbell ", "dumbbell ", "cable ", "machine ", "smith machine ", "kettlebell "]){ if(idx.by[pre + key]){ hit = idx.by[pre + key]; break; } }
+  let hit = null;
+  if(_LIB_SYN[key]) for(const cand of _LIB_SYN[key]){ if(idx.by[cand]){ hit = idx.by[cand]; break; } }
   if(!hit){
-    const mine = _libToks(key);
+    const mine = _libToks(key), mineSet = new Set(mine);
     if(mine.length){
       let best = null;
       idx.tok.forEach(([x, set]) => {
-        if(x.c === "stretching") return;
-        if(mine.every(t => set.has(t) || [...set].some(w => w.startsWith(t) && t.length >= 4))){
-          // the same words in a different order beats a name with extra words
-          const exact = set.size === mine.length;
-          if(!best || (exact && !best[2]) || (exact === !!best[2] && set.size < best[1].size)) best = [x, set, exact];
-        }
+        if(x.c === "stretching" || x.st) return;
+        const covered = mine.every(t => set.has(t) || [...set].some(w => w.startsWith(t) && t.length >= 4));
+        if(!covered) return;
+        // extra words in the library name must not change the movement
+        const extra = [...set].filter(w => !mineSet.has(w) && !mine.some(t => w.startsWith(t) && t.length >= 4));
+        if(extra.some(w => _LIB_HARD.has(w))) return;
+        const exact = extra.length === 0;
+        if(!best || (exact && !best[2]) || (exact === !!best[2] && set.size < best[1].size)) best = [x, set, exact];
       });
       hit = best ? best[0] : null;
     }
   }
-  if(!hit){ const base = key.replace(_LIB_VARIANT, " ").replace(/\s+/g, " ").trim(); if(base && base !== key) hit = _libMatch(idx, base); }
+  if(!hit){ const base = key.replace(_LIB_SOFT, " ").replace(/\s+/g, " ").trim(); if(base && base !== key) hit = _libMatch(idx, base); }
   idx.fuzz[key] = hit || null;
   return hit;
 }
 function _libIndex(list){ const idx = { by:{}, tok:[], fuzz:{} }; list.forEach(x => { idx.by[x.n.toLowerCase()] = x; idx.tok.push([x, new Set(_libToks(x.n))]); }); return idx; }
-let _EXDB_IDX = null, _REPDB_IDX = null;
+let _EXDB_IDX = null, _REPDB_IDX = null, _BRYL_IDX = null;
+function brylGet(name){
+  if(!window.BRYL) return null;
+  if(!_BRYL_IDX) _BRYL_IDX = _libIndex(window.BRYL);
+  const key = (name || "").toLowerCase().trim(); return key ? _libMatch(_BRYL_IDX, key) : null;
+}
+function brylArt(name){ const x = brylGet(name); return x && x.f ? window.BRYL_IMG(x.f) : null; }
+const _BRYL_PART = { chest:"chest", back:"back", lats:"back", traps:"back", "lower back":"back", shoulders:"shoulders", biceps:"arms", triceps:"arms", forearms:"arms",
+  quadriceps:"legs", quads:"legs", hamstrings:"legs", calves:"legs", glutes:"glutes", abs:"core", core:"core", obliques:"core", "hip flexors":"legs", adductors:"legs", abductors:"legs" };
+function brylParts(name){
+  const x = brylGet(name); if(!x) return null;
+  const out = []; [x.p].concat(x.s || []).forEach(m => { const pt = _BRYL_PART[(m || "").toLowerCase()]; if(pt && !out.includes(pt)) out.push(pt); });
+  return out.length ? out : null;
+}
 function exdbGet(name){
   if(!window.EXDB) return null;
   if(!_EXDB_IDX) _EXDB_IDX = _libIndex(window.EXDB);
@@ -13186,6 +13213,7 @@ function allLibraryExercises(){
   (state.customExercises || []).forEach(m => set.add(m));
   const seen = new Set(Array.from(set, n => n.toLowerCase()));
   const addU = (n) => { const k = n.toLowerCase(); if(!seen.has(k)){ seen.add(k); set.add(n); } };
+  if(window.BRYL)  window.BRYL.forEach(x => { if(!x.st) addU(x.n); });
   if(window.REPDB) window.REPDB.forEach(x => { if(x.c !== "stretching") addU(x.n); });
   if(window.EXDB)  window.EXDB.forEach(x => { if(x.c !== "stretching") addU(x.n); });
   return Array.from(set);

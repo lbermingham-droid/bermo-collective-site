@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v49**.
+- Current build: **v50**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -144,6 +144,7 @@ in chunks. Always `node --check tracker/app.js` before committing.
 | `tracker/app.js` (~12.6k) | Everything. Has a CODE MAP comment at the top. |
 | `tracker/styles.css` (~4.1k) | **Layered — bottom wins.** Has a LAYER MAP header. Because legacy layers use `!important`, hide things with a **class**, never inline `style.display`. |
 | `tracker/data.js` (~520) | Food DB (~355 items), WOD library, movements, programs, activity levels. |
+| `tracker/bryl.js` (43KB) | **Workout Guide by Bryl Lim**: 302 exercises, white-on-transparent line art (3 frames; we use frame 1), equipment, primary/secondary muscle. Assets **CC BY-SA 4.0** (76 first poses adapted from Everkinetic). Used unmodified from the npm CDN (`BRYL_IMG(path)`), credited on More. The style that actually matches the dark UI. |
 | `tracker/repdb.js` (125KB) | **RepDB free tier** (repdb.co): 701 exercises — name, category, body part, primary/secondary muscles (fine anatomy: gluteus_medius, posterior_deltoid, rhomboids…), bodyweight flag, MET, image kind. Illustrations from jsDelivr via `REPDB_IMG(id, kind)`, cache-first. **Licence requires the visible credit** on the More screen (`.credits`) — never remove it. In-app use only; never republish as a dataset. |
 | `tracker/exdb.js` (150KB) | **free-exercise-db**, public domain (The Unlicense): 873 exercises — name, primary/secondary muscles, equipment, category, level. Photos come from jsDelivr (`EXDB_IMG(id, 0|1)`), cache-first in the SW. Regenerate from the upstream `dist/exercises.json` by dropping `instructions` and keeping `{i,n,p,s,e,c,l,m,f}`. |
 | `tracker/sw.js` + `manifest.json` | PWA. SW is **network-first for HTML/CSS/JS** so deploys land without a hard refresh; cache-first for images. |
@@ -263,6 +264,45 @@ second water button on the low-water banner.
 `renderWodCard()` writing into four elements that no longer existed, so it
 threw on EVERY dashboard render and killed the render chain behind it. That
 is the orphan-sweep rule in §7, ignored in a hurry. It is now guarded.
+
+**THREE LIBRARIES, ONE LOOK (v50).** She looked at RepDB and said *"those
+are kinda bad… these don't match my app"*, and she was right: light-blue
+cards on a black UI. ChatGPT's list named Bryl Lim's Workout Guide — 302
+exercises as **white line art on transparent**, which is the one style that
+sits on our background. Licences, checked: Bryl Lim assets CC BY-SA 4.0
+(used unmodified → no share-alike obligation; credit shown), RepDB free tier
+(credit shown), free-exercise-db public domain.
+
+Rules now encoded, in order of importance:
+1. **One style per surface.** `exPhoto()` (lists, thumbs) returns her own
+   photo → Bryl Lim line art → **null** (placeholder glyph). It never returns
+   a flat drawing or a photo, because a list mixing three styles is exactly
+   "different on every screen". `exHero()` (the sets-screen hero only) may
+   fall back to RepDB flat → free-exercise-db photo. `exPhotoKind()` tags the
+   tile (`art-line` / `art-flat` / `art-photo`) so CSS can fit line art
+   (contain + dark tile) vs photos (cover).
+2. **Never substitute a look-alike for a different movement** (her rule,
+   via ChatGPT). `_libMatch()` now refuses any library name whose *extra*
+   words are in `_LIB_HARD` — equipment or variant words (barbell, dumbbell,
+   cable, smith, trx, ez, incline, seated, sumo, bulgarian, box…). Only
+   `_LIB_SOFT` words (pause, tempo, deficit, pin) are stripped for a retry.
+   So "Front Box Squat" shows the placeholder rather than a back squat, and
+   RepDB's "EZ-Bar Bench Press" is **not** used for "Bench Press". The
+   comparison sheet caught that one: RepDB has no plain bench press or face
+   pull at all.
+3. `_LIB_SYN` values are now **ordered candidate lists**, tried against
+   whichever library is being searched ("back squat" → "squat" in Bryl Lim,
+   "barbell squat" in free-exercise-db).
+
+Coverage of ChatGPT's 154-name wish list (rough, python matcher): RepDB
+103, Bryl Lim 80, free-exercise-db 78; 31 in none of the three, mostly
+boxing (jab/cross/hook), Seacoast Kettlebell's own names (crush curl,
+pullover sit-up, plank drag) and a few naming mismatches. Those get the
+placeholder until she adds a photo — never a wrong image.
+
+Paid option if she wants transparent *colour* art: RepDB Stills $299 one-time
+(classic style, transparent backgrounds, muscle highlights; female character
++$59). Not bought; her call.
 
 **REPDB ILLUSTRATIONS (v49).** She sent ChatGPT's list; RepDB was on it and
 it is the better visual fit: 701 exercises drawn in **one flat style with one
@@ -985,4 +1025,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v46` anatomical body figure, muscle glyphs that read as muscles, AI sparkle removed ·
 `v47` ring-centre runner and fork glyphs and the nav dumbbell/fork replaced with clean filled icons ·
 `v48` free-exercise-db: 873 public-domain exercises with photos, muscles and equipment ·
-`v49` RepDB: 701 flat illustrations in one style + finer anatomy; one fuzzy matcher for both libraries; credit line on More.
+`v49` RepDB: 701 flat illustrations in one style + finer anatomy; one fuzzy matcher for both libraries; credit line on More ·
+`v50` Bryl Lim line art first (matches the dark UI); one style per surface; strict no-look-alike matching; three credits.

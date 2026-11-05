@@ -4985,3 +4985,6 @@ body.on-home .main{ padding-top:8px !important; }
 .hv-chips button{ border:1px solid rgba(255,255,255,.12); background:#141519; color:#c9d1dc; border-radius:100px; padding:7px 14px; font-size:13px; font-weight:600; cursor:pointer; }
 .hv-chips button.on{ background:#2a2b33; color:#fff; border-color:transparent; }
 #hvResults{ display:flex; flex-direction:column; gap:8px; }
+/* v47: filled glyphs in the ring centres and nav */
+.hm-ringmid i svg{ width:36px; height:36px; }
+.mobnav .mtab svg{ width:26px; height:26px; }

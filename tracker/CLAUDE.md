@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v46**.
+- Current build: **v47**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -936,4 +936,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v43` HOME rebuilt to her mockup: five-tab nav, brain dump bar, gradient rings, This Week rows, vs Last Week ·
 `v44` everything on Home routes into its category; the rings strip scrolls by week; month calendar with rings ·
 `v45` THE WORKOUT FLOW — ten Hevy-style screens behind ▷ (step 2 of the rebuild) ·
-`v46` anatomical body figure, muscle glyphs that read as muscles, AI sparkle removed.
+`v46` anatomical body figure, muscle glyphs that read as muscles, AI sparkle removed ·
+`v47` ring-centre runner and fork glyphs and the nav dumbbell/fork replaced with clean filled icons.

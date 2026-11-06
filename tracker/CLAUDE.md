@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v51**.
+- Current build: **v52**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -264,6 +264,28 @@ second water button on the low-water banner.
 `renderWodCard()` writing into four elements that no longer existed, so it
 threw on EVERY dashboard render and killed the render chain behind it. That
 is the orphan-sweep rule in §7, ignored in a hurry. It is now guarded.
+
+**LAST TIME + LIFTS UP/DOWN (v52).** She asked whether the app notices PRs
+and a week doing less — overall load, gym time, effort, or one lift. Honest
+audit: PRs yes (Epley 1RM PR + rep PRs + per-set `pr` flag); load, time and
+lift days yes (vs Last Week); **effort no** — she said *"leave out effort"*,
+so no RPE field, ever; a single lift going backwards was only visible by
+opening that lift. Two additions:
+- `_lastTimeSets(dateKey, name)` — the most recent EARLIER day's logged
+  sets for the lift, in logged order. The sets screen shows a "Last time ·
+  date · 115×8, 115×8" line above the table and the matching set under each
+  set number (`.hv-set-n small`). Hevy's best feature; the data was already
+  there.
+- `_liftBests()` / `_liftDeltas(cur, prev)` — best Epley estimate per lift
+  in each period, compared for lifts logged in BOTH. One line under the vs
+  Last Week deltas (`.hm-lifts`): "1 down Bench Press −10 lb · 1 up Back
+  Squat +10 lb · 1 same" — top-2 names each way, **weight delta** when the
+  weight changed, else the estimated-1RM delta. Numbers only, no grade, taps
+  through to Workouts. Follows the period selector (week/month/year).
+
+Seeding note for screenshots/tests: the app's plan keys come from
+`weekKey(weekStart(d))` — the SUNDAY — which lands in the previous ISO week
+for Sun..Wed. Seed with the Sunday, not today, or the plan is invisible.
 
 **OPTION D — HER PICK (v51).** Shown five tint options on her background
 (`scratchpad/tint.html`); she chose **D: teal→blue gradient**, "unless it
@@ -1060,4 +1082,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v48` free-exercise-db: 873 public-domain exercises with photos, muscles and equipment ·
 `v49` RepDB: 701 flat illustrations in one style + finer anatomy; one fuzzy matcher for both libraries; credit line on More ·
 `v50` Bryl Lim line art first (matches the dark UI); one style per surface; strict no-look-alike matching; three credits ·
-`v51` OPTION D — line art painted teal→blue via CSS mask; placeholders match; one tile builder; week.js hardened.
+`v51` OPTION D — line art painted teal→blue via CSS mask; placeholders match; one tile builder; week.js hardened ·
+`v52` "last time" under every set on the logger; lifts up/down line under vs Last Week. Effort/RPE deliberately left out.

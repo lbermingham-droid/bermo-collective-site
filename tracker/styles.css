@@ -5017,3 +5017,12 @@ body.on-home .main{ padding-top:8px !important; }
 /* placeholders wear the same teal->blue as the line art (CSS stroke beat the attribute) */
 .mrow-thumb.art-glyph svg, .hv-thumb.art-glyph svg, .hv-hero.art-glyph svg{ stroke:url(#artGrad) !important; }
 .hv-hero.art-line .art-mask{ transform:scale(1.2); }
+/* v52: last time on the sets screen; lifts up/down under vs Last Week */
+.hv-set-n{ display:flex; flex-direction:column; align-items:center; line-height:1.1; }
+.hv-set-n small{ font-size:10px; font-weight:600; color:#8b93a1; margin-top:2px; white-space:nowrap; }
+.hv-last{ padding:9px 12px 0; font-size:12px; color:#c9d1dc; }
+.hv-last::before{ content:""; }
+.hm-lifts{ display:block; width:100%; text-align:left; margin-top:10px; padding:10px 2px 2px; border:0; border-top:1px solid var(--line); background:none; color:#c9d1dc; font:inherit; font-size:12.5px; line-height:1.5; cursor:pointer; }
+.hm-lifts > span{ font-weight:700; color:#fff; margin-right:8px; }
+.hm-lifts i{ font-style:normal; font-weight:700; }
+.hm-lifts i.dn{ color:#ff4d9d; } .hm-lifts i.up{ color:#00f5d4; }

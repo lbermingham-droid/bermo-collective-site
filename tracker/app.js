@@ -7795,6 +7795,34 @@ function _periodStats(startKey, endKey){
   }
   return out;
 }
+
+// Per-lift change between two periods: best estimated 1RM this period vs
+// last, for every lift logged in BOTH. Numbers only — no grade.
+function _liftBests(startKey, endKey){
+  const out = {};
+  Object.keys(state.days).forEach(k => {
+    if(k < startKey || k > endKey) return;
+    ((state.days[k] || {}).sessions || []).forEach(x => {
+      if(x.type === "cardio" || !x.reps) return;
+      const est = _epley(x.weight, x.reps);
+      if(!out[x.name] || est > out[x.name].est) out[x.name] = { est, weight:x.weight || 0, reps:x.reps };
+    });
+  });
+  return out;
+}
+function _liftDeltas(cur, prev){
+  const a = _liftBests(cur[0], cur[1]), b = _liftBests(prev[0], prev[1]);
+  const up = [], down = [], same = [];
+  Object.keys(a).forEach(n => {
+    if(!b[n]) return;
+    const d = a[n].est - b[n].est;
+    const row = { name:n, dLb: Math.round(a[n].weight - b[n].weight), dEst: Math.round(d) };
+    if(d > 0.5) up.push(row); else if(d < -0.5) down.push(row); else same.push(row);
+  });
+  down.sort((x, y) => x.dEst - y.dEst); up.sort((x, y) => y.dEst - x.dEst);
+  return { up, down, same };
+}
+
 function _periodRanges(period, anchorKey){
   const a = new Date(anchorKey + "T12:00:00");
   if(period === "month"){
@@ -7992,6 +8020,17 @@ function renderHome(){
         <div class="hm-seg" id="hmPeriod">${["week","month","year"].map(p => `<button type="button" class="${p === period ? "on" : ""}" data-period="${p}">${p.charAt(0).toUpperCase() + p.slice(1)}</button>`).join("")}</div>
       </div>
       <div class="hm-deltas">${deltas.map(x => `<button type="button" data-go="${x.go}"><b>${x.v}</b><span>${x.l}</span></button>`).join("")}</div>
+      ${(() => {
+        const ld = _liftDeltas(pr.cur, pr.prev);
+        const n = ld.up.length + ld.down.length + ld.same.length;
+        if(!n) return "";
+        const name = (r) => `${escape(r.name)} ${r.dLb ? (r.dLb > 0 ? "+" : "−") + Math.abs(r.dLb) + " " + unit() : (r.dEst > 0 ? "+" : "−") + Math.abs(r.dEst) + " est"}`;
+        const bits = [];
+        if(ld.down.length) bits.push(`<i class="dn">${ld.down.length} down</i> ${ld.down.slice(0, 2).map(name).join(" · ")}`);
+        if(ld.up.length)   bits.push(`<i class="up">${ld.up.length} up</i> ${ld.up.slice(0, 2).map(name).join(" · ")}`);
+        if(ld.same.length) bits.push(`${ld.same.length} same`);
+        return `<button type="button" class="hm-lifts" data-go="fitness"><span>Lifts</span>${bits.join(" &nbsp;·&nbsp; ")}</button>`;
+      })()}
     </section>`;
 
   bindHome(root);
@@ -8401,6 +8440,20 @@ HV_BIND.logger = (o, dateKey, params) => {
 };
 
 // ---- 3. LOG SETS (+ 6. history / stats tabs) ----------------------
+
+// Last time she did this lift: the most recent EARLIER day with logged
+// sets, in the order they were logged. Shown under each set number so she
+// can see 25x9 while she's deciding on 25x10 — Hevy's best feature.
+function _lastTimeSets(dateKey, name){
+  const keys = Object.keys(state.days).filter(k => k < dateKey).sort().reverse();
+  for(const k of keys){
+    const rows = ((state.days[k] || {}).sessions || []).filter(x => x.name === name && x.type !== "cardio" && x.reps);
+    if(rows.length) return { date:k, sets: rows.map(x => ({ reps:x.reps, weight:x.weight || 0 })) };
+  }
+  return null;
+}
+function _epley(w, r){ return (w || 0) > 0 && r > 0 ? (w * (1 + r / 30)) : 0; }
+
 HV_SCREENS.sets = (dateKey, params) => {
   const p = _wkSeed(dateKey);
   const e = p.exercises[params.idx];
@@ -8410,6 +8463,8 @@ HV_SCREENS.sets = (dateKey, params) => {
   const warm = e.sets.filter(s => s.warmup).length;
   const active = e.sets.find(s => !s.done) || e.sets[e.sets.length - 1] || { reps: 10, weight: 0 };
   const img = null;   // the hero is exTile too — one look (Option D)
+  const last = cardio ? null : _lastTimeSets(dateKey, e.name);
+  const prevCell = (i) => last && last.sets[i] ? `<small>${last.sets[i].weight || "BW"}×${last.sets[i].reps}</small>` : "";
   const rows = e.sets.map((s, i) => cardio ? `
     <div class="hv-set ${s.done ? "done" : ""} ${s.warmup ? "warm" : ""}" data-si="${i}">
       <span class="hv-set-n">${s.warmup ? "W" : e.sets.slice(0, i).filter(x => !x.warmup).length + 1}</span>
@@ -8418,7 +8473,7 @@ HV_SCREENS.sets = (dateKey, params) => {
       <button type="button" class="hv-tick" data-tick aria-label="Log set">${s.done ? HV_I.check : ""}</button>
     </div>` : `
     <div class="hv-set ${s.done ? "done" : ""} ${s.warmup ? "warm" : ""}" data-si="${i}">
-      <span class="hv-set-n">${s.warmup ? "W" : e.sets.slice(0, i).filter(x => !x.warmup).length + 1}</span>
+      <span class="hv-set-n">${s.warmup ? "W" : e.sets.slice(0, i).filter(x => !x.warmup).length + 1}${s.warmup ? "" : prevCell(e.sets.slice(0, i).filter(x => !x.warmup).length)}</span>
       <input class="hv-in" data-f="weight" type="number" inputmode="decimal" step="any" min="0" value="${s.weight ?? ""}" placeholder="${unit()}">
       <input class="hv-in" data-f="reps" type="number" inputmode="numeric" step="1" min="0" value="${s.reps ?? ""}" placeholder="reps">
       <button type="button" class="hv-tick" data-tick aria-label="Log set">${s.done ? HV_I.check : ""}</button>
@@ -8431,6 +8486,7 @@ HV_SCREENS.sets = (dateKey, params) => {
       <label class="hv-row-toggle"><i>${HV_I.star}</i><div><b>Warm up</b><span>${warm ? warm + " sets" : "off"}</span></div>
         <span class="hv-switch ${warm ? "on" : ""}" id="hvWarm"></span></label>
       <div class="hv-table">
+        ${last ? `<div class="hv-last">Last time · ${fmtDate(last.date)} · ${last.sets.map(x => `${x.weight || "BW"}×${x.reps}`).join(", ")}</div>` : ""}
         <div class="hv-set head"><span>Set</span><span>${cardio ? "Min" : unit()}</span><span>${cardio ? "Grade" : "Reps"}</span><span></span></div>
         ${rows || `<div class="hv-empty small">No sets yet.</div>`}
       </div>

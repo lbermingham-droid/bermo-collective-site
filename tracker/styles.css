@@ -4999,3 +4999,21 @@ body.on-home .main{ padding-top:8px !important; }
 .hv-hero.art-line{ background:#141519; } .hv-hero.art-line img{ object-fit:contain; padding:10px; box-sizing:border-box; object-position:center; }
 .mrow-thumb.art-flat img, .hv-thumb.art-flat img{ object-fit:cover; }
 .mrow-thumb.art-line img, .hv-thumb.art-line img{ padding:2px; transform:scale(1.18); }
+
+/* ---- v51 Option D: line art painted teal->blue ---------------- */
+.art-mask{ display:block; width:100%; height:100%;
+  background:linear-gradient(135deg,#00f5d4,#4db8ff);
+  -webkit-mask-image:var(--m); mask-image:var(--m);
+  -webkit-mask-size:contain; mask-size:contain; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+  -webkit-mask-position:center; mask-position:center; }
+.mrow-thumb.art-line .art-mask, .hv-thumb.art-line .art-mask{ transform:scale(1.22); }
+.mrow-thumb.art-line, .hv-thumb.art-line, .mrow-thumb.art-glyph, .hv-thumb.art-glyph{ background:#1e1f26; overflow:hidden; }
+.mrow-thumb.art-glyph svg, .hv-thumb.art-glyph svg{ width:26px; height:26px; }
+.hv-hero.art-line{ background:#141519; padding:12px; box-sizing:border-box; }
+.hv-hero.art-line .art-mask{ filter:drop-shadow(0 0 8px rgba(0,245,212,.35)); }
+.hv-hero.art-glyph{ background:#141519; } .hv-hero.art-glyph svg{ width:72px; height:72px; }
+.hv-hero.art-photo img{ width:100%; height:100%; object-fit:cover; }
+.mrow-thumb::after{ content:none; }   /* the old volt stripe fights the gradient */
+/* placeholders wear the same teal->blue as the line art (CSS stroke beat the attribute) */
+.mrow-thumb.art-glyph svg, .hv-thumb.art-glyph svg, .hv-hero.art-glyph svg{ stroke:url(#artGrad) !important; }
+.hv-hero.art-line .art-mask{ transform:scale(1.2); }

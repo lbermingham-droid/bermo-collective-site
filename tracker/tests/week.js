@@ -19,18 +19,28 @@ const R=[]; const ok=(n,d)=>R.push(["PASS",n,d]); const bad=(n,d)=>R.push(["FAIL
   await p.click("#wizNext"); await p.waitForTimeout(400); await p.click("#wizApply"); await p.waitForTimeout(1000);
   const tabSel = (await p.isVisible('.mtab[data-tab="fitness"]')) ? ".mtab" : ".tab";
 
+  // Plan days are picked INSIDE the visible week (Sun..Sat of this week), so
+  // the test cannot fall off the end of the list on a Friday. And "opened"
+  // means the modal is open with that date's title — a stale sheet left in
+  // the DOM from the previous day used to fool a bare `#dsBuild` check and
+  // silently write one day's workout onto another.
+  const weekDay = (i) => { const d=new Date(); d.setDate(d.getDate()-d.getDay()+i); return d.toISOString().slice(0,10); };
   const openDay = async (offset) => {
-    await p.evaluate(o => {
-      const d=new Date(); d.setDate(d.getDate()+o);
-      const k=d.toISOString().slice(0,10);
-      const el=[...document.querySelectorAll("#fitWeekList .fw-row")].find(r=>r.dataset.date===k);
-      if(el) el.click(); 
-    }, offset);
+    const k = typeof offset === "string" ? offset : weekDay(offset);
+    await p.evaluate(key => {
+      const el=[...document.querySelectorAll("#fitWeekList .fw-row")].find(r=>r.dataset.date===key);
+      if(el) el.click();
+    }, k);
     await p.waitForTimeout(700);
-    return p.evaluate(()=> !!document.getElementById("dsBuild"));
+    return p.evaluate(key => {
+      const m=document.querySelector("#modal.open"); if(!m) return false;
+      const t=(document.getElementById("modalTitle")||{}).textContent||"";
+      const d=new Date(key+"T12:00:00"); const want=d.toLocaleDateString(undefined,{weekday:"short"});
+      return !!document.getElementById("dsBuild") && t.startsWith(want);
+    }, k);
   };
   const buildPick = async (names) => {
-    await p.click("#dsBuild"); await p.waitForTimeout(800);
+    await p.evaluate(()=> document.getElementById("dsBuild").click()); await p.waitForTimeout(800);
     for(const n of names){
       await p.fill("#bwSearch", n); await p.waitForTimeout(450);
       await p.evaluate(nm => {
@@ -57,11 +67,12 @@ const R=[]; const ok=(n,d)=>R.push(["PASS",n,d]); const bad=(n,d)=>R.push(["FAIL
   await p.click(`${tabSel}[data-tab="fitness"]`); await p.waitForTimeout(600);
 
   // ---- plan a real week: 3 lifting days + 1 cardio ----
+  const today = new Date().toISOString().slice(0,10);
   const plans = [
-    { off:0, act:"Legs",  ex:["Back Squat","Hip Thrust"] },
-    { off:1, act:"Chest", ex:["Bench Press"] },
-    { off:2, act:"Back",  ex:["Lat Pulldown"] },
-  ];
+    { off:today,       act:"Legs",  ex:["Back Squat","Hip Thrust"] },
+    { off:weekDay(1),  act:"Chest", ex:["Bench Press"] },
+    { off:weekDay(3),  act:"Back",  ex:["Lat Pulldown"] },
+  ].filter((x, i, a) => a.findIndex(y => y.off === x.off) === i);
   for(const pl of plans){
     const opened = await openDay(pl.off);
     if(!opened){ bad(`day +${pl.off} opens`, "no sheet"); continue; }
@@ -87,7 +98,7 @@ const R=[]; const ok=(n,d)=>R.push(["PASS",n,d]); const bad=(n,d)=>R.push(["FAIL
 
   // ---- log sets on today, reload, verify they're in the LOG ----
   await p.click(`${tabSel}[data-tab="fitness"]`); await p.waitForTimeout(600);
-  await openDay(0);
+  await openDay(today);
   await p.evaluate(()=>{ const r=document.querySelector("#dsList .ds-row"); if(r) r.click(); });
   await p.waitForTimeout(700);
   await p.fill(".lset .lset-reps","8"); await p.fill(".lset .lset-w","95");
@@ -117,7 +128,7 @@ const R=[]; const ok=(n,d)=>R.push(["PASS",n,d]); const bad=(n,d)=>R.push(["FAIL
 
   // ---- re-open and CANCEL: must not destroy anything ----
   await p.click(`${tabSel}[data-tab="fitness"]`); await p.waitForTimeout(600);
-  await openDay(0);
+  await openDay(today);
   await p.evaluate(()=>{ const b=[...document.querySelectorAll("#modal [data-close]")][0]; if(b) b.click(); });
   await p.waitForTimeout(600);
   const afterCancel = await p.evaluate(()=>{
@@ -132,7 +143,7 @@ const R=[]; const ok=(n,d)=>R.push(["PASS",n,d]); const bad=(n,d)=>R.push(["FAIL
     : bad("cancel preserves the day", JSON.stringify(afterCancel));
 
   // ---- re-open and SAVE with no changes: must not wipe fields ----
-  await openDay(0);
+  await openDay(today);
   await saveDay();
   const afterResave = await p.evaluate(()=>{
     const st=JSON.parse(localStorage.getItem("bermo.tracker.v1"));
@@ -165,7 +176,7 @@ const R=[]; const ok=(n,d)=>R.push(["PASS",n,d]); const bad=(n,d)=>R.push(["FAIL
   });
   await p.reload({waitUntil:"domcontentloaded",timeout:20000}); await p.waitForTimeout(1400);
   await p.click(`${tabSel}[data-tab="fitness"]`); await p.waitForTimeout(600);
-  await openDay(0);
+  await openDay(today);
   await p.evaluate(()=>{
     const r=[...document.querySelectorAll("#dsList .ds-row")]
       .find(x=>/hip thrust/i.test(x.querySelector(".mrow-title").textContent));

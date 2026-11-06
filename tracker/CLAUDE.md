@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v50**.
+- Current build: **v51**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -264,6 +264,39 @@ second water button on the low-water banner.
 `renderWodCard()` writing into four elements that no longer existed, so it
 threw on EVERY dashboard render and killed the render chain behind it. That
 is the orphan-sweep rule in §7, ignored in a hurry. It is now guarded.
+
+**OPTION D — HER PICK (v51).** Shown five tint options on her background
+(`scratchpad/tint.html`); she chose **D: teal→blue gradient**, "unless it
+looks bad on screen". It does not. Implementation:
+- `exTile(name, cls)` is now the ONE builder for every exercise image — list
+  thumbs (`mrow-thumb`), logger thumbs (`hv-thumb`) and the sets hero
+  (`hv-hero`). Her own photo → `art-photo` `<img>`; Bryl Lim line art →
+  `art-line` with `<i class="art-mask" style="--m:url(...)">`; otherwise
+  `art-glyph` with the muscle glyph stroked by the shared `#artGrad`
+  gradient (an `<svg><defs>` in `index.html` before `#app`).
+- `.art-mask` uses the PNG as a **CSS mask** over `linear-gradient(135deg,
+  #00f5d4, #4db8ff)`. The image file is untouched, so CC BY-SA share-alike
+  is never triggered and the credit line is the only obligation.
+- Placeholders are stroked with the same gradient (`stroke:url(#artGrad)
+  !important` — a plain CSS `stroke` colour was overriding the attribute).
+  Result: every list is one teal-blue style, whether the row has art or not.
+- The hero is `exTile` too — RepDB and the photos are no longer shown
+  anywhere; they remain in the app only as **data** (anatomy, equipment,
+  names). `exHero()` is dead and can go in the step 6 sweep.
+
+**week.js was lying (fixed in v51).** It failed reproducibly and the app
+was fine. Two separate test bugs:
+1. Playwright's `page.click` retries when the handler closes the sheet
+   under the pointer, then waits forever for the now-hidden button. The
+   Build click is dispatched in-page now. **Prefer in-page clicks for any
+   control whose handler replaces or closes its own container.**
+2. "day +2" on a Friday is next Sunday, which is not in the visible week
+   list. The row click hit nothing, the *previous* day's sheet was still in
+   the DOM (closeModal only removes `.open`), `#dsBuild` existed, so the
+   test believed the sheet had opened and wrote Sunday's workout onto
+   Saturday. `openDay()` now requires `#modal.open` with the right date in
+   the title, and plan days are chosen inside the current Sun–Sat week.
+   **A bare "element exists" check inside `#modalBody` proves nothing.**
 
 **THREE LIBRARIES, ONE LOOK (v50).** She looked at RepDB and said *"those
 are kinda bad… these don't match my app"*, and she was right: light-blue
@@ -1026,4 +1059,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v47` ring-centre runner and fork glyphs and the nav dumbbell/fork replaced with clean filled icons ·
 `v48` free-exercise-db: 873 public-domain exercises with photos, muscles and equipment ·
 `v49` RepDB: 701 flat illustrations in one style + finer anatomy; one fuzzy matcher for both libraries; credit line on More ·
-`v50` Bryl Lim line art first (matches the dark UI); one style per surface; strict no-look-alike matching; three credits.
+`v50` Bryl Lim line art first (matches the dark UI); one style per surface; strict no-look-alike matching; three credits ·
+`v51` OPTION D — line art painted teal→blue via CSS mask; placeholders match; one tile builder; week.js hardened.

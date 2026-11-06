@@ -6957,13 +6957,21 @@ function _mgKey(name){
   if(/run|walk|bike|row erg|cardio|treadmill/.test(hay)) return "cardio";
   return "core";
 }
-function mrowThumb(name){
-  const src = exPhoto(name);
-  if(src) return `<div class="mrow-thumb art-${exPhotoKind(name)}"><img src="${src}" alt="" loading="lazy"></div>`;
+
+// Option D (her pick): line art is painted teal->blue at render time via a
+// CSS mask. The image file is never modified, so CC BY-SA share-alike never
+// triggers. Photos she took stay photos. Anything else is the placeholder
+// glyph in the same colours, so a list reads as one style.
+function exTile(name, cls){
+  const own = _exPhotoCache[name] || (state.exPhotos || {})[name];
+  if(own) return `<div class="${cls} art-photo"><img src="${own}" alt=""></div>`;
+  const line = brylArt(name);
+  if(line) return `<div class="${cls} art-line"><i class="art-mask" style="--m:url('${line}')"></i></div>`;
   const g = _MG_ICON[_mgKey(name)];
-  return `<div class="mrow-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-    stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${g}</svg></div>`;
+  return `<div class="${cls} art-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="url(#artGrad)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${g}</svg></div>`;
 }
+
+function mrowThumb(name){ return exTile(name, "mrow-thumb"); }
 // eyebrow / title / meta / optional tag / chevron
 function mrowHtml(o){
   return `<li class="mrow" ${o.attr || ""}>
@@ -7140,11 +7148,7 @@ function _bwMatches(name){
   return true;
 }
 
-function _bwThumb(name){
-  const src = exPhoto(name);   // her photo, else the library's
-  if(src) return `<div class="mrow-thumb art-${exPhotoKind(name)}"><img src="${src}" alt=""></div>`;
-  return mrowThumb(name);
-}
+function _bwThumb(name){ return exTile(name, "mrow-thumb"); }
 
 function bwRender(overlay){
   const all = allLibraryExercises().filter(_bwMatches);
@@ -8197,10 +8201,7 @@ function _wkStats(dateKey){
   const mins = p.startedAt ? Math.max(0, Math.round((Date.now() - p.startedAt) / 60000)) : (p.durationMin || 0);
   return { sets, vol, prs, mins, secs: p.startedAt ? Math.floor((Date.now() - p.startedAt) / 1000) : (p.durationMin || 0) * 60 };
 }
-function _wkThumb(name){
-  const src = exPhoto(name);
-  return src ? `<div class="hv-thumb art-${exPhotoKind(name)}"><img src="${src}" alt=""></div>` : mrowThumb(name).replace("mrow-thumb", "mrow-thumb hv-thumb");
-}
+function _wkThumb(name){ return exTile(name, "hv-thumb"); }
 function _wkScheme(e){
   const n = e.sets.length;
   if(!n) return "Tap to add sets";
@@ -8408,7 +8409,7 @@ HV_SCREENS.sets = (dateKey, params) => {
   const cardio = isCardioName(e.name);
   const warm = e.sets.filter(s => s.warmup).length;
   const active = e.sets.find(s => !s.done) || e.sets[e.sets.length - 1] || { reps: 10, weight: 0 };
-  const img = exHero(e.name);
+  const img = null;   // the hero is exTile too — one look (Option D)
   const rows = e.sets.map((s, i) => cardio ? `
     <div class="hv-set ${s.done ? "done" : ""} ${s.warmup ? "warm" : ""}" data-si="${i}">
       <span class="hv-set-n">${s.warmup ? "W" : e.sets.slice(0, i).filter(x => !x.warmup).length + 1}</span>
@@ -8426,7 +8427,7 @@ HV_SCREENS.sets = (dateKey, params) => {
   let body = "";
   if(tab === "log"){
     body = `
-      <div class="hv-hero art-${exPhotoKind(e.name) || "none"}">${img ? `<img src="${img}" alt="">` : _wkThumb(e.name)}</div>
+      ${exTile(e.name, "hv-hero")}
       <label class="hv-row-toggle"><i>${HV_I.star}</i><div><b>Warm up</b><span>${warm ? warm + " sets" : "off"}</span></div>
         <span class="hv-switch ${warm ? "on" : ""}" id="hvWarm"></span></label>
       <div class="hv-table">

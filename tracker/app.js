@@ -904,6 +904,7 @@ function renderAll(){
   else if(currentTab === "settings") renderSettings();
   else if(currentTab === "goals") renderGoalsView();
   else if(currentTab === "library") renderLibrary();
+  else if(currentTab === "lifts") renderLifts();
 }
 
 // ---------- DASHBOARD ----------
@@ -9017,6 +9018,97 @@ const _EXDB_EQUIP = { barbell:"Barbell", dumbbell:"Dumbbell", cable:"Cable", mac
   kettlebells:"Kettlebell", bands:"Bands", "medicine ball":"Medicine ball", "exercise ball":"Exercise ball", "e-z curl bar":"EZ bar", "foam roll":"Foam roller" };
 function exdbEquip(name){ const x = exdbGet(name); return x && _EXDB_EQUIP[x.e] || null; }
 function exdbPhoto(name){ const x = exdbGet(name); return x ? window.EXDB_IMG(x.i, 0) : null; }
+
+
+// =================================================================
+// v53 LIFTS — a read-only page, by lift. "Show the PR, click it, see the
+// date, reps and volume by date." Reads day.sessions only; writes nothing.
+//   list:  every lift ever logged — best set · est 1RM · last done
+//   detail: PR tiles, then every session by date with sets, volume, best
+// =================================================================
+function _liftIndex(){
+  const by = {};
+  Object.keys(state.days).forEach(k => {
+    ((state.days[k] || {}).sessions || []).forEach(x => {
+      if(x.type === "cardio" || !x.name || !x.reps) return;
+      const L = by[x.name] = by[x.name] || { name:x.name, days:{}, sessions:0 };
+      const D = L.days[k] = L.days[k] || { date:k, sets:[] };
+      D.sets.push({ weight:x.weight || 0, reps:x.reps, est:_epley(x.weight, x.reps) });
+    });
+  });
+  Object.values(by).forEach(L => {
+    const days = Object.values(L.days).sort((a, b) => b.date.localeCompare(a.date));
+    days.forEach(D => {
+      D.volume = D.sets.reduce((n, s) => n + s.weight * s.reps, 0);
+      D.top = D.sets.reduce((b, s) => s.weight > b.weight || (s.weight === b.weight && s.reps > b.reps) ? s : b, D.sets[0]);
+      D.est = Math.max(...D.sets.map(s => s.est));
+    });
+    L.list = days; L.sessions = days.length; L.last = days[0].date;
+    L.heaviest = days.reduce((b, D) => !b || D.top.weight > b.top.weight || (D.top.weight === b.top.weight && D.top.reps > b.top.reps) ? D : b, null);
+    L.bestEst = days.reduce((b, D) => !b || D.est > b.est ? D : b, null);
+    L.bestVol = days.reduce((b, D) => !b || D.volume > b.volume ? D : b, null);
+    L.mostReps = days.flatMap(D => D.sets.map(s => Object.assign({ date:D.date }, s))).reduce((b, s) => !b || s.reps > b.reps ? s : b, null);
+  });
+  return by;
+}
+function renderLifts(){
+  const root = document.getElementById("lifts");
+  if(!root) return;
+  const ui = state.ui = state.ui || {};
+  const idx = _liftIndex();
+  const sel = ui.liftsSel && idx[ui.liftsSel] ? idx[ui.liftsSel] : null;
+  const fmtK = (n) => n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, "") + "K" : String(Math.round(n));
+
+  if(sel){
+    const L = sel;
+    const rows = L.list.map(D => {
+      const isPR = D.date === L.heaviest.date, isEst = D.date === L.bestEst.date;
+      return `<button type="button" class="lf-day ${isPR ? "pr" : ""}" data-date="${D.date}">
+        <div class="lf-day-l"><b>${fmtDate(D.date)}</b><span>${D.sets.map(s => `${s.weight || "BW"}×${s.reps}`).join(", ")}</span></div>
+        <div class="lf-day-r"><b>${D.top.weight || "BW"}<small>${D.top.weight ? " " + unit() : ""} × ${D.top.reps}</small></b><span>${fmtK(D.volume)} ${unit()} vol${isPR ? " · PR" : isEst ? " · best est" : ""}</span></div>
+      </button>`;
+    }).join("");
+    root.innerHTML = `
+      <div class="view-head"><div><button type="button" class="lf-back" id="lfBack">${HV_I.back}</button><h1 class="view-h1">${escape(L.name)}</h1></div></div>
+      <div class="lf-hero">${exTile(L.name, "lf-tile")}<div><b>${L.sessions} session${L.sessions === 1 ? "" : "s"}</b><span>Last ${fmtDate(L.last)}</span></div></div>
+      <div class="lf-tiles">
+        <div><b>${L.heaviest.top.weight || "BW"}<small>${L.heaviest.top.weight ? " " + unit() : ""}</small></b><span>Heaviest · ×${L.heaviest.top.reps}</span><i>${fmtDate(L.heaviest.date)}</i></div>
+        <div><b>${Math.round(L.bestEst.est)}<small> ${unit()}</small></b><span>Est. 1RM</span><i>${fmtDate(L.bestEst.date)}</i></div>
+        <div><b>${fmtK(L.bestVol.volume)}<small> ${unit()}</small></b><span>Best session vol</span><i>${fmtDate(L.bestVol.date)}</i></div>
+        <div><b>${L.mostReps.reps}</b><span>Most reps · ${L.mostReps.weight || "BW"}${L.mostReps.weight ? " " + unit() : ""}</span><i>${fmtDate(L.mostReps.date)}</i></div>
+      </div>
+      <div class="lf-h">By date</div>
+      <div class="lf-days">${rows}</div>`;
+    root.querySelector("#lfBack").onclick = () => { delete ui.liftsSel; save(); renderLifts(); };
+    root.querySelectorAll("[data-date]").forEach(b => b.addEventListener("click", () => {
+      // READ-ONLY page: look the day up without creating a plan for it.
+      const k = b.getAttribute("data-date");
+      const pk = _dayPlan(k); const i = pk && pk.exercises ? pk.exercises.findIndex(e => e.name === L.name) : -1;
+      if(i >= 0) hvOpen(k, "sets", { idx:i, tab:"history" }); else { currentDate = k; openDaySheet(k); }
+    }));
+    return;
+  }
+
+  const sort = ui.liftsSort || "recent", q = (ui.liftsQ || "").toLowerCase();
+  let lifts = Object.values(idx).filter(L => !q || L.name.toLowerCase().includes(q));
+  if(sort === "heaviest") lifts.sort((a, b) => b.heaviest.top.weight - a.heaviest.top.weight);
+  else if(sort === "az")  lifts.sort((a, b) => a.name.localeCompare(b.name));
+  else lifts.sort((a, b) => b.last.localeCompare(a.last));
+  root.innerHTML = `
+    <div class="view-head"><div><h1 class="view-h1">Lifts</h1></div></div>
+    <label class="hv-search lf-search">${HV_I.search}<input type="search" id="lfQ" placeholder="Search lifts" value="${escape(ui.liftsQ || "")}" autocomplete="off"></label>
+    <div class="hm-seg lf-seg" id="lfSort">${[["recent","Recent"],["heaviest","Heaviest"],["az","A–Z"]].map(([id, l]) => `<button type="button" class="${id === sort ? "on" : ""}" data-sort="${id}">${l}</button>`).join("")}</div>
+    ${lifts.length ? `<ul class="lrows lf-list">${lifts.map(L => mrowHtml({
+        attr:`data-lift="${escape(L.name)}"`, thumb: exTile(L.name, "mrow-thumb"),
+        eyebrow:`${L.sessions} session${L.sessions === 1 ? "" : "s"} · last ${fmtDate(L.last)}`,
+        title:L.name,
+        meta:`Best ${L.heaviest.top.weight || "BW"}${L.heaviest.top.weight ? " " + unit() : ""} × ${L.heaviest.top.reps} · ${fmtDate(L.heaviest.date)}`,
+      })).join("")}</ul>`
+      : `<div class="hv-empty">${q ? "No lift called that." : "No lifts logged yet."}</div>`}`;
+  root.querySelector("#lfQ").addEventListener("input", (e) => { ui.liftsQ = e.target.value; const v = e.target.value; renderLifts(); const i2 = root.querySelector("#lfQ"); if(i2){ i2.focus(); i2.setSelectionRange(v.length, v.length); } });
+  root.querySelectorAll("[data-sort]").forEach(b => b.addEventListener("click", () => { ui.liftsSort = b.getAttribute("data-sort"); save(); renderLifts(); }));
+  root.querySelectorAll("[data-lift]").forEach(li => li.addEventListener("click", () => { ui.liftsSel = li.getAttribute("data-lift"); save(); renderLifts(); }));
+}
 
 // =================================================================
 // ONE ADD-WORKOUT SHELL

@@ -5026,3 +5026,28 @@ body.on-home .main{ padding-top:8px !important; }
 .hm-lifts > span{ font-weight:700; color:#fff; margin-right:8px; }
 .hm-lifts i{ font-style:normal; font-weight:700; }
 .hm-lifts i.dn{ color:#ff4d9d; } .hm-lifts i.up{ color:#00f5d4; }
+
+/* ============================================================
+   v53 — LIFTS page (read-only, by lift)
+   ============================================================ */
+.lf-search{ margin:4px 0 10px; }
+.lf-seg{ margin-bottom:12px; }
+.lf-list{ max-height:none !important; overflow:visible !important; }
+.lf-back{ width:36px; height:36px; border:0; background:none; color:#fff; padding:0; margin:-4px 2px 0 -6px; vertical-align:middle; cursor:pointer; }
+.lf-back svg{ width:22px; height:22px; }
+.lf-hero{ display:grid; grid-template-columns:88px 1fr; gap:14px; align-items:center; margin-bottom:12px; }
+.lf-tile{ width:88px; height:88px; border-radius:16px; background:#1e1f26; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.lf-tile .art-mask{ transform:scale(1.2); } .lf-tile svg{ width:36px; height:36px; } .lf-tile img{ width:100%; height:100%; object-fit:cover; }
+.lf-hero b{ display:block; font-size:16px; font-weight:700; } .lf-hero span{ display:block; font-size:13px; color:#8b93a1; }
+.lf-tiles{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-bottom:16px; }
+.lf-tiles > div{ background:#141519; border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:12px; }
+.lf-tiles b{ display:block; font-family:'Inter Tight',Inter,sans-serif; font-size:24px; font-weight:800; letter-spacing:-.02em; line-height:1; }
+.lf-tiles b small{ font-size:12px; font-weight:700; color:#8b93a1; }
+.lf-tiles span{ display:block; font-size:12px; color:#c9d1dc; margin-top:5px; } .lf-tiles i{ display:block; font-style:normal; font-size:11px; color:#8b93a1; margin-top:2px; }
+.lf-h{ font-size:10px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:#8b93a1; margin:0 2px 8px; }
+.lf-days{ display:flex; flex-direction:column; gap:8px; }
+.lf-day{ width:100%; display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; text-align:left; background:#141519; border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:11px 12px; color:#fff; cursor:pointer; }
+.lf-day.pr{ border-color:#ff4d9d; }
+.lf-day-l b{ display:block; font-size:14px; font-weight:700; } .lf-day-l span{ display:block; font-size:12px; color:#8b93a1; margin-top:2px; }
+.lf-day-r{ text-align:right; } .lf-day-r b{ display:block; font-size:16px; font-weight:800; letter-spacing:-.01em; } .lf-day-r b small{ font-size:11px; font-weight:600; color:#c9d1dc; }
+.lf-day-r span{ display:block; font-size:11px; color:#8b93a1; margin-top:2px; } .lf-day.pr .lf-day-r span{ color:#ff4d9d; }

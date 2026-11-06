@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v52**.
+- Current build: **v53**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -264,6 +264,28 @@ second water button on the low-water banner.
 `renderWodCard()` writing into four elements that no longer existed, so it
 threw on EVERY dashboard render and killed the render chain behind it. That
 is the orphan-sweep rule in §7, ignored in a hurry. It is now guarded.
+
+**THE LIFTS PAGE (v53).** *"A lift page that is just tracking lift weight
+by lift… shows the PR, click it and tracks the date and rep and volume by
+date. This should not impact any of the other pages, but it reads from
+them."* Built exactly that: `view-lifts` (Progress → Lifts & PRs),
+`renderLifts()`, `.lf-*`. **Read-only by contract** — it builds everything
+from `day.sessions` via `_liftIndex()` and writes nothing except its own UI
+state (`state.ui.liftsSel / liftsSort / liftsQ`).
+- List: every lift ever logged, search, Recent / Heaviest / A–Z. Row =
+  tile · "N sessions · last date" · name · "Best 175 lb × 3 · date".
+- Detail: four tiles — Heaviest (weight × reps, date), Est. 1RM (Epley,
+  date), Best session volume (date), Most reps (at weight, date) — then
+  **every session by date**: sets, top set, volume, PR day outlined pink.
+- Tapping a date: if that day's saved plan contains the lift → the sets
+  screen's History tab; otherwise → the day sheet for that date. The first
+  version called `_wkGet(k)`, which **creates** a plan for a day that has
+  none — a write from a page that promised none. It uses `_dayPlan(k)`
+  (read) now. **`_wkGet` is a writer; never call it from a read-only
+  surface.** Verified: plan count stays 0 after tapping a date.
+- The old PRs list on Workouts (`renderPrList`, opens an *edit* modal) and
+  the Library lift-detail (`openLiftDetail`, last 20 sets) are now
+  redundant with this page — fold them into the step 6 sweep.
 
 **LAST TIME + LIFTS UP/DOWN (v52).** She asked whether the app notices PRs
 and a week doing less — overall load, gym time, effort, or one lift. Honest
@@ -1083,4 +1105,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v49` RepDB: 701 flat illustrations in one style + finer anatomy; one fuzzy matcher for both libraries; credit line on More ·
 `v50` Bryl Lim line art first (matches the dark UI); one style per surface; strict no-look-alike matching; three credits ·
 `v51` OPTION D — line art painted teal→blue via CSS mask; placeholders match; one tile builder; week.js hardened ·
-`v52` "last time" under every set on the logger; lifts up/down line under vs Last Week. Effort/RPE deliberately left out.
+`v52` "last time" under every set on the logger; lifts up/down line under vs Last Week. Effort/RPE deliberately left out ·
+`v53` LIFTS page — read-only, by lift: PRs, then every session by date with sets, volume, best.

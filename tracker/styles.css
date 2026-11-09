@@ -1169,14 +1169,6 @@ a{color:inherit}
   background:var(--black);color:#fff;border-radius:18px;padding:18px 20px;
   margin-top:24px;border:1px solid var(--black);
 }
-.ws-eyebrow{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--lime);font-weight:700;margin-bottom:8px}
-.ws-row{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:flex-start}
-@media(max-width:600px){.ws-row{grid-template-columns:1fr}}
-.ws-info{min-width:0}
-.ws-name{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:18px;letter-spacing:-.01em;text-transform:uppercase;margin-bottom:6px}
-.ws-script{font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;color:rgba(255,255,255,.78);background:rgba(255,255,255,.04);border-left:2px solid var(--lime);padding:10px 12px;border-radius:6px;white-space:pre-wrap;margin:0;max-height:140px;overflow:auto}
-.ws-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
-@media(max-width:600px){.ws-actions{flex-direction:row}}
 
 /* ---------- BIGGER BACK ARROW ON DETAIL OVERLAY ---------- */
 .detail-back{
@@ -1512,61 +1504,8 @@ a{color:inherit}
 
 .workout-body{flex:1;overflow:auto;padding:18px 14px 100px;max-width:680px;margin:0 auto;width:100%}
 
-.ws-ex{
-  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
-  border-radius:14px;padding:14px;margin-bottom:14px;
-}
-.ws-ex-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
-.ws-ex-name{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:18px;letter-spacing:-.02em;line-height:1.1}
-.ws-ex-prev{font-size:11px;color:rgba(255,255,255,.5);font-family:'JetBrains Mono',monospace;margin-top:4px}
-.ws-ex-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0;align-items:flex-end}
-.ws-howto{
-  font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:700;
-  color:var(--lime);text-decoration:none;background:rgba(0,245,212,.12);
-  padding:5px 10px;border-radius:100px;
-}
-.ws-howto:hover{background:var(--lime);color:var(--black)}
-.ws-add-set{
-  font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:700;
-  background:rgba(255,255,255,.1);color:#fff;padding:5px 12px;border-radius:100px;
-  border:none;cursor:pointer;
-}
-.ws-add-set:hover{background:var(--cyan);color:var(--black)}
 
-.ws-set-head{
-  display:grid;grid-template-columns:42px 1fr 1fr 60px;gap:8px;
-  padding:0 4px 6px;font-size:9px;letter-spacing:1.5px;color:rgba(255,255,255,.4);font-weight:700;
-}
-.ws-set-head span{display:flex;align-items:center}
-.ws-set-head span:first-child{justify-content:center}
 
-.ws-sets{display:flex;flex-direction:column;gap:6px}
-.ws-set{
-  display:grid;grid-template-columns:42px 1fr 1fr 60px;gap:8px;
-  align-items:center;background:rgba(255,255,255,.03);
-  padding:6px 4px;border-radius:8px;transition:all .2s;
-}
-.ws-set.logged{background:rgba(0,245,212,.08);border-left:3px solid var(--cyan);padding-left:1px}
-.ws-num{
-  width:36px;height:36px;border-radius:50%;
-  font-family:'Inter Tight',sans-serif;font-weight:900;font-size:14px;
-  color:var(--black);display:flex;align-items:center;justify-content:center;
-  cursor:pointer;transition:all .15s;border:none;justify-self:center;
-}
-.ws-num:hover{transform:scale(1.05)}
-.ws-reps,.ws-weight{
-  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);
-  color:#fff;font-size:16px;font-weight:700;padding:8px 10px;
-  border-radius:8px;text-align:center;outline:none;
-  font-family:'Inter Tight',sans-serif;letter-spacing:-.01em;
-}
-.ws-reps:focus,.ws-weight:focus{border-color:var(--cyan);background:rgba(0,245,212,.08)}
-.ws-log{
-  background:var(--cyan);color:var(--black);font-size:11px;font-weight:800;
-  letter-spacing:1px;text-transform:uppercase;padding:9px;border-radius:8px;
-  cursor:pointer;border:none;
-}
-.ws-set.logged .ws-log{background:#00f5d4;color:#fff;font-size:16px}
 
 /* Start workout button on planner day cards */
 .pd-start{
@@ -2695,17 +2634,6 @@ input:focus, select:focus, textarea:focus{ border-color:var(--iron-volt) !import
 .pde-row-wrap{ margin-bottom:8px; padding-bottom:8px; border-bottom:1px dashed var(--iron-line); }
 .pde-row-wrap:last-child{ border-bottom:none; }
 
-.wo-clock{
-  background:var(--iron-panel-2); border:1px solid var(--iron-volt);
-  color:var(--iron-volt); font-family:'JetBrains Mono',monospace;
-  font-size:12px; font-weight:800; padding:7px 10px; border-radius:3px;
-  cursor:pointer; flex-shrink:0; margin-right:6px;
-}
-.ws-fav{
-  background:transparent; border:1px solid var(--iron-line); color:var(--iron-mute);
-  font-size:12px; padding:3px 7px; cursor:pointer; border-radius:3px;
-}
-.ws-fav.on{ color:var(--iron-red); border-color:var(--iron-red); }
 
 /* ============================================================
    BRAND LAYER (v13) — bermocollective.com look
@@ -2736,7 +2664,7 @@ input:focus, select:focus, textarea:focus{ border-color:var(--iron-volt) !import
 .dp-btn, .select, .wl-btn, .food-tab, .detail-log, .wod-picker,
 input, select, textarea, .search-input, .dmt, .ds-btn, .dn-w-add,
 .sub-chip, .fp-scale, .br-main, .br-side, .dy-add, .dy-macros,
-.pde-del, .wo-clock, .ws-fav, .fd-heart, .view-back, .date-picker{
+.pde-del, .fd-heart, .view-back, .date-picker{
   border-radius:10px !important;
 }
 .dy-item, .fw-row, .dw-row, .ql-row, .bd-item, .search-result,
@@ -2810,7 +2738,7 @@ input, select, textarea, .search-input, .dmt, .ds-btn, .dn-w-add,
 /* Kill EVERY left-edge accent rail — the whole border carries the color */
 .dy-item, .dw-row, .fw-row, .smart-banner, .smart-banner.sb-aggr,
 .restart-card, .bp-suggest, .ins-card, .hi-card, .adaptive-card,
-.ws-set.logged, .wiz-split-card, .wod-script, .ws-script{
+.wiz-split-card, .wod-script{
   border-left-width:1px !important;
 }
 
@@ -2870,7 +2798,6 @@ input, select, textarea, .search-input, .dmt, .ds-btn, .dn-w-add,
   color:var(--iron-red) !important;
 }
 .bp-suggest b, .bp-suggest i{ color:var(--iron-red) !important; }
-.ws-set.logged{ border:1px solid var(--iron-volt) !important; background:rgba(0,245,212,.06) !important; }
 
 /* Insight cards (Health page) — full border versions */
 .ins-card.ins-good, .hi-card.hi-good{ border:1px solid var(--iron-volt) !important; background:rgba(0,245,212,.05) !important; }
@@ -2930,9 +2857,6 @@ input, select, textarea, .search-input, .dmt, .ds-btn, .dn-w-add,
 .dw-row.missed,
 .dw-row.planned, .dw-row.today-up, .fw-row.sel,
 .dy-item.cheat, .dy-item.watch, .dy-item.clean,
-.ws-set.logged{
-  background:var(--iron-panel-2) !important;
-}
 .smart-banner, .smart-banner.sb-aggr, .restart-card,
 .mm-callout, .bp-suggest,
 .ins-card.ins-good, .ins-card.ins-watch, .ins-card.ins-info,
@@ -4307,14 +4231,6 @@ html, body, #app, .app{
 /* ============================================================
    v30 — build-as-you-go session
    ============================================================ */
-.ws-empty{ text-align:center; padding:44px 22px 30px; }
-.ws-empty-h{
-  font-family:'Inter Tight',sans-serif; font-weight:900; font-size:19px;
-  color:var(--iron-volt); margin-bottom:7px;
-}
-.ws-empty-b{ font-size:13px; color:var(--iron-mute); line-height:1.55; max-width:320px; margin:0 auto; }
-.ws-actions{ display:flex; flex-direction:column; gap:7px; padding:14px 0 0; }
-.ws-actions .btn{ width:100%; }
 
 /* ============================================================
    v31 — plan → log, duration, movements that need numbers
@@ -4351,7 +4267,6 @@ html, body, #app, .app{
    ============================================================ */
 .modal{ z-index:400 !important; }
 #modal{ z-index:400 !important; }
-.rest-timer-bar, #restTimerBar{ z-index:360; }
 .toast, #toast{ z-index:10000; }
 
 /* ============================================================
@@ -4428,7 +4343,7 @@ html, body, #app, .app{
 }
 /* Eyebrows stay small-caps — that IS the reference (grey "Strength"
    above a bold title). Everything else goes sentence case. */
-.lrow-title, .sr-name, .mi-name, .ws-ex-name, .hn-h{
+.lrow-title, .sr-name, .mi-name, .hn-h{
   text-transform:none !important; letter-spacing:0 !important;
 }
 
@@ -4538,12 +4453,6 @@ html, body, #app, .app{
 .wgrid-cell.today{ box-shadow:inset 0 0 0 2px #fff3; }
 
 /* --- 7. EMPTY STATES SHOW CONTENT, NOT INSTRUCTIONS -------- */
-.ws-empty{ text-align:left !important; padding:4px 0 !important; }
-.ws-empty-h{
-  font-size:19px !important; font-weight:700 !important; color:#fff !important;
-  text-transform:none !important; letter-spacing:-.01em !important; margin-bottom:3px;
-}
-.ws-empty-b{ font-size:14px !important; color:var(--iron-mute) !important; line-height:1.45 !important; }
 /* the paragraph at the bottom of the session explaining what "Log"
    does is exactly the tell she spotted. Gone. */
 .workout-foot{ display:none !important; }
@@ -4568,14 +4477,10 @@ html, body, #app, .app{
   text-transform:none !important; letter-spacing:0 !important;
   font-size:14px !important; font-weight:600 !important; padding:9px 16px !important;
 }
-.wo-clock{ font-size:13px !important; padding:8px 12px !important; }
 
 /* Actions are pills sized to their label, not stacked slabs. */
-.ws-actions{ flex-direction:row !important; flex-wrap:wrap; gap:8px !important; padding:16px 0 0 !important; }
-.ws-actions .btn{ width:auto !important; flex:0 0 auto !important; }
 
 /* Empty-state text aligns with the rows beneath it. */
-.ws-empty-h, .ws-empty-b{ padding-left:4px; }
 
 /* --- 9. SUB-NAV AS FILTER PILLS ----------------------------- */
 /* Her Flex screenshot: "Strength ∨  Workout Type ∨  Duration ∨" —
@@ -5051,3 +4956,13 @@ body.on-home .main{ padding-top:8px !important; }
 .lf-day-l b{ display:block; font-size:14px; font-weight:700; } .lf-day-l span{ display:block; font-size:12px; color:#8b93a1; margin-top:2px; }
 .lf-day-r{ text-align:right; } .lf-day-r b{ display:block; font-size:16px; font-weight:800; letter-spacing:-.01em; } .lf-day-r b small{ font-size:11px; font-weight:600; color:#c9d1dc; }
 .lf-day-r span{ display:block; font-size:11px; color:#8b93a1; margin-top:2px; } .lf-day.pr .lf-day-r span{ color:#ff4d9d; }
+
+/* ---- Diagnostics (Settings) ---- */
+.diag-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;margin:0 0 12px}
+.diag-row{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--muted,#8a8f98);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.diag-row b{color:var(--text,#f2f4f8);font-weight:600}
+.diag-errs{list-style:none;margin:0 0 12px;padding:0;font-size:12px}
+.diag-errs li{display:grid;grid-template-columns:72px 90px minmax(0,1fr);gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text,#f2f4f8)}
+.diag-errs li span{color:var(--muted,#8a8f98)}
+.diag-errs li em{font-style:normal;color:var(--pink,#ff4d9d)}
+@media (max-width:520px){.diag-grid{grid-template-columns:minmax(0,1fr)}.diag-errs li{grid-template-columns:72px minmax(0,1fr)}.diag-errs li em{display:none}}

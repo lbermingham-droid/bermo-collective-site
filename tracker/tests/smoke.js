@@ -20,7 +20,7 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
   const proxy = process.env.HTTPS_PROXY
     ? { server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" }
     : undefined;
-  const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium", proxy });
+  const browser = await chromium.launch({ executablePath: process.env.CI ? undefined : "/opt/pw-browsers/chromium", proxy });
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, ignoreHTTPSErrors: true });
   const page = await ctx.newPage();
   page.setDefaultTimeout(6000);

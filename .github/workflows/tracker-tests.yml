@@ -1,0 +1,27 @@
+# Browser tests for /tracker/. Runs the same two suites that gate every
+# local push: smoke.js (46 checks) and week.js (plan a week, log it,
+# reload, edit, reload — nothing lost).
+name: tracker tests
+on:
+  push:
+    paths: ["tracker/**", ".github/workflows/tracker-tests.yml"]
+  pull_request:
+    paths: ["tracker/**"]
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: Syntax check
+        run: node --check tracker/app.js && node --check tracker/sw.js && node --check netlify/functions/ai-parse.js
+      - name: Install Playwright
+        run: npm i --no-save playwright@1.49.1 && npx playwright install --with-deps chromium
+      - name: Serve site
+        run: (python3 -m http.server 8901 > /dev/null 2>&1 &) && sleep 1
+      - name: Smoke
+        run: node tracker/tests/smoke.js | tee smoke.txt && ! grep -q "^FAIL" smoke.txt
+      - name: Week durability
+        run: node tracker/tests/week.js | tee week.txt && ! grep -q "^FAIL" week.txt

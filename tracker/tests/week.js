@@ -9,7 +9,7 @@ const OUT="/tmp/claude-0/-home-user-bermo-collective-site/c7d32ac6-d4be-5d4f-864
 const R=[]; const ok=(n,d)=>R.push(["PASS",n,d]); const bad=(n,d)=>R.push(["FAIL",n,d]);
 (async () => {
   const proxy = process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY, bypass:"127.0.0.1,localhost" } : undefined;
-  const b = await chromium.launch({ executablePath:"/opt/pw-browsers/chromium", proxy });
+  const b = await chromium.launch({ executablePath: process.env.CI ? undefined : "/opt/pw-browsers/chromium", proxy });
   const ctx = await b.newContext({ viewport:{width:390,height:844} });
   const p = await ctx.newPage(); p.setDefaultTimeout(9000);
   const errs=[]; p.on("pageerror",e=>errs.push(String(e.message)));
@@ -24,7 +24,8 @@ const R=[]; const ok=(n,d)=>R.push(["PASS",n,d]); const bad=(n,d)=>R.push(["FAIL
   // means the modal is open with that date's title — a stale sheet left in
   // the DOM from the previous day used to fool a bare `#dsBuild` check and
   // silently write one day's workout onto another.
-  const weekDay = (i) => { const d=new Date(); d.setDate(d.getDate()-d.getDay()+i); return d.toISOString().slice(0,10); };
+  const lk = (d) => d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  const weekDay = (i) => { const d=new Date(); d.setDate(d.getDate()-d.getDay()+i); return lk(d); };
   const openDay = async (offset) => {
     const k = typeof offset === "string" ? offset : weekDay(offset);
     await p.evaluate(key => {
@@ -67,12 +68,14 @@ const R=[]; const ok=(n,d)=>R.push(["PASS",n,d]); const bad=(n,d)=>R.push(["FAIL
   await p.click(`${tabSel}[data-tab="fitness"]`); await p.waitForTimeout(600);
 
   // ---- plan a real week: 3 lifting days + 1 cardio ----
-  const today = new Date().toISOString().slice(0,10);
+  // today plus two OTHER days of this week — whichever weekday today is.
+  const today = lk(new Date());
+  const others = [1,3,5,2,4,6,0].map(weekDay).filter(k => k !== today).slice(0,2);
   const plans = [
-    { off:today,       act:"Legs",  ex:["Back Squat","Hip Thrust"] },
-    { off:weekDay(1),  act:"Chest", ex:["Bench Press"] },
-    { off:weekDay(3),  act:"Back",  ex:["Lat Pulldown"] },
-  ].filter((x, i, a) => a.findIndex(y => y.off === x.off) === i);
+    { off:today,      act:"Legs",  ex:["Back Squat","Hip Thrust"] },
+    { off:others[0],  act:"Chest", ex:["Bench Press"] },
+    { off:others[1],  act:"Back",  ex:["Lat Pulldown"] },
+  ];
   for(const pl of plans){
     const opened = await openDay(pl.off);
     if(!opened){ bad(`day +${pl.off} opens`, "no sheet"); continue; }
@@ -110,7 +113,7 @@ const R=[]; const ok=(n,d)=>R.push(["PASS",n,d]); const bad=(n,d)=>R.push(["FAIL
   await p.reload({waitUntil:"domcontentloaded",timeout:20000}); await p.waitForTimeout(1400);
   const logged = await p.evaluate(()=>{
     const st=JSON.parse(localStorage.getItem("bermo.tracker.v1"));
-    const k=new Date().toISOString().slice(0,10);
+    const k=(d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"))(new Date());
     const ss=(st.days[k]||{}).sessions||[];
     const dn=["sun","mon","tue","wed","thu","fri","sat"][new Date(k+"T12:00:00").getDay()];
     let planEx=[];
@@ -133,7 +136,7 @@ const R=[]; const ok=(n,d)=>R.push(["PASS",n,d]); const bad=(n,d)=>R.push(["FAIL
   await p.waitForTimeout(600);
   const afterCancel = await p.evaluate(()=>{
     const st=JSON.parse(localStorage.getItem("bermo.tracker.v1"));
-    const k=new Date().toISOString().slice(0,10);
+    const k=(d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"))(new Date());
     const dn=["sun","mon","tue","wed","thu","fri","sat"][new Date(k+"T12:00:00").getDay()];
     let ex=[]; Object.values(st.plan||{}).forEach(d=>{ if(d[dn]) ex=(d[dn].exercises||[]).map(e=>e.name); });
     return { ex, sessions:((st.days[k]||{}).sessions||[]).length };
@@ -147,7 +150,7 @@ const R=[]; const ok=(n,d)=>R.push(["PASS",n,d]); const bad=(n,d)=>R.push(["FAIL
   await saveDay();
   const afterResave = await p.evaluate(()=>{
     const st=JSON.parse(localStorage.getItem("bermo.tracker.v1"));
-    const k=new Date().toISOString().slice(0,10);
+    const k=(d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"))(new Date());
     const dn=["sun","mon","tue","wed","thu","fri","sat"][new Date(k+"T12:00:00").getDay()];
     let d={}; Object.values(st.plan||{}).forEach(x=>{ if(x[dn]) d=x[dn]; });
     return { type:d.type, ex:(d.exercises||[]).map(e=>({n:e.name,sets:(e.sets||[]).length})),
@@ -162,7 +165,7 @@ const R=[]; const ok=(n,d)=>R.push(["PASS",n,d]); const bad=(n,d)=>R.push(["FAIL
   // Five sets logged live. The plan carries no `sets`, so the editor used to
   // open blank and one save wiped all five.
   await p.evaluate(()=>{
-    const k=new Date().toISOString().slice(0,10);
+    const k=(d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"))(new Date());
     const st=JSON.parse(localStorage.getItem("bermo.tracker.v1"));
     st.days[k]=st.days[k]||{meals:{breakfast:[],lunch:[],dinner:[],snacks:[]},sessions:[]};
     st.days[k].sessions=[
@@ -191,7 +194,7 @@ const R=[]; const ok=(n,d)=>R.push(["PASS",n,d]); const bad=(n,d)=>R.push(["FAIL
   await p.click("#lsSave"); await p.waitForTimeout(900);
   const kept = await p.evaluate(()=>{
     const st=JSON.parse(localStorage.getItem("bermo.tracker.v1"));
-    const k=new Date().toISOString().slice(0,10);
+    const k=(d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"))(new Date());
     return ((st.days[k]||{}).sessions||[]).filter(x=>/hip thrust/i.test(x.name)).length;
   });
   kept===5 ? ok("saving the editor does NOT destroy the logged workout", kept+" sets")

@@ -53,48 +53,61 @@ const ANTHROPIC_VERSION = "2023-06-01";
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-sonnet-4-5";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+// Only the app's own origins may call this. A browser app cannot keep a
+// secret, so the origin check plus a daily cap is the honest guard; the
+// cap is per function instance (Netlify may run several), so it bounds
+// abuse rather than metering it. ALLOWED_ORIGINS in env adds more.
+const ALLOWED = new Set([
+  "https://bermocollective.com", "https://www.bermocollective.com",
+  ...String(process.env.ALLOWED_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean),
+]);
+const isAllowedOrigin = (o) => !!o && (ALLOWED.has(o) || /^https:\/\/deploy-preview-\d+--quiet-youtiao-0e2544\.netlify\.app$/.test(o) || /^https:\/\/[a-z0-9-]+\.netlify\.app$/.test(o) && o.includes("quiet-youtiao"));
+const corsFor = (origin) => ({
+  "Access-Control-Allow-Origin": isAllowedOrigin(origin) ? origin : "null",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
-};
+  "Vary": "Origin",
+});
+const DAILY_CAP = parseInt(process.env.AI_DAILY_CAP || "300", 10);
+let _dayKey = "", _count = 0;
+function overCap(){
+  const k = new Date().toISOString().slice(0, 10);
+  if(k !== _dayKey){ _dayKey = k; _count = 0; }
+  return ++_count > DAILY_CAP;
+}
 
 exports.handler = async function (event) {
+  const origin = (event.headers && (event.headers.origin || event.headers.Origin)) || "";
+  const corsHeaders = corsFor(origin);
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers: corsHeaders, body: "" };
   }
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, headers: corsHeaders, body: "Method not allowed" };
   }
+  if (!isAllowedOrigin(origin)) {
+    return { statusCode: 403, headers: corsHeaders, body: JSON.stringify({ error: "Origin not allowed." }) };
+  }
+  if (overCap()) {
+    return { statusCode: 429, headers: corsHeaders, body: JSON.stringify({ error: "Daily AI limit reached. Try again tomorrow." }) };
+  }
+  if ((event.body || "").length > 200000) {
+    return { statusCode: 413, headers: corsHeaders, body: JSON.stringify({ error: "Request too large." }) };
+  }
 
   // Accept the canonical name OR a couple of friendly aliases the site
   // owner may have used in Netlify env (some accounts reject certain names).
   // Use bracket access so names with dots/case work.
   const env = process.env;
-  const key =
-       env["ANTHROPIC_API_KEY"]
-    || env["BERMO.Fit"]
-    || env["BERMO.FIT"]
-    || env["bermo.fit"]
-    || env["BERMOFIT"]
-    || env["bermofit"]
-    || env["BERMO_FIT"]
-    || env["bermo_fit"]
-    || env["BERMO_AI_KEY"]
-    || env["CLAUDE_API_KEY"]
-    // Last-resort scan: any env var whose value looks like a Claude key
-    || (() => {
-         for(const k of Object.keys(env)){
-           const v = env[k];
-           if(typeof v === "string" && v.startsWith("sk-ant-")) return v;
-         }
-         return null;
-       })();
+  // One explicit key. The old "scan every env var for sk-ant-" fallback
+  // would happily pick up any key in the environment; that is not a
+  // configuration strategy.
+  const key = env["ANTHROPIC_API_KEY"] || env["BERMO_FIT_KEY"] || null;
   if (!key) {
     return {
       statusCode: 503,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "AI is not configured. Set BERMO.Fit (or ANTHROPIC_API_KEY) in Netlify env to a value starting with sk-ant-." }),
+      body: JSON.stringify({ error: "AI is not configured. Set ANTHROPIC_API_KEY in Netlify env." }),
     };
   }
 

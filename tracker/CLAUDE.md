@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v53**.
+- Current build: **v55**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -129,7 +129,7 @@ cause), then offers an export. Guarded by a smoke test that patches
 `Storage.prototype.setItem` to throw.
 
 ### Editing app.js
-It is **12.6k lines, 381 functions, one IIFE**. New code gets spliced inside
+It is **~15.5k lines, one IIFE** (v54 sweep took it from 16.3k). New code gets spliced inside
 the IIFE before the final `})();`. **A python3 heredoc splice is the working
 method** — giant single `Write` calls have caused API stream timeouts. Append
 in chunks. Always `node --check tracker/app.js` before committing.
@@ -148,8 +148,12 @@ in chunks. Always `node --check tracker/app.js` before committing.
 | `tracker/repdb.js` (125KB) | **RepDB free tier** (repdb.co): 701 exercises — name, category, body part, primary/secondary muscles (fine anatomy: gluteus_medius, posterior_deltoid, rhomboids…), bodyweight flag, MET, image kind. Illustrations from jsDelivr via `REPDB_IMG(id, kind)`, cache-first. **Licence requires the visible credit** on the More screen (`.credits`) — never remove it. In-app use only; never republish as a dataset. |
 | `tracker/exdb.js` (150KB) | **free-exercise-db**, public domain (The Unlicense): 873 exercises — name, primary/secondary muscles, equipment, category, level. Photos come from jsDelivr (`EXDB_IMG(id, 0|1)`), cache-first in the SW. Regenerate from the upstream `dist/exercises.json` by dropping `instructions` and keeping `{i,n,p,s,e,c,l,m,f}`. |
 | `tracker/sw.js` + `manifest.json` | PWA. SW is **network-first for HTML/CSS/JS** so deploys land without a hard refresh; cache-first for images. |
-| `tracker/tests/smoke.js` | 26 Playwright tests. See §6. |
-| `netlify/functions/ai-parse.js` | Hosted Claude proxy for Brain Dump. Key comes from Netlify env (accepts `ANTHROPIC_API_KEY` plus `BERMO.Fit`-style aliases, with a last-resort scan for anything starting `sk-ant-`). Users need no key. |
+| `tracker/tests/smoke.js` | 47 Playwright tests. See §6. |
+| `tracker/tests/week.js` | 10 week-durability tests (plan, log, reload, edit, reload). |
+| `tracker/tests/gpt-core.mjs` | 27 Node tests for the ChatGPT API core against a fake store. |
+| `.github/workflows/tracker-tests.yml` | CI: syntax, API core, smoke, week on every push touching `tracker/`. |
+| `netlify/gpt-core.mjs` + `netlify/edge-functions/gpt.js` | **The ChatGPT API** at `/api/gpt/*`. Pure core (routing, validation, summaries, OpenAPI) + a thin edge shell (Netlify Blobs store `bermo-tracker`, token from `GPT_API_TOKEN`). See `tracker/GPT-SETUP.md`. |
+| `netlify/functions/ai-parse.js` | Hosted Claude proxy for Brain Dump. Key is `ANTHROPIC_API_KEY` (or `BERMO_FIT_KEY`) from Netlify env — explicit names only since v54; origin allowlist, daily cap (`AI_DAILY_CAP`, default 300), 200KB body limit. |
 
 ### CSS design system (v23/v24) — use these, don't invent new ones
 - `.seg` / `.seg-btn` — **every** tab strip. `.food-tabs`, `.subnav`/`.sub-chip`,
@@ -961,7 +965,7 @@ Playwright is already installed in the scratchpad. Launch chromium with
 `{ server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" }`.
 **Do not run `npx playwright install`.**
 
-**Expected: 46/46 and zero page errors**, `node tracker/tests/week.js` **10/10**, and the scratchpad's `hvdrive.js` **13/13**. (Two console errors about
+**Expected: 47/47 and zero page errors**, `node tracker/tests/week.js` **10/10**, `node tracker/tests/gpt-core.mjs` **27/27**, and the scratchpad's `hvdrive.js` **13/13**. (Two console errors about
 `ERR_CONNECTION_RESET` are the sandbox blocking a CDN — pre-existing, ignore.)
 
 The suite covers: load, wizard, **sideways overflow on every page**, all tabs,
@@ -1005,14 +1009,83 @@ render of that page.
 
 ---
 
+**THE CHATGPT API (v55).** *"Are you also able to add an api so chat gpt
+can access and add to it and work in it."* Yes, with one honest constraint:
+the data lives in her phone's localStorage, so an API needs a copy on a
+server. Minimal backend chosen: **Netlify Blobs** (already on her plan, no
+new account) behind an **Edge Function** (`@netlify/blobs` is available
+there without a root `package.json`, which would otherwise have pulled
+`node_modules` into the `publish = "."` deploy).
+
+Model — **the phone stays the source of truth**:
+- `save()` schedules `gptPush()` (4s debounce) → `PUT /api/gpt/state`
+  with `{state minus exPhotos/gpt, today}`. ChatGPT reads from that.
+- ChatGPT writes with `POST /api/gpt/actions` (same JSON shape as the
+  brain dump: meals / sessions+lifts+sets / water_oz / weight / plan lines).
+  The server **validates and queues** (`queue/<id>` blobs); it never edits
+  the snapshot, so there is no second writer.
+- `gptPull()` runs on open, on foreground, every 90s while visible, and
+  on `online`. Each pending entry goes through `applyGptAction()` which
+  calls **`logSession` / `day.meals[slot].push` / `setPlanLines`** — the
+  same paths the buttons use — then acks (`POST /actions/ack`). Applied ids
+  are remembered (`state.gpt.applied`, last 300) so a failed ack cannot
+  double-log.
+- Auth: one `GPT_API_TOKEN` in Netlify env (16+ chars, constant-time
+  compare). She pastes the same value in Settings → ChatGPT link and in the
+  GPT Action (API Key, Bearer). **No token ever in code or chat.**
+- `GET /api/gpt/openapi.json` is public and is what the GPT imports.
+  Reads: `/summary?from&to` (≤32 days), `/day/{date}`, `/plan?date`,
+  `/lifts`, `/actions` (pending). `/health` is public, no data.
+- Settings card `#gptCard` (`renderGptLink`): token, Save / Sync now /
+  Turn off, status "on · sent 2 min ago · checked just now", spec URL.
+- Tests: `gpt-core.mjs` (27, Node, fake store) and smoke 47 (mocks
+  `fetch` in-page, dispatches `visibilitychange`, asserts the meal, lift,
+  water, weight and plan line landed once and were acked).
+- Store scope: `getStore("bermo-tracker")` is **site-wide** — the deploy
+  preview and production share it, which is what she needs because the
+  preview IS her app. Deleting the store = `store.deleteAll()`.
+- Not done, say so if asked: no background sync on iPhone (a PWA cannot),
+  so ChatGPT's entries land when the app is next opened; summaries are as
+  fresh as the last push.
+
+**THE HARDENING PASS + SWEEP (v54).** Executive-level QC she asked for,
+then "go and fix all of it":
+- `todayKey()` is **local time** (was `toISOString`, so after ~7pm Eastern
+  "today" was tomorrow). Tests use local keys too.
+- `SCHEMA = 3` + `migrate()` in `load()`. **Declared before `load()` runs** —
+  the first cut hit the temporal dead zone and every test went red.
+- `_report(where, err)` ring (`window.__errs`, 30) + `window.onerror` /
+  `unhandledrejection`; 20 empty catches now report. **Settings →
+  Diagnostics** shows schema, storage used, days, offline state, last 8
+  errors, Copy report, Export JSON.
+- Clamps at `logSession` and the hv set reader (weight 0–2000, reps 0–200,
+  minutes 0–600, incline 0–40) + `max` attrs.
+- Switching units converts stored weights (`convertStoredWeights`) instead
+  of relabelling 135 lb as 135 kg.
+- `ai-parse.js`: explicit key names, origin allowlist, daily cap, body cap.
+- Duplicate `openApplyProgramModal` — the later declaration (takes an
+  object) shadowed the earlier (takes an id), so "Apply program" from the
+  library was passing a string into `program.split`. Renamed
+  `openApplyProgramByIdModal`.
+- The orphan sweep: the old live-session logger and its modals, 17
+  zero-caller functions, 12 helpers orphaned by them, the dead rest-timer /
+  `SET_KINDS` block, 44 `.ws-`/`.wo-` CSS rules. `openLiftModal(name)` is a
+  five-line wrapper onto the Hevy flow. Method that worked: **count
+  whole-word refs across app.js + index.html; refs == 1 means orphan;
+  delete bottom-up; re-scan; run both suites.** `#dashLegacy` is still in
+  the DOM (hidden) — 63 ids referenced by legacy renders; removing it is
+  its own batch.
+
 ## 8. Honest state assessment
 
 This is a strong **single-player prototype**: ~19k lines, 26 automated tests,
 and an analysis layer that genuinely has no equivalent in MyFitnessPal,
 Fitbod or Strong. It is **not** a product yet. In priority order:
 
-1. **No backend.** Everything is in one browser on one device. No account, no
-   sync, no server. Clearing site data loses everything, a new phone starts
+1. **No backend for accounts.** v55 added a server-side *copy* (Netlify
+   Blobs) for the ChatGPT API, which doubles as a restore point
+   (`GET /api/gpt/state`), but there is still no account, no multi-device
+   sync and no second user. Clearing site data loses everything, a new phone starts
    over, and there is **no way to know how many users exist** — which makes it
    unfundable regardless of feature quality. Supabase (auth + Postgres + RLS)
    is the natural fit. ~2–3 weeks. **Do this before anything else.**
@@ -1106,4 +1179,6 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v50` Bryl Lim line art first (matches the dark UI); one style per surface; strict no-look-alike matching; three credits ·
 `v51` OPTION D — line art painted teal→blue via CSS mask; placeholders match; one tile builder; week.js hardened ·
 `v52` "last time" under every set on the logger; lifts up/down line under vs Last Week. Effort/RPE deliberately left out ·
-`v53` LIFTS page — read-only, by lift: PRs, then every session by date with sets, volume, best.
+`v53` LIFTS page — read-only, by lift: PRs, then every session by date with sets, volume, best ·
+`v54` hardening pass (local date keys, schema migrate, error ring + Diagnostics, input clamps, unit conversion, AI function lockdown) and the step 6 orphan sweep (old live-session logger, 29 dead functions, 44 CSS rules) ·
+`v55` THE CHATGPT API — `/api/gpt/*` edge function on Netlify Blobs; app pushes a snapshot after every save, pulls and applies queued entries through the one write path.

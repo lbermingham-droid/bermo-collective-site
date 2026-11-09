@@ -16,7 +16,9 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
       - name: Syntax check
-        run: node --check tracker/app.js && node --check tracker/sw.js && node --check netlify/functions/ai-parse.js
+        run: node --check tracker/app.js && node --check tracker/sw.js && node --check netlify/functions/ai-parse.js && node --check netlify/gpt-core.mjs
+      - name: ChatGPT API core
+        run: node tracker/tests/gpt-core.mjs
       - name: Install Playwright
         run: npm i --no-save playwright@1.49.1 && npx playwright install --with-deps chromium
       - name: Serve site

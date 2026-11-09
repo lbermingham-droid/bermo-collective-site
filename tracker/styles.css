@@ -4966,3 +4966,11 @@ body.on-home .main{ padding-top:8px !important; }
 .diag-errs li span{color:var(--muted,#8a8f98)}
 .diag-errs li em{font-style:normal;color:var(--pink,#ff4d9d)}
 @media (max-width:520px){.diag-grid{grid-template-columns:minmax(0,1fr)}.diag-errs li{grid-template-columns:72px minmax(0,1fr)}.diag-errs li em{display:none}}
+
+/* ---- ChatGPT link (Settings) ---- */
+.gpt-p{font-size:13px;color:var(--muted,#8a8f98);line-height:1.6;margin:0 0 10px}
+.gpt-steps{font-size:12px;color:var(--muted,#8a8f98);line-height:1.6;margin:0 0 10px;padding-left:18px}
+.gpt-steps b{color:var(--text,#f2f4f8)}
+.gpt-url{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--teal,#00f5d4);word-break:break-all;margin:0 0 14px;text-decoration:none;border:1px solid rgba(0,245,212,.35);border-radius:10px;padding:10px 12px}
+#gptStatus.is-on{color:var(--teal,#00f5d4)}
+#gptStatus.is-err{color:var(--pink,#ff4d9d)}

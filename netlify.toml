@@ -105,3 +105,9 @@
   from = "/journal"
   to = "/journal/index.html"
   status = 200
+
+# ChatGPT API for /tracker/ — see tracker/GPT-SETUP.md. Token lives in the
+# GPT_API_TOKEN environment variable; storage is Netlify Blobs.
+[[edge_functions]]
+  path = "/api/gpt/*"
+  function = "gpt"

@@ -1092,6 +1092,56 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
   } catch (e) { fail("v41 black screen", e); }
 
 
+  // 47. v55 ChatGPT link — a queued entry is applied through the one write
+  //     path (logSession / meals / setPlanLines) and acked. fetch is mocked
+  //     in-page; no server involved.
+  try {
+    await page.evaluate(() => {
+      const st = JSON.parse(localStorage.getItem("bermo.tracker.v1"));
+      st.gpt = { token: "smoke-token-0123456789abcdef", applied: [] };
+      localStorage.setItem("bermo.tracker.v1", JSON.stringify(st));
+    });
+    await page.reload({ waitUntil: "load", timeout: 20000 });
+    await page.waitForTimeout(600);
+    const out = await page.evaluate(async () => {
+      const today = (d => d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"))(new Date());
+      const calls = [];
+      const ok = (b) => new Response(JSON.stringify(b), { status: 200, headers: { "content-type": "application/json" } });
+      window.fetch = async (url, init) => {
+        const u = String(url), m = (init && init.method) || "GET"; calls.push(m + " " + u);
+        if(u.endsWith("/api/gpt/actions") && m === "GET") return ok({ pending: [{ id: "t1", queuedAt: "2026-01-01T00:00:00Z", action: {
+          date: today,
+          meals: { lunch: [{ name: "Smoke bowl", cal: 400, p: 30, c: 40, f: 10 }] },
+          sessions: [{ name: "Legs", lifts: [{ exercise: "Smoke Squat", sets: [{ weight: 100, reps: 5 }] }] }],
+          water_oz: 8, weight: 140.5, plan: { lines: ["Smoke plan line"], mode: "add" } } }] });
+        if(u.endsWith("/api/gpt/actions/ack")) return ok({ ok: true, acked: 1 });
+        if(u.endsWith("/api/gpt/state")) return ok({ ok: true });
+        return ok({});
+      };
+      const before = JSON.parse(localStorage.getItem("bermo.tracker.v1"));
+      const waterBefore = (before.days[today] || {}).water || 0;
+      document.dispatchEvent(new Event("visibilitychange"));
+      await new Promise(r => setTimeout(r, 1800));
+      const st = JSON.parse(localStorage.getItem("bermo.tracker.v1"));
+      const day = st.days[today] || { meals: {}, sessions: [] };
+      const planText = JSON.stringify(st.plan || {});
+      return {
+        lunch: ((day.meals || {}).lunch || []).filter(i => i.name === "Smoke bowl").length,
+        lift: (day.sessions || []).filter(s => s.name === "Smoke Squat" && s.weight === 100 && s.reps === 5).length,
+        water: (day.water || 0) - waterBefore,
+        weight: (st.weights || []).some(w => w.date === today && w.val === 140.5),
+        plan: planText.includes("Smoke plan line"),
+        acked: calls.some(c => c.startsWith("POST") && c.endsWith("/api/gpt/actions/ack")),
+        applied: (st.gpt.applied || []).includes("t1"),
+        pulls: calls.filter(c => c.startsWith("GET") && c.endsWith("/api/gpt/actions")).length,
+      };
+    });
+    const good = out.lunch === 1 && out.lift === 1 && out.water === 8 && out.weight && out.plan && out.acked && out.applied;
+    good ? ok("v55 ChatGPT queue applies once through the one write path and acks")
+         : fail("v55 ChatGPT queue", JSON.stringify(out));
+    await page.evaluate(() => { const st = JSON.parse(localStorage.getItem("bermo.tracker.v1")); delete st.gpt; localStorage.setItem("bermo.tracker.v1", JSON.stringify(st)); });
+  } catch (e) { fail("v55 ChatGPT queue", e); }
+
   await browser.close();
   print();
 })();

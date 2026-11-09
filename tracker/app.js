@@ -107,6 +107,7 @@ function save(){
   try{
     localStorage.setItem(KEY, JSON.stringify(state));
     _saveWarned = false;
+    try{ _gptSchedulePush(); }catch(e){ _report("gpt schedule", e); }
     return true;
   }catch(err){
     const quota = err && (err.name === "QuotaExceededError"
@@ -15096,6 +15097,171 @@ function programHtml(program){
 
 
 // =================================================================
+// CHATGPT LINK — /api/gpt (netlify/edge-functions/gpt.js + gpt-core.mjs)
+// The phone stays the source of truth. After every save the app pushes a
+// snapshot (debounced); ChatGPT reads that. ChatGPT writes by queueing
+// entries; the app pulls them on open / foreground / every 90s and applies
+// each one through the SAME write paths the UI uses (logSession, meals,
+// setPlanLines), then acks. One token, set once in Settings; the same
+// token is the GPT Action's API key. Never put the token in code.
+// =================================================================
+const GPT_BASE = "/api/gpt";
+function gptCfg(){ if(!state.gpt) state.gpt = { token: "", lastPush: null, lastPull: null, applied: [] }; return state.gpt; }
+function gptOn(){ const g = state.gpt; return !!(g && g.token && g.token.length >= 16); }
+function gptHeaders(){ return { "content-type": "application/json", "authorization": "Bearer " + gptCfg().token }; }
+
+let _gptPushT = null, _gptPushing = false, _gptDirty = false;
+function _gptSchedulePush(){
+  if(!gptOn()) return;
+  _gptDirty = true;
+  clearTimeout(_gptPushT);
+  _gptPushT = setTimeout(gptPush, 4000);
+}
+async function gptPush(){
+  if(!gptOn() || !navigator.onLine) return false;
+  if(_gptPushing){ _gptDirty = true; return false; }
+  _gptPushing = true; _gptDirty = false;
+  try{
+    const snap = Object.assign({}, state); delete snap.exPhotos; delete snap.gpt;
+    const res = await fetch(GPT_BASE + "/state", { method: "PUT", headers: gptHeaders(), body: JSON.stringify({ state: snap, today: todayKey() }) });
+    if(!res.ok){ const j = await res.json().catch(() => ({})); throw new Error(j.error || ("HTTP " + res.status)); }
+    gptCfg().lastPush = new Date().toISOString(); gptCfg().lastError = null;
+    try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){ _report("gpt save", e); }
+    _gptRenderStatus();
+    return true;
+  }catch(e){
+    gptCfg().lastError = String(e.message || e); _report("gpt push", e); _gptRenderStatus();
+    return false;
+  }finally{
+    _gptPushing = false;
+    if(_gptDirty) _gptSchedulePush();
+  }
+}
+
+// Apply ONE queued entry. Same shape as the brain-dump result, same write
+// paths. Returns the number of items written.
+function applyGptAction(a){
+  if(!a || typeof a !== "object") return 0;
+  const dateKey = /^\d{4}-\d{2}-\d{2}$/.test(a.date || "") ? a.date : todayKey();
+  const day = dayObj(dateKey);
+  let n = 0;
+  ["breakfast","lunch","dinner","snacks"].forEach(slot => {
+    ((a.meals || {})[slot] || []).forEach(it => {
+      if(!it || !it.name) return;
+      day.meals[slot].push({ id: uid(), name: String(it.name), serving: it.serving || "", cal: Math.round(+it.cal || 0), p: +it.p || 0, c: +it.c || 0, f: +it.f || 0, src: "chatgpt" });
+      if(typeof _trackRecent === "function") _trackRecent({ name: it.name, serving: it.serving, cal: it.cal, p: it.p, c: it.c, f: it.f });
+      n++;
+    });
+  });
+  (a.sessions || []).forEach(s => {
+    if(!s) return;
+    const note = "ChatGPT" + (s.name ? " · " + s.name : "") + (a.note ? " · " + a.note : "");
+    if(!(s.lifts || []).length){
+      logSession(dateKey, { name: s.name || "Session", lift: s.name || "Session", weight: 0, reps: 0, sets: 1,
+        type: s.type === "cardio" ? "cardio" : (s.type || "wod"), durationMin: s.duration_min || null, notes: note }, { quiet: true });
+      n++;
+    } else {
+      (s.lifts || []).forEach(l => (l.sets || []).forEach(st => {
+        logSession(dateKey, { name: l.exercise, lift: l.exercise, weight: +st.weight || 0, reps: +st.reps || 0, sets: 1, type: "strength", notes: note }, { quiet: true });
+        n++;
+      }));
+    }
+  });
+  if(+a.water_oz > 0){ day.water = (day.water || 0) + (+a.water_oz); n++; }
+  if(+a.weight > 0){
+    if(!state.weights) state.weights = [];
+    const cur = state.weights.find(w => w.date === dateKey);
+    if(cur) cur.val = +a.weight; else state.weights.push({ date: dateKey, val: +a.weight });
+    state.weights.sort((x, y) => x.date < y.date ? -1 : 1);
+    n++;
+  }
+  if(a.plan && Array.isArray(a.plan.lines)){
+    const fresh = a.plan.lines.filter(t => typeof t === "string" && t.trim()).map(t => ({ id: uid(), text: t.trim(), done: false }));
+    const lines = a.plan.mode === "replace" ? fresh : planLinesFor(dateKey).concat(fresh);
+    setPlanLines(dateKey, lines);
+    n++;
+  }
+  return n;
+}
+
+let _gptPulling = false;
+async function gptPull(){
+  if(!gptOn() || !navigator.onLine || _gptPulling) return;
+  _gptPulling = true;
+  try{
+    const res = await fetch(GPT_BASE + "/actions", { headers: gptHeaders() });
+    if(!res.ok){ const j = await res.json().catch(() => ({})); throw new Error(j.error || ("HTTP " + res.status)); }
+    const j = await res.json();
+    const g = gptCfg(); g.applied = Array.isArray(g.applied) ? g.applied : [];
+    const pending = (j.pending || []).filter(p => p && p.id && !g.applied.includes(p.id));
+    let items = 0; const ids = [];
+    pending.forEach(p => {
+      try{ items += applyGptAction(p.action); }catch(e){ _report("gpt apply", e); }
+      ids.push(p.id); g.applied.push(p.id);
+    });
+    (j.pending || []).forEach(p => { if(p && p.id && !ids.includes(p.id) && g.applied.includes(p.id)) ids.push(p.id); }); // re-ack anything acked before but still there
+    if(g.applied.length > 300) g.applied = g.applied.slice(-300);
+    g.lastPull = new Date().toISOString(); g.lastError = null;
+    if(ids.length){
+      await fetch(GPT_BASE + "/actions/ack", { method: "POST", headers: gptHeaders(), body: JSON.stringify({ ids }) }).catch(e => _report("gpt ack", e));
+    }
+    if(items){ save(); renderAll(); toast(`Added ${items} item${items === 1 ? "" : "s"} from ChatGPT`, "cyan"); }
+    else { try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){ _report("gpt save", e); } }
+    _gptRenderStatus();
+  }catch(e){
+    gptCfg().lastError = String(e.message || e); _report("gpt pull", e); _gptRenderStatus();
+  }finally{ _gptPulling = false; }
+}
+
+function _gptAgo(iso){
+  if(!iso) return "never";
+  const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  if(m < 1) return "just now"; if(m < 60) return m + " min ago";
+  const h = Math.round(m / 60); if(h < 48) return h + " hr ago";
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+function _gptRenderStatus(){
+  const el = document.getElementById("gptStatus"); if(!el) return;
+  const g = state.gpt || {};
+  if(!gptOn()){ el.textContent = "off"; el.className = "card-meta"; return; }
+  el.className = "card-meta" + (g.lastError ? " is-err" : " is-on");
+  el.textContent = g.lastError ? ("error: " + g.lastError) : ("on · sent " + _gptAgo(g.lastPush) + " · checked " + _gptAgo(g.lastPull));
+}
+function renderGptLink(){
+  const card = document.getElementById("gptCard"); if(!card) return;
+  const inp = document.getElementById("gptToken");
+  if(inp && document.activeElement !== inp) inp.value = gptOn() ? "••••••••••••••••" : "";
+  const link = document.getElementById("gptSpecUrl");
+  if(link){ const u = location.origin + GPT_BASE + "/openapi.json"; link.textContent = u; link.href = u; }
+  card.classList.toggle("is-on", gptOn());
+  _gptRenderStatus();
+  if(card._bound) return; card._bound = true;
+  document.getElementById("gptForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const v = (inp.value || "").trim();
+    if(v.startsWith("••")) { toast("Token unchanged", "cyan"); return; }
+    if(v.length < 16){ toast("Token must be at least 16 characters", "pink"); return; }
+    gptCfg().token = v; gptCfg().lastError = null; save();
+    renderGptLink(); toast("ChatGPT link on", "cyan");
+    gptPush().then(ok => { if(ok) gptPull(); });
+  });
+  document.getElementById("gptSyncBtn").addEventListener("click", async () => {
+    if(!gptOn()){ toast("Paste the token first", "pink"); return; }
+    toast("Syncing…", "cyan"); const ok = await gptPush(); if(ok) await gptPull();
+    if(ok && !gptCfg().lastError) toast("Synced", "cyan");
+  });
+  document.getElementById("gptOffBtn").addEventListener("click", () => {
+    state.gpt = { token: "", lastPush: null, lastPull: null, applied: [] }; save(); renderGptLink(); toast("ChatGPT link off", "pink");
+  });
+}
+onReady(() => {
+  if(gptOn()) setTimeout(() => { gptPull(); if(!gptCfg().lastPush) gptPush(); }, 1500);
+  document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible" && gptOn()) gptPull(); });
+  setInterval(() => { if(document.visibilityState === "visible" && gptOn()) gptPull(); }, 90 * 1000);
+  window.addEventListener("online", () => { if(gptOn()){ gptPush(); gptPull(); } });
+});
+
+// =================================================================
 // TEST SEAM — the only thing this IIFE exposes. Pure functions only, so
 // the smoke suite can assert on the maths without the UI in the way.
 // Never put state mutators here.
@@ -15130,6 +15296,7 @@ window.__bermo = {
 function renderSettings(){
   renderSettingsBase();
   renderAISetup();
+  try{ renderGptLink(); }catch(e){ _report("gpt link", e); }
   try{ renderDiagnostics(); }catch(e){ _report("diag", e); }
 }
 

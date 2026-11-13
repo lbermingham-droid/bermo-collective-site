@@ -1150,30 +1150,30 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
     const offState = await page.evaluate(() => ({ pill: !!document.querySelector(".hm-coach"), row: document.getElementById("moreCoachRow").classList.contains("hidden") }));
     await page.evaluate(() => document.querySelector('[data-tab="settings"]').click()); await page.waitForTimeout(400);
     await page.evaluate(() => document.getElementById("coachDemoBtn").click()); await page.waitForTimeout(800);
+    await page.evaluate(() => document.querySelector('[data-cotab="members"]').click()); await page.waitForTimeout(300);
     const hub = await page.evaluate(() => ({ view: document.querySelector(".view.active").id, members: document.querySelectorAll("#coach [data-member]").length }));
     await page.evaluate(() => document.querySelector("#coach [data-member]").click()); await page.waitForTimeout(500);
-    const name = await page.evaluate(() => document.querySelector("#coach .view-h1").textContent.trim());
-    // log a lift for today
-    await page.evaluate(() => document.getElementById("coLogLift").click()); await page.waitForTimeout(300);
-    await page.fill("#coRows .co-name", "Smoke Press"); await page.fill("#coRows .co-w", "77"); await page.fill("#coRows .co-r", "9"); await page.fill("#coRows .co-s", "2");
-    await page.evaluate(() => document.getElementById("coSave").click()); await page.waitForTimeout(500);
-    // apply a saved workout to Mondays and Wednesdays this month
-    await page.evaluate(() => document.getElementById("coApply").click()); await page.waitForTimeout(300);
-    await page.evaluate(() => { document.querySelector('[data-dow="1"]').click(); document.querySelector('[data-dow="3"]').click(); document.getElementById("coApplyGo").click(); }); await page.waitForTimeout(600);
-    const after = await page.evaluate(() => {
+    const name = await page.evaluate(() => document.querySelector("#coach .co-top h1").textContent.trim());
+    // v58: class sheet — tick a member in, type a weight; calendar fill
+    await page.evaluate(() => document.getElementById("coBack").click()); await page.waitForTimeout(300);
+    await page.evaluate(() => document.querySelector('[data-cotab="today"]').click()); await page.waitForTimeout(300);
+    const mid = await page.evaluate(() => { const cb = document.querySelector("#coach [data-att]"); cb.click(); return cb.getAttribute("data-att"); });
+    await page.waitForTimeout(300);
+    await page.fill('#coach tr.on [data-cell="0"]', "77"); await page.keyboard.press("Tab"); await page.waitForTimeout(200);
+    await page.evaluate(() => document.querySelector('[data-cotab="calendar"]').click()); await page.waitForTimeout(300);
+    const calCells = await page.evaluate(() => document.querySelectorAll("#coach .co-cal-d.has").length);
+    await page.evaluate(() => { document.querySelectorAll("#coach [data-pat]").forEach(s => { s.value = ""; }); document.getElementById("coFill").click(); }); await page.waitForTimeout(300);
+    const after = await page.evaluate((mid) => {
       const st = JSON.parse(localStorage.getItem("bermo.tracker.v1"));
       const today = (d => d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"))(new Date());
-      const m = st.coach.members.find(x => x.name === document.querySelector("#coach .view-h1").textContent.trim());
-      const log = st.coach.logs[m.id] || {};
-      const planned = Object.keys(log).filter(k => (log[k] || []).some(r => r.planned));
-      return { logged: (log[today] || []).some(r => r.name === "Smoke Press" && r.weight === 77 && r.reps === 9 && r.sets === 2),
-               planned: planned.length, plannedFuture: planned.every(k => k > today), days: JSON.stringify(st.days), pill: !!st.coach.enabled };
-    });
+      const rows = (st.coach.logs[mid] || {})[today] || [];
+      return { logged: rows.length >= 3 && rows[0].weight === 77, att: !!(st.coach.att[today] || {})[mid], cleared: !Object.keys(st.coach.plan).some(k => k.slice(0, 7) === today.slice(0, 7)), days: JSON.stringify(st.days) };
+    }, mid);
     await page.evaluate(() => document.querySelector('[data-tab="dashboard"]').click()); await page.waitForTimeout(500);
     const pill = await page.evaluate(() => !!document.querySelector(".hm-coach"));
-    const good = !offState.pill && offState.row && hub.view === "view-coach" && hub.members === 6 && name.length > 2 && after.logged && after.plannedFuture && after.days === daysBefore && pill;
-    good ? ok("v56 coach hub: off by default, demo loads, log + apply write only to state.coach, Home pill appears")
-         : fail("v56 coach hub", JSON.stringify({ offState, hub, name, logged: after.logged, planned: after.planned, plannedFuture: after.plannedFuture, ownDaysUntouched: after.days === daysBefore, pill }));
+    const good = !offState.pill && offState.row && hub.view === "view-coach" && hub.members === 8 && name.length > 2 && calCells > 15 && after.logged && after.att && after.cleared && after.days === daysBefore && pill;
+    good ? ok("v58 coach hub: class sheet check-in + weights, calendar pattern fill, own log untouched, Home pill")
+         : fail("v58 coach hub", JSON.stringify({ offState, hub, name, calCells, logged: after.logged, att: after.att, cleared: after.cleared, ownDaysUntouched: after.days === daysBefore, pill }));
     await page.evaluate(() => { const st = JSON.parse(localStorage.getItem("bermo.tracker.v1")); delete st.coach; localStorage.setItem("bermo.tracker.v1", JSON.stringify(st)); });
   } catch (e) { fail("v56 coach hub", e); }
 

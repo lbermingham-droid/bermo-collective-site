@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v57**.
+- Current build: **v58**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -1009,6 +1009,31 @@ render of that page.
 
 ---
 
+**COACH HUB v2 + GLASS (v58).** She called v56 "a home done hub" and
+explained the real workflow: the coach writes the MONTH plan (every Monday
+is X), never presets individuals because she does not know who will come,
+and in the morning adds the workout to whoever showed up. So v56's
+per-member "Apply workout" and `planned` rows are GONE. Now:
+- Four underline tabs: **Class · Calendar · Members · Workouts**.
+- `coach.plan[date] = workoutId`, `coach.att[date][memberId]`.
+- **Class sheet** (`renderCoachToday`): a spreadsheet — sticky member
+  column with a tick box, one column per lift in the day's workout, weight
+  inputs that save on change (no re-render while typing), last weight as
+  the placeholder. Ticking in copies the workout's lifts to that member.
+- **Calendar**: weekday-pattern selects + "Fill the month"
+  (`coachFillMonth`), month grid showing workout and how many came; tap a
+  day to open its sheet.
+- **Members / member / lift / workouts** are tables (`.co-table`), sortable.
+- Entry rows are one labelled table (`coachRowsHtml`) with 16px inputs —
+  the v56 editor had unlabelled 13px fields that made iOS zoom and jump,
+  which is the "glitch" she hit editing demo text.
+- **Glass layer** (end of styles.css, `--g-*` tokens): translucent lit
+  surfaces + backdrop blur on cards, modals, nav, top bar; 12px radii
+  instead of pills on buttons, segmented controls, filters. The body
+  figure only got a finish pass (hairline strokes, glow). **It is still a
+  hand-drawn SVG; a genuinely professional anatomy figure needs a licensed
+  asset** — told her so.
+
 **THE SETUP WIZARD (v57).** She said the setup was "the old UI", only
 offered up to 6 days, had the wrong goals, and gave her no say in the
 macros. Rebuilt as `.ob-*` (the old `.gate*` / `.wiz-*` / `.ga-*` CSS is
@@ -1245,4 +1270,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v54` hardening pass (local date keys, schema migrate, error ring + Diagnostics, input clamps, unit conversion, AI function lockdown) and the step 6 orphan sweep (old live-session logger, 29 dead functions, 44 CSS rules) ·
 `v55` THE CHATGPT API — `/api/gpt/*` Netlify Function on Netlify Blobs; app pushes a snapshot after every save, pulls and applies queued entries through the one write path ·
 `v56` COACH HUB — every member, periods with deltas, PRs, log a lift, saved workouts applied to a month; off by default, demo gym included ·
-`v57` SETUP rebuilt in the current look: four goals, 7 + doubles, eating styles, editable macros, body-comp scans feeding the plan.
+`v57` SETUP rebuilt in the current look: four goals, 7 + doubles, eating styles, editable macros, body-comp scans feeding the plan ·
+`v58` COACH HUB v2 (class sheet, month calendar with weekday pattern, CRM tables) and the app-wide glass + depth layer, pills removed.

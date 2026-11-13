@@ -105,3 +105,9 @@
   from = "/journal"
   to = "/journal/index.html"
   status = 200
+
+# ChatGPT API for /tracker/: netlify/functions/gpt.mjs serves /api/gpt/*
+# via its own `config.path`. It is a committed esbuild bundle (source in
+# netlify/gpt-fn.src.mjs + gpt-core.mjs; rebuild with netlify/build-gpt.sh)
+# because this build does not install function dependencies.
+# Token: GPT_API_TOKEN env var. Storage: Netlify Blobs.

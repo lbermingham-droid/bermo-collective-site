@@ -152,7 +152,7 @@ in chunks. Always `node --check tracker/app.js` before committing.
 | `tracker/tests/week.js` | 10 week-durability tests (plan, log, reload, edit, reload). |
 | `tracker/tests/gpt-core.mjs` | 27 Node tests for the ChatGPT API core against a fake store. |
 | `.github/workflows/tracker-tests.yml` | CI: syntax, API core, smoke, week on every push touching `tracker/`. |
-| `netlify/gpt-core.mjs` + `netlify/edge-functions/gpt.js` | **The ChatGPT API** at `/api/gpt/*`. Pure core (routing, validation, summaries, OpenAPI) + a thin edge shell (Netlify Blobs store `bermo-tracker`, token from `GPT_API_TOKEN`). See `tracker/GPT-SETUP.md`. |
+| `netlify/gpt-core.mjs` + `netlify/functions/gpt.mjs` | **The ChatGPT API** at `/api/gpt/*`. Pure core (routing, validation, summaries, OpenAPI) + a thin function shell (Netlify Blobs store `bermo-tracker`, token from `GPT_API_TOKEN`). See `tracker/GPT-SETUP.md`. |
 | `netlify/functions/ai-parse.js` | Hosted Claude proxy for Brain Dump. Key is `ANTHROPIC_API_KEY` (or `BERMO_FIT_KEY`) from Netlify env — explicit names only since v54; origin allowlist, daily cap (`AI_DAILY_CAP`, default 300), 200KB body limit. |
 
 ### CSS design system (v23/v24) — use these, don't invent new ones
@@ -1013,9 +1013,12 @@ render of that page.
 can access and add to it and work in it."* Yes, with one honest constraint:
 the data lives in her phone's localStorage, so an API needs a copy on a
 server. Minimal backend chosen: **Netlify Blobs** (already on her plan, no
-new account) behind an **Edge Function** (`@netlify/blobs` is available
-there without a root `package.json`, which would otherwise have pulled
-`node_modules` into the `publish = "."` deploy).
+new account) behind a **Netlify Function** (`netlify/functions/gpt.mjs`). The Blobs
+package is declared in `netlify/functions/package.json`, which Netlify
+installs at build time — a root `package.json` would have pulled
+`node_modules` into the `publish = "."` deploy. The first cut was an Edge
+Function with a bare `@netlify/blobs` import; the edge bundler could not
+resolve it and the deploy failed with exit code 2.
 
 Model — **the phone stays the source of truth**:
 - `save()` schedules `gptPush()` (4s debounce) → `PUT /api/gpt/state`
@@ -1181,4 +1184,4 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v52` "last time" under every set on the logger; lifts up/down line under vs Last Week. Effort/RPE deliberately left out ·
 `v53` LIFTS page — read-only, by lift: PRs, then every session by date with sets, volume, best ·
 `v54` hardening pass (local date keys, schema migrate, error ring + Diagnostics, input clamps, unit conversion, AI function lockdown) and the step 6 orphan sweep (old live-session logger, 29 dead functions, 44 CSS rules) ·
-`v55` THE CHATGPT API — `/api/gpt/*` edge function on Netlify Blobs; app pushes a snapshot after every save, pulls and applies queued entries through the one write path.
+`v55` THE CHATGPT API — `/api/gpt/*` Netlify Function on Netlify Blobs; app pushes a snapshot after every save, pulls and applies queued entries through the one write path.

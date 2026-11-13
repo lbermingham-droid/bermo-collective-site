@@ -152,7 +152,7 @@ in chunks. Always `node --check tracker/app.js` before committing.
 | `tracker/tests/week.js` | 10 week-durability tests (plan, log, reload, edit, reload). |
 | `tracker/tests/gpt-core.mjs` | 27 Node tests for the ChatGPT API core against a fake store. |
 | `.github/workflows/tracker-tests.yml` | CI: syntax, API core, smoke, week on every push touching `tracker/`. |
-| `netlify/gpt-core.mjs` + `netlify/functions/gpt.mjs` | **The ChatGPT API** at `/api/gpt/*`. Pure core (routing, validation, summaries, OpenAPI) + a thin function shell (Netlify Blobs store `bermo-tracker`, token from `GPT_API_TOKEN`). See `tracker/GPT-SETUP.md`. |
+| `netlify/gpt-core.mjs` + `netlify/gpt-fn.src.mjs` → `netlify/functions/gpt.mjs` | **The ChatGPT API** at `/api/gpt/*`. Pure core (routing, validation, summaries, OpenAPI) + a thin shell (Netlify Blobs store `bermo-tracker`, token from `GPT_API_TOKEN`). The function file is a **generated bundle** — run `bash netlify/build-gpt.sh`, never edit it by hand. See `tracker/GPT-SETUP.md`. |
 | `netlify/functions/ai-parse.js` | Hosted Claude proxy for Brain Dump. Key is `ANTHROPIC_API_KEY` (or `BERMO_FIT_KEY`) from Netlify env — explicit names only since v54; origin allowlist, daily cap (`AI_DAILY_CAP`, default 300), 200KB body limit. |
 
 ### CSS design system (v23/v24) — use these, don't invent new ones
@@ -1013,12 +1013,17 @@ render of that page.
 can access and add to it and work in it."* Yes, with one honest constraint:
 the data lives in her phone's localStorage, so an API needs a copy on a
 server. Minimal backend chosen: **Netlify Blobs** (already on her plan, no
-new account) behind a **Netlify Function** (`netlify/functions/gpt.mjs`). The Blobs
-package is declared in `netlify/functions/package.json`, which Netlify
-installs at build time — a root `package.json` would have pulled
-`node_modules` into the `publish = "."` deploy. The first cut was an Edge
-Function with a bare `@netlify/blobs` import; the edge bundler could not
-resolve it and the deploy failed with exit code 2.
+new account) behind a **Netlify Function** (`netlify/functions/gpt.mjs`), which is a
+**committed, self-contained esbuild bundle** of `netlify/gpt-fn.src.mjs` +
+`gpt-core.mjs` + `@netlify/blobs`. Regenerate with `bash
+netlify/build-gpt.sh` after touching either source, then commit. Two
+failed attempts explain why: (1) an Edge Function with a bare
+`@netlify/blobs` import — the edge bundler could not resolve it, deploy
+failed with exit code 2; (2) a Function with `netlify/functions/package.json`
+— the deploy succeeded but Netlify did **not** install it, and the function
+died at runtime with "Cannot find package '@netlify/blobs'". A root
+`package.json` was never an option: `publish = "."` would ship
+`node_modules`. Vendoring the bundle removes every install question.
 
 Model — **the phone stays the source of truth**:
 - `save()` schedules `gptPush()` (4s debounce) → `PUT /api/gpt/state`

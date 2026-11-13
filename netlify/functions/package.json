@@ -1,8 +1,0 @@
-{
-  "name": "bermo-netlify-functions",
-  "private": true,
-  "description": "Dependencies for the Netlify Functions in this folder. Netlify installs these at build time; the site root stays dependency-free.",
-  "dependencies": {
-    "@netlify/blobs": "^8.2.0"
-  }
-}

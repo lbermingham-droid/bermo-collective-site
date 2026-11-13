@@ -69,6 +69,7 @@ plain comparisons.
   no background sync on iPhone without a native app.
 - The deploy preview and the live site share one store, since you use the
   preview as the app. If that ever changes, the store name in
-  `netlify/functions/gpt.mjs` should change with it.
+  `netlify/gpt-fn.src.mjs` should change with it (then run
+  `bash netlify/build-gpt.sh` and commit the regenerated function).
 - Rotate the token any time: change it in Netlify, in the app, and in the
   GPT's action. The old one stops working at once.

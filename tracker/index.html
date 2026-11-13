@@ -21,7 +21,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Inter+Tight:wght@600;700;800;900&family=Montserrat:wght@600;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./styles.css?v=55">
+<link rel="stylesheet" href="./styles.css?v=56">
 </head>
 <body>
 
@@ -192,7 +192,7 @@
     <div class="tb-left">
       <div class="tb-logo">
         <span class="tb-top">BERMO<span class="c">.</span></span>
-        <span class="tb-bot">TRACKER <span id="appVer" style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v55</span></span>
+        <span class="tb-bot">TRACKER <span id="appVer" style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v56</span></span>
       </div>
     </div>
     <nav class="tb-nav" id="tabNav">
@@ -488,6 +488,7 @@
 
     <!-- ============ NUTRITION ============ -->
         <section class="view" id="view-lifts"><div id="lifts" class="lf"></div></section>
+        <section class="view" id="view-coach"><div id="coach" class="lf co"></div></section>
         <section class="view" id="view-progress">
       <div class="view-head"><div><h1 class="view-h1">Progress</h1></div></div>
       <div class="hub">
@@ -502,6 +503,7 @@
       <div class="hub">
         <button type="button" class="hub-row" data-tab="library"><div><b>Exercise library</b><span>Movements, photos, saved workouts</span></div><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></i></button>
         <button type="button" class="hub-row" data-tab="history"><div><b>History</b><span>Everything you have logged</span></div><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></i></button>
+        <button type="button" class="hub-row hidden" id="moreCoachRow" data-tab="coach"><div><b>Coach hub</b><span>Every member: visits, lifts, PRs, saved workouts</span></div><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></i></button>
         <button type="button" class="hub-row" data-tab="settings"><div><b>Settings</b><span>Goals, units, backup, Apple Health</span></div><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></i></button>
       </div>
       <p class="credits">Exercise line art: <a href="https://bryllim.com" rel="noopener" target="_blank">Workout Guide by Bryl Lim</a>, with poses from <a href="https://github.com/everkinetic/data" rel="noopener" target="_blank">Everkinetic</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="noopener" target="_blank">CC BY-SA 4.0</a> · Exercise data by <a href="https://repdb.co" rel="nofollow noopener" target="_blank">RepDB (repdb.co)</a> · Photos: <a href="https://github.com/yuhonas/free-exercise-db" rel="noopener" target="_blank">free-exercise-db</a> (public domain)</p>
@@ -1269,6 +1271,16 @@
           <p id="ahStatus" style="font-size:12px;color:#888;margin:10px 0 0">No imports yet.</p>
         </div>
 
+        <div class="card span-12" id="coachCard">
+          <div class="card-head"><span class="card-eyebrow">Coach hub</span><span class="card-meta">demo</span></div>
+          <p class="gpt-p">A hub for a coach who tracks every gym member: visits, lifts, PRs, by day, week, month, year, all time or a custom range, plus saved workouts applied to a whole month in one tap. Separate from your own log.</p>
+          <label class="co-toggle"><input type="checkbox" id="coachEnabled"> <span>Show the Coach hub on Home and More</span></label>
+          <div class="danger-actions">
+            <button type="button" class="btn btn-ghost" id="coachDemoBtn">Load demo gym</button>
+            <button type="button" class="btn btn-ghost" id="coachClearBtn">Clear coach data</button>
+          </div>
+        </div>
+
         <div class="card span-12" id="gptCard">
           <div class="card-head">
             <span class="card-eyebrow">ChatGPT link</span>
@@ -1428,10 +1440,10 @@
 <div class="toast" id="toast" aria-live="polite"></div>
 
 <script src="/tracker/vendor/chart.umd.js"></script>
-<script src="./data.js?v=55"></script>
-<script src="./exdb.js?v=55"></script>
-<script src="./repdb.js?v=55"></script>
-<script src="./bryl.js?v=55"></script>
-<script src="./app.js?v=55"></script>
+<script src="./data.js?v=56"></script>
+<script src="./exdb.js?v=56"></script>
+<script src="./repdb.js?v=56"></script>
+<script src="./bryl.js?v=56"></script>
+<script src="./app.js?v=56"></script>
 </body>
 </html>

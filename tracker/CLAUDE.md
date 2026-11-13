@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v55**.
+- Current build: **v56**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -148,7 +148,7 @@ in chunks. Always `node --check tracker/app.js` before committing.
 | `tracker/repdb.js` (125KB) | **RepDB free tier** (repdb.co): 701 exercises — name, category, body part, primary/secondary muscles (fine anatomy: gluteus_medius, posterior_deltoid, rhomboids…), bodyweight flag, MET, image kind. Illustrations from jsDelivr via `REPDB_IMG(id, kind)`, cache-first. **Licence requires the visible credit** on the More screen (`.credits`) — never remove it. In-app use only; never republish as a dataset. |
 | `tracker/exdb.js` (150KB) | **free-exercise-db**, public domain (The Unlicense): 873 exercises — name, primary/secondary muscles, equipment, category, level. Photos come from jsDelivr (`EXDB_IMG(id, 0|1)`), cache-first in the SW. Regenerate from the upstream `dist/exercises.json` by dropping `instructions` and keeping `{i,n,p,s,e,c,l,m,f}`. |
 | `tracker/sw.js` + `manifest.json` | PWA. SW is **network-first for HTML/CSS/JS** so deploys land without a hard refresh; cache-first for images. |
-| `tracker/tests/smoke.js` | 47 Playwright tests. See §6. |
+| `tracker/tests/smoke.js` | 48 Playwright tests. See §6. |
 | `tracker/tests/week.js` | 10 week-durability tests (plan, log, reload, edit, reload). |
 | `tracker/tests/gpt-core.mjs` | 27 Node tests for the ChatGPT API core against a fake store. |
 | `.github/workflows/tracker-tests.yml` | CI: syntax, API core, smoke, week on every push touching `tracker/`. |
@@ -965,7 +965,7 @@ Playwright is already installed in the scratchpad. Launch chromium with
 `{ server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" }`.
 **Do not run `npx playwright install`.**
 
-**Expected: 47/47 and zero page errors**, `node tracker/tests/week.js` **10/10**, `node tracker/tests/gpt-core.mjs` **27/27**, and the scratchpad's `hvdrive.js` **13/13**. (Two console errors about
+**Expected: 48/48 and zero page errors**, `node tracker/tests/week.js` **10/10**, `node tracker/tests/gpt-core.mjs` **27/27**, and the scratchpad's `hvdrive.js` **13/13**. (Two console errors about
 `ERR_CONNECTION_RESET` are the sandbox blocking a CDN — pre-existing, ignore.)
 
 The suite covers: load, wizard, **sideways overflow on every page**, all tabs,
@@ -1008,6 +1008,39 @@ and `app.js`; zero refs = delete the rule). Twice, removing a UI block left
 render of that page.
 
 ---
+
+**THE COACH HUB (v56).** *"A hub for a coach that lists every gym member
+and lets them track… daily, weekly, monthly, annual, all time or custom…
+how much they lift, PR, times they come… select a lift or type it in…
+create workouts and save them, to apply if the workout will be the same 5
+workouts that month. They are using a paper Excel sheet now."* Built as
+one scoped module (`state.coach`, `renderCoach()`, `.co-*`), OFF by
+default. Settings → Coach hub toggles it; then a **Coach** pill sits next
+to the gear on Home and a row appears on More. "Load demo gym" seeds six
+members with ten weeks of deterministic training so it demos instantly.
+- **Separate data.** `state.coach.logs[memberId][date][]` — nothing
+  touches her own `state.days`; smoke 48 asserts her days are byte-equal
+  before and after logging + applying in the hub.
+- Screens: members (period seg · 4 tiles · search · member rows) →
+  member (Log a lift · Apply workout · period seg · Visits / Volume /
+  Working sets / PRs with deltas vs the previous period · Planned days ·
+  Lifts this period with best + delta · Sessions by date, PR days pink)
+  → one lift by date. Workouts list → editor (name + rows of lift / sets
+  / reps / weight). Everything borrows the Lifts page look.
+- Period maths: `coachRange()` — day / week / month / year reuse
+  `_periodRanges`, `all`, and `custom` (previous period = same length
+  before). PRs are computed over all history first (`coachPRSet`), then
+  filtered into the period, so a PR is always relative to everything
+  before it.
+- Apply workout = pick a saved workout, a month, and weekdays; days with
+  rows are skipped; **future days are `planned:true`** and do not count as
+  visits, sets or PRs until "Mark done". That is the honest reading of
+  "apply for the month" without inventing attendance.
+- Lift entry is a text field with the library as suggestions
+  (`<datalist>`), so the coach can pick or type anything.
+- Not done: no login per coach, no per-member sharing, no export to the
+  gym's sheet. It is a demo-grade hub on one phone, like everything else
+  until the backend exists.
 
 **THE CHATGPT API (v55).** *"Are you also able to add an api so chat gpt
 can access and add to it and work in it."* Yes, with one honest constraint:
@@ -1189,4 +1222,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v52` "last time" under every set on the logger; lifts up/down line under vs Last Week. Effort/RPE deliberately left out ·
 `v53` LIFTS page — read-only, by lift: PRs, then every session by date with sets, volume, best ·
 `v54` hardening pass (local date keys, schema migrate, error ring + Diagnostics, input clamps, unit conversion, AI function lockdown) and the step 6 orphan sweep (old live-session logger, 29 dead functions, 44 CSS rules) ·
-`v55` THE CHATGPT API — `/api/gpt/*` Netlify Function on Netlify Blobs; app pushes a snapshot after every save, pulls and applies queued entries through the one write path.
+`v55` THE CHATGPT API — `/api/gpt/*` Netlify Function on Netlify Blobs; app pushes a snapshot after every save, pulls and applies queued entries through the one write path ·
+`v56` COACH HUB — every member, periods with deltas, PRs, log a lift, saved workouts applied to a month; off by default, demo gym included.

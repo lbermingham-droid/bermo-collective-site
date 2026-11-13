@@ -937,6 +937,7 @@ function renderAll(){
   else if(currentTab === "goals") renderGoalsView();
   else if(currentTab === "library") renderLibrary();
   else if(currentTab === "lifts") renderLifts();
+  else if(currentTab === "coach") renderCoach();
 }
 
 // ---------- DASHBOARD ----------
@@ -7398,7 +7399,7 @@ function renderHome(){
   root.innerHTML = `
     <div class="hm-head">
       <button type="button" class="hm-date" id="hmToday">${fmtDate(currentDate)} <i>${HM_ICON.down}</i></button>
-      <button type="button" class="hm-gear" id="hmGear" aria-label="Settings">${HM_ICON.gear}</button>
+      <div class="hm-head-r">${coachOn() ? `<button type="button" class="hm-coach" data-go="coach">Coach</button>` : ""}<button type="button" class="hm-gear" id="hmGear" aria-label="Settings">${HM_ICON.gear}</button></div>
     </div>
 
     <div class="hm-brain">
@@ -15097,6 +15098,422 @@ function programHtml(program){
 
 
 // =================================================================
+// COACH HUB (v56) — a demo-able hub for a coach who tracks every gym
+// member. Replaces a paper/Excel sheet. One scoped module: `state.coach`,
+// `renderCoach()`, `.co-*` CSS. It is OFF unless Settings → Coach hub is
+// turned on; then a Coach pill appears on Home and a row on More.
+//
+// Data (separate from her own log — nothing here touches state.days):
+//   state.coach = {
+//     enabled, members:[{id,name,since,note}],
+//     logs:{ [memberId]: { [date]: [{name, weight, reps, sets, planned}] } },
+//     workouts:[{id,name,exercises:[{name,sets,reps,weight}]}],
+//     ui:{screen, memberId, period, from, to, lift, q}
+//   }
+// A row with planned:true came from "Apply workout" for a future day; it
+// does not count as a visit, a set or a PR until the coach marks it done.
+// =================================================================
+function coachSt(){
+  if(!state.coach) state.coach = { enabled:false, members:[], logs:{}, workouts:[], ui:{} };
+  const c = state.coach;
+  c.members = c.members || []; c.logs = c.logs || {}; c.workouts = c.workouts || []; c.ui = c.ui || {};
+  return c;
+}
+function coachOn(){ return !!(state.coach && state.coach.enabled); }
+function coachMember(id){ return coachSt().members.find(m => m.id === id) || null; }
+function coachLog(memberId){ const c = coachSt(); if(!c.logs[memberId]) c.logs[memberId] = {}; return c.logs[memberId]; }
+function coachInitials(name){ return String(name || "?").trim().split(/\s+/).slice(0, 2).map(w => w[0]).join("").toUpperCase(); }
+function coachAvatar(name, cls){ return `<div class="${cls || "mrow-thumb"} co-avatar"><span>${escape(coachInitials(name))}</span></div>`; }
+const _coFmtK = (n) => n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, "") + "K" : String(Math.round(n));
+
+// ---- periods --------------------------------------------------------
+function coachRange(period, anchor, from, to){
+  const a = anchor || todayKey();
+  if(period === "day"){ return { cur:[a, a], prev:[todayKey(new Date(new Date(a + "T12:00:00").getTime() - 86400000)), todayKey(new Date(new Date(a + "T12:00:00").getTime() - 86400000))], label:"vs yesterday" }; }
+  if(period === "all") return { cur:["0000-01-01", "9999-12-31"], prev:null, label:"all time" };
+  if(period === "custom"){
+    let f = from && /^\d{4}-\d{2}-\d{2}$/.test(from) ? from : todayKey(new Date(Date.now() - 27 * 86400000));
+    let t = to && /^\d{4}-\d{2}-\d{2}$/.test(to) ? to : todayKey();
+    if(f > t){ const x = f; f = t; t = x; }
+    const days = Math.round((new Date(t + "T12:00:00") - new Date(f + "T12:00:00")) / 86400000) + 1;
+    const pe = new Date(new Date(f + "T12:00:00").getTime() - 86400000), ps = new Date(pe.getTime() - (days - 1) * 86400000);
+    return { cur:[f, t], prev:[todayKey(ps), todayKey(pe)], label:"vs the " + days + " days before" };
+  }
+  const r = _periodRanges(period === "year" ? "year" : period === "month" ? "month" : "week", a);
+  return r;
+}
+const _coIn = (k, r) => k >= r[0] && k <= r[1];
+
+// ---- stats ----------------------------------------------------------
+// PR days are computed over ALL history first (a PR is relative to
+// everything before it), then filtered into the period.
+function coachPRSet(memberId){
+  const log = coachLog(memberId); const best = {}; const prs = new Set();
+  Object.keys(log).sort().forEach(k => (log[k] || []).forEach(r => {
+    if(r.planned || !(+r.weight > 0) || !(+r.reps > 0)) return;
+    const est = _epley(+r.weight, +r.reps);
+    if(!best[r.name] || est > best[r.name]){ if(best[r.name]) prs.add(k + "|" + r.name); best[r.name] = est; }
+  }));
+  return prs;
+}
+function coachStats(memberId, range){
+  const log = coachLog(memberId); const prs = coachPRSet(memberId);
+  const out = { visits:0, sets:0, volume:0, prs:0, lifts:{}, days:[] };
+  if(!range) return out;
+  Object.keys(log).sort().forEach(k => {
+    if(!_coIn(k, range)) return;
+    const rows = (log[k] || []).filter(r => !r.planned);
+    if(!rows.length) return;
+    out.visits++; let vol = 0, sets = 0;
+    rows.forEach(r => {
+      const w = +r.weight || 0, reps = +r.reps || 0, n = +r.sets || 1;
+      sets += n; vol += w * reps * n;
+      const L = out.lifts[r.name] = out.lifts[r.name] || { name:r.name, sessions:new Set(), best:null, est:0, sets:0, volume:0 };
+      L.sessions.add(k); L.sets += n; L.volume += w * reps * n;
+      const est = _epley(w, reps);
+      if(!L.best || w > L.best.weight || (w === L.best.weight && reps > L.best.reps)) L.best = { weight:w, reps, date:k };
+      if(est > L.est) L.est = est;
+      if(prs.has(k + "|" + r.name)) out.prs++;
+    });
+    out.sets += sets; out.volume += vol;
+    out.days.push({ date:k, rows, sets, volume:vol, prs:rows.filter(r => prs.has(k + "|" + r.name)).map(r => r.name) });
+  });
+  Object.values(out.lifts).forEach(L => { L.sessions = L.sessions.size; });
+  return out;
+}
+function coachAllStats(range){
+  const c = coachSt(); const t = { members:c.members.length, visits:0, sets:0, prs:0, volume:0 };
+  c.members.forEach(m => { const s = coachStats(m.id, range); t.visits += s.visits; t.sets += s.sets; t.prs += s.prs; t.volume += s.volume; });
+  return t;
+}
+function coachLastVisit(memberId){ const log = coachLog(memberId); const ks = Object.keys(log).filter(k => (log[k] || []).some(r => !r.planned)).sort(); return ks[ks.length - 1] || null; }
+const _coDelta = (cur, prev, unitStr) => prev == null ? "" : ((cur - prev) >= 0 ? "+" : "−") + _coFmtK(Math.abs(cur - prev)) + (unitStr ? " " + unitStr : "");
+
+// ---- writes ---------------------------------------------------------
+function coachAddMember(name){
+  const c = coachSt(); const m = { id: uid(), name: String(name).trim().slice(0, 40), since: todayKey() };
+  c.members.push(m); c.members.sort((a, b) => a.name.localeCompare(b.name)); save(); return m;
+}
+function coachLogRows(memberId, dateKey, rows){
+  const log = coachLog(memberId); if(!log[dateKey]) log[dateKey] = [];
+  const clean = rows.map(r => ({
+    name: String(r.name || "").trim().slice(0, 60),
+    weight: Math.min(2000, Math.max(0, +r.weight || 0)),
+    reps: Math.min(200, Math.max(0, Math.round(+r.reps || 0))),
+    sets: Math.min(50, Math.max(1, Math.round(+r.sets || 1))),
+    planned: !!r.planned,
+  })).filter(r => r.name && (r.planned || r.reps > 0));
+  clean.forEach(r => log[dateKey].push(r));
+  save(); return clean.length;
+}
+function coachApplyWorkout(memberId, workoutId, dates){
+  const w = coachSt().workouts.find(x => x.id === workoutId); if(!w) return 0;
+  const today = todayKey(); let n = 0;
+  dates.forEach(k => {
+    const log = coachLog(memberId);
+    if((log[k] || []).length) return; // never overwrite a day that has rows
+    n += coachLogRows(memberId, k, w.exercises.map(e => ({ ...e, planned: k > today })));
+  });
+  return n;
+}
+function coachMarkDone(memberId, dateKey){ const log = coachLog(memberId); (log[dateKey] || []).forEach(r => { r.planned = false; }); save(); }
+
+// ---- demo gym (deterministic) ------------------------------------------
+function coachLoadDemo(){
+  const c = coachSt(); let seed = 7; const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+  const people = [
+    ["Maya Chen", [1, 3, 5], { "Back Squat":[115, 2.5], "Bench Press":[75, 1.5], "Romanian Deadlift":[135, 2.5], "Lat Pulldown":[80, 1.5], "Hip Thrust":[155, 5] }],
+    ["Jordan Reyes", [1, 2, 4, 6], { "Deadlift":[225, 5], "Overhead Press":[85, 1.5], "Front Squat":[135, 2.5], "Pull-Up":[0, 0], "Dumbbell Row":[50, 1.5] }],
+    ["Priya Nair", [2, 4], { "Goblet Squat":[40, 1], "Bench Press":[55, 1.5], "Hip Thrust":[95, 5], "Lat Pulldown":[60, 1.5] }],
+    ["Sam Okafor", [0, 2, 4, 5], { "Back Squat":[185, 5], "Bench Press":[155, 2.5], "Deadlift":[275, 5], "Barbell Row":[115, 2.5], "Incline Dumbbell Press":[50, 2.5] }],
+    ["Lena Fischer", [1, 3], { "Back Squat":[95, 2.5], "Romanian Deadlift":[115, 2.5], "Overhead Press":[45, 1.5], "Cable Row":[70, 1.5] }],
+    ["Theo Park", [0, 3, 5], { "Front Squat":[115, 2.5], "Bench Press":[115, 2.5], "Hip Thrust":[185, 5], "Pull-Up":[0, 0], "Leg Press":[270, 10] }],
+  ];
+  c.members = []; c.logs = {};
+  const start = new Date(); start.setDate(start.getDate() - 70);
+  people.forEach(([name, days, lifts]) => {
+    const m = { id: uid(), name, since: todayKey(start) }; c.members.push(m); const log = coachLog(m.id);
+    for(let i = 0; i <= 70; i++){
+      const d = new Date(start.getTime() + i * 86400000); if(!days.includes(d.getDay())) continue;
+      if(rnd() < 0.15) continue; // a missed day now and then
+      const k = todayKey(d); const week = Math.floor(i / 7);
+      log[k] = Object.entries(lifts).filter(() => rnd() < 0.85).map(([ln, [base, step]]) => {
+        const w = base ? Math.round((base + step * week + (rnd() < 0.2 ? -step : 0)) / 2.5) * 2.5 : 0;
+        return { name: ln, weight: w, reps: base ? [5, 6, 8, 8, 10][Math.floor(rnd() * 5)] : 6 + Math.floor(rnd() * 5), sets: 3 + Math.floor(rnd() * 2), planned:false };
+      });
+      if(!log[k].length) delete log[k];
+    }
+  });
+  if(!c.workouts.length) c.workouts = [
+    { id: uid(), name: "Lower A", exercises: [{ name:"Back Squat", sets:4, reps:6, weight:0 }, { name:"Romanian Deadlift", sets:3, reps:8, weight:0 }, { name:"Hip Thrust", sets:3, reps:10, weight:0 }, { name:"Walking Lunge", sets:2, reps:12, weight:0 }] },
+    { id: uid(), name: "Upper A", exercises: [{ name:"Bench Press", sets:4, reps:6, weight:0 }, { name:"Lat Pulldown", sets:3, reps:10, weight:0 }, { name:"Overhead Press", sets:3, reps:8, weight:0 }, { name:"Dumbbell Row", sets:3, reps:10, weight:0 }] },
+    { id: uid(), name: "Full Body", exercises: [{ name:"Deadlift", sets:3, reps:5, weight:0 }, { name:"Front Squat", sets:3, reps:6, weight:0 }, { name:"Pull-Up", sets:3, reps:6, weight:0 }, { name:"Incline Dumbbell Press", sets:3, reps:10, weight:0 }] },
+  ];
+  c.members.sort((a, b) => a.name.localeCompare(b.name));
+  c.ui = { screen:"members", period:"week" }; save();
+}
+
+// ---- screens --------------------------------------------------------
+const CO_PERIODS = [["day","Day"],["week","Week"],["month","Month"],["year","Year"],["all","All"],["custom","Custom"]];
+function coachGo(screen, patch){ const ui = coachSt().ui; ui.screen = screen; Object.assign(ui, patch || {}); save(); renderCoach(); }
+function coachLibList(){ try{ return allLibraryExercises(); }catch(e){ return (DATA.movements || []).slice(); } }
+function coachDatalist(id){ return `<datalist id="${id}">${coachLibList().slice(0, 1200).map(n => `<option value="${escape(n)}">`).join("")}</datalist>`; }
+function coachPeriodSeg(ui){
+  return `<div class="hm-seg lf-seg co-seg" id="coPeriod">${CO_PERIODS.map(([id, l]) => `<button type="button" class="${(ui.period || "week") === id ? "on" : ""}" data-period="${id}">${l}</button>`).join("")}</div>
+    ${(ui.period === "custom") ? `<div class="co-custom"><label><span>From</span><input type="date" id="coFrom" value="${escape(ui.from || "")}"></label><label><span>To</span><input type="date" id="coTo" value="${escape(ui.to || "")}"></label></div>` : ""}`;
+}
+function coachBindPeriod(root, ui){
+  root.querySelectorAll("[data-period]").forEach(b => b.addEventListener("click", () => { ui.period = b.getAttribute("data-period"); if(ui.period === "custom" && !ui.from){ ui.from = todayKey(new Date(Date.now() - 27 * 86400000)); ui.to = todayKey(); } save(); renderCoach(); }));
+  const f = root.querySelector("#coFrom"), t = root.querySelector("#coTo");
+  if(f) f.addEventListener("change", () => { ui.from = f.value; save(); renderCoach(); });
+  if(t) t.addEventListener("change", () => { ui.to = t.value; save(); renderCoach(); });
+}
+
+function renderCoach(){
+  const root = document.getElementById("coach"); if(!root) return;
+  const c = coachSt(), ui = c.ui;
+  if(!coachOn()){
+    root.innerHTML = `<div class="view-head"><div><h1 class="view-h1">Coach</h1></div></div>
+      <div class="hv-empty">The coach hub is off. Turn it on in Settings.</div>
+      <button type="button" class="btn btn-cyan" data-go="settings">Open Settings</button>`;
+    return;
+  }
+  const screen = ui.screen || "members";
+  if(screen === "member" && coachMember(ui.memberId)) return renderCoachMember(root, c, ui);
+  if(screen === "workouts") return renderCoachWorkouts(root, c, ui);
+  if(screen === "workout") return renderCoachWorkoutEdit(root, c, ui);
+  return renderCoachMembers(root, c, ui);
+}
+
+function renderCoachMembers(root, c, ui){
+  const r = coachRange(ui.period || "week", todayKey(), ui.from, ui.to);
+  const t = coachAllStats(r.cur), pt = r.prev ? coachAllStats(r.prev) : null;
+  const q = (ui.q || "").toLowerCase();
+  const members = c.members.filter(m => !q || m.name.toLowerCase().includes(q)).map(m => ({ m, s: coachStats(m.id, r.cur), last: coachLastVisit(m.id) }));
+  members.sort((a, b) => (b.last || "").localeCompare(a.last || "") || a.m.name.localeCompare(b.m.name));
+  root.innerHTML = `
+    <div class="view-head co-head"><div><h1 class="view-h1">Coach</h1></div>
+      <div class="co-head-r"><button type="button" class="co-link" id="coWorkouts">Workouts</button><button type="button" class="btn btn-cyan co-add" id="coAddMember">+ Member</button></div></div>
+    ${coachPeriodSeg(ui)}
+    <div class="lf-tiles co-tiles">
+      <div><b>${t.members}</b><span>Members</span><i>&nbsp;</i></div>
+      <div><b>${t.visits}</b><span>Visits</span><i>${pt ? _coDelta(t.visits, pt.visits) + " " + r.label : r.label}</i></div>
+      <div><b>${_coFmtK(t.volume)}<small> ${unit()}</small></b><span>Volume lifted</span><i>${pt ? _coDelta(t.volume, pt.volume) + " " + r.label : r.label}</i></div>
+      <div><b>${t.prs}</b><span>PRs</span><i>${pt ? _coDelta(t.prs, pt.prs) + " " + r.label : r.label}</i></div>
+    </div>
+    ${c.members.length ? `<label class="hv-search lf-search">${HV_I.search}<input type="search" id="coQ" placeholder="Search members" value="${escape(ui.q || "")}" autocomplete="off"></label>` : ""}
+    ${members.length ? `<ul class="lrows lf-list">${members.map(({ m, s, last }) => mrowHtml({
+        attr:`data-member="${m.id}"`, thumb: coachAvatar(m.name),
+        eyebrow: last ? `Last visit ${fmtDate(last)}` : "No visits yet",
+        title: m.name,
+        meta: `${s.visits} visit${s.visits === 1 ? "" : "s"} · ${s.sets} sets · ${_coFmtK(s.volume)} ${unit()}${s.prs ? " · " + s.prs + " PR" + (s.prs === 1 ? "" : "s") : ""}`,
+      })).join("")}</ul>`
+      : c.members.length ? `<div class="hv-empty">No member called that.</div>`
+      : `<div class="co-empty"><b>No members yet.</b><span>Add your first member, or load a demo gym with six members and ten weeks of training to see the hub working.</span>
+          <button type="button" class="btn btn-cyan" id="coAddMember2">+ Add a member</button>
+          <button type="button" class="btn btn-ghost" id="coDemo">Load demo gym</button></div>`}`;
+  coachBindPeriod(root, ui);
+  const add = () => openNameModal({ title:"New member", label:"Name", placeholder:"First and last name", cta:"Add member" }, (v) => { const m = coachAddMember(v); toast("Added " + m.name, "cyan"); coachGo("member", { memberId:m.id }); });
+  root.querySelectorAll("#coAddMember, #coAddMember2").forEach(b => b.addEventListener("click", add));
+  const demo = root.querySelector("#coDemo"); if(demo) demo.addEventListener("click", () => { coachLoadDemo(); toast("Demo gym loaded", "cyan"); renderCoach(); });
+  root.querySelector("#coWorkouts").addEventListener("click", () => coachGo("workouts"));
+  const qi = root.querySelector("#coQ"); if(qi) qi.addEventListener("input", (e) => { ui.q = e.target.value; const v = e.target.value; renderCoach(); const i2 = root.querySelector("#coQ"); if(i2){ i2.focus(); i2.setSelectionRange(v.length, v.length); } });
+  root.querySelectorAll("[data-member]").forEach(li => li.addEventListener("click", () => coachGo("member", { memberId: li.getAttribute("data-member"), lift:null })));
+}
+
+function renderCoachMember(root, c, ui){
+  const m = coachMember(ui.memberId);
+  const r = coachRange(ui.period || "week", todayKey(), ui.from, ui.to);
+  const s = coachStats(m.id, r.cur), ps = r.prev ? coachStats(m.id, r.prev) : null;
+  const allS = coachStats(m.id, ["0000-01-01", "9999-12-31"]);
+  const log = coachLog(m.id);
+  const planned = Object.keys(log).filter(k => (log[k] || []).some(x => x.planned)).sort();
+  const lifts = Object.values(s.lifts).sort((a, b) => b.volume - a.volume);
+
+  // One lift inside this member: every date with sets, PR days outlined.
+  if(ui.lift){
+    const prs = coachPRSet(m.id);
+    const days = Object.keys(log).sort().reverse().map(k => ({ k, rows: (log[k] || []).filter(x => x.name === ui.lift && !x.planned) })).filter(d => d.rows.length);
+    const L = allS.lifts[ui.lift];
+    root.innerHTML = `
+      <div class="view-head"><div><button type="button" class="lf-back" id="coBack">${HV_I.back}</button><h1 class="view-h1">${escape(ui.lift)}</h1></div></div>
+      <div class="lf-hero">${exTile(ui.lift, "lf-tile")}<div><b>${escape(m.name)}</b><span>${days.length} session${days.length === 1 ? "" : "s"}${L && L.best ? ` · best ${L.best.weight || "BW"}${L.best.weight ? " " + unit() : ""} × ${L.best.reps}` : ""}</span></div></div>
+      ${L ? `<div class="lf-tiles"><div><b>${L.best.weight || "BW"}<small>${L.best.weight ? " " + unit() : ""}</small></b><span>Heaviest · ×${L.best.reps}</span><i>${fmtDate(L.best.date)}</i></div><div><b>${Math.round(L.est)}<small> ${unit()}</small></b><span>Est. 1RM</span><i>all time</i></div></div>` : ""}
+      <div class="lf-h">By date</div>
+      <div class="lf-days">${days.map(d => { const top = d.rows.reduce((a, x) => (!a || x.weight > a.weight) ? x : a, null); const vol = d.rows.reduce((n, x) => n + x.weight * x.reps * (x.sets || 1), 0); const pr = prs.has(d.k + "|" + ui.lift);
+        return `<div class="lf-day ${pr ? "pr" : ""}"><div class="lf-day-l"><b>${fmtDate(d.k)}</b><span>${d.rows.map(x => `${x.sets}×${x.reps} @ ${x.weight || "BW"}`).join(", ")}</span></div><div class="lf-day-r"><b>${top.weight || "BW"}<small>${top.weight ? " " + unit() : ""} × ${top.reps}</small></b><span>${_coFmtK(vol)} ${unit()} vol${pr ? " · PR" : ""}</span></div></div>`; }).join("")}</div>`;
+    root.querySelector("#coBack").onclick = () => coachGo("member", { lift:null });
+    return;
+  }
+
+  root.innerHTML = `
+    <div class="view-head co-head"><div><button type="button" class="lf-back" id="coBack">${HV_I.back}</button><h1 class="view-h1">${escape(m.name)}</h1></div>
+      <div class="co-head-r"><button type="button" class="co-more" id="coMore" aria-label="More">···</button></div></div>
+    <div class="co-actions"><button type="button" class="btn btn-cyan" id="coLogLift">Log a lift</button><button type="button" class="btn btn-ghost" id="coApply">Apply workout</button></div>
+    ${coachPeriodSeg(ui)}
+    <div class="lf-tiles co-tiles">
+      <div><b>${s.visits}</b><span>Visits</span><i>${ps ? _coDelta(s.visits, ps.visits) + " " + r.label : r.label}</i></div>
+      <div><b>${_coFmtK(s.volume)}<small> ${unit()}</small></b><span>Volume lifted</span><i>${ps ? _coDelta(s.volume, ps.volume, unit()) + " " + r.label : r.label}</i></div>
+      <div><b>${s.sets}</b><span>Working sets</span><i>${ps ? _coDelta(s.sets, ps.sets) + " " + r.label : r.label}</i></div>
+      <div><b>${s.prs}</b><span>PRs</span><i>${ps ? _coDelta(s.prs, ps.prs) + " " + r.label : r.label}</i></div>
+    </div>
+    ${planned.length ? `<div class="lf-h">Planned</div><div class="lf-days co-planned">${planned.slice(0, 6).map(k => `<div class="lf-day"><div class="lf-day-l"><b>${fmtDate(k)}</b><span>${log[k].filter(x => x.planned).map(x => x.name).join(", ")}</span></div><div class="lf-day-r"><button type="button" class="btn btn-ghost co-sm" data-done="${k}">Mark done</button></div></div>`).join("")}</div>` : ""}
+    <div class="lf-h">Lifts ${r.label === "all time" ? "" : "this period"}</div>
+    ${lifts.length ? `<ul class="lrows lf-list">${lifts.map(L => { const pL = ps && ps.lifts[L.name]; const d = pL && pL.best && L.best.weight !== pL.best.weight ? _coDelta(L.best.weight, pL.best.weight, unit()) : (pL ? "same" : "new");
+        return mrowHtml({ attr:`data-lift="${escape(L.name)}"`, thumb: exTile(L.name, "mrow-thumb"), eyebrow:`${L.sessions} session${L.sessions === 1 ? "" : "s"} · ${L.sets} sets`, title:L.name, meta:`Best ${L.best.weight || "BW"}${L.best.weight ? " " + unit() : ""} × ${L.best.reps} · est ${Math.round(L.est)} ${unit()}${ps ? " · " + d : ""}` }); }).join("")}</ul>`
+      : `<div class="hv-empty">Nothing logged in this period.</div>`}
+    <div class="lf-h">Sessions</div>
+    <div class="lf-days">${s.days.slice().reverse().slice(0, 40).map(D => `<button type="button" class="lf-day ${D.prs.length ? "pr" : ""}" data-day="${D.date}"><div class="lf-day-l"><b>${fmtDate(D.date)}</b><span>${D.rows.map(x => x.name).join(", ")}</span></div><div class="lf-day-r"><b>${_coFmtK(D.volume)}<small> ${unit()}</small></b><span>${D.sets} sets${D.prs.length ? " · PR " + D.prs.join(", ") : ""}</span></div></button>`).join("") || `<div class="hv-empty">No sessions in this period.</div>`}</div>`;
+  coachBindPeriod(root, ui);
+  root.querySelector("#coBack").onclick = () => coachGo("members");
+  root.querySelector("#coLogLift").addEventListener("click", () => openCoachLogModal(m.id));
+  root.querySelector("#coApply").addEventListener("click", () => openCoachApplyModal(m.id));
+  root.querySelectorAll("[data-done]").forEach(b => b.addEventListener("click", () => { coachMarkDone(m.id, b.getAttribute("data-done")); toast("Marked done", "cyan"); renderCoach(); }));
+  root.querySelectorAll("[data-lift]").forEach(li => li.addEventListener("click", () => coachGo("member", { lift: li.getAttribute("data-lift") })));
+  root.querySelectorAll("[data-day]").forEach(b => b.addEventListener("click", () => openCoachDayModal(m.id, b.getAttribute("data-day"))));
+  root.querySelector("#coMore").addEventListener("click", () => openModal(m.name, `
+      <button type="button" class="btn btn-ghost" id="coRename">Rename</button>
+      <button type="button" class="btn btn-pink" id="coRemove" style="margin-top:8px">Remove member</button>
+      <div class="modal-foot"><button class="btn btn-ghost" data-close>Close</button></div>`, (mb) => {
+    mb.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    mb.querySelector("#coRename").addEventListener("click", () => openNameModal({ title:"Rename", label:"Name", value:m.name, cta:"Save" }, (v) => { m.name = v.trim().slice(0, 40); save(); renderCoach(); }));
+    mb.querySelector("#coRemove").addEventListener("click", () => confirmDestructive({ title:"Remove " + m.name + "?", body:"Their whole log goes with them.", cta:"Remove" }, () => { c.members = c.members.filter(x => x.id !== m.id); delete c.logs[m.id]; save(); coachGo("members"); }));
+  }));
+}
+
+// Log one or more lifts for a member on a date. Lift is a text field with
+// the library as suggestions, so the coach can pick or type anything.
+function openCoachLogModal(memberId, dateKey){
+  const m = coachMember(memberId); if(!m) return;
+  const rowHtml = (i) => `<div class="co-row" data-i="${i}">
+      <input type="text" list="coLib" class="co-name" placeholder="Lift (pick or type)" autocomplete="off" maxlength="60">
+      <input type="number" class="co-w" placeholder="${unit()}" inputmode="decimal" min="0" max="2000" step="any">
+      <input type="number" class="co-r" placeholder="reps" inputmode="numeric" min="0" max="200" step="1">
+      <input type="number" class="co-s" placeholder="sets" inputmode="numeric" min="1" max="50" step="1" value="3">
+    </div>`;
+  openModal("Log a lift · " + m.name, `
+    ${coachDatalist("coLib")}
+    <label><span>Date</span><input type="date" id="coDate" value="${escape(dateKey || todayKey())}"></label>
+    <div class="co-rows-h"><span>Lift</span><span>${unit()}</span><span>Reps</span><span>Sets</span></div>
+    <div id="coRows">${rowHtml(0)}</div>
+    <button type="button" class="btn btn-ghost co-sm" id="coAddRow">+ Another lift</button>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-cyan" id="coSave">Save</button></div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    root.querySelector("#coAddRow").addEventListener("click", () => { const rows = root.querySelector("#coRows"); rows.insertAdjacentHTML("beforeend", rowHtml(rows.children.length)); rows.lastElementChild.querySelector(".co-name").focus(); });
+    root.querySelector("#coSave").addEventListener("click", () => {
+      const date = root.querySelector("#coDate").value || todayKey();
+      const rows = [...root.querySelectorAll(".co-row")].map(r => ({ name: r.querySelector(".co-name").value, weight: r.querySelector(".co-w").value, reps: r.querySelector(".co-r").value, sets: r.querySelector(".co-s").value }));
+      const n = coachLogRows(memberId, date, rows);
+      if(!n){ toast("Add a lift with reps", "pink"); return; }
+      closeModal(); toast(`Logged ${n} lift${n === 1 ? "" : "s"} for ${m.name}`, "cyan"); renderCoach();
+    });
+    root.querySelector(".co-name").focus();
+  });
+}
+
+// A logged day: edit the numbers in place or remove a row.
+function openCoachDayModal(memberId, dateKey){
+  const m = coachMember(memberId); const log = coachLog(memberId); const rows = log[dateKey] || [];
+  openModal(fmtDate(dateKey) + " · " + m.name, `
+    ${coachDatalist("coLib")}
+    <div class="co-rows-h"><span>Lift</span><span>${unit()}</span><span>Reps</span><span>Sets</span></div>
+    <div id="coRows">${rows.map((r, i) => `<div class="co-row" data-i="${i}">
+      <input type="text" list="coLib" class="co-name" value="${escape(r.name)}" maxlength="60">
+      <input type="number" class="co-w" value="${r.weight || ""}" placeholder="${unit()}" inputmode="decimal" min="0" max="2000" step="any">
+      <input type="number" class="co-r" value="${r.reps || ""}" placeholder="reps" inputmode="numeric" min="0" max="200" step="1">
+      <input type="number" class="co-s" value="${r.sets || 1}" inputmode="numeric" min="1" max="50" step="1">
+    </div>`).join("")}</div>
+    <button type="button" class="btn btn-ghost co-sm" id="coAddRow">+ Another lift</button>
+    <div class="modal-foot"><button class="btn btn-pink" id="coDelDay">Delete day</button><button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-cyan" id="coSave">Save</button></div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    root.querySelector("#coAddRow").addEventListener("click", () => { root.querySelector("#coRows").insertAdjacentHTML("beforeend", `<div class="co-row"><input type="text" list="coLib" class="co-name" placeholder="Lift" maxlength="60"><input type="number" class="co-w" placeholder="${unit()}" inputmode="decimal" min="0" max="2000" step="any"><input type="number" class="co-r" placeholder="reps" inputmode="numeric" min="0" max="200" step="1"><input type="number" class="co-s" value="3" inputmode="numeric" min="1" max="50" step="1"></div>`); });
+    root.querySelector("#coSave").addEventListener("click", () => {
+      const fresh = [...root.querySelectorAll(".co-row")].map(r => ({ name: r.querySelector(".co-name").value, weight: r.querySelector(".co-w").value, reps: r.querySelector(".co-r").value, sets: r.querySelector(".co-s").value }));
+      log[dateKey] = []; const n = coachLogRows(memberId, dateKey, fresh); if(!n) delete log[dateKey]; save();
+      closeModal(); renderCoach();
+    });
+    root.querySelector("#coDelDay").addEventListener("click", () => confirmDestructive({ title:"Delete this day?", body:`${fmtDate(dateKey)} for ${m.name} — ${rows.length} lift${rows.length === 1 ? "" : "s"}.`, cta:"Delete" }, () => { delete log[dateKey]; save(); closeModal(); renderCoach(); }));
+  });
+}
+
+// Apply a saved workout to many days at once: pick the workout, tap the
+// weekdays, pick the month. Days that already have rows are skipped.
+function openCoachApplyModal(memberId){
+  const c = coachSt(); const m = coachMember(memberId);
+  if(!c.workouts.length){ toast("Create a workout first", "pink"); coachGo("workouts"); return; }
+  const now = new Date(); const months = [0, 1, 2].map(i => { const d = new Date(now.getFullYear(), now.getMonth() + i, 1); return { v: d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"), l: d.toLocaleDateString(undefined, { month:"long", year:"numeric" }) }; });
+  openModal("Apply workout · " + m.name, `
+    <label><span>Workout</span><select id="coW">${c.workouts.map(w => `<option value="${w.id}">${escape(w.name)} · ${w.exercises.length} lifts</option>`).join("")}</select></label>
+    <label><span>Month</span><select id="coM">${months.map(x => `<option value="${x.v}">${x.l}</option>`).join("")}</select></label>
+    <div class="hn-label">Days of the week</div>
+    <div class="co-dows" id="coDows">${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((d, i) => `<button type="button" data-dow="${i}">${d}</button>`).join("")}</div>
+    <p class="gd-note" id="coApplyNote">Pick the days this workout happens.</p>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-cyan" id="coApplyGo">Apply</button></div>
+  `, (root) => {
+    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    const sel = new Set();
+    const dates = () => { const [y, mo] = root.querySelector("#coM").value.split("-").map(Number); const out = []; for(let d = 1; d <= 31; d++){ const dt = new Date(y, mo - 1, d); if(dt.getMonth() !== mo - 1) break; if(sel.has(dt.getDay())) out.push(todayKey(dt)); } return out; };
+    const note = () => { const n = dates().length; root.querySelector("#coApplyNote").textContent = n ? `${n} day${n === 1 ? "" : "s"} will get this workout. Days already logged are left alone; future days are planned until marked done.` : "Pick the days this workout happens."; };
+    root.querySelectorAll("[data-dow]").forEach(b => b.addEventListener("click", () => { const d = +b.getAttribute("data-dow"); if(sel.has(d)) sel.delete(d); else sel.add(d); b.classList.toggle("on", sel.has(d)); note(); }));
+    root.querySelector("#coM").addEventListener("change", note);
+    root.querySelector("#coApplyGo").addEventListener("click", () => {
+      const ds = dates(); if(!ds.length){ toast("Pick at least one day", "pink"); return; }
+      const n = coachApplyWorkout(memberId, root.querySelector("#coW").value, ds);
+      closeModal(); toast(n ? `Applied to ${ds.length} day${ds.length === 1 ? "" : "s"}` : "Those days already have workouts", n ? "cyan" : "pink"); renderCoach();
+    });
+  });
+}
+
+function renderCoachWorkouts(root, c, ui){
+  root.innerHTML = `
+    <div class="view-head co-head"><div><button type="button" class="lf-back" id="coBack">${HV_I.back}</button><h1 class="view-h1">Workouts</h1></div>
+      <div class="co-head-r"><button type="button" class="btn btn-cyan co-add" id="coNewW">+ Workout</button></div></div>
+    <p class="co-p">Save a workout once, then apply it to a member's month in one tap.</p>
+    ${c.workouts.length ? `<ul class="lrows lf-list">${c.workouts.map(w => mrowHtml({ attr:`data-w="${w.id}"`, thumb: exTile((w.exercises[0] || {}).name || "", "mrow-thumb"), eyebrow:`${w.exercises.length} lift${w.exercises.length === 1 ? "" : "s"}`, title:w.name, meta:w.exercises.map(e => `${e.name} ${e.sets}×${e.reps}`).join(" · ") })).join("")}</ul>` : `<div class="hv-empty">No saved workouts yet.</div>`}`;
+  root.querySelector("#coBack").onclick = () => coachGo("members");
+  root.querySelector("#coNewW").addEventListener("click", () => { const w = { id: uid(), name: "", exercises: [] }; c.workouts.push(w); save(); coachGo("workout", { workoutId: w.id }); });
+  root.querySelectorAll("[data-w]").forEach(li => li.addEventListener("click", () => coachGo("workout", { workoutId: li.getAttribute("data-w") })));
+}
+
+function renderCoachWorkoutEdit(root, c, ui){
+  const w = c.workouts.find(x => x.id === ui.workoutId); if(!w) return coachGo("workouts");
+  const row = (e, i) => `<div class="co-row" data-i="${i}">
+      <input type="text" list="coLib" class="co-name" value="${escape(e.name || "")}" placeholder="Lift (pick or type)" maxlength="60" autocomplete="off">
+      <input type="number" class="co-s" value="${e.sets || ""}" placeholder="sets" inputmode="numeric" min="1" max="50" step="1">
+      <input type="number" class="co-r" value="${e.reps || ""}" placeholder="reps" inputmode="numeric" min="0" max="200" step="1">
+      <input type="number" class="co-w" value="${e.weight || ""}" placeholder="${unit()}" inputmode="decimal" min="0" max="2000" step="any">
+    </div>`;
+  root.innerHTML = `
+    <div class="view-head co-head"><div><button type="button" class="lf-back" id="coBack">${HV_I.back}</button><h1 class="view-h1">${w.name ? escape(w.name) : "New workout"}</h1></div></div>
+    ${coachDatalist("coLib")}
+    <div class="card co-card">
+      <label><span>Workout name</span><input type="text" id="coWName" value="${escape(w.name)}" placeholder="Lower A, Upper A, Full body…" maxlength="40"></label>
+      <div class="co-rows-h"><span>Lift</span><span>Sets</span><span>Reps</span><span>${unit()}</span></div>
+      <div id="coRows">${(w.exercises.length ? w.exercises : [{}]).map(row).join("")}</div>
+      <button type="button" class="btn btn-ghost co-sm" id="coAddRow">+ Another lift</button>
+      <div class="co-actions"><button type="button" class="btn btn-cyan" id="coSaveW">Save workout</button><button type="button" class="btn btn-pink" id="coDelW">Delete</button></div>
+    </div>`;
+  const read = () => { w.name = root.querySelector("#coWName").value.trim().slice(0, 40); w.exercises = [...root.querySelectorAll(".co-row")].map(r => ({ name: r.querySelector(".co-name").value.trim().slice(0, 60), sets: Math.max(1, Math.round(+r.querySelector(".co-s").value || 3)), reps: Math.max(0, Math.round(+r.querySelector(".co-r").value || 0)), weight: Math.max(0, +r.querySelector(".co-w").value || 0) })).filter(e => e.name); };
+  root.querySelector("#coBack").onclick = () => { read(); if(!w.name && !w.exercises.length) c.workouts = c.workouts.filter(x => x !== w); save(); coachGo("workouts"); };
+  root.querySelector("#coAddRow").addEventListener("click", () => { const rows = root.querySelector("#coRows"); rows.insertAdjacentHTML("beforeend", row({}, rows.children.length)); rows.lastElementChild.querySelector(".co-name").focus(); });
+  root.querySelector("#coSaveW").addEventListener("click", () => { read(); if(!w.name){ toast("Give the workout a name", "pink"); return; } if(!w.exercises.length){ toast("Add at least one lift", "pink"); return; } save(); toast("Saved " + w.name, "cyan"); coachGo("workouts"); });
+  root.querySelector("#coDelW").addEventListener("click", () => confirmDestructive({ title:"Delete this workout?", body:"Days it was already applied to keep their lifts.", cta:"Delete" }, () => { c.workouts = c.workouts.filter(x => x !== w); save(); coachGo("workouts"); }));
+}
+
+// Settings card + Home pill + More row all follow state.coach.enabled.
+function renderCoachSetting(){
+  const cb = document.getElementById("coachEnabled"); if(cb) cb.checked = coachOn();
+  const row = document.getElementById("moreCoachRow"); if(row) row.classList.toggle("hidden", !coachOn());
+  const card = document.getElementById("coachCard"); if(!card || card._bound) return; card._bound = true;
+  cb.addEventListener("change", () => { coachSt().enabled = cb.checked; save(); renderCoachSetting(); toast(cb.checked ? "Coach hub on — it is on Home" : "Coach hub off", "cyan"); });
+  document.getElementById("coachDemoBtn").addEventListener("click", () => { coachSt().enabled = true; coachLoadDemo(); renderCoachSetting(); toast("Demo gym loaded", "cyan"); go("coach"); });
+  document.getElementById("coachClearBtn").addEventListener("click", () => confirmDestructive({ title:"Clear all coach data?", body:"Every member, log and saved workout in the coach hub.", cta:"Clear" }, () => { state.coach = { enabled: coachOn(), members:[], logs:{}, workouts:[], ui:{} }; save(); renderCoachSetting(); toast("Coach data cleared", "pink"); }));
+}
+onReady(() => { const row = document.getElementById("moreCoachRow"); if(row) row.classList.toggle("hidden", !coachOn()); });
+
+// =================================================================
 // CHATGPT LINK — /api/gpt (netlify/edge-functions/gpt.js + gpt-core.mjs)
 // The phone stays the source of truth. After every save the app pushes a
 // snapshot (debounced); ChatGPT reads that. ChatGPT writes by queueing
@@ -15296,6 +15713,7 @@ window.__bermo = {
 function renderSettings(){
   renderSettingsBase();
   renderAISetup();
+  try{ renderCoachSetting(); }catch(e){ _report("coach setting", e); }
   try{ renderGptLink(); }catch(e){ _report("gpt link", e); }
   try{ renderDiagnostics(); }catch(e){ _report("diag", e); }
 }

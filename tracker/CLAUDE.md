@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v56**.
+- Current build: **v57**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -148,7 +148,7 @@ in chunks. Always `node --check tracker/app.js` before committing.
 | `tracker/repdb.js` (125KB) | **RepDB free tier** (repdb.co): 701 exercises — name, category, body part, primary/secondary muscles (fine anatomy: gluteus_medius, posterior_deltoid, rhomboids…), bodyweight flag, MET, image kind. Illustrations from jsDelivr via `REPDB_IMG(id, kind)`, cache-first. **Licence requires the visible credit** on the More screen (`.credits`) — never remove it. In-app use only; never republish as a dataset. |
 | `tracker/exdb.js` (150KB) | **free-exercise-db**, public domain (The Unlicense): 873 exercises — name, primary/secondary muscles, equipment, category, level. Photos come from jsDelivr (`EXDB_IMG(id, 0|1)`), cache-first in the SW. Regenerate from the upstream `dist/exercises.json` by dropping `instructions` and keeping `{i,n,p,s,e,c,l,m,f}`. |
 | `tracker/sw.js` + `manifest.json` | PWA. SW is **network-first for HTML/CSS/JS** so deploys land without a hard refresh; cache-first for images. |
-| `tracker/tests/smoke.js` | 48 Playwright tests. See §6. |
+| `tracker/tests/smoke.js` | 49 Playwright tests. See §6. |
 | `tracker/tests/week.js` | 10 week-durability tests (plan, log, reload, edit, reload). |
 | `tracker/tests/gpt-core.mjs` | 27 Node tests for the ChatGPT API core against a fake store. |
 | `.github/workflows/tracker-tests.yml` | CI: syntax, API core, smoke, week on every push touching `tracker/`. |
@@ -965,7 +965,7 @@ Playwright is already installed in the scratchpad. Launch chromium with
 `{ server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" }`.
 **Do not run `npx playwright install`.**
 
-**Expected: 48/48 and zero page errors**, `node tracker/tests/week.js` **10/10**, `node tracker/tests/gpt-core.mjs` **27/27**, and the scratchpad's `hvdrive.js` **13/13**. (Two console errors about
+**Expected: 49/49 and zero page errors**, `node tracker/tests/week.js` **10/10**, `node tracker/tests/gpt-core.mjs` **27/27**, and the scratchpad's `hvdrive.js` **13/13**. (Two console errors about
 `ERR_CONNECTION_RESET` are the sandbox blocking a CDN — pre-existing, ignore.)
 
 The suite covers: load, wizard, **sideways overflow on every page**, all tabs,
@@ -1008,6 +1008,27 @@ and `app.js`; zero refs = delete the rule). Twice, removing a UI block left
 render of that page.
 
 ---
+
+**THE SETUP WIZARD (v57).** She said the setup was "the old UI", only
+offered up to 6 days, had the wrong goals, and gave her no say in the
+macros. Rebuilt as `.ob-*` (the old `.gate*` / `.wiz-*` / `.ga-*` CSS is
+swept; ids `wizName/wizNext/wizApply` kept because every test uses them).
+- Goals: **lose / lean / gain / maintain** (`profile.goal`). "Get lean" is
+  a 12% deficit that **never goes under BMR** (8% if scans show muscle
+  falling) — her words: "that's not 1200 cal". `checkAdaptiveMacros`
+  treats `lean` as a loss goal.
+- Days: 2–7 plus **"7 + doubles"** (`profile.doubles`). Daily burn adds
+  0.025 x sessions to the activity multiplier, so the choice changes the
+  number. Splits are body-part named (she does not train upper/lower).
+- Step 3: eating style pills (balanced / high protein low fat / low carb
+  / keto) recompute; calories and all three macros are **inputs**; a tally
+  shows the split and offers to reconcile calories. What is typed is what
+  is saved.
+- Scans: manual rows (date, weight, body fat %, muscle) → `inbodyScans`.
+  Body fat switches BMR to Katch-McArdle and protein to lean mass; a
+  muscle drop of 1 lb+ between the last two scans raises protein and
+  trims the deficit, and says so. Photo parsing of a printout still needs
+  an AI key (Body page), so setup is typed entry.
 
 **THE COACH HUB (v56).** *"A hub for a coach that lists every gym member
 and lets them track… daily, weekly, monthly, annual, all time or custom…
@@ -1223,4 +1244,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v53` LIFTS page — read-only, by lift: PRs, then every session by date with sets, volume, best ·
 `v54` hardening pass (local date keys, schema migrate, error ring + Diagnostics, input clamps, unit conversion, AI function lockdown) and the step 6 orphan sweep (old live-session logger, 29 dead functions, 44 CSS rules) ·
 `v55` THE CHATGPT API — `/api/gpt/*` Netlify Function on Netlify Blobs; app pushes a snapshot after every save, pulls and applies queued entries through the one write path ·
-`v56` COACH HUB — every member, periods with deltas, PRs, log a lift, saved workouts applied to a month; off by default, demo gym included.
+`v56` COACH HUB — every member, periods with deltas, PRs, log a lift, saved workouts applied to a month; off by default, demo gym included ·
+`v57` SETUP rebuilt in the current look: four goals, 7 + doubles, eating styles, editable macros, body-comp scans feeding the plan.

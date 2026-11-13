@@ -205,41 +205,49 @@ function showGate(){
   initWizard();
 }
 
-// ---------- SMART ONBOARDING WIZARD ----------
-let wizStep = 1;
+// ---------- SETUP WIZARD (v57) ----------
+// Three steps: about you -> goal, training, optional scans -> your numbers,
+// every one of them editable before saving. Goals: lose / lean / gain /
+// maintain. "Get lean" is NOT a crash diet: a modest deficit that never
+// goes under BMR, high protein, lower fat. Eating style is her choice
+// (balanced / high protein low fat / low carb / keto), not ours.
+let wizStep = 1, _wizBound = false, _wizScans = [], _wizStyle = null, _wizEdited = false;
 const WIZ_TOTAL = 3;
+const WIZ_STYLE_DEFAULT = { lose:"highprotein", lean:"highprotein", gain:"balanced", maintain:"balanced" };
 
 function initWizard(){
-  // pre-fill from any prior profile
   const p = state.profile || {};
   if(p.name) $("#wizName").value = p.name;
   if(p.sex) $("#wizSex").value = p.sex;
   if(p.ageYears) $("#wizAge").value = p.ageYears;
   if(p.units) $("#wizUnits").value = p.units;
   if(p.heightIn){
-    if(p.units === "metric"){
-      $("#wizHeightCm").value = Math.round(p.heightIn * 2.54);
-    } else {
-      $("#wizHeightFt").value = Math.floor(p.heightIn / 12);
-      $("#wizHeightIn").value = Math.round(p.heightIn % 12);
-    }
+    if(p.units === "metric") $("#wizHeightCm").value = Math.round(p.heightIn * 2.54);
+    else { $("#wizHeightFt").value = Math.floor(p.heightIn / 12); $("#wizHeightIn").value = Math.round(p.heightIn % 12); }
   }
-  if(p.weightLb) $("#wizWeight").value = p.units === "metric" ? Math.round(p.weightLb * 0.4536 * 10)/10 : p.weightLb;
+  if(p.weightLb) $("#wizWeight").value = p.units === "metric" ? Math.round(p.weightLb * 0.4536 * 10)/10 : Math.round(p.weightLb * 10)/10;
   if(p.goal) $("#wizGoal").value = p.goal;
-  if(p.goalRateLbWk) $("#wizRate").value = p.goalRateLbWk;
+  if(p.goalRateLbWk && [0.5,1,1.5].includes(+p.goalRateLbWk)) $("#wizRate").value = p.goalRateLbWk;
   if(p.activityLevel) $("#wizActivity").value = p.activityLevel;
   if(p.experience) $("#wizExp").value = p.experience;
-  if(p.daysPerWeek) $("#wizDays").value = p.daysPerWeek;
+  if(p.daysPerWeek) $("#wizDays").value = p.doubles ? "7d" : String(Math.min(7, Math.max(2, p.daysPerWeek)));
   if(p.equipment) $("#wizEquipment").value = p.equipment;
-
-  $("#wizUnits").addEventListener("change", onWizUnitsChange);
-  $("#wizGoal").addEventListener("change", onWizGoalChange);
-  $("#wizPrev").addEventListener("click", () => wizGo(wizStep - 1));
-  $("#wizNext").addEventListener("click", () => wizGo(wizStep + 1));
-  $("#wizApply").addEventListener("click", wizApply);
-  onWizUnitsChange();
-  onWizGoalChange();
-  wizGo(1);
+  _wizStyle = p.macroStyle || null; _wizEdited = false;
+  // scans already on file are shown so a re-run starts from the truth
+  _wizScans = (state.inbodyScans || []).slice(-4).map(x => ({ id:x.id, date:x.date, weight: x.weightLb ? Math.round((p.units === "metric" ? x.weightLb * 0.4536 : x.weightLb) * 10)/10 : "", bf: x.bodyFatPct || "", smm: x.skeletalMuscleMassLb ? Math.round((p.units === "metric" ? x.skeletalMuscleMassLb * 0.4536 : x.skeletalMuscleMassLb) * 10)/10 : "", saved:true }));
+  if(!_wizBound){
+    _wizBound = true;
+    $("#wizUnits").addEventListener("change", onWizUnitsChange);
+    $("#wizPrev").addEventListener("click", () => wizGo(wizStep - 1));
+    $("#wizNext").addEventListener("click", () => wizGo(wizStep + 1));
+    $("#wizApply").addEventListener("click", wizApply);
+    $$("#wizGoals [data-goal]").forEach(b => b.addEventListener("click", () => { $("#wizGoal").value = b.dataset.goal; _wizStyle = null; _wizEdited = false; onWizGoalChange(); }));
+    $$("#wizStyles [data-style]").forEach(b => b.addEventListener("click", () => { _wizStyle = b.dataset.style; _wizEdited = false; renderWizSummary(); }));
+    $("#wizAddScan").addEventListener("click", () => { wizReadScans(); _wizScans.push({ id: uid(), date: todayKey(), weight:"", bf:"", smm:"" }); renderWizScans(); });
+    $("#wizCal").addEventListener("change", () => { _wizEdited = false; renderWizSummary(+$("#wizCal").value || 0); });
+    ["wizP","wizC","wizF"].forEach(id => $("#" + id).addEventListener("input", () => { _wizEdited = true; wizTally(); }));
+  }
+  onWizUnitsChange(); onWizGoalChange(); renderWizScans(); wizGo(1, true);
 }
 
 function onWizUnitsChange(){
@@ -248,25 +256,44 @@ function onWizUnitsChange(){
   const imp = $("#wizHtRowImperial"), met = $("#wizHtRowMetric");
   if(imp) imp.style.display = metric ? "none" : "grid";
   if(met) met.style.display = metric ? "block" : "none";
+  renderWizScans();
 }
 function onWizGoalChange(){
   const v = $("#wizGoal").value;
-  $("#wizRateWrap").style.display = v === "maintain" ? "none" : "block";
-  $("#wizRateLabel").textContent = v === "lose" ? "Loss rate" : "Gain rate";
+  $$("#wizGoals [data-goal]").forEach(b => b.classList.toggle("on", b.dataset.goal === v));
+  $("#wizRateWrap").style.display = (v === "lose" || v === "gain") ? "block" : "none";
+  $("#wizRateLabel").textContent = v === "lose" ? "Pace of loss" : "Pace of gain";
 }
 
-function wizGo(n){
-  if(n < 1) return;
-  if(n > WIZ_TOTAL) return;
-  if(n > wizStep && !wizValidateCurrent()) return;
+function renderWizScans(){
+  const host = $("#wizScans"); if(!host) return;
+  const u = $("#wizUnits").value === "metric" ? "kg" : "lb";
+  host.innerHTML = _wizScans.map((x, i) => `<div class="ob-scan" data-i="${i}">
+      <label class="ob-f"><span>Date</span><input type="date" class="sc-d" value="${escape(x.date || "")}"></label>
+      <label class="ob-f"><span>Weight ${u}</span><input type="number" class="sc-w" value="${x.weight}" step="any" inputmode="decimal" min="0" max="700"></label>
+      <label class="ob-f"><span>Body fat %</span><input type="number" class="sc-b" value="${x.bf}" step="any" inputmode="decimal" min="3" max="70"></label>
+      <label class="ob-f"><span>Muscle ${u}</span><input type="number" class="sc-m" value="${x.smm}" step="any" inputmode="decimal" min="0" max="300"></label>
+      <button type="button" class="ob-x" data-x="${i}" aria-label="Remove scan">×</button></div>`).join("");
+  host.querySelectorAll("[data-x]").forEach(b => b.addEventListener("click", () => { wizReadScans(); _wizScans.splice(+b.dataset.x, 1); renderWizScans(); }));
+}
+function wizReadScans(){
+  $$("#wizScans .ob-scan").forEach((row, i) => { const x = _wizScans[i]; if(!x) return;
+    x.date = row.querySelector(".sc-d").value; x.weight = row.querySelector(".sc-w").value; x.bf = row.querySelector(".sc-b").value; x.smm = row.querySelector(".sc-m").value; });
+  return _wizScans;
+}
+
+function wizGo(n, force){
+  if(n < 1 || n > WIZ_TOTAL) return;
+  if(!force && n > wizStep && !wizValidateCurrent()) return;
   wizStep = n;
   $$(".wiz-step").forEach(el => el.classList.toggle("active", parseInt(el.dataset.step,10) === n));
   $("#wizProgFill").style.width = ((n / WIZ_TOTAL) * 100) + "%";
-  $("#wizStepLabel").textContent = `Step ${n} of ${WIZ_TOTAL} — ${["About you","Your goal","Review"][n-1]}`;
+  $("#wizStepLabel").textContent = `Step ${n} of ${WIZ_TOTAL}`;
   $("#wizPrev").style.display = n === 1 ? "none" : "inline-block";
   $("#wizNext").style.display = n === WIZ_TOTAL ? "none" : "inline-block";
   $("#wizApply").style.display = n === WIZ_TOTAL ? "inline-block" : "none";
-  if(n === WIZ_TOTAL) renderWizSummary();
+  if(n === WIZ_TOTAL){ _wizEdited = false; renderWizSummary(); }
+  const g = $("#gate"); if(g && g.scrollTo) g.scrollTo(0, 0);
 }
 
 function wizValidateCurrent(){
@@ -274,125 +301,154 @@ function wizValidateCurrent(){
     if(!$("#wizName").value.trim()) { toast("Add your name", "err"); return false; }
     const age = parseInt($("#wizAge").value, 10);
     if(!(age >= 13 && age <= 99)) { toast("Age 13–99", "err"); return false; }
+    if(!(parseFloat($("#wizWeight").value) > 0)) { toast("Add your weight", "err"); return false; }
   }
   return true;
 }
 
 function wizCollect(){
   const metric = $("#wizUnits").value === "metric";
-  const weightInput = parseFloat($("#wizWeight").value);
+  const toLb = (v) => metric ? v / 0.4536 : v;
   let heightIn;
-  if(metric){
-    const cm = parseFloat($("#wizHeightCm").value);
-    heightIn = cm / 2.54;
-  } else {
-    const ft = parseInt($("#wizHeightFt").value, 10) || 0;
-    let inches = parseInt($("#wizHeightIn").value, 10) || 0;
-    // If a whole height lands in the INCHES box (66 rather than 5 + 6), take
-    // it as the total rather than silently producing 10'6".
+  if(metric) heightIn = parseFloat($("#wizHeightCm").value) / 2.54;
+  else {
+    const ft = parseInt($("#wizHeightFt").value, 10) || 0; const inches = parseInt($("#wizHeightIn").value, 10) || 0;
+    // A whole height typed into the INCHES box (66) is taken as the total.
     heightIn = inches > 11 ? inches : (ft * 12 + inches);
   }
+  const dv = $("#wizDays").value;
+  const scans = wizReadScans().map(x => ({ id:x.id, saved:!!x.saved, date: x.date || todayKey(), weightLb: +x.weight > 0 ? toLb(+x.weight) : null, bodyFatPct: +x.bf > 0 ? +x.bf : null, skeletalMuscleMassLb: +x.smm > 0 ? toLb(+x.smm) : null }))
+    .filter(x => x.weightLb || x.bodyFatPct || x.skeletalMuscleMassLb).sort((a, b) => a.date < b.date ? -1 : 1);
+  const goal = $("#wizGoal").value;
   return {
     name: $("#wizName").value.trim() || "Athlete",
-    sex: $("#wizSex").value,
-    ageYears: parseInt($("#wizAge").value, 10),
-    units: metric ? "metric" : "imperial",
-    heightIn,
-    weightLb: metric ? weightInput / 0.4536 : weightInput,
-    goal: $("#wizGoal").value,
-    goalRateLbWk: parseFloat($("#wizRate").value),
+    sex: $("#wizSex").value, ageYears: parseInt($("#wizAge").value, 10),
+    units: metric ? "metric" : "imperial", heightIn,
+    weightLb: toLb(parseFloat($("#wizWeight").value)),
+    goal, goalRateLbWk: parseFloat($("#wizRate").value),
     activityLevel: parseFloat($("#wizActivity").value),
     experience: $("#wizExp").value,
-    daysPerWeek: parseInt($("#wizDays").value, 10),
+    daysPerWeek: dv === "7d" ? 7 : parseInt(dv, 10), doubles: dv === "7d",
     equipment: $("#wizEquipment").value,
+    macroStyle: _wizStyle || WIZ_STYLE_DEFAULT[goal] || "balanced",
+    scans,
   };
 }
 
-function computeTargets(p){
-  // Mifflin-St Jeor (kg, cm)
-  const kg = p.weightLb * 0.4536;
-  const cm = p.heightIn * 2.54;
-  const bmr = Math.round(p.sex === "male"
-    ? 10*kg + 6.25*cm - 5*p.ageYears + 5
-    : 10*kg + 6.25*cm - 5*p.ageYears - 161);
-  const tdee = Math.round(bmr * p.activityLevel);
-  let delta = 0;
-  if(p.goal === "lose") delta = -Math.round(p.goalRateLbWk * 500);
-  if(p.goal === "gain") delta =  Math.round(p.goalRateLbWk * 500);
-  const cal = Math.max(1200, tdee + delta);
-  // macro split shifts slightly by goal
-  let pPct = 0.30, cPct = 0.40, fPct = 0.30;
-  if(p.goal === "lose")  { pPct = 0.35; cPct = 0.35; fPct = 0.30; }
-  if(p.goal === "gain")  { pPct = 0.28; cPct = 0.45; fPct = 0.27; }
-  const protein = Math.round(cal * pPct / 4);
-  const carbs   = Math.round(cal * cPct / 4);
-  const fat     = Math.round(cal * fPct / 9);
-  return { bmr, tdee, cal, protein, carbs, fat };
+// What the scans say. Latest body fat feeds the maths; a muscle drop
+// between the last two scans changes the recommendation.
+function wizScanRead(p){
+  const sc = p.scans || []; const withBf = sc.filter(x => x.bodyFatPct); const last = withBf[withBf.length - 1] || null;
+  const out = { bf: last ? last.bodyFatPct : null, muscleDrop: 0, bfDelta: null, n: sc.length };
+  const m = sc.filter(x => x.skeletalMuscleMassLb);
+  if(m.length >= 2) out.muscleDrop = m[m.length - 2].skeletalMuscleMassLb - m[m.length - 1].skeletalMuscleMassLb;
+  else if(withBf.length >= 2){ // fall back to lean mass from weight x (1 - bf)
+    const lean = (x) => x.weightLb ? x.weightLb * (1 - x.bodyFatPct / 100) : null; const a = lean(withBf[withBf.length - 2]), b = lean(withBf[withBf.length - 1]);
+    if(a && b) out.muscleDrop = (a - b) * 0.5; // roughly half of lean mass is muscle
+  }
+  if(withBf.length >= 2) out.bfDelta = withBf[withBf.length - 1].bodyFatPct - withBf[withBf.length - 2].bodyFatPct;
+  return out;
 }
 
-function suggestSplit(p){
-  if(p.experience === "beginner" || p.daysPerWeek <= 3){
-    return { id:"fb3", name:"Full Body 3x", days:3, focus:"Compound lifts every session — fastest beginner gains.", template:"Full Body 3x" };
-  }
-  if(p.daysPerWeek === 4){
-    return { id:"ul4", name:"Upper / Lower 4x", days:4, focus:"Two upper days, two lower. Great balance for intermediates.", template:"Upper/Lower 4x" };
-  }
-  if(p.daysPerWeek >= 5){
-    return { id:"ppl", name:"Push / Pull / Legs", days:6, focus:"Hits each muscle group 2x/week with high volume.", template:"PPL" };
-  }
-  return { id:"fb3", name:"Full Body 3x", days:3, focus:"Solid default.", template:"Full Body 3x" };
+function computeTargets(p, calOverride){
+  const kg = p.weightLb * 0.4536, cm = p.heightIn * 2.54;
+  const scan = wizScanRead(p);
+  const leanLb = scan.bf ? p.weightLb * (1 - scan.bf / 100) : null;
+  // Katch-McArdle when body fat is known, Mifflin-St Jeor otherwise.
+  const bmr = Math.round(leanLb ? 370 + 21.6 * (leanLb * 0.4536)
+    : (p.sex === "male" ? 10*kg + 6.25*cm - 5*p.ageYears + 5 : 10*kg + 6.25*cm - 5*p.ageYears - 161));
+  const sessions = (p.daysPerWeek || 0) + (p.doubles ? 3 : 0);
+  const tdee = Math.round(bmr * (p.activityLevel + 0.025 * sessions));
+  const losingMuscle = scan.muscleDrop >= 1;
+  const notes = [];
+  let delta = 0, floor = 1200;
+  if(p.goal === "lose"){ delta = -Math.round(p.goalRateLbWk * 500); floor = Math.max(1200, Math.round(bmr * 0.85)); }
+  if(p.goal === "lean"){ delta = -Math.round(tdee * (losingMuscle ? 0.08 : 0.12)); floor = bmr; }
+  if(p.goal === "gain"){ delta = Math.round(p.goalRateLbWk * 500 * 0.6); }
+  let cal = Math.max(floor, tdee + delta);
+  if(p.goal === "lean") notes.push(`Getting lean is a small deficit, about ${Math.round((tdee - cal) / tdee * 100)}% under what you burn, and never below your resting burn of ${bmr}. Enough food to train hard and keep muscle.`);
+  if(p.goal === "lose" && cal === floor && tdee + delta < floor) notes.push(`That pace would put you under ${floor} calories, so the plan holds at ${floor} and takes a little longer instead.`);
+  if(calOverride > 0) cal = Math.round(calOverride);
+  // protein: per lb of lean mass when we have it, else per lb bodyweight
+  const style = p.macroStyle || "balanced";
+  const cutting = p.goal === "lose" || p.goal === "lean";
+  let gPerLb = { balanced: cutting ? 0.85 : 0.8, highprotein: 1.0, lowcarb: 0.9, keto: 0.8 }[style];
+  if(losingMuscle && cutting) gPerLb += 0.1;
+  let protein = Math.round(leanLb ? leanLb * (gPerLb + 0.25) : p.weightLb * gPerLb);
+  protein = Math.min(protein, Math.round(cal * 0.45 / 4));
+  let fat, carbs;
+  const minFat = Math.round(p.weightLb * 0.3);
+  if(style === "keto"){ carbs = 30; fat = Math.max(minFat, Math.round((cal - protein*4 - carbs*4) / 9)); }
+  else if(style === "lowcarb"){ carbs = Math.round(cal * 0.20 / 4); fat = Math.max(minFat, Math.round((cal - protein*4 - carbs*4) / 9)); }
+  else { fat = Math.max(minFat, Math.round(cal * (style === "highprotein" ? 0.22 : 0.30) / 9)); carbs = Math.max(0, Math.round((cal - protein*4 - fat*9) / 4)); }
+  if(scan.bf) notes.push(`Built from your ${scan.bf}% body fat: about ${Math.round(leanLb)} lb lean mass sets your resting burn and your protein.`);
+  if(losingMuscle) notes.push(`Your last two scans show muscle down about ${Math.round(scan.muscleDrop * 10) / 10} lb. Protein is set higher${p.goal === "lean" ? " and the deficit smaller" : ""}, and lifting should stay at 3+ days a week.`);
+  else if(scan.bfDelta != null && scan.bfDelta < 0 && scan.muscleDrop <= 0) notes.push(`Your scans show body fat down ${Math.abs(Math.round(scan.bfDelta * 10) / 10)} points with muscle held. What you have been doing is working.`);
+  return { bmr, tdee, cal, protein, carbs, fat, notes, style, losingMuscle, bf: scan.bf };
 }
 
-function renderWizSummary(){
-  const p = wizCollect();
-  const t = computeTargets(p);
-  const split = suggestSplit(p);
-  const goalLabel = p.goal === "lose" ? `Lose ${p.goalRateLbWk} lb/wk`
-                  : p.goal === "gain" ? `Gain ${p.goalRateLbWk} lb/wk`
-                  : "Maintain";
-  $("#wizSummary").innerHTML = `
-    <div class="wiz-sum-grid">
-      <div class="wiz-sum-cell"><span>BMR</span><strong>${t.bmr}</strong><em>cal</em></div>
-      <div class="wiz-sum-cell"><span>TDEE</span><strong>${t.tdee}</strong><em>cal</em></div>
-      <div class="wiz-sum-cell hl"><span>Daily target</span><strong>${t.cal}</strong><em>cal</em></div>
-      <div class="wiz-sum-cell"><span>Goal</span><strong>${goalLabel}</strong></div>
-    </div>
-    <div class="wiz-macro-row">
-      <div class="wiz-macro p"><span>Protein</span><strong>${t.protein} g</strong></div>
-      <div class="wiz-macro c"><span>Carbs</span><strong>${t.carbs} g</strong></div>
-      <div class="wiz-macro f"><span>Fat</span><strong>${t.fat} g</strong></div>
+// Body-part splits (she does not train upper/lower or push/pull).
+function suggestSplit(p, t){
+  const d = p.daysPerWeek || 3;
+  const S = {
+    2: ["Full Body 2x", "Two full-body sessions built on the big lifts."],
+    3: ["Full Body 3x", "Squat, hinge, push and pull every session."],
+    4: ["4-day body-part split", "Legs · Back + biceps · Chest + triceps · Glutes + hamstrings."],
+    5: ["5-day body-part split", "Legs · Back + biceps · Chest + triceps · Glutes + hamstrings · Shoulders + arms."],
+    6: ["6-day body-part split", "The five-day split plus a second leg day."],
+    7: ["7-day split", "Six lifting days plus one conditioning and core day. One day stays light."],
+  };
+  let [name, focus] = S[Math.min(7, Math.max(2, d))];
+  if(p.doubles){ name = "7-day split with two-a-days"; focus += " Second sessions are for cardio, accessories or a weak point, not a second heavy lift."; }
+  if(p.experience === "beginner" && d > 4) focus += " As a beginner you will grow on fewer days too; the extra days are optional.";
+  if(t && t.losingMuscle && d < 3) focus += " Your scans suggest adding a third lifting day.";
+  return { id: p.doubles ? "bp7d" : (d <= 3 ? "fb" + d : "bp" + d), name, days: d, focus, template: name };
+}
+
+function wizTally(){
+  const cal = +$("#wizCal").value || 0, P = +$("#wizP").value || 0, C = +$("#wizC").value || 0, F = +$("#wizF").value || 0;
+  const sum = P*4 + C*4 + F*9, diff = sum - cal; const el = $("#wizTally");
+  const pct = (x) => sum ? Math.round(x / sum * 100) : 0;
+  el.innerHTML = `<span>Protein ${pct(P*4)}% · Carbs ${pct(C*4)}% · Fat ${pct(F*9)}%</span>` +
+    (Math.abs(diff) > 25 ? `<b>Macros add up to ${sum}, ${Math.abs(diff)} ${diff > 0 ? "over" : "under"} your calories.</b><button type="button" id="wizRebal">Set calories to ${sum}</button>` : "");
+  const rb = document.getElementById("wizRebal"); if(rb) rb.addEventListener("click", () => { $("#wizCal").value = sum; wizTally(); });
+}
+
+function renderWizSummary(calOverride){
+  const p = wizCollect(); const t = computeTargets(p, calOverride); const split = suggestSplit(p, t);
+  const goalLabel = { lose:`Lose ${p.goalRateLbWk} lb a week`, lean:"Get lean", gain:"Gain muscle", maintain:"Maintain" }[p.goal];
+  $("#wizSummary").innerHTML = `<div class="ob-tiles">
+      <div><b>${t.bmr}</b><span>Resting burn</span></div>
+      <div><b>${t.tdee}</b><span>Daily burn</span></div>
+      <div><b>${escape(goalLabel)}</b><span>Goal</span></div>
     </div>`;
-  $("#wizSplitCard").innerHTML = `
-    <div class="wiz-split-head">Suggested split</div>
-    <div class="wiz-split-name">${split.name}</div>
-    <div class="wiz-split-focus">${split.focus}</div>
-    <div class="wiz-split-meta">${split.days} days/week · matches your ${p.experience} level + ${p.daysPerWeek} day availability</div>`;
+  $$("#wizStyles [data-style]").forEach(b => b.classList.toggle("on", b.dataset.style === t.style));
+  if(!_wizEdited){ $("#wizCal").value = t.cal; $("#wizP").value = t.protein; $("#wizC").value = t.carbs; $("#wizF").value = t.fat; }
+  wizTally();
+  $("#wizWhy").innerHTML = t.notes.map(n => `<p>${escape(n)}</p>`).join("");
+  $("#wizSplitCard").innerHTML = `<span>Training</span><b>${escape(split.name)}</b><p>${escape(split.focus)}</p>`;
 }
 
 function wizApply(){
-  const p = wizCollect();
-  const t = computeTargets(p);
-  const split = suggestSplit(p);
-  state.profile = {
-    ...state.profile,
-    ...p,
-    onboarded: true,
-    onboardedAt: new Date().toISOString(),
-    suggestedSplit: split.id,
-    suggestedSplitName: split.name,
-  };
-  state.goals.cal = t.cal;
-  state.goals.protein = t.protein;
-  state.goals.carbs = t.carbs;
-  state.goals.fat = t.fat;
-  state.goals.bmr = t.bmr;
-  state.goals.tdee = t.tdee;
-  // Seed weight history if empty
-  if(!state.weights.length){
-    state.weights.push({ date: todayKey(), val: p.weightLb });
-  }
+  const p = wizCollect(); const t = computeTargets(p); const split = suggestSplit(p, t);
+  const num = (id, lo, hi, fb) => { const v = Math.round(+$("#" + id).value); return isFinite(v) && v >= lo && v <= hi ? v : fb; };
+  const cal = num("wizCal", 800, 6000, t.cal), protein = num("wizP", 0, 500, t.protein), carbs = num("wizC", 0, 800, t.carbs), fat = num("wizF", 0, 300, t.fat);
+  const scans = p.scans; delete p.scans;
+  if(p.goal === "lean") p.goalRateLbWk = Math.max(0.25, Math.round((t.tdee - cal) * 7 / 3500 * 100) / 100);
+  state.profile = { ...state.profile, ...p, onboarded: true, onboardedAt: new Date().toISOString(), suggestedSplit: split.id, suggestedSplitName: split.name };
+  if(t.bf) state.profile.bodyFatPct = t.bf;
+  Object.assign(state.goals, { cal, protein, carbs, fat, bmr: t.bmr, tdee: t.tdee });
+  // new scans go where the Body page already reads them
+  const store = _ensureSection("inbodyScans", []);
+  scans.filter(x => !x.saved).forEach(x => {
+    store.push({ id: x.id || uid(), date: x.date, source: "setup", weightLb: x.weightLb, bodyFatPct: x.bodyFatPct, skeletalMuscleMassLb: x.skeletalMuscleMassLb });
+    if(x.bodyFatPct) state.measurements.push({ date: x.date, type: "Body Fat %", val: x.bodyFatPct });
+    if(x.weightLb && !state.weights.some(w => w.date === x.date)) state.weights.push({ date: x.date, val: Math.round(x.weightLb * 10) / 10, source: "inbody" });
+  });
+  if(!state.weights.some(w => w.date === todayKey())) state.weights.push({ date: todayKey(), val: Math.round(p.weightLb * 10) / 10 });
+  state.weights.sort((a, b) => a.date < b.date ? -1 : 1);
   save();
-  toast("Profile saved — let's go", "ok");
+  toast("Saved", "ok");
   enterApp();
 }
 
@@ -8999,11 +9055,12 @@ function checkAdaptiveMacros(){
   const w14 = _adaptiveAvgWeight(14);
   if(!w7 || !w14) return null;
   const observedRate = (w7 - w14);
-  const targetRate = p.goal === "lose" ? -(p.goalRateLbWk||1) : (p.goalRateLbWk||1);
+  const losing = p.goal === "lose" || p.goal === "lean";
+  const targetRate = losing ? -(p.goalRateLbWk||1) : (p.goalRateLbWk||1);
   if(targetRate === 0) return null;
   const ratio = observedRate / targetRate;
   if(ratio >= 0.8 && ratio <= 1.5) return null;
-  const direction = (p.goal === "lose")
+  const direction = losing
     ? (observedRate > targetRate ? -100 : +100)
     : (observedRate < targetRate ? +100 : -100);
   return {

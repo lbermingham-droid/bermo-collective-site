@@ -1177,6 +1177,31 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
     await page.evaluate(() => { const st = JSON.parse(localStorage.getItem("bermo.tracker.v1")); delete st.coach; localStorage.setItem("bermo.tracker.v1", JSON.stringify(st)); });
   } catch (e) { fail("v56 coach hub", e); }
 
+  // 49. v57 setup wizard — four goals, 7 + doubles, lean is not a crash
+  //     diet, eating styles change the macros, edits are what gets saved,
+  //     scans are stored.
+  try {
+    await page.evaluate(() => document.querySelector('[data-tab="settings"]').click()); await page.waitForTimeout(300);
+    await page.evaluate(() => document.getElementById("rerunSetupBtn").click()); await page.waitForTimeout(400);
+    const goals = await page.evaluate(() => [...document.querySelectorAll("#wizGoals [data-goal]")].map(b => b.dataset.goal).join(","));
+    const days = await page.evaluate(() => [...document.querySelectorAll("#wizDays option")].map(o => o.value).join(","));
+    await page.fill("#wizWeight", "140");
+    await page.evaluate(() => document.getElementById("wizNext").click()); await page.waitForTimeout(200);
+    await page.evaluate(() => { document.querySelector('[data-goal="lean"]').click(); document.getElementById("wizDays").value = "7d"; document.getElementById("wizAddScan").click(); });
+    await page.fill("#wizScans .sc-b", "24");
+    await page.evaluate(() => document.getElementById("wizNext").click()); await page.waitForTimeout(300);
+    const lean = await page.evaluate(() => ({ cal:+document.getElementById("wizCal").value, f:+document.getElementById("wizF").value, c:+document.getElementById("wizC").value, bmr:+document.querySelector(".ob-tiles b").textContent }));
+    await page.evaluate(() => document.querySelector('[data-style="keto"]').click()); await page.waitForTimeout(150);
+    const keto = await page.evaluate(() => ({ c:+document.getElementById("wizC").value, f:+document.getElementById("wizF").value }));
+    await page.fill("#wizP", "133");
+    await page.evaluate(() => document.getElementById("wizApply").click()); await page.waitForTimeout(700);
+    const saved = await page.evaluate(() => { const s = JSON.parse(localStorage.getItem("bermo.tracker.v1")); return { p:s.goals.protein, goal:s.profile.goal, dbl:s.profile.doubles, d:s.profile.daysPerWeek, style:s.profile.macroStyle, scan:(s.inbodyScans||[]).some(x => x.bodyFatPct === 24), app:!document.getElementById("app").classList.contains("hidden") }; });
+    const good = goals === "lose,lean,gain,maintain" && days === "2,3,4,5,6,7,7d" && lean.cal >= lean.bmr && lean.cal > 1400 && keto.c === 30 && keto.f > lean.f
+      && saved.p === 133 && saved.goal === "lean" && saved.dbl === true && saved.d === 7 && saved.style === "keto" && saved.scan && saved.app;
+    good ? ok("v57 setup: four goals, 7 + doubles, lean stays above resting burn, styles + edits + scans saved")
+         : fail("v57 setup", JSON.stringify({ goals, days, lean, keto, saved }));
+  } catch (e) { fail("v57 setup", e); }
+
   await browser.close();
   print();
 })();

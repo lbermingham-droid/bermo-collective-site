@@ -1157,6 +1157,8 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
     // v58: class sheet — tick a member in, type a weight; calendar fill
     await page.evaluate(() => document.getElementById("coBack").click()); await page.waitForTimeout(300);
     await page.evaluate(() => document.querySelector('[data-cotab="today"]').click()); await page.waitForTimeout(300);
+    // the demo gym has no Sunday class: pick a workout for today if none is planned
+    await page.evaluate(() => { const sel = document.getElementById("coDayW"); if(!sel.value){ sel.value = sel.options[1].value; sel.dispatchEvent(new Event("change", { bubbles:true })); } }); await page.waitForTimeout(300);
     const mid = await page.evaluate(() => { const cb = document.querySelector("#coach [data-att]"); cb.click(); return cb.getAttribute("data-att"); });
     await page.waitForTimeout(300);
     await page.fill('#coach tr.on [data-cell="0"]', "77"); await page.keyboard.press("Tab"); await page.waitForTimeout(200);

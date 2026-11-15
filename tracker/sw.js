@@ -1,5 +1,5 @@
 /* BERMO TRACKER service worker — offline support + notifications */
-const CACHE = "bermo-tracker-v58";
+const CACHE = "bermo-tracker-v59";
 const ASSETS = [
   "/tracker/",
   "/tracker/index.html",
@@ -9,6 +9,7 @@ const ASSETS = [
   "/tracker/exdb.js",
   "/tracker/repdb.js",
   "/tracker/bryl.js",
+  "/tracker/body.js",
   "/tracker/vendor/chart.umd.js",
   "/tracker/manifest.json",
   "/favicon.svg"

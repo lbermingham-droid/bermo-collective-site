@@ -4957,7 +4957,7 @@ input, select, textarea{ border-radius: var(--g-r-sm) !important; }
 .mrow-thumb, .hv-thumb, .lf-tile{ border-radius: 12px !important; background: linear-gradient(160deg, rgba(255,255,255,.09), rgba(255,255,255,.02)) !important; border:1px solid var(--g-edge) !important; box-shadow: var(--g-hi) !important; }
 .mm-wrap{ border-radius: var(--g-r); background: radial-gradient(60% 55% at 50% 45%, rgba(0,245,212,.08), transparent 70%); padding:10px 0; }
 .mm-svg{ filter: drop-shadow(0 10px 22px rgba(0,0,0,.6)) drop-shadow(0 0 14px rgba(0,245,212,.12)); }
-.mm-svg g{ stroke: rgba(255,255,255,.16) !important; stroke-width:.6 !important; }
+
 
 /* ============================================================
    v58 — COACH HUB (.co-*): sheet, calendar, tables. CRM-plain.
@@ -5048,3 +5048,17 @@ input, select, textarea{ border-radius: var(--g-r-sm) !important; }
 .co-edit input{ width:100%; min-width:0; height:42px; padding:0 8px; background: rgba(0,0,0,.28); border:1px solid var(--g-edge); color:#fff; font:inherit; font-size:16px; }
 .co-edit td:nth-child(n+2) input{ text-align:center; padding:0 2px; }
 .co-del{ width:28px; height:42px; border:0; background:none; color:#8b93a1; font-size:20px; cursor:pointer; }
+
+/* v59 — body figure (male/female, front/back) */
+.mm-wrap{ position:relative; padding:6px 0 12px !important; display:flex; flex-direction:column; align-items:center; }
+.mm-ctl{ width:100%; display:flex; align-items:center; justify-content:space-between; padding:0 4px 8px; }
+.mm-side{ font-size:10px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:#8b93a1; }
+.mm-svg{ width:auto !important; max-width:100% !important; height:min(62vh, 460px) !important; }
+.mm-svg .mm-o{ fill:#30333c; stroke:#3d414c; stroke-width:2; }
+.mm-svg .mm-b{ fill:#3a3d47; stroke:#23252c; stroke-width:1.5; }
+.mm-svg .mm-hair{ fill:#2a2c33; }
+.mm-svg .mm-m{ stroke:#1b1d23 !important; stroke-width:2 !important; stroke-linejoin:round; transition:fill .2s; }
+.mm-flip{ position:absolute; right:6px; bottom:44px; width:44px; height:44px; border-radius:50%; border:1px solid var(--g-edge); background: var(--g-fill-2); color:#fff; box-shadow: var(--g-hi), 0 8px 18px -8px rgba(0,0,0,.7); cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.mm-flip svg{ width:20px; height:20px; }
+.mm-legend{ display:flex; flex-wrap:wrap; justify-content:center; gap:6px 14px; margin-top:8px; font-size:11px; color:#8b93a1; }
+.mm-legend i{ display:inline-block; width:9px; height:9px; border-radius:3px; margin-right:5px; vertical-align:-1px; }

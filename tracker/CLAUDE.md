@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v58**.
+- Current build: **v59**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -147,6 +147,7 @@ in chunks. Always `node --check tracker/app.js` before committing.
 | `tracker/bryl.js` (43KB) | **Workout Guide by Bryl Lim**: 302 exercises, white-on-transparent line art (3 frames; we use frame 1), equipment, primary/secondary muscle. Assets **CC BY-SA 4.0** (76 first poses adapted from Everkinetic). Used unmodified from the npm CDN (`BRYL_IMG(path)`), credited on More. The style that actually matches the dark UI. |
 | `tracker/repdb.js` (125KB) | **RepDB free tier** (repdb.co): 701 exercises — name, category, body part, primary/secondary muscles (fine anatomy: gluteus_medius, posterior_deltoid, rhomboids…), bodyweight flag, MET, image kind. Illustrations from jsDelivr via `REPDB_IMG(id, kind)`, cache-first. **Licence requires the visible credit** on the More screen (`.credits`) — never remove it. In-app use only; never republish as a dataset. |
 | `tracker/exdb.js` (150KB) | **free-exercise-db**, public domain (The Unlicense): 873 exercises — name, primary/secondary muscles, equipment, category, level. Photos come from jsDelivr (`EXDB_IMG(id, 0|1)`), cache-first in the SW. Regenerate from the upstream `dist/exercises.json` by dropping `instructions` and keeping `{i,n,p,s,e,c,l,m,f}`. |
+| `tracker/body.js` (130KB) | **Body figures** — male + female, front + back, every muscle a separate shape. From **react-native-body-highlighter v3.2.0, MIT** (c) 2022 ELABBASSI Hicham; paths unmodified, credited on More. `window.BODYFIG[sex][side] = {vb, o (outline), p:[[ourPart, slug, [paths]]]}`. Rebuild script: scratchpad `body/build.js`. |
 | `tracker/sw.js` + `manifest.json` | PWA. SW is **network-first for HTML/CSS/JS** so deploys land without a hard refresh; cache-first for images. |
 | `tracker/tests/smoke.js` | 49 Playwright tests. See §6. |
 | `tracker/tests/week.js` | 10 week-durability tests (plan, log, reload, edit, reload). |
@@ -1009,6 +1010,20 @@ render of that page.
 
 ---
 
+**THE BODY FIGURE (v59).** She sent Fitbod's recovery screen: *"identical
+to this but female and male option and front and back."* My hand-drawn SVG
+was never going to get there, so it is replaced by an MIT-licensed figure
+set (`body.js`). `bodyFigureHtml(F)` shows ONE view at a time with a
+round flip button (Fitbod's layout), a Female / Male toggle (defaults to
+`profileSex()`, stored in `state.ui.mmSex` / `mmSide`), and a legend.
+Library slugs map onto our seven parts in the build script (abs+obliques
+→ core, traps/upper/lower back → back, quads/hams/adductors/calves/
+tibialis/knees → legs…). Each shape keeps `data-part`, so recency colour
+and tap-through are unchanged. **Emit one `<path>` per shape** — the
+female paths begin with relative moves, and merging left + right into one
+`d` scattered them across the figure (caught in the screenshot).
+Untrained / stale muscles are neutral grey `#5b6170`; worked is pink.
+
 **COACH HUB v2 + GLASS (v58).** She called v56 "a home done hub" and
 explained the real workflow: the coach writes the MONTH plan (every Monday
 is X), never presets individuals because she does not know who will come,
@@ -1271,4 +1286,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v55` THE CHATGPT API — `/api/gpt/*` Netlify Function on Netlify Blobs; app pushes a snapshot after every save, pulls and applies queued entries through the one write path ·
 `v56` COACH HUB — every member, periods with deltas, PRs, log a lift, saved workouts applied to a month; off by default, demo gym included ·
 `v57` SETUP rebuilt in the current look: four goals, 7 + doubles, eating styles, editable macros, body-comp scans feeding the plan ·
-`v58` COACH HUB v2 (class sheet, month calendar with weekday pattern, CRM tables) and the app-wide glass + depth layer, pills removed.
+`v58` COACH HUB v2 (class sheet, month calendar with weekday pattern, CRM tables) and the app-wide glass + depth layer, pills removed ·
+`v59` BODY FIGURE replaced with an MIT anatomical set: male + female, front + back, flip button, Fitbod layout.

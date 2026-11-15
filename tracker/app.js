@@ -10658,11 +10658,38 @@ function _daysSincePart(){
   return out;
 }
 function _muscleFill(days){
-  if(days === null) return "#20262e";       // never trained — neutral
+  if(days === null) return "#5b6170";       // never trained — neutral
   if(days <= 2) return "#ff4d9d";           // just hit — recovering (red like Fitbod's worked)
   if(days <= 5) return "#b788ff";           // recently
   if(days <= 8) return "#00f5d4";           // fresh — ready to train
-  return "#3d4a63";                          // stale — going cold
+  return "#5b6170";                          // stale — going cold
+}
+// The body figure: male or female, front or back, one view at a time with
+// a flip button. Shapes are from react-native-body-highlighter (MIT),
+// shipped in body.js; each muscle carries data-part so recency colour and
+// tap-through work as before.
+function bodyFigureHtml(F){
+  const ui = state.ui = state.ui || {};
+  const sex = ui.mmSex || (profileSex() === "male" ? "male" : "female");
+  const side = ui.mmSide === "back" ? "back" : "front";
+  const fig = window.BODYFIG && window.BODYFIG[sex] && window.BODYFIG[sex][side];
+  if(!fig) return `<div class="hv-empty">Body figure unavailable.</div>`;
+  // one <path> per shape: the female paths start with relative moves, so
+  // merging left + right into a single path scatters them across the figure
+  const shapes = fig.p.map(([part, slug, ds]) => ds.map(d => part
+    ? `<path data-part="${part}" class="mm-m" d="${d}" fill="${F(part)}"/>`
+    : `<path class="mm-b ${slug === "hair" ? "mm-hair" : ""}" d="${d}"/>`).join("")).join("");
+  return `<div class="mm-wrap">
+      <div class="mm-ctl">
+        <div class="hm-seg mm-sex">${[["female","Female"],["male","Male"]].map(([id, l]) => `<button type="button" class="${sex === id ? "on" : ""}" data-mmsex="${id}">${l}</button>`).join("")}</div>
+        <span class="mm-side">${side === "front" ? "Front" : "Back"}</span>
+      </div>
+      <svg class="mm-svg" viewBox="${fig.vb}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${sex} body, ${side}">
+        <path class="mm-o" d="${fig.o}"/>${shapes}
+      </svg>
+      <button type="button" class="mm-flip" id="mmFlip" aria-label="Flip to ${side === "front" ? "back" : "front"}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 5 0 0 1 16 0"/><path d="M20 12a8 5 0 0 1-12 4.3"/><path d="M5 16.5l3-.2-.3 3"/></svg></button>
+      <div class="mm-legend"><span><i style="background:#ff4d9d"></i>0–2 days</span><span><i style="background:#b788ff"></i>3–5</span><span><i style="background:#00f5d4"></i>6–8</span><span><i style="background:#5b6170"></i>9+ or none</span></div>
+    </div>`;
 }
 function renderMuscleMap(){
   const fit = document.getElementById("view-fitness");
@@ -10689,89 +10716,11 @@ function renderMuscleMap(){
       <div class="mm-stat"><b>${daysSinceWorkout === null ? "—" : daysSinceWorkout}</b><span>${daysSinceWorkout === 1 ? "DAY" : "DAYS"} SINCE<br>LAST WORKOUT</span></div>
       <div class="mm-stat mm-right"><b>${fresh}</b><span>FRESH MUSCLE<br>GROUPS</span></div>
     </div>
-    <div class="mm-wrap">
-      <svg class="mm-svg" viewBox="0 0 240 262" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="mmSkin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#343b46"/><stop offset="1" stop-color="#232933"/></linearGradient>
-        </defs>
-        <!-- FRONT -->
-        <g stroke="#0b0d12" stroke-width="1" stroke-linejoin="round">
-          <ellipse cx="60" cy="19" rx="11.5" ry="13.5" fill="url(#mmSkin)"/>
-          <path d="M55 31 L65 31 L66 40 L54 40 Z" fill="url(#mmSkin)"/>
-          <!-- traps (front slope) -->
-          <path data-part="back" d="M46 44 Q53 38 60 40 Q67 38 74 44 L72 46 Q60 42 48 46 Z" fill="${F("back")}"/>
-          <!-- delts -->
-          <path data-part="shoulders" d="M46 45 Q36 44 32 52 Q30 60 36 64 Q42 62 46 57 Q45 50 46 45 Z" fill="${F("shoulders")}"/>
-          <path data-part="shoulders" d="M74 45 Q84 44 88 52 Q90 60 84 64 Q78 62 74 57 Q75 50 74 45 Z" fill="${F("shoulders")}"/>
-          <!-- pecs -->
-          <path data-part="chest" d="M47 46 Q53 43 60 45 L60 66 Q52 69 46 62 Q44 54 47 46 Z" fill="${F("chest")}"/>
-          <path data-part="chest" d="M73 46 Q67 43 60 45 L60 66 Q68 69 74 62 Q76 54 73 46 Z" fill="${F("chest")}"/>
-          <!-- abs + obliques -->
-          <path data-part="core" d="M51 68 Q60 72 69 68 L68 104 Q60 109 52 104 Z" fill="${F("core")}"/>
-          <path d="M53 78 Q60 81 67 78 M53 88 Q60 91 67 88 M60 70 L60 103" fill="none" stroke="#0b0d12" stroke-width=".8" opacity=".7"/>
-          <path data-part="core" d="M46 64 L51 68 L52 104 L47 98 Q44 82 46 64 Z" fill="${F("core")}"/>
-          <path data-part="core" d="M74 64 L69 68 L68 104 L73 98 Q76 82 74 64 Z" fill="${F("core")}"/>
-          <!-- arms: bicep, forearm, hand -->
-          <path data-part="arms" d="M33 62 Q28 70 28 84 Q30 92 36 92 Q40 86 41 72 Q40 64 36 63 Z" fill="${F("arms")}"/>
-          <path data-part="arms" d="M87 62 Q92 70 92 84 Q90 92 84 92 Q80 86 79 72 Q80 64 84 63 Z" fill="${F("arms")}"/>
-          <path data-part="arms" d="M29 92 Q25 104 26 120 L33 121 Q37 106 36 93 Z" fill="${F("arms")}"/>
-          <path data-part="arms" d="M91 92 Q95 104 94 120 L87 121 Q83 106 84 93 Z" fill="${F("arms")}"/>
-          <ellipse cx="29" cy="127" rx="4.5" ry="6" fill="url(#mmSkin)"/><ellipse cx="91" cy="127" rx="4.5" ry="6" fill="url(#mmSkin)"/>
-          <!-- quads -->
-          <path data-part="legs" d="M49 106 Q44 128 46 154 Q48 168 55 170 L59 168 L59 108 Z" fill="${F("legs")}"/>
-          <path data-part="legs" d="M71 106 Q76 128 74 154 Q72 168 65 170 L61 168 L61 108 Z" fill="${F("legs")}"/>
-          <path d="M52 120 Q50 150 53 164 M68 120 Q70 150 67 164" fill="none" stroke="#0b0d12" stroke-width=".8" opacity=".6"/>
-          <ellipse cx="54" cy="175" rx="5" ry="4" fill="url(#mmSkin)"/><ellipse cx="66" cy="175" rx="5" ry="4" fill="url(#mmSkin)"/>
-          <!-- shins / calves -->
-          <path data-part="legs" d="M50 180 Q46 198 49 216 L57 217 Q60 198 58 180 Z" fill="${F("legs")}"/>
-          <path data-part="legs" d="M70 180 Q74 198 71 216 L63 217 Q60 198 62 180 Z" fill="${F("legs")}"/>
-          <path d="M48 219 L58 219 L59 228 L46 228 Z" fill="url(#mmSkin)"/><path d="M72 219 L62 219 L61 228 L74 228 Z" fill="url(#mmSkin)"/>
-        </g>
-        <!-- BACK -->
-        <g stroke="#0b0d12" stroke-width="1" stroke-linejoin="round">
-          <ellipse cx="180" cy="19" rx="11.5" ry="13.5" fill="url(#mmSkin)"/>
-          <path d="M175 31 L185 31 L186 40 L174 40 Z" fill="url(#mmSkin)"/>
-          <!-- traps -->
-          <path data-part="back" d="M166 44 Q173 38 180 40 Q187 38 194 44 Q190 56 180 70 Q170 56 166 44 Z" fill="${F("back")}"/>
-          <!-- rear delts -->
-          <path data-part="shoulders" d="M166 45 Q156 44 152 52 Q150 60 156 64 Q162 62 166 57 Q165 50 166 45 Z" fill="${F("shoulders")}"/>
-          <path data-part="shoulders" d="M194 45 Q204 44 208 52 Q210 60 204 64 Q198 62 194 57 Q195 50 194 45 Z" fill="${F("shoulders")}"/>
-          <!-- lats -->
-          <path data-part="back" d="M166 58 Q164 76 170 90 L180 92 L180 70 Q172 60 166 58 Z" fill="${F("back")}"/>
-          <path data-part="back" d="M194 58 Q196 76 190 90 L180 92 L180 70 Q188 60 194 58 Z" fill="${F("back")}"/>
-          <!-- erectors / lower back -->
-          <path data-part="back" d="M172 92 L188 92 L187 106 Q180 109 173 106 Z" fill="${F("back")}"/>
-          <!-- triceps, forearms -->
-          <path data-part="arms" d="M153 62 Q148 70 148 84 Q150 92 156 92 Q160 86 161 72 Q160 64 156 63 Z" fill="${F("arms")}"/>
-          <path data-part="arms" d="M207 62 Q212 70 212 84 Q210 92 204 92 Q200 86 199 72 Q200 64 204 63 Z" fill="${F("arms")}"/>
-          <path data-part="arms" d="M149 92 Q145 104 146 120 L153 121 Q157 106 156 93 Z" fill="${F("arms")}"/>
-          <path data-part="arms" d="M211 92 Q215 104 214 120 L207 121 Q203 106 204 93 Z" fill="${F("arms")}"/>
-          <ellipse cx="149" cy="127" rx="4.5" ry="6" fill="url(#mmSkin)"/><ellipse cx="211" cy="127" rx="4.5" ry="6" fill="url(#mmSkin)"/>
-          <!-- glutes -->
-          <path data-part="glutes" d="M168 106 Q162 112 164 124 Q170 130 179 126 L179 108 Q173 105 168 106 Z" fill="${F("glutes")}"/>
-          <path data-part="glutes" d="M192 106 Q198 112 196 124 Q190 130 181 126 L181 108 Q187 105 192 106 Z" fill="${F("glutes")}"/>
-          <!-- hamstrings -->
-          <path data-part="legs" d="M166 128 Q164 148 167 166 Q172 171 178 168 L179 130 Z" fill="${F("legs")}"/>
-          <path data-part="legs" d="M194 128 Q196 148 193 166 Q188 171 182 168 L181 130 Z" fill="${F("legs")}"/>
-          <ellipse cx="174" cy="175" rx="5" ry="4" fill="url(#mmSkin)"/><ellipse cx="186" cy="175" rx="5" ry="4" fill="url(#mmSkin)"/>
-          <!-- calves -->
-          <path data-part="legs" d="M169 180 Q164 196 169 216 L177 217 Q180 198 178 180 Z" fill="${F("legs")}"/>
-          <path data-part="legs" d="M191 180 Q196 196 191 216 L183 217 Q180 198 182 180 Z" fill="${F("legs")}"/>
-          <path d="M168 219 L178 219 L179 228 L166 228 Z" fill="url(#mmSkin)"/><path d="M192 219 L182 219 L181 228 L194 228 Z" fill="url(#mmSkin)"/>
-        </g>
-        <text x="60" y="242" font-size="8" fill="#8b95a1" text-anchor="middle" letter-spacing="2">FRONT</text>
-        <text x="180" y="242" font-size="8" fill="#8b95a1" text-anchor="middle" letter-spacing="2">BACK</text>
-        <g font-size="7" fill="#8b95a1">
-          <rect x="16" y="252" width="7" height="7" rx="2" fill="#ff4d9d"/><text x="27" y="258">0–2d</text>
-          <rect x="52" y="252" width="7" height="7" rx="2" fill="#b788ff"/><text x="63" y="258">3–5d</text>
-          <rect x="88" y="252" width="7" height="7" rx="2" fill="#00f5d4"/><text x="99" y="258">6–8d</text>
-          <rect x="124" y="252" width="7" height="7" rx="2" fill="#3d4a63"/><text x="135" y="258">9d+ cold</text>
-          <rect x="176" y="252" width="7" height="7" rx="2" fill="#20262e"/><text x="187" y="258">no data</text>
-        </g>
-      </svg>
-    </div>
+    ${bodyFigureHtml(F)}
     ${stale.length ? `<div class="mm-callout">GOING COLD: ${stale.map(p => p.toUpperCase()).join(" · ")} — ${ds[stale[0]]}+ days. Build them into this week.</div>` : ""}
   `;
+  card.querySelectorAll("[data-mmsex]").forEach(b => b.addEventListener("click", () => { (state.ui = state.ui || {}).mmSex = b.getAttribute("data-mmsex"); save(); renderMuscleMap(); }));
+  const flip = card.querySelector("#mmFlip"); if(flip) flip.addEventListener("click", () => { const ui = state.ui = state.ui || {}; ui.mmSide = ui.mmSide === "back" ? "front" : "back"; save(); renderMuscleMap(); });
   card.querySelectorAll("[data-part]").forEach(el => {
     el.style.cursor = "pointer";
     el.addEventListener("click", () => {

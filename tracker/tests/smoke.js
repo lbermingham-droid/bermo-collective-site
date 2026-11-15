@@ -663,11 +663,12 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
 
   try {
     const cmp = await page.evaluate(() => {
-      const el = document.getElementById("cmpRows");
+      const t = document.querySelector('[data-tab="dashboard"]'); if(t) t.click();
+      const el = document.querySelector(".hm-deltas");   // v60: the comparison lives on Home
       return el ? el.innerText : "";
     });
-    /lift days/i.test(cmp) && /working sets/i.test(cmp) && /cardio/i.test(cmp)
-      ? ok("v29 week comparison includes lifts, sets and cardio")
+    /lift days/i.test(cmp) && /load/i.test(cmp) && /cardio/i.test(cmp)
+      ? ok("v29 week comparison includes lift days, load and cardio")
       : fail("v29 compare card", cmp.slice(0, 120));
   } catch (e) { fail("v29 compare card", e); }
 
@@ -838,7 +839,7 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
         out.fitStats = /2,?\d{3}|3,?\d{3}/.test((document.getElementById("fitTopStats")||{}).innerText || "");
         const d = document.querySelector('.mtab[data-tab="dashboard"]'); if(d) d.click();
         setTimeout(() => {
-          out.compare = /LIFTS LOGGED/i.test((document.getElementById("cmpRows")||{}).innerText || "");
+          out.compare = /lift days/i.test((document.querySelector(".hm-deltas")||{}).innerText || "");
           r(out);
         }, 500);
       }, 500));

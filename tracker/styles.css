@@ -247,13 +247,9 @@ a{color:inherit}
 .macro-row span:last-child{font-family:'JetBrains Mono',monospace}
 .bar{width:100%;height:8px;background:var(--cream);border-radius:100px;overflow:hidden}
 .bar-fill{display:block;height:100%;border-radius:100px;transition:width .35s ease}
-.bf-cyan{background:var(--cyan)}
-.bf-lime{background:var(--lime)}
-.bf-pink{background:var(--pink)}
 .bf-white{background:#444}
 
 /* ---------- WATER ---------- */
-.water-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;padding:8px 0 14px}
 .water-cell{aspect-ratio:1;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:14px}
 .water-cell.filled{background:var(--cyan);border-color:var(--cyan);color:var(--black)}
 .water-cell:hover{transform:scale(1.05)}
@@ -388,7 +384,6 @@ a{color:inherit}
 
 @media(max-width:720px){
   .view-h1{font-size:32px}
-    .water-grid{grid-template-columns:repeat(8,1fr);gap:4px}
   }
 
 /* ---------- PR REP-RANGE CARDS (SugarWOD-style) ---------- */
@@ -614,7 +609,6 @@ a{color:inherit}
 .rate-btn:hover{border-color:var(--cyan)}
 
 /* ---------- SMART BANNERS (top of dashboard) ---------- */
-.smart-banners{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
 
 /* Mini quick-log row at top of dashboard — one tap each */
 
@@ -1008,7 +1002,6 @@ a{color:inherit}
 }
 
 /* ---------- HUBS GRID — uniform dashboard layout ---------- */
-.hubs-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px}
 @media(max-width:780px){.hubs-grid{grid-template-columns:1fr}}
 
 .hub{
@@ -1019,9 +1012,6 @@ a{color:inherit}
 }
 .hub:hover{border-color:var(--cyan);transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,245,212,.10)}
 
-.hub-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-.hub-eyebrow{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gray);font-weight:700;line-height:1;margin-bottom:4px}
-.hub-title{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:18px;letter-spacing:-.02em;text-transform:uppercase;line-height:1.05;color:var(--black)}
 .hub-log{
   background:var(--cyan);color:var(--black);font-size:10px;letter-spacing:1.5px;
   text-transform:uppercase;font-weight:700;padding:8px 14px;border-radius:100px;
@@ -1034,64 +1024,20 @@ a{color:inherit}
   display:flex;justify-content:space-between;align-items:center;
   font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray);font-weight:700;
 }
-.hub-arrow{color:var(--cyan);font-size:18px;line-height:1}
 
 /* Stats row inside a hub */
-.hub-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 @media(max-width:480px){.hub-stats{grid-template-columns:repeat(3,1fr)}}
-.hs-cell{background:var(--cream);border-radius:10px;padding:10px}
-.hs-lbl{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);font-weight:700;margin-bottom:2px}
-.hs-val{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:22px;letter-spacing:-.02em;line-height:1}
-.hs-val-text{font-size:14px;letter-spacing:-.01em}
-.hs-sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--gray);margin-top:2px}
 
 /* ---------- ACTIVITY RINGS HUB (4-ring) ---------- */
-.rings4-wrap{display:flex;align-items:center;gap:14px}
-.rings4-wrap canvas{flex-shrink:0}
-.rings4-stats{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}
-.r4-row{display:flex;align-items:baseline;gap:6px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
-.r4-row span:first-child{color:var(--gray);min-width:64px;font-size:9px}
-.r4-row b{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:14px;letter-spacing:-.02em}
-.r4-move b{color:#ff4d9d}
-.r4-ex b{color:#a8c500}
-.r4-st b{color:#00b89e}
-.r4-nut b{color:#d68a26}
 
 .hub-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding-top:10px;border-top:1px solid var(--lgray)}
 
 /* ---------- NUTRITION HUB (single-screen) ---------- */
-.nut-hero{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:flex-end;padding:4px 0 6px}
-.nh-block{display:flex;flex-direction:column;gap:2px}
-.nh-block-right{align-items:flex-end;text-align:right}
-.nh-num{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:42px;letter-spacing:-.04em;line-height:.92;color:var(--black)}
-.nh-of{font-size:11px;color:var(--gray);font-weight:600;letter-spacing:.3px}
-.nh-left-num{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:30px;letter-spacing:-.03em;line-height:1;color:var(--cyan)}
 
-.nh-bar-row{margin-bottom:8px}
-.nh-bar-cal{height:10px}
 
-.nh-macros{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.nh-macro{display:flex;flex-direction:column;gap:4px}
-.nm-h{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.5px}
-.nm-h span{color:var(--gray);font-weight:700;text-transform:uppercase;font-size:9px}
-.nm-h b{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--black)}
 
-.nh-water{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding-top:6px;border-top:1px solid var(--lgray)}
-.nw-h{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);font-weight:700}
-.water-mini{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;padding:0}
-.water-mini .water-cell{aspect-ratio:1;border-radius:4px;background:var(--cream);border:1px solid var(--lgray);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.water-mini .water-cell.filled{background:var(--cyan);border-color:var(--cyan);color:var(--black)}
-.nw-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gray);font-weight:700}
 
 /* ---------- TRENDS HUB ---------- */
-.hub-insights{display:flex;flex-direction:column;gap:6px}
-.hi-empty{font-size:11px;color:#bbb;font-style:italic;padding:10px 0;text-align:center}
-.hi-card{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--cream);border-radius:10px;font-size:12px;line-height:1.3}
-.hi-card.hi-good{border-left:3px solid #00f5d4}
-.hi-card.hi-watch{border-left:3px solid #b788ff}
-.hi-card.hi-info{border-left:3px solid var(--cyan)}
-.hi-icon{font-size:16px;flex-shrink:0}
-.hi-text{font-weight:600;color:var(--black)}
 
 /* ---------- WEIGHT HUB MINI CHART ---------- */
 .hub-mini-chart{height:60px;margin-top:4px}
@@ -1263,21 +1209,7 @@ a{color:inherit}
 .hub[data-hub="activity"] .rwk-day{font-size:10px;color:var(--gray);font-weight:700;letter-spacing:1px;text-transform:uppercase}
 
 /* ---------- NUTRITION HUB WEEK STRIP ---------- */
-.nut-week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;padding-bottom:14px;margin-bottom:6px;border-bottom:1px solid var(--lgray)}
 .nw-day{display:flex;flex-direction:column;align-items:center;gap:4px}
-.nw-letter{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray);font-weight:700}
-.nw-circle{
-  width:28px;height:28px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  background:var(--cream);border:1.5px solid var(--lgray);
-  font-size:14px;font-weight:700;color:var(--gray);transition:all .15s;
-}
-.nw-day.empty .nw-circle{background:var(--cream);color:#bbb}
-.nw-day.good .nw-circle{background:#00f5d4;border-color:#00f5d4;color:#fff}
-.nw-day.over .nw-circle{background:var(--pink);border-color:var(--pink);color:#fff}
-.nw-day.low .nw-circle{background:#b788ff;border-color:#b788ff;color:#fff}
-.nw-day.today .nw-circle{box-shadow:0 0 0 2px var(--cyan)}
-.nw-day.today .nw-letter{color:var(--cyan)}
 
 /* ---------- DETAIL OVERLAY METRIC TABS ---------- */
 .detail-metric-tabs{
@@ -1375,8 +1307,6 @@ a{color:inherit}
 
 /* Hubs slightly more compact */
 .hub{padding:14px 16px 12px;gap:10px}
-.hub-title{font-size:16px}
-.hub-eyebrow{font-size:9px;letter-spacing:2.5px;margin-bottom:2px}
 .hub-log{padding:6px 12px;font-size:9px}
 
 /* Tight detail card stats */
@@ -1498,7 +1428,7 @@ a{color:inherit}
 }
 
 /* ---------- DAY-STRIP SELECTED HIGHLIGHT ---------- */
-.aw-day.selected .aw-circle, .nw-day.selected .nw-circle{
+.aw-day.selected .aw-circle{
   box-shadow:0 0 0 3px var(--cyan) !important;
   transform:scale(1.1);
 }
@@ -1531,9 +1461,6 @@ a{color:inherit}
 .wiz-step.active{display:block}
 
 /* ---------- ADAPTIVE CARD ---------- */
-.adaptive-card{border-left:4px solid var(--cyan);background:linear-gradient(135deg,rgba(0,245,212,.04),rgba(0,245,212,.03))}
-.adaptive-msg{font-size:13px;color:#333;line-height:1.6;margin:8px 0 12px}
-.adaptive-actions{display:flex;gap:8px;flex-wrap:wrap}
 
 /* ---------- FOOD MODAL: barcode buttons row ---------- */
 .food-modal-actions{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
@@ -1625,7 +1552,7 @@ input:focus, select:focus, textarea:focus{ border-color: var(--cyan) !important;
 
 /* Day strip cells */
 .aw-day, .nw-day{ background: var(--navy-card-2) !important; border:1px solid var(--navy-line) !important; color: var(--navy-text) !important; }
-.aw-day .aw-letter, .nw-day .nw-letter{ color: var(--navy-mute) !important; }
+.aw-day .aw-letter{ color: var(--navy-mute) !important; }
 .aw-day.today, .nw-day.today{ border-color: var(--cyan) !important; box-shadow: 0 0 0 2px rgba(0,245,212,.18) !important; }
 .aw-day.selected, .nw-day.selected{ border-color: var(--cyan) !important; background: rgba(0,245,212,.08) !important; }
 .aw-circle{ border-color: var(--navy-line-2) !important; }
@@ -1649,8 +1576,6 @@ input:focus, select:focus, textarea:focus{ border-color: var(--cyan) !important;
 .bar-fill.pink{ background: var(--pink) !important; }
 
 /* Adaptive card */
-.adaptive-card{ background: linear-gradient(135deg,rgba(0,245,212,.10),rgba(255,77,157,.05)) !important; border-left-color: var(--cyan) !important; }
-.adaptive-msg{ color: var(--navy-text) !important; }
 
 /* Anatomy legend */
 .al-pin{ color: var(--navy-mute) !important; }
@@ -1672,12 +1597,9 @@ input:focus, select:focus, textarea:focus{ border-color: var(--cyan) !important;
 .grid-12{ gap: 8px !important; }
 .aw-day, .nw-day{ padding: 6px 4px !important; min-height: 0 !important; }
 .aw-circle{ width: 26px !important; height: 26px !important; }
-.aw-letter, .nw-letter{ font-size: 10px !important; margin-bottom: 3px !important; }
+.aw-letter{ font-size: 10px !important; margin-bottom: 3px !important; }
 .heat-cell{ width: 12px !important; height: 12px !important; }
 .chain-cell{ width: 16px !important; height: 16px !important; border-radius: 4px !important; }
-.adaptive-card{ padding: 10px 12px !important; }
-.adaptive-msg{ font-size: 12px !important; line-height: 1.4 !important; margin: 4px 0 8px !important; }
-.adaptive-actions{ gap: 6px !important; }
 .bp-list{ gap: 6px !important; }
 .bp-bar{ height: 6px !important; }
 .bp-suggest{ padding: 8px 10px !important; font-size: 11px !important; line-height: 1.4 !important; }
@@ -1804,7 +1726,7 @@ input:focus, select:focus, textarea:focus{ border-color: var(--cyan) !important;
 /* ============================================================
    NAVY DEEP CLEAN — kill all white bleed + compress top
    ============================================================ */
-html, body, #app, .app, .main, .view, .hubs-grid, .smart-banners{
+html, body, #app, .app, .main, .view{
   background: var(--navy-bg) !important;
 }
 .hub, .contract-card, .restart-card, .checkin-card, .smart-banner,
@@ -1814,8 +1736,8 @@ html, body, #app, .app, .main, .view, .hubs-grid, .smart-banners{
   border-color: var(--navy-line) !important;
   box-shadow: 0 2px 10px rgba(0,0,0,.35) !important;
 }
-.hub-title, .hub-eyebrow, .cc-identity, .cc-goal, .cc-val, .cc-lbl{ color: var(--navy-text) !important; }
-.hub-eyebrow, .cc-eyebrow, .cc-lbl{ color: var(--cyan) !important; opacity: .9; }
+.cc-identity, .cc-goal, .cc-val, .cc-lbl{ color: var(--navy-text) !important; }
+.cc-eyebrow, .cc-lbl{ color: var(--cyan) !important; opacity: .9; }
 .hub-week{ border-top-color: var(--navy-line) !important; }
 .hub:hover{ border-color: var(--cyan) !important; transform: none !important; box-shadow: 0 0 0 2px rgba(0,245,212,.18) !important; }
 .cc-chain-cell{ background: var(--navy-card-2) !important; }
@@ -1825,13 +1747,10 @@ html, body, #app, .app, .main, .view, .hubs-grid, .smart-banners{
 .view-h1#dashGreeting{ font-size: 17px !important; letter-spacing: -.02em !important; }
 .eyebrow{ font-size: 8px !important; letter-spacing: 1.8px !important; }
 .hub{ padding: 10px 12px !important; border-radius: 12px !important; gap: 8px !important; }
-.hub-head{ gap: 6px !important; }
-.hub-eyebrow{ font-size: 8px !important; letter-spacing: 1.8px !important; margin-bottom: 2px !important; }
-.hub-title{ font-size: 14px !important; line-height: 1 !important; }
 .hub-log{ padding: 4px 10px !important; font-size: 10px !important; letter-spacing: 1.2px !important; }
 .hub-week{ padding-top: 6px !important; gap: 3px !important; }
 .aw-day, .nw-day{ padding: 4px 2px !important; border-radius: 6px !important; }
-.aw-letter, .nw-letter{ font-size: 9px !important; margin-bottom: 2px !important; }
+.aw-letter{ font-size: 9px !important; margin-bottom: 2px !important; }
 .aw-circle{ width: 22px !important; height: 22px !important; }
 .contract-card{ padding: 10px 12px !important; border-radius: 12px !important; }
 .cc-identity{ font-size: 13px !important; line-height: 1.3 !important; }
@@ -1842,20 +1761,6 @@ html, body, #app, .app, .main, .view, .hubs-grid, .smart-banners{
 #dashOpenLog{ padding: 6px 14px !important; font-size: 11px !important; letter-spacing: 1.6px !important; }
 
 /* DISTINCTIVE RINGS — glow + gradient + thicker strokes */
-.rings4-wrap{ position: relative; padding: 8px 0; }
-.rings4-wrap canvas{
-  filter: drop-shadow(0 0 12px rgba(0,245,212,.25)) drop-shadow(0 0 22px rgba(255,77,157,.18));
-}
-.rings4-wrap::before{
-  content: ""; position: absolute; left: 50%; top: 50%;
-  transform: translate(-50%, -50%);
-  width: 200px; height: 200px; border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(0,245,212,.06), transparent 70%);
-  pointer-events: none;
-}
-.rings4-stats{ position: relative; z-index: 1; }
-.r4-row{ font-size: 11px !important; letter-spacing: 1.5px !important; }
-.r4-row b{ font-size: 14px !important; letter-spacing: 0; }
 
 /* AW lift type label (consolidates the duplicate day-row) */
 .aw-lift{
@@ -1911,11 +1816,10 @@ input, select, textarea{ background:var(--iron-panel-2) !important; border:1px s
 input:focus, select:focus, textarea:focus{ border-color:var(--iron-volt) !important; }
 
 /* Type: heavy uppercase headers */
-.view-h1, .card-eyebrow, .hub-title, .modal-head h3, .deck-h{
+.view-h1, .card-eyebrow, .modal-head h3, .deck-h{
   text-transform:uppercase !important; letter-spacing:.04em;
 }
 .card-eyebrow, .eyebrow{ color:var(--iron-volt) !important; font-weight:800 !important; }
-.hub-eyebrow{ color:var(--iron-mute) !important; }
 
 /* Buttons: hard blocks */
 .btn-cyan{ background:var(--iron-volt) !important; color:#0d1100 !important; font-weight:800 !important; text-transform:uppercase; letter-spacing:.05em; }
@@ -1930,11 +1834,9 @@ input:focus, select:focus, textarea:focus{ border-color:var(--iron-volt) !import
 /* Compact pass */
 .main{ padding-top:12px !important; }
 .view-head{ margin-bottom:10px !important; }
-.hubs-grid{ gap:8px !important; }
 .hub{ padding:12px !important; }
 .card{ padding:12px !important; }
 .contract-card{ padding:14px !important; }
-.smart-banners{ gap:6px; margin-bottom:10px; }
 
 /* Deck rings hub is redundant now — hide the activity hub */
 .hub[data-hub="activity"]{ display:none !important; }
@@ -2039,12 +1941,6 @@ input:focus, select:focus, textarea:focus{ border-color:var(--iron-volt) !import
 .cd-cal-row b{ font-size:26px; color:var(--iron-red); font-family:'JetBrains Mono',monospace; }
 
 /* Aggressive accountability banner variant */
-.smart-banner.sb-aggr{
-  background:#1a0508 !important; border:1px solid var(--iron-red) !important;
-  border-left:4px solid var(--iron-red) !important;
-}
-.smart-banner.sb-aggr .sb-title{ color:#ff8b93 !important; font-weight:900; text-transform:uppercase; letter-spacing:.02em; font-size:13px; }
-.smart-banner.sb-aggr .sb-sub{ color:#c98b90 !important; }
 
 /* Restyle default smart banners dark to match */
 .smart-banner{
@@ -2095,7 +1991,6 @@ input:focus, select:focus, textarea:focus{ border-color:var(--iron-volt) !import
 }
 
 /* Today's Nutrition card */
-.dash-card{ margin-bottom:12px; cursor:pointer; }
 .dn-w-add{
   background:var(--iron-cyan) !important; color:#00272e !important;
   font-size:10px; font-weight:900; padding:5px 10px; border:none;
@@ -2103,29 +1998,6 @@ input:focus, select:focus, textarea:focus{ border-color:var(--iron-volt) !import
 }
 
 /* Workouts-this-week list */
-.dw-list{ display:flex; flex-direction:column; gap:3px; }
-.dw-row{
-  display:flex; align-items:center; gap:10px; width:100%;
-  background:var(--iron-panel-2); border:1px solid var(--iron-line);
-  padding:8px 10px; cursor:pointer; text-align:left; border-radius:3px;
-}
-.dw-row.today{ border-color:var(--iron-volt); }
-.dw-row.done{ border-left:3px solid var(--iron-volt); }
-.dw-row.missed{ border-left:3px solid var(--iron-red); }
-.dw-row.planned, .dw-row.today-up{ border-left:3px solid var(--iron-cyan); }
-.dw-row.empty{ opacity:.55; }
-.dw-day{
-  display:flex; flex-direction:column; align-items:center; width:34px; flex-shrink:0;
-  font-size:9px; font-weight:900; letter-spacing:1px; color:var(--iron-mute);
-}
-.dw-day i{ font-style:normal; font-size:13px; color:var(--iron-text); }
-.dw-info{ flex:1; min-width:0; display:flex; flex-direction:column; }
-.dw-info b{ font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.03em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.dw-info small{ font-size:10px; color:var(--iron-mute); margin-top:1px; }
-.dw-mark{ font-size:14px; font-weight:900; flex-shrink:0; width:18px; text-align:center; }
-.dw-row.done .dw-mark{ color:var(--iron-volt); }
-.dw-row.missed .dw-mark{ color:var(--iron-red); }
-.dw-row.today-up .dw-mark{ color:var(--iron-cyan); }
 
 /* Muscle map */
 .mm-stats{ display:flex; justify-content:space-between; margin-bottom:4px; }
@@ -2300,7 +2172,6 @@ input:focus, select:focus, textarea:focus{ border-color:var(--iron-volt) !import
 
 /* Ring deck v3 — one flat card, Apple-style */
 .deck{ padding:14px 12px 10px; }
-.deck-days{ display:flex; justify-content:space-between; gap:2px; margin-bottom:12px; }
 .dk-dc{
   flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
   background:none; border:none; padding:2px 0 4px; cursor:pointer; border-radius:3px;
@@ -2311,10 +2182,7 @@ input:focus, select:focus, textarea:focus{ border-color:var(--iron-volt) !import
   width:18px; height:18px; line-height:18px; border-radius:50%;
 }
 .dk-dc-l.today{ background:var(--iron-red); color:#fff; }
-.deck-duo{ display:grid; grid-template-columns:1fr 1fr; gap:6px; }
-.dd-col{ display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; }
 .dds-h{ font-size:9px; font-weight:900; letter-spacing:2px; color:var(--iron-mute); margin-bottom:2px; text-align:left; padding-left:8px; }
-.dd-stats{ width:100%; display:flex; flex-direction:column; gap:1px; }
 .dds{
   display:grid; grid-template-columns:56px auto 1fr; align-items:baseline;
   gap:5px; font-size:10px; padding:2px 0 2px 8px;
@@ -2322,13 +2190,6 @@ input:focus, select:focus, textarea:focus{ border-color:var(--iron-volt) !import
 .dds i{ font-style:normal; font-weight:800; text-align:left; }
 .dds b{ font-family:'Inter Tight',sans-serif; font-weight:900; font-size:13px; color:var(--iron-text); text-align:left; }
 .dds s{ text-decoration:none; color:var(--iron-mute); font-size:9px; text-align:left; }
-.deck-water{
-  display:flex; align-items:center; gap:8px; margin:10px 2px 4px;
-  font-size:10px; color:var(--iron-mute);
-}
-.deck-water .dw-lbl{ font-weight:900; letter-spacing:1px; flex-shrink:0; }
-.deck-water .dw-bar{ flex:1; height:6px; }
-.deck-water b{ font-size:10px; color:var(--iron-text); white-space:nowrap; }
 
 /* Day workout editor */
 .pde-list{ display:flex; flex-direction:column; gap:4px; }
@@ -2341,15 +2202,9 @@ input:focus, select:focus, textarea:focus{ border-color:var(--iron-volt) !import
   border:1px solid var(--iron-line); color:var(--iron-red);
   font-size:15px; cursor:pointer; border-radius:3px;
 }
-.dw-time{ font-style:normal; font-size:10px; color:var(--iron-cyan); font-weight:800; margin-left:4px; }
-.dw-extra{ color:var(--iron-mute); font-size:10px; }
 
 /* Compare card */
-.cmp-pick{ display:flex; gap:4px; align-items:center; }
-.cmp-pick select{ font-size:11px; padding:6px 8px; }
-.cmp-date{ font-size:11px; padding:6px; width:120px; }
 .cmp-sub{ font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--iron-mute); font-weight:800; margin-bottom:6px; }
-.cmp-rows{ display:flex; flex-direction:column; }
 .cmp-row{
   display:grid; grid-template-columns:1.2fr .7fr .9fr .8fr; gap:6px; align-items:baseline;
   padding:8px 10px; background:var(--iron-panel-2); border:1px solid var(--iron-line);
@@ -2590,15 +2445,13 @@ input, select, textarea, .search-input, .dmt, .ds-btn, .dn-w-add,
 
 /* Selected / active accents move from volt to mint automatically via
    variables; purple highlight for special cards */
-.dw-row.today-up, .fw-row.sel{ border-color:var(--brand-purple) !important; background:rgba(183,136,255,.07) !important; }
+.fw-row.sel{ border-color:var(--brand-purple) !important; background:rgba(183,136,255,.07) !important; }
 .dk-dc.sel{ outline-color:var(--iron-volt) !important; background:rgba(0,245,212,.08) !important; }
 .sub-chip.active, .fp-scale.active{ background:var(--iron-volt) !important; color:#062820 !important; border-color:var(--iron-volt) !important; }
 .dy-add{ color:var(--iron-volt) !important; }
 .dy-macros{ color:var(--iron-cyan) !important; }
 
 /* Accountability banners: pink rail on dark card (no harsh red block) */
-.smart-banner.sb-aggr{ background:#191019 !important; border:1px solid var(--iron-red) !important; border-left:4px solid var(--iron-red) !important; }
-.smart-banner.sb-aggr .sb-title{ color:var(--iron-red) !important; }
 .smart-banner{ background:#181410 !important; border-color:var(--iron-orange) !important; }
 .smart-banner .sb-title{ color:var(--iron-orange) !important; }
 
@@ -2628,24 +2481,18 @@ input, select, textarea, .search-input, .dmt, .ds-btn, .dn-w-add,
 }
 
 /* --- Status rows: full border + matching text, like the site's cards --- */
-.dw-row.done, .fw-row.done{
+.fw-row.done{
   border:1px solid var(--iron-volt) !important;
   background:rgba(0,245,212,.05) !important;
 }
-.dw-row.done b, .fw-row.done b, .dw-row.done .dw-mark, .fw-row.done .fw-mark{ color:var(--iron-volt) !important; }
+.fw-row.done b, .fw-row.done .fw-mark{ color:var(--iron-volt) !important; }
 
-.dw-row.missed{
-  border:1px solid var(--iron-red) !important;
-  background:rgba(255,77,157,.05) !important;
-}
-.dw-row.missed b, .dw-row.missed .dw-mark{ color:var(--iron-red) !important; }
 
-.dw-row.planned, .dw-row.today-up, .fw-row.sel{
+.fw-row.sel{
   border:1px solid var(--brand-purple) !important;
   background:rgba(183,136,255,.06) !important;
 }
-.dw-row.planned b, .dw-row.today-up b, .fw-row.sel b{ color:var(--brand-purple) !important; }
-.dw-row.today-up .dw-mark{ color:var(--brand-purple) !important; }
+.fw-row.sel b{ color:var(--brand-purple) !important; }
 
 /* Diary food tiers: full border + colored name */
 .dy-item.cheat{ border:1px solid var(--iron-red) !important; background:rgba(255,77,157,.05) !important; }
@@ -2662,11 +2509,6 @@ input, select, textarea, .search-input, .dmt, .ds-btn, .dn-w-add,
 }
 .smart-banner .sb-title{ color:var(--brand-purple) !important; }
 .smart-banner .sb-sub{ color:var(--iron-mute) !important; }
-.smart-banner.sb-aggr{
-  background:rgba(255,77,157,.06) !important;
-  border:1px solid var(--iron-red) !important;
-}
-.smart-banner.sb-aggr .sb-title{ color:var(--iron-red) !important; }
 .restart-card{
   background:rgba(183,136,255,.06) !important;
   border:1px solid var(--brand-purple) !important;
@@ -2685,10 +2527,9 @@ input, select, textarea, .search-input, .dmt, .ds-btn, .dn-w-add,
 .bp-suggest b, .bp-suggest i{ color:var(--iron-red) !important; }
 
 /* Insight cards (Health page) — full border versions */
-.ins-card.ins-good, .hi-card.hi-good{ border:1px solid var(--iron-volt) !important; background:rgba(0,245,212,.05) !important; }
-.ins-card.ins-watch, .hi-card.hi-watch{ border:1px solid var(--brand-purple) !important; background:rgba(183,136,255,.05) !important; }
-.ins-card.ins-info, .hi-card.hi-info{ border:1px solid var(--iron-cyan) !important; background:rgba(77,184,255,.05) !important; }
-.adaptive-card{ border:1px solid var(--iron-cyan) !important; background:rgba(77,184,255,.05) !important; }
+.ins-card.ins-good{ border:1px solid var(--iron-volt) !important; background:rgba(0,245,212,.05) !important; }
+.ins-card.ins-watch{ border:1px solid var(--brand-purple) !important; background:rgba(183,136,255,.05) !important; }
+.ins-card.ins-info{ border:1px solid var(--iron-cyan) !important; background:rgba(77,184,255,.05) !important; }
 
 /* --- Clean line icons (replace emoji) --- */
 .bi{ display:inline-flex; align-items:center; justify-content:center; }
@@ -2746,15 +2587,12 @@ input, select, textarea, .search-input, .dmt, .ds-btn, .dn-w-add,
 .mm-callout, .bp-suggest,
 .ins-card.ins-good, .ins-card.ins-watch, .ins-card.ins-info,
 .hi-card.hi-good, .hi-card.hi-watch, .hi-card.hi-info,
-.adaptive-card{
-  background:var(--iron-panel) !important;
-}
 
 /* Values and headings: full white, heavier */
 .dds b, .page-stats b, .dn-big b, .fp-big, .mm-stat b,
 .bc-cell b, .gs-cell b, .cmp-row b, .nt-row b, .mfp-row b,
 .dy-item-cal, .stat-big, .view-h1, .dash-greet h1,
-.fw-row b, .dw-info b, .dy-item-info b{
+.fw-row b, .dy-item-info b{
   color:#fff !important;
 }
 .dds b, .page-stats b{ font-weight:900 !important; }
@@ -2784,9 +2622,6 @@ input, select, textarea{
 ::placeholder{ color:#7b8499 !important; }
 
 /* Empty/disabled rows shouldn't vanish */
-.dw-row.empty{ opacity:1 !important; }
-.dw-row.empty b{ color:#79839a !important; }
-.dw-row.empty .dw-day{ color:#79839a !important; }
 
 /* Bar troughs: dark, not cream (last washed-out surface) */
 .bar{ background:#111622 !important; }
@@ -2795,9 +2630,7 @@ input, select, textarea{
 .dw-bar, .dn-w-bar, .dn-bar{ background:#111622 !important; }
 
 /* Accent text/values at full saturation on their own rows */
-.dw-row.done b{ color:#00f5d4 !important; }
-.dw-row.planned b, .dw-row.today-up b, .fw-row.sel b{ color:#c9a6ff !important; }
-.dw-row.missed b{ color:#ff4d9d !important; }
+.fw-row.sel b{ color:#c9a6ff !important; }
 .cmp-row .cmp-good{ color:#00f5d4 !important; }
 .cmp-row .cmp-bad{ color:#ff4d9d !important; }
 
@@ -3088,13 +2921,13 @@ input, select, textarea{
 /* ============================================================
    v19 — last legacy-light surfaces on the Health page
    ============================================================ */
-.ins-card, .hi-card, .insight-card{
+.ins-card, .insight-card{
   background:var(--iron-panel-2) !important;
   color:#fff !important;
 }
-.ins-card *, .hi-card *, .insight-card *{ color:inherit; }
-.ins-title, .ins-card b, .hi-card b{ color:#fff !important; }
-.ins-body, .ins-card p, .hi-card p, .ins-sub{ color:var(--iron-mute) !important; }
+.ins-card *, .insight-card *{ color:inherit; }
+.ins-title, .ins-card b{ color:#fff !important; }
+.ins-body, .ins-card p, .ins-sub{ color:var(--iron-mute) !important; }
 .ins-icon, .insight-icon, .ins-card .ins-emoji{
   background:var(--iron-panel) !important;
   border:1px solid var(--iron-line) !important;
@@ -3283,7 +3116,6 @@ input, select, textarea{
 .ins-good  .ins-icon{ border-color:var(--iron-volt) !important;  color:var(--iron-volt) !important; }
 .ins-watch .ins-icon{ border-color:var(--brand-purple) !important; color:var(--brand-purple) !important; }
 .ins-info  .ins-icon{ border-color:var(--iron-cyan) !important;  color:var(--iron-cyan) !important; }
-.hi-icon svg{ width:15px; height:15px; vertical-align:-2px; }
 /* v20: cycle phase pills use a colored dot, not a moon emoji */
 .cph-dot{ display:block; width:9px; height:9px; border-radius:50%; background:var(--cc); margin:0 auto 4px; }
 .cph.on .cph-dot{ box-shadow:0 0 0 3px color-mix(in srgb, var(--cc) 25%, transparent); }
@@ -3300,7 +3132,6 @@ input, select, textarea{
   font-size:10px; font-weight:800;
 }
 .pde-chip.on{ border-color:var(--iron-volt); color:var(--iron-volt); }
-.dw-why{ display:block; color:var(--iron-cyan) !important; font-style:italic; }
 .fd-why{ margin:2px 0 6px; font-size:11.5px; color:var(--iron-cyan); font-style:italic; }
 
 .why-wrap{ display:flex; flex-direction:column; gap:12px; }
@@ -3711,7 +3542,7 @@ html, body, #app, .app{
   background-image:radial-gradient(120% 60% at 50% -10%, rgba(0,245,212,.05) 0%, transparent 62%) !important;
   background-attachment:fixed !important;
 }
-.view, .hubs-grid, .smart-banners{ background:transparent !important; }
+.view{ background:transparent !important; }
 
 /* ---- 2. DEPTH. Lit surfaces, specular top edge, ambient shadow. ---- */
 .card,
@@ -3791,7 +3622,7 @@ html, body, #app, .app{
 .view.active > .subnav{ order:1; }
 .view.active > .brain-row{ order:2; }
 .view.active > .page-rings{ order:3; }
-.view.active > .over-banner, .view.active > .smart-banners{ order:4; }
+.view.active > .over-banner{ order:4; }
 
 .view-head{
   display:flex !important; flex-wrap:wrap; align-items:center;
@@ -4487,7 +4318,6 @@ html, body, #app, .app{
    v43 — HOME, to her mockup. One scoped module. Nothing here
    inherits the legacy dashboard layers.
    ============================================================ */
-.dash-legacy{ display:none !important; }
 .dash-greet{ display:none !important; }
 body.on-home .topbar{ display:none !important; }
 body.on-home .main{ padding-top:8px !important; }
@@ -5062,3 +4892,14 @@ input, select, textarea{ border-radius: var(--g-r-sm) !important; }
 .mm-flip svg{ width:20px; height:20px; }
 .mm-legend{ display:flex; flex-wrap:wrap; justify-content:center; gap:6px 14px; margin-top:8px; font-size:11px; color:#8b93a1; }
 .mm-legend i{ display:inline-block; width:9px; height:9px; border-radius:3px; margin-right:5px; vertical-align:-1px; }
+
+/* v60 — screen pass under the glass layer: rows are rows, not boxes */
+.dy-item, .dy-item.cheat, .dy-item.watch, .dy-item.clean{ border:0 !important; border-bottom:1px solid rgba(255,255,255,.07) !important; border-radius:0 !important; background:none !important; box-shadow:none !important; padding:11px 2px !important; }
+.dy-meal .dy-item:last-of-type{ border-bottom:0 !important; }
+.dy-add, .dy-meal-btns button, .link-btn-sm, .card-head button, .w-delta, .lift-tag, .mrow-tag{ border-radius:8px !important; }
+.dy-add, .dy-meal-btns button{ background: var(--g-fill-2) !important; border:1px solid var(--g-edge) !important; box-shadow: var(--g-hi) !important; color:#e6eaf0 !important; }
+.w-delta, .w-delta.up, .w-delta.down, .w-delta.flat{ background:none !important; border:0 !important; color:#8b93a1 !important; font-variant-numeric:tabular-nums; padding:0 !important; }
+.weigh-row{ border-bottom:1px solid rgba(255,255,255,.07) !important; border-radius:0 !important; background:none !important; padding:10px 2px !important; }
+.weigh-list .weigh-row:last-child{ border-bottom:0 !important; }
+.fw-row{ border-radius:10px !important; }
+.stat-cell, .gs-cell, .nt-block, .fq-stats > div, .bc-cell{ border-radius:12px !important; }

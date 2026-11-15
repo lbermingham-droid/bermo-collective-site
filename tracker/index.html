@@ -21,7 +21,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Inter+Tight:wght@600;700;800;900&family=Montserrat:wght@600;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./styles.css?v=59">
+<link rel="stylesheet" href="./styles.css?v=60">
 </head>
 <body>
 
@@ -117,7 +117,7 @@
     <div class="tb-left">
       <div class="tb-logo">
         <span class="tb-top">BERMO<span class="c">.</span></span>
-        <span class="tb-bot">TRACKER <span id="appVer" style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v59</span></span>
+        <span class="tb-bot">TRACKER <span id="appVer" style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v60</span></span>
       </div>
     </div>
     <nav class="tb-nav" id="tabNav">
@@ -166,249 +166,6 @@
         <span class="dg-date" id="dashDate"></span>
       </div>
       <div id="home" class="home"></div>
-      <div id="dashLegacy" class="dash-legacy">
-      <div class="smart-banners" id="smartBanners"></div>
-
-      <!-- BRAIN DUMP — one line: type / photo / speak -->
-      <div class="brain-row">
-        <button class="br-main js-brain" data-bmode="" title="Type your whole day — AI files everything">
-          <span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10-4-4L4 16z"/><path d="M13 7l4 4"/></svg></span><b>Brain dump</b>
-        </button>
-        <button class="br-side js-brain" data-bmode="photo" title="Snap food / watch / whiteboard"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.4"/></svg></span></button>
-        <button class="br-side js-brain" data-bmode="speak" title="Speak your day"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/></svg></span></button>
-      </div>
-
-      <!-- RING DECK — Apple-style: day selector + fitness/nutrition rings -->
-      <div class="deck" id="commandDeck">
-        <div class="deck-days" id="deckDays"></div>
-        <div class="deck-duo">
-          <div class="dd-col" id="deckFitCol">
-            <canvas id="deckFitRings" width="132" height="132"></canvas>
-            <div class="dd-stats" id="deckFitStats"></div>
-          </div>
-          <div class="dd-col" id="deckNutCol">
-            <canvas id="deckNutRings" width="132" height="132"></canvas>
-            <div class="dd-stats" id="deckNutStats"></div>
-          </div>
-        </div>
-        <div class="deck-water" id="deckWaterRow"></div>
-        
-      </div>
-
-      <!-- WORKOUTS THIS WEEK — editable list, Fitbod/Apple style -->
-      <div class="card dash-card" id="dashWorkCard">
-        <div class="card-head">
-          <span class="card-eyebrow">Workouts · This week</span>
-          <button class="link-btn-sm" id="dwEditPlan">Edit week</button>
-        </div>
-        <div class="dw-list" id="dwList"></div>
-      </div>
-
-      <!-- COMPARE — this week vs a chosen week -->
-      <div class="card dash-card" id="dashCompareCard">
-        <div class="card-head">
-          <span class="card-eyebrow">Compared to</span>
-          <div class="cmp-pick">
-            <select id="cmpWeekSel">
-              <option value="1">Last week</option>
-              <option value="2">2 weeks ago</option>
-              <option value="4">4 weeks ago</option>
-              <option value="custom">Custom week…</option>
-            </select>
-            <input type="date" id="cmpCustom" class="cmp-date" style="display:none">
-          </div>
-        </div>
-        <div class="cmp-rows" id="cmpRows"></div>
-      </div>
-
-
-      <div class="hubs-grid">
-
-        <!-- 1. ACTIVITY RINGS HUB (Accountability Tracker) -->
-        <div class="hub" data-hub="activity">
-          <div class="hub-head">
-            <div>
-              <div class="hub-eyebrow">Accountability Tracker</div>
-              <div class="hub-title">Today's rings</div>
-            </div>
-            <button class="hub-log" data-hub-log="activity">+ Log</button>
-          </div>
-          <div class="hub-week" id="rings3Week"></div>
-          <div class="rings4-wrap">
-            <canvas id="rings3" width="180" height="180"></canvas>
-            <div class="rings4-stats">
-              <div class="r4-row r4-move"><span>Move</span><b id="r3Move">0/800</b></div>
-              <div class="r4-row r4-ex"><span>Exercise</span><b id="r3Ex">0/60</b></div>
-              <div class="r4-row r4-st"><span>Stand</span><b id="r3St">0/16</b></div>
-              <div class="r4-row r4-nut"><span>Nutrition</span><b id="r3Nut">0/2200</b></div>
-            </div>
-          </div>
-          <div class="hub-foot"><span>Tap for day / week / month / year detail</span><span class="hub-arrow">›</span></div>
-        </div>
-
-        <!-- 2. NUTRITION HUB (everything in one screen) -->
-        <div class="hub" data-hub="nutrition">
-          <div class="hub-head">
-            <div>
-              <div class="hub-eyebrow">Nutrition</div>
-              <div class="hub-title">Today's food</div>
-            </div>
-            <button class="hub-log" data-hub-log="food">+ Log food</button>
-          </div>
-          <div class="nut-week" id="nutWeek"></div>
-          <div class="nut-hero">
-            <div class="nh-block">
-              <div class="nh-num" id="hubCalNum">0</div>
-              <div class="nh-of">of <span id="hubCalGoal">2200</span> cal</div>
-            </div>
-            <div class="nh-block nh-block-right">
-              <div class="nh-left-num" id="hubCalLeft">2200</div>
-              <div class="nh-of">left</div>
-            </div>
-          </div>
-          <div class="nh-bar-row">
-            <div class="bar nh-bar-cal"><div class="bar-fill" id="hubCalBar" style="background:var(--cyan)"></div></div>
-          </div>
-          <div class="nh-macros">
-            <div class="nh-macro">
-              <div class="nm-h"><span>Protein</span><b id="pVal">0g / 0g</b></div>
-              <div class="bar"><div class="bar-fill bf-cyan" id="pBar"></div></div>
-            </div>
-            <div class="nh-macro">
-              <div class="nm-h"><span>Carbs</span><b id="cVal">0g / 0g</b></div>
-              <div class="bar"><div class="bar-fill bf-lime" id="cBar"></div></div>
-            </div>
-            <div class="nh-macro">
-              <div class="nm-h"><span>Fat</span><b id="fVal">0g / 0g</b></div>
-              <div class="bar"><div class="bar-fill bf-pink" id="fBar"></div></div>
-            </div>
-          </div>
-          <div class="nh-water">
-            <span class="nw-h">Water</span>
-            <div class="water-grid water-mini" id="waterGrid"></div>
-            <span class="nw-meta" id="waterMeta">0 / 64 oz</span>
-          </div>
-          <span id="fbVal" class="hidden">0g / 30g</span>
-          <span id="fbBar" class="hidden"></span>
-          <span id="calMeta" class="hidden">0/2200</span>
-          <span id="calConsumed" class="hidden">0</span>
-          <span id="calRem" class="hidden">2200 left</span>
-          <canvas id="calRing" width="1" height="1" class="hidden"></canvas>
-          <div class="hub-foot"><span>Tap to open food diary →</span><span class="hub-arrow">›</span></div>
-        </div>
-
-        <!-- 3. FITNESS HUB -->
-        <div class="hub" data-hub="fitness">
-          <div class="hub-head">
-            <div>
-              <div class="hub-eyebrow">Fitness</div>
-              <div class="hub-title">Lifts + workouts</div>
-            </div>
-            <button class="hub-log" data-hub-log="lift">+ Log lift</button>
-          </div>
-          <div class="hub-stats">
-            <div class="hs-cell">
-              <div class="hs-lbl">Today</div>
-              <div class="hs-val" id="hubTodaySets">0</div>
-              <div class="hs-sub">sets</div>
-            </div>
-            <div class="hs-cell">
-              <div class="hs-lbl">Last lift</div>
-              <div class="hs-val hs-val-text" id="hubLastLift">—</div>
-              <div class="hs-sub" id="hubLastLiftSub">no sessions yet</div>
-            </div>
-            <div class="hs-cell">
-              <div class="hs-lbl">Week vol.</div>
-              <div class="hs-val" id="hubWeekVol">0</div>
-              <div class="hs-sub">total reps</div>
-            </div>
-          </div>
-          <div class="hub-foot"><span>Tap to open lifts + PRs →</span><span class="hub-arrow">›</span></div>
-        </div>
-
-        <!-- 4. HEALTH HUB -->
-        <div class="hub" data-hub="health">
-          <div class="hub-head">
-            <div>
-              <div class="hub-eyebrow">Health</div>
-              <div class="hub-title">Symptoms + check-in</div>
-            </div>
-            <button class="hub-log" data-hub-log="symptom">+ Log</button>
-          </div>
-          <div class="hub-stats">
-            <div class="hs-cell">
-              <div class="hs-lbl">Sleep</div>
-              <div class="hs-val" id="hubSleep">—</div>
-              <div class="hs-sub">last night</div>
-            </div>
-            <div class="hs-cell">
-              <div class="hs-lbl">Mood</div>
-              <div class="hs-val" id="hubMood">—</div>
-              <div class="hs-sub" id="hubMoodSub">no check-in</div>
-            </div>
-            <div class="hs-cell">
-              <div class="hs-lbl">Symptoms</div>
-              <div class="hs-val" id="hubSymCount">0</div>
-              <div class="hs-sub">last 7 days</div>
-            </div>
-          </div>
-          <div class="hub-foot"><span>Tap for trends + insights →</span><span class="hub-arrow">›</span></div>
-        </div>
-
-        <!-- 5. TRENDS HUB -->
-        <div class="hub" data-hub="trends">
-          <div class="hub-head">
-            <div>
-              <div class="hub-eyebrow">Trends</div>
-              <div class="hub-title">Patterns + insights</div>
-            </div>
-            <button class="hub-log" data-hub-log="checkin">+ Check-in</button>
-          </div>
-          <div id="hubInsights" class="hub-insights">
-            <div class="hi-empty">Log consistently for ~10 days and patterns surface here.</div>
-          </div>
-          <div class="hub-foot"><span>Tap to open all insights →</span><span class="hub-arrow">›</span></div>
-        </div>
-
-        <!-- 6. WEIGHT vs GOAL HUB -->
-        <div class="hub" data-hub="weight">
-          <div class="hub-head">
-            <div>
-              <div class="hub-eyebrow">Weight vs Goal</div>
-              <div class="hub-title">Body trend</div>
-            </div>
-            <button class="hub-log" data-hub-log="weigh">+ Weigh in</button>
-          </div>
-          <div class="hub-stats">
-            <div class="hs-cell">
-              <div class="hs-lbl">Current</div>
-              <div class="hs-val" id="hubWeightCur">—</div>
-              <div class="hs-sub" id="weightDelta">no weigh-in</div>
-            </div>
-            <div class="hs-cell">
-              <div class="hs-lbl">Goal</div>
-              <div class="hs-val" id="hubWeightGoal">—</div>
-              <div class="hs-sub" id="hubWeightDelta">—</div>
-            </div>
-          </div>
-          <div class="hub-mini-chart">
-            <canvas id="hubWeightChart" height="60"></canvas>
-          </div>
-          <span id="weightBig" class="hidden">—</span>
-          <span id="lastLift" class="hidden"></span>
-          <span id="streakNum" class="hidden">0</span>
-          <span id="streakFoot" class="hidden"></span>
-          <span id="weeklyAvg" class="hidden">avg —</span>
-          <canvas id="weeklyChart" height="1" class="hidden"></canvas>
-          <div class="hub-foot"><span>Tap for body metrics →</span><span class="hub-arrow">›</span></div>
-        </div>
-
-      </div>
-
-      <!-- WOD CARD AT BOTTOM (de-emphasized, not a hub) -->
-      
-
-    </div><!-- /dashLegacy -->
     </section>
 
     <!-- ============ NUTRITION ============ -->
@@ -1365,11 +1122,11 @@
 <div class="toast" id="toast" aria-live="polite"></div>
 
 <script src="/tracker/vendor/chart.umd.js"></script>
-<script src="./data.js?v=59"></script>
-<script src="./exdb.js?v=59"></script>
-<script src="./repdb.js?v=59"></script>
-<script src="./bryl.js?v=59"></script>
-<script src="./body.js?v=59"></script>
-<script src="./app.js?v=59"></script>
+<script src="./data.js?v=60"></script>
+<script src="./exdb.js?v=60"></script>
+<script src="./repdb.js?v=60"></script>
+<script src="./bryl.js?v=60"></script>
+<script src="./body.js?v=60"></script>
+<script src="./app.js?v=60"></script>
 </body>
 </html>

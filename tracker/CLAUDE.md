@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v59**.
+- Current build: **v60**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -129,7 +129,7 @@ cause), then offers an export. Guarded by a smoke test that patches
 `Storage.prototype.setItem` to throw.
 
 ### Editing app.js
-It is **~16.0k lines, one IIFE**. New code gets spliced inside
+It is **~15.2k lines, one IIFE**. New code gets spliced inside
 the IIFE before the final `})();`. **A python3 heredoc splice is the working
 method** — giant single `Write` calls have caused API stream timeouts. Append
 in chunks. Always `node --check tracker/app.js` before committing.
@@ -141,7 +141,7 @@ in chunks. Always `node --check tracker/app.js` before committing.
 | File | What it is |
 |---|---|
 | `tracker/index.html` (~1.4k) | SPA shell. Views: dashboard (Home), fitness (Workouts), nutrition, progress, more, lifts, coach, library, body, goals, trends (**Health**), history, settings. Version marker + `?v=NN` cache-busting. |
-| `tracker/app.js` (~16.0k) | Everything. Has a CODE MAP comment at the top. |
+| `tracker/app.js` (~15.2k) | Everything. Has a CODE MAP comment at the top. |
 | `tracker/styles.css` (~5.1k) | **Layered — bottom wins.** Has a LAYER MAP header. Because legacy layers use `!important`, hide things with a **class**, never inline `style.display`. |
 | `tracker/data.js` (~520) | Food DB (~355 items), WOD library, movements, programs, activity levels. |
 | `tracker/bryl.js` (43KB) | **Workout Guide by Bryl Lim**: 302 exercises, white-on-transparent line art (3 frames; we use frame 1), equipment, primary/secondary muscle. Assets **CC BY-SA 4.0** (76 first poses adapted from Everkinetic). Used unmodified from the npm CDN (`BRYL_IMG(path)`), credited on More. The style that actually matches the dark UI. |
@@ -1010,6 +1010,28 @@ render of that page.
 
 ---
 
+**LEGACY DASHBOARD REMOVED + FINER MUSCLES + SCREEN PASS (v60).**
+- `#dashLegacy` (243 lines of hidden DOM, 63 ids) is GONE. `renderDashboard()`
+  is now just `renderHome()`. Swept with it: 33 functions (the hubs, deck,
+  compare card, streak, restart card, WOD card, weekly chart, calorie ring,
+  adaptive-macro check — all of which only ever painted into the hidden
+  block), 5 dead bindings, 136 CSS rules + 25 trimmed selector lists.
+  Method: delete DOM → trim the pipeline → run every screen collecting
+  console warnings + `window.__errs` → loop "function with exactly one
+  whole-word reference = orphan" until empty → CSS selectors whose class /
+  id appears nowhere in index.html or app.js. Two smoke tests read the old
+  `#cmpRows`; they now read Home's `.hm-deltas`. **Self-referencing dead
+  code (`renderCompareCard` calling itself from its own binder) is not
+  caught by the refs==1 scan — check binders by hand.**
+- Body figure colours **per drawn muscle**, not per part: `_daysSinceSlug()`
+  runs each logged lift through `subMusclesForExercise()` and maps regions
+  to the figure's slugs (`SLUG_REGIONS`). A curl lights biceps only, a lat
+  pulldown the upper back only. Lifts the resolver cannot place fall back
+  to colouring their whole part. Tap-through still uses `data-part`.
+- Screen pass under the glass layer: diary items and weigh-ins are flat
+  rows with hairlines (were bordered boxes); weigh-in deltas are plain
+  grey numbers (were light pink/green badges); small buttons 8px radius.
+
 **THE BODY FIGURE (v59).** She sent Fitbod's recovery screen: *"identical
 to this but female and male option and front and back."* My hand-drawn SVG
 was never going to get there, so it is replaced by an MIT-licensed figure
@@ -1201,7 +1223,7 @@ Fitbod or Strong. It is **not** a product yet. In priority order:
    873 with photos, public domain.
 5. **AI cost is unmetered.** `ai-parse.js` bills the project owner per call
    with no rate limit or per-user cap.
-6. **`app.js` is ~16.0k lines in one file.** It works and the pipeline
+6. **`app.js` is ~15.2k lines in one file.** It works and the pipeline
    architecture is sound, but onboarding a second developer is expensive and
    technical diligence will flag it.
 
@@ -1287,4 +1309,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v56` COACH HUB — every member, periods with deltas, PRs, log a lift, saved workouts applied to a month; off by default, demo gym included ·
 `v57` SETUP rebuilt in the current look: four goals, 7 + doubles, eating styles, editable macros, body-comp scans feeding the plan ·
 `v58` COACH HUB v2 (class sheet, month calendar with weekday pattern, CRM tables) and the app-wide glass + depth layer, pills removed ·
-`v59` BODY FIGURE replaced with an MIT anatomical set: male + female, front + back, flip button, Fitbod layout.
+`v59` BODY FIGURE replaced with an MIT anatomical set: male + female, front + back, flip button, Fitbod layout ·
+`v60` legacy dashboard deleted with a full orphan sweep; body figure coloured per muscle; row cleanup on Nutrition and Body.

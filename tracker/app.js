@@ -500,7 +500,6 @@ function bindGlobal(){
   // Quick chips
 
   // WOD shuffle
-  on("#wodShuffle", "click", shuffleWod);
   on("#fitShuffle", "click", shuffleWod);
   on("#fitWodPicker", "change", (e) => { dayObj(currentDate).wodId = parseInt(e.target.value,10); save(); renderAll(); });
 
@@ -508,7 +507,6 @@ function bindGlobal(){
   // + LOG A WORKOUT is now the only header action; the rest are tabs inside it
   // + WOD removed from the header — WODs live on the WOD card at the bottom
   on("#fitLogResult", "click", openWodResultModal);
-  on("#addPrBtn", "click", openPrModal);
 
   // Body
   on("#weighInBtn", "click", openWeighInModal);
@@ -998,64 +996,6 @@ function renderAll(){
 
 // ---------- DASHBOARD ----------
 let calRingChart, weeklyChart, weightChart, fitnessHeatChartRef = null;
-function renderDashboardBase(){
-  const t = totalsFor(currentDate);
-  const g = state.goals;
-
-  $("#dashDate").textContent = fmtMed(currentDate);
-  $("#dashGreeting").textContent = "Home";
-
-  // Calorie ring
-  const consumed = t.cal;
-  const remaining = Math.max(0, g.cal - consumed);
-  $("#calConsumed").textContent = consumed;
-  $("#calRem").textContent = (consumed > g.cal ? `${consumed - g.cal} over` : `${remaining} left`);
-  $("#calMeta").textContent = `${consumed} / ${g.cal}`;
-  drawCalorieRing(consumed, g.cal);
-
-  // Macros
-  setMacro("p", t.p, g.protein, "pVal", "pBar");
-  setMacro("c", t.c, g.carbs,   "cVal", "cBar");
-  setMacro("f", t.f, g.fat,     "fVal", "fBar");
-  // fiber estimated as 10% of carbs as a stand-in
-  const fiber = Math.round(t.c * 0.1);
-  $("#fbVal").textContent = `${fiber}g / ${g.fiber}g`;
-  $("#fbBar").style.width = Math.min(100, (fiber/g.fiber)*100) + "%";
-
-  // Water
-  renderWater();
-
-  // WOD
-  renderWodCard();
-
-  // Last lift
-  const last = lastSession();
-  const ll = $("#lastLift");
-  if(last){
-    ll.innerHTML = `<span class="stat-big">${escape(last.name)}</span><span class="stat-sub">${last.weight}${unit()} × ${last.reps} · ${fmtDate(last.date)}</span>`;
-  } else {
-    ll.innerHTML = `<span class="stat-big">—</span><span class="stat-sub">No sessions yet</span>`;
-  }
-
-  // Weight
-  const wlast = state.weights[state.weights.length-1];
-  if(wlast){
-    $("#weightBig").textContent = wlast.val + " " + unit();
-    const prev = state.weights[state.weights.length-2];
-    if(prev){
-      const diff = (wlast.val - prev.val).toFixed(1);
-      $("#weightDelta").textContent = (diff > 0 ? "+" : "") + diff + " " + unit() + " vs last";
-    } else $("#weightDelta").textContent = "first weigh-in";
-  } else { $("#weightBig").textContent = "—"; $("#weightDelta").textContent = "Log your first weigh-in"; }
-
-  drawWeeklyChart();
-  renderStreak();
-}
-
-function setMacro(k, val, goal, valEl, barEl){
-  $("#"+valEl).textContent = `${val}g / ${goal}g`;
-  $("#"+barEl).style.width = Math.min(100, (val/Math.max(1,goal))*100) + "%";
-}
 
 
 function renderWater(){
@@ -1080,13 +1020,6 @@ function renderWater(){
   $("#waterMeta").textContent = `${Math.round(cur)} / ${state.goals.water} ${unitVol()}`;
 }
 
-function renderStreak(){
-  const days = streakDays();
-  $("#streakNum").textContent = days;
-  $("#streakFoot").textContent = days === 0
-    ? "Log a meal or a workout today to start."
-    : days === 1 ? "Day 1. Stack another tomorrow." : `${days} consecutive days. Keep it.`;
-}
 function streakDays(){
   let count = 0;
   let d = new Date();
@@ -1114,70 +1047,6 @@ function hasActivity(k){
   return meals || d.water>0 || (d.sessions && d.sessions.length) || d.wodResult;
 }
 
-function lastSession(){
-  let last = null;
-  Object.keys(state.days).sort().reverse().some(k => {
-    const s = (state.days[k].sessions||[]);
-    if(s.length){ last = {...s[s.length-1], date:k}; return true; }
-  });
-  return last;
-}
-
-// ---------- CHARTS ----------
-function drawCalorieRing(consumed, goal){
-  const ctx = $("#calRing").getContext("2d");
-  if(calRingChart) calRingChart.destroy();
-  const eaten = Math.min(consumed, goal);
-  const remaining = Math.max(0, goal - consumed);
-  const over = Math.max(0, consumed - goal);
-  calRingChart = new Chart(ctx, {
-    type:"doughnut",
-    data:{
-      labels: over > 0 ? ["Eaten","Over"] : ["Eaten","Remaining"],
-      datasets:[{
-        data: over > 0 ? [goal, over] : [eaten, remaining],
-        backgroundColor: over > 0 ? ["#ff4d9d","#0a0a0a"] : ["#c8f500","#f0efe9"],
-        borderWidth:0, cutout:"75%"
-      }]
-    },
-    options:{
-      responsive:false, plugins:{legend:{display:false}, tooltip:{enabled:false}},
-      animation:{duration:600}
-    }
-  });
-}
-
-function drawWeeklyChart(){
-  const ctx = $("#weeklyChart").getContext("2d");
-  if(weeklyChart) weeklyChart.destroy();
-  const labels = [], data = [];
-  for(let i=6;i>=0;i--){
-    const d = new Date(); d.setDate(d.getDate()-i);
-    const k = todayKey(d);
-    labels.push(d.toLocaleDateString(undefined,{weekday:"short"}));
-    data.push(totalsFor(k).cal);
-  }
-  const avg = Math.round(data.reduce((a,b)=>a+b,0)/data.length);
-  $("#weeklyAvg").textContent = "avg " + avg + " kcal";
-  weeklyChart = new Chart(ctx, {
-    type:"bar",
-    data:{ labels, datasets:[{
-      data, backgroundColor:"#00f5d4", borderRadius:8, maxBarThickness:36
-    },{
-      type:"line", data: labels.map(()=>state.goals.cal),
-      borderColor:"#0a0a0a", borderWidth:1.5, borderDash:[4,4], pointRadius:0
-    }] },
-    options:{
-      plugins:{legend:{display:false}, tooltip:{
-        callbacks:{ title:(items)=>items[0].label, label:(c)=>c.parsed.y+" kcal"}
-      }},
-      scales:{
-        y:{beginAtZero:true, grid:{color:"rgba(255,255,255,.06)"}, ticks:{color:"#a7b1c6",font:{size:10}}},
-        x:{grid:{display:false}, ticks:{color:"#a7b1c6",font:{size:10}}}
-      }
-    }
-  });
-}
 
 // ---------- NUTRITION VIEW ----------
 function renderNutritionBase(){
@@ -1215,21 +1084,6 @@ function shuffleWod(){
   state.wodIndex = next;
   save();
   renderAll();
-}
-function renderWodCard(){
-  // The WOD card was removed from the dashboard in v36. This used to write
-  // into four elements unconditionally, so once they were gone it threw on
-  // EVERY dashboard render and killed the rest of the render chain with it.
-  const name = $("#wodName");
-  if(!name) return;
-  const day = dayObj(currentDate);
-  const idx = day.wodId !== null && day.wodId !== undefined ? day.wodId : (state.wodIndex % DATA.wods.length);
-  const wod = DATA.wods[idx];
-  const set = (sel, v) => { const el = $(sel); if(el) el.textContent = v; };
-  set("#wodName", wod.name + (wod.hero ? " ★" : ""));
-  set("#wodType", wod.type);
-  set("#wodTitle", wod.name);
-  set("#wodScript", wod.script);
 }
 
 // "Log a lift" from anywhere lands in the one workout flow. With a name it
@@ -1270,33 +1124,6 @@ function openWodResultModal(){
   });
 }
 
-function openPrModal(){
-  openModal("Add / update PR", `
-    <label><span>Lift</span>
-      <input list="prlifts" id="prLift" class="search-input" placeholder="Back Squat" required>
-      <datalist id="prlifts">${DATA.prLifts.map(m=>`<option value="${escape(m)}">`).join("")}</datalist>
-    </label>
-    <div class="form-grid">
-      <label><span>Value (${unit()})</span><input id="prVal" type="number" step="0.1" required></label>
-      <label><span>Date</span><input id="prDate" type="date" value="${currentDate}"></label>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" data-close>Cancel</button>
-      <button class="btn btn-cyan" id="prSave">Save PR</button>
-    </div>
-  `, (root) => {
-    root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
-    $("#prSave").addEventListener("click", () => {
-      const lift = $("#prLift").value.trim();
-      const val = parseFloat($("#prVal").value);
-      const date = $("#prDate").value || currentDate;
-      if(!lift || isNaN(val)) { toast("Add lift + value","pink"); return; }
-      state.prs[lift] = { val, date, unit: unit() };
-      save(); closeModal(); renderAll();
-      toast(`PR: ${lift} = ${val}${unit()}`, "cyan");
-    });
-  });
-}
 
 // ---------- HEATMAP ----------
 function drawHeatmap(){
@@ -5405,154 +5232,6 @@ drawActivityRings = function(){
   }
 };
 
-// ---- Hub-specific renders ----
-function renderNutritionHubBase(){
-  const t = totalsFor(currentDate);
-  const g = state.goals;
-  const setText = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = txt; };
-  setText("hubCalNum", t.cal);
-  setText("hubCalGoal", g.cal);
-  setText("hubCalLeft", Math.max(0, g.cal - t.cal));
-  const bar = document.getElementById("hubCalBar");
-  if(bar){
-    const pct = Math.min(100, t.cal/g.cal*100);
-    bar.style.width = pct + "%";
-    if(t.cal > g.cal) bar.style.background = "var(--pink)";
-    else if(t.cal > g.cal*0.9) bar.style.background = "#b788ff";
-    else bar.style.background = "var(--cyan)";
-  }
-  // Macros bars are filled by existing applyRedFlags / dashboard render
-}
-
-function renderFitnessHub(){
-  const day = dayObj(currentDate);
-  const sessions = day.sessions || [];
-  const setText = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = txt; };
-  setText("hubTodaySets", sessions.length);
-
-  // Last lift across all days
-  let last = null;
-  Object.keys(state.days).sort().reverse().some(k => {
-    const ss = state.days[k].sessions || [];
-    if(ss.length){ last = {...ss[ss.length-1], date:k}; return true; }
-  });
-  if(last){
-    setText("hubLastLift", last.name.length > 16 ? last.name.slice(0,15)+"…" : last.name);
-    setText("hubLastLiftSub", `${last.weight}${unit()} × ${last.reps} · ${fmtDate(last.date)}`);
-  } else {
-    setText("hubLastLift", "—");
-    setText("hubLastLiftSub", "no sessions yet");
-  }
-
-  // Weekly volume
-  let weekReps = 0;
-  for(let i=0;i<7;i++){
-    const d = new Date(); d.setDate(d.getDate()-i);
-    const k = todayKey(d);
-    (state.days[k] && state.days[k].sessions || []).forEach(s => {
-      weekReps += (s.reps||0) * (s.sets||1);
-    });
-  }
-  setText("hubWeekVol", weekReps);
-}
-
-function renderHealthHub(){
-  const setText = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = txt; };
-  const c = (state.days[todayKey()]||{}).checkin;
-  setText("hubSleep", c && c.sleep ? c.sleep + "h" : "—");
-  if(c && c.mood){
-    setText("hubMood", ["😩","😕","😐","🙂","🤩"][c.mood-1]);
-    setText("hubMoodSub", "today");
-  } else {
-    setText("hubMood", "—");
-    setText("hubMoodSub", "no check-in today");
-  }
-  let count = 0;
-  for(let i=0;i<7;i++){
-    const d = new Date(); d.setDate(d.getDate()-i);
-    const k = todayKey(d);
-    count += (state.days[k] && state.days[k].symptoms || []).length;
-  }
-  setText("hubSymCount", count);
-}
-
-function renderTrendsHub(){
-  const list = document.getElementById("hubInsights");
-  if(!list) return;
-  let insights = [];
-  try { insights = computeInsights().concat(computeSymptomInsights ? computeSymptomInsights() : []); } catch(e){ _report("caught", e); }
-  if(!insights.length){
-    list.innerHTML = `<div class="hi-empty">Log consistently for ~10 days and patterns surface here.</div>`;
-    return;
-  }
-  list.innerHTML = insights.slice(0,2).map(i => `
-    <div class="hi-card hi-${i.tier}">
-      <span class="hi-icon">${insIcon(i.icon)}</span>
-      <span class="hi-text">${escape(i.headline)}</span>
-    </div>
-  `).join("");
-}
-
-function renderWeightHub(){
-  const setText = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = txt; };
-  const ws = (state.weights||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
-  if(ws.length){
-    const last = ws[ws.length-1];
-    setText("hubWeightCur", last.val + " " + unit());
-    if(ws.length > 1){
-      const prev = ws[ws.length-2];
-      const d = (last.val - prev.val).toFixed(1);
-      setText("weightDelta", (d>0?"+":"") + d + " " + unit() + " vs prev");
-    } else {
-      setText("weightDelta", "first weigh-in");
-    }
-  } else {
-    setText("hubWeightCur", "—");
-    setText("weightDelta", "no weigh-in");
-  }
-  if(state.goals.weight){
-    setText("hubWeightGoal", state.goals.weight + " " + unit());
-    if(ws.length){
-      const diff = (ws[ws.length-1].val - state.goals.weight).toFixed(1);
-      setText("hubWeightDelta", (diff>0?"+":"") + diff + " from goal");
-    }
-  } else {
-    setText("hubWeightGoal", "Set in Settings");
-    setText("hubWeightDelta", "—");
-  }
-
-  // Mini line chart of last 30 weigh-ins
-  const c = document.getElementById("hubWeightChart");
-  if(c && typeof Chart !== "undefined"){
-    if(window._hubWeightChart) window._hubWeightChart.destroy();
-    const last30 = ws.slice(-30);
-    window._hubWeightChart = new Chart(c.getContext("2d"), {
-      type:"line",
-      data:{
-        labels: last30.map(()=>" "),
-        datasets:[{
-          data: last30.map(w=>w.val),
-          borderColor:"#00f5d4",
-          backgroundColor:"rgba(0,245,212,0.12)",
-          fill:true, tension:.3, pointRadius:0, borderWidth:2
-        }]
-      },
-      options:{
-        plugins:{legend:{display:false}, tooltip:{enabled:false}},
-        scales:{x:{display:false}, y:{display:false}}
-      }
-    });
-  }
-}
-
-function renderHubsAllBase(){
-  drawActivityRings();
-  renderNutritionHub();
-  renderFitnessHub();
-  renderHealthHub();
-  renderTrendsHub();
-  renderWeightHub();
-}
 
 // Hook into dashboard render
 
@@ -5635,11 +5314,6 @@ function applyHubTimestamps(){
   });
 }
 
-// Hook hub renders to also stamp + apply prefs
-// Pipeline step (extracted from a wrapper patch; composed at EOF).
-function renderHubsAllStep_RenderHubsAll(){
-  applyHubTimestamps();
-}
 
 // ---- PULL TO REFRESH ----
 function setupPTR(){
@@ -5794,38 +5468,6 @@ function openContractModal(){
   });
 }
 
-// ---- Restart Card (compassionate prompt when struggling) ----
-function renderRestartCard(){
-  const card = document.getElementById("restartCard");
-  if(!card) return;
-  // Count consecutive missed days (back from today)
-  let missed = 0;
-  let d = new Date();
-  while(true){
-    const k = todayKey(d);
-    const has = (function(){
-      const dd = state.days[k]; if(!dd) return false;
-      const meals = ["breakfast","lunch","dinner","snacks"].some(m => (dd.meals||{})[m] && dd.meals[m].length);
-      return meals || (dd.sessions||[]).length > 0;
-    })();
-    if(has) break;
-    missed++; d.setDate(d.getDate()-1);
-    if(missed >= 30) break;
-  }
-  // Don't show if dismissed today
-  const dismissedKey = "bermo.tracker.restartDismissed." + todayKey();
-  if(localStorage.getItem(dismissedKey) === "1"){ card.classList.add("hidden"); return; }
-  if(missed >= 3){
-    card.classList.remove("hidden");
-    const title = document.getElementById("rsTitle");
-    const sub = document.getElementById("rsSub");
-    const phrase = missed >= 30 ? "30+ days happened" : `${missed} days happened`;
-    title.textContent = `${phrase}. No guilt.`;
-    sub.textContent = `Real life. Real reasons. The fastest restart isn't perfection — it's any small action right now. You can be back on track in 30 seconds.`;
-  } else {
-    card.classList.add("hidden");
-  }
-}
 function setupRestartActions(){
   const card = document.getElementById("restartCard");
   if(!card) return;
@@ -5888,12 +5530,6 @@ function openQuickCheckin(){
   });
 }
 
-// ---- Hooks ----
-// Pipeline step (extracted from a wrapper patch; composed at EOF).
-function renderDashboardStep_RDForAcc(){
-  renderContract();
-  renderRestartCard();
-}
 
 onReady(() => {
   const e = document.getElementById("ccEditBtn");
@@ -6029,35 +5665,6 @@ function ensureMetricTabs(){
   }));
 }
 
-// ---- NUTRITION HUB WEEK STRIP (✓ for logged + within goal) ----
-function renderNutritionWeekBase(){
-  const wk = document.getElementById("nutWeek");
-  if(!wk) return;
-  let html = "";
-  for(let i = 6; i >= 0; i--){
-    const d = new Date(); d.setDate(d.getDate() - i);
-    const k = todayKey(d);
-    const t = totalsFor(k);
-    const goal = state.goals.cal;
-    const day = state.days[k];
-    const hasFood = day && ["breakfast","lunch","dinner","snacks"].some(m => (day.meals||{})[m] && day.meals[m].length);
-    let status = "empty"; // no log
-    let icon = "·";
-    if(hasFood){
-      if(t.cal === 0){ status = "empty"; }
-      else if(t.cal > goal){ status = "over"; icon = "!"; }
-      else if(t.cal >= goal*0.7){ status = "good"; icon = "✓"; }
-      else { status = "low"; icon = "↓"; }
-    }
-    const dayLetter = d.toLocaleDateString(undefined,{weekday:"narrow"});
-    const isToday = i === 0;
-    html += `<div class="nw-day ${status} ${isToday?"today":""}">
-      <div class="nw-letter">${dayLetter}</div>
-      <div class="nw-circle"><span>${icon}</span></div>
-    </div>`;
-  }
-  wk.innerHTML = html;
-}
 
 // ---- BIGGER WEEK STRIP for activity (per screenshot) ----
 // Hook into existing drawActivityRings to make week strip more visible
@@ -6160,16 +5767,6 @@ function drawActivityRingsStep_DrawRingsForStrip(){
 
 
 // Legacy popup handler removed — see setHubViewDate for swap-in-place behavior below.
-
-// ---- NUTRITION WEEK STRIP — add data-date / data-kind so clicks work ----
-// Pipeline step (extracted from a wrapper patch; composed at EOF).
-function renderNutritionWeekStep_RNW(){
-  document.querySelectorAll("#nutWeek .nw-day").forEach((el, idx) => {
-    const d = new Date(); d.setDate(d.getDate() - (6 - idx));
-    el.dataset.date = todayKey(d);
-    el.dataset.kind = "nutrition";
-  });
-}
 
 
 // =================================================================
@@ -8756,19 +8353,6 @@ onReady(() => {
   }
 });
 
-// Hook render to show "← Today" when on a non-today date
-// Pipeline step (extracted from a wrapper patch; composed at EOF).
-function renderDashboardStep_RDForToday(){
-  const btn = document.getElementById("dashTodayBtn");
-  if(btn){
-    if(_hubViewDate !== todayKey()){
-      btn.classList.remove("hidden");
-      btn.textContent = `← Today (viewing ${fmtDate(_hubViewDate)})`;
-    } else {
-      btn.classList.add("hidden");
-    }
-  }
-}
 
 // =================================================================
 // BODY PART COVERAGE — accountability for hitting all muscle groups
@@ -9035,83 +8619,6 @@ Use null for any field you cannot confidently read. Return ONLY the JSON.`;
   );
 }
 
-// ---------- FEATURE 3: Adaptive macros ----------
-function _adaptiveAvgWeight(daysBack){
-  if(!state.weights || !state.weights.length) return null;
-  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - daysBack);
-  const recent = state.weights.filter(w => new Date(w.date) >= cutoff);
-  if(!recent.length) return null;
-  return recent.reduce((s,w) => s + w.val, 0) / recent.length;
-}
-function checkAdaptiveMacros(){
-  const am = _ensureSection("adaptive", { lastReviewAt: null, history: [], dismissedSuggestion: null });
-  if(am.lastReviewAt){
-    const daysSince = (Date.now() - new Date(am.lastReviewAt).getTime()) / 86400000;
-    if(daysSince < 7) return null;
-  }
-  const p = state.profile || {};
-  if(!p.goal || p.goal === "maintain") return null;
-  const w7  = _adaptiveAvgWeight(7);
-  const w14 = _adaptiveAvgWeight(14);
-  if(!w7 || !w14) return null;
-  const observedRate = (w7 - w14);
-  const losing = p.goal === "lose" || p.goal === "lean";
-  const targetRate = losing ? -(p.goalRateLbWk||1) : (p.goalRateLbWk||1);
-  if(targetRate === 0) return null;
-  const ratio = observedRate / targetRate;
-  if(ratio >= 0.8 && ratio <= 1.5) return null;
-  const direction = losing
-    ? (observedRate > targetRate ? -100 : +100)
-    : (observedRate < targetRate ? +100 : -100);
-  return {
-    observedRate: Math.round(observedRate*100)/100,
-    targetRate,
-    suggestedDelta: direction,
-    newCal: state.goals.cal + direction,
-    reviewedAt: new Date().toISOString()
-  };
-}
-function renderAdaptiveCard(){
-  const sug = checkAdaptiveMacros();
-  const dash = $("#view-dashboard");
-  const existing = $("#adaptiveCard");
-  if(existing) existing.remove();
-  if(!sug || !dash) return;
-  const am = state.adaptive || {};
-  if(am.dismissedSuggestion === sug.suggestedDelta + "@" + state.goals.cal) return;
-  const card = document.createElement("div");
-  card.id = "adaptiveCard";
-  card.className = "card adaptive-card";
-  const sign = sug.suggestedDelta > 0 ? "+" : "";
-  card.innerHTML = `
-    <div class="card-head"><span class="card-eyebrow">✨ Adaptive macros · weekly review</span></div>
-    <p class="adaptive-msg">Your 7-day weight trend is <strong>${sug.observedRate > 0 ? "+":""}${sug.observedRate} lb/wk</strong>, target <strong>${sug.targetRate > 0 ? "+":""}${sug.targetRate} lb/wk</strong>. Try <strong>${sign}${sug.suggestedDelta} cal/day</strong> for a week and we'll re-check.</p>
-    <div class="adaptive-actions">
-      <button type="button" class="btn btn-cyan btn-sm" id="adaptiveApply">Apply (${sug.newCal} cal)</button>
-      <button type="button" class="btn btn-ghost btn-sm" id="adaptiveDismiss">Not now</button>
-    </div>`;
-  dash.prepend(card);
-  $("#adaptiveApply").addEventListener("click", () => {
-    const oldCal = state.goals.cal;
-    state.goals.cal = sug.newCal;
-    const goal = (state.profile && state.profile.goal) || "maintain";
-    let pPct=0.30, cPct=0.40, fPct=0.30;
-    if(goal === "lose")  { pPct=0.35; cPct=0.35; fPct=0.30; }
-    if(goal === "gain")  { pPct=0.28; cPct=0.45; fPct=0.27; }
-    state.goals.protein = Math.round(sug.newCal * pPct / 4);
-    state.goals.carbs   = Math.round(sug.newCal * cPct / 4);
-    state.goals.fat     = Math.round(sug.newCal * fPct / 9);
-    state.adaptive.history.push({ date:new Date().toISOString(), from:oldCal, to:sug.newCal, observedRate:sug.observedRate, targetRate:sug.targetRate });
-    state.adaptive.lastReviewAt = sug.reviewedAt;
-    state.adaptive.dismissedSuggestion = null;
-    save(); toast("New target applied", "ok"); renderAll();
-  });
-  $("#adaptiveDismiss").addEventListener("click", () => {
-    state.adaptive.lastReviewAt = sug.reviewedAt;
-    state.adaptive.dismissedSuggestion = sug.suggestedDelta + "@" + state.goals.cal;
-    save(); card.remove();
-  });
-}
 
 // ---------- FEATURE 4: Barcode scan ----------
 function _barcodeCacheGet(upc){
@@ -10115,8 +9622,6 @@ function renderDeck(){
 }
 
 onReady(() => {
-  on("#deckFitCol", "click", (e) => { if(!e.target.closest("button")) openDetail("move"); });
-  on("#deckNutCol", "click", (e) => { if(!e.target.closest("button")) jumpToTab("nutrition"); });
 });
 
 
@@ -10356,22 +9861,6 @@ function startLibWorkout(w){
 }
 
 
-// =================================================================
-// ACCOUNTABILITY — slack detection + progress trend callouts
-// =================================================================
-function _volumeForRange(startDate, endDate){
-  let vol = 0;
-  Object.keys(state.days).forEach(k => {
-    if(k >= startDate && k < endDate){
-      ((state.days[k] || {}).sessions || []).forEach(s => {
-        vol += (s.weight || 0) * (s.reps || 0) * (s.sets || 1);
-      });
-    }
-  });
-  return vol;
-}
-
-
 // Resolve body parts for ANY exercise name: exact map first, then keywords
 // (covers machines like Lat Pulldown / Leg Press and free-typed customs).
 function partsForExercise(name){
@@ -10406,176 +9895,10 @@ function _bodyPartLastHit(){
   return lastHit;
 }
 
-function accountabilityCallouts(){
-  const out = [];
-  const today = new Date(); today.setHours(0,0,0,0);
-
-  // 1. Missed planned workout yesterday
-  const y = new Date(today); y.setDate(y.getDate() - 1);
-  const yk = todayKey(y);
-  const yName = ["sun","mon","tue","wed","thu","fri","sat"][y.getDay()];
-  const yWk = weekKey(weekStart(y));
-  const yPlan = state.plan && state.plan[yWk] && state.plan[yWk][yName];
-  const yWorked = ((state.days[yk] || {}).sessions || []).length > 0;
-  if(yPlan && yPlan.type && !/rest|recov/i.test(yPlan.type) && !yWorked){
-    out.push({
-      key: "missed-" + yk,
-      title: `You planned ${yPlan.type} yesterday. You didn't show.`,
-      sub: "Doesn't reset the week — run it today. Tap to start.",
-      primary: { label: "RUN IT NOW", action: () => {
-        const plan = getPlan();
-        const wk = weekKey(weekStart(new Date()));
-        const dn = ["sun","mon","tue","wed","thu","fri","sat"][new Date().getDay()];
-        if(!plan[wk]) plan[wk] = {};
-        if(!plan[wk][dn] || !plan[wk][dn].type) plan[wk][dn] = yPlan;
-        save();
-        hvOpen(todayKey(), "logger");
-      }},
-    });
-  }
-
-  // 2. Neglected body part — only with real lift history
-  const totalSessions = Object.values(state.days).reduce((n, d) => n + ((d.sessions || []).length), 0);
-  if(totalSessions >= 10 && typeof BODY_PART_MAP !== "undefined"){
-    const lastHit = _bodyPartLastHit();
-    const parts = ["legs","back","chest","shoulders","arms","glutes","core"];
-    for(const p of parts){
-      if(!lastHit[p]) continue;
-      const days = Math.round((today - new Date(lastHit[p] + "T00:00:00")) / 86400000);
-      if(days >= 8){
-        out.push({
-          key: "neglect-" + p,
-          title: `${p.toUpperCase()}: ${days} DAYS UNTOUCHED.`,
-          sub: `Last trained ${fmtDate(lastHit[p])}. That's how imbalances start.`,
-          primary: { label: "LOG " + p.toUpperCase(), action: () => openLiftModal() },
-        });
-        break; // one neglect callout at a time — the loudest one
-      }
-    }
-  }
-
-  // 3. Volume backslide — this week vs 3-week average, judged Thu onward
-  const mon = weekStart(new Date());
-  const monKey = todayKey(mon);
-  const elapsed = Math.max(1, Math.round((today - mon) / 86400000) + 1);
-  if(elapsed >= 4){
-    const thisVol = _volumeForRange(monKey, todayKey(new Date(today.getTime() + 86400000)));
-    let prevSum = 0;
-    for(let w = 1; w <= 3; w++){
-      const s2 = new Date(mon.getTime() - w*7*86400000);
-      const e2 = new Date(s2.getTime() + elapsed*86400000);
-      prevSum += _volumeForRange(todayKey(s2), todayKey(e2));
-    }
-    const prevAvg = prevSum / 3;
-    if(prevAvg > 1000 && thisVol < prevAvg * 0.7){
-      out.push({
-        key: "backslide-" + weekKey(mon),
-        title: `VOLUME DOWN ${Math.round(100 - (thisVol/prevAvg)*100)}% vs your 3-week average.`,
-        sub: `${Math.round(thisVol).toLocaleString()} vs usual ${Math.round(prevAvg).toLocaleString()} ${unit()}·reps by this point in the week. Pick it up.`,
-        primary: { label: "LOG A LIFT", action: () => openLiftModal() },
-      });
-    }
-  }
-
-  return out;
-}
-
-// Called from the dashboard pipeline right after renderSmartBanners()
-function appendAccountabilityBanners(){
-  const wrap = document.getElementById("smartBanners");
-  if(!wrap) return;
-  const r = getReminders();
-  if(!r.enabled) return;
-  accountabilityCallouts().forEach(c => {
-    if(_bannerDismissed(c.key)) return;
-    if(wrap.querySelector(`[data-banner-key="${c.key}"]`)) return;
-    const div = document.createElement("div");
-    div.className = "smart-banner sb-aggr";
-    div.dataset.bannerKey = c.key;
-    div.innerHTML = `
-      <div class="sb-body">
-        <div class="sb-title">${c.title}</div>
-        <div class="sb-sub">${c.sub}</div>
-      </div>
-      <div class="sb-actions">
-        <button class="btn btn-cyan btn-sm" data-acc-go>${escape(c.primary.label)}</button>
-        <button class="btn btn-ghost btn-sm" data-acc-x aria-label="Dismiss">✕</button>
-      </div>
-    `;
-    div.querySelector("[data-acc-go]").addEventListener("click", c.primary.action);
-    div.querySelector("[data-acc-x]").addEventListener("click", () => {
-      _dismissBanner(c.key);
-      div.remove();
-    });
-    wrap.appendChild(div);
-  });
-}
-
-
-// =================================================================
-// HOME CARDS — Today's Nutrition + Workouts This Week (editable)
-// =================================================================
-function renderDashWorkList(){
-  const list = document.getElementById("dwList");
-  if(!list) return;
-  const mon = weekStart(new Date());
-  const wk = weekKey(mon);
-  const wkPlan = (state.plan && state.plan[wk]) || {};
-  const names = ["sun","mon","tue","wed","thu","fri","sat"];
-  let html = "";
-  for(let i = 0; i < 7; i++){
-    const d = new Date(mon.getTime() + i*86400000);
-    const k = todayKey(d);
-    const p = wkPlan[names[i]] || {};
-    const sessions = (state.days[k] && state.days[k].sessions) || [];
-    const done = sessions.length > 0;
-    const isToday = k === todayKey();
-    const past = k < todayKey();
-    // What actually happened / is planned
-    const cardio = sessions.find(x => x.type === "cardio");
-    const doneName = done ? (p.type || (cardio ? cardio.name : sessions[0].name)) : null;
-    const vol = sessions.reduce((n, x) => n + (x.weight||0)*(x.reps||0)*(x.sets||1), 0);
-    const kcal = sessions.reduce((n, x) => n + (x.calories||0), 0);
-    const statParts = [];
-    if(done){
-      statParts.push(`${sessions.length} ${sessions.length===1?"entry":"entries"}`);
-      if(vol > 0) statParts.push(`${Math.round(vol).toLocaleString()} ${unit()}`);
-      if(kcal > 0) statParts.push(`${Math.round(kcal)} kcal`);
-    }
-    const label = done ? doneName : (p.type || "Rest / unplanned");
-    const mark = done ? "✓" : (p.type ? (past ? "✕" : (isToday ? "▶" : "·")) : "");
-    const cls = done ? "done" : (p.type ? (past ? "missed" : (isToday ? "today-up" : "planned")) : "empty");
-    const timeTag = p.time ? ` <em class="dw-time">${escape(fmtTime12(p.time))}</em>` : "";
-    const extras = (p.extra || []).map(x =>
-      `<small class="dw-extra">+ ${escape(x.name)}${x.time ? ` · ${escape(fmtTime12(x.time))}` : ""}${x.why ? ` — ${escape(x.why)}` : ""}</small>`).join("");
-    html += `<button class="dw-row ${cls} ${isToday?"today":""}" data-day="${names[i]}" data-date="${k}">
-      <span class="dw-day">${d.toLocaleDateString(undefined,{weekday:"short"}).toUpperCase()}<i>${d.getDate()}</i></span>
-      <span class="dw-info">
-        <b>${escape(String(label))}${timeTag}</b>
-        ${statParts.length ? `<small>${escape(statParts.join(" · "))}</small>` : ""}${extras}
-        ${p.why ? `<small class="dw-why">why: ${escape(p.why)}</small>` : ""}
-      </span>
-      <span class="dw-mark">${mark}</span>
-    </button>`;
-  }
-  list.innerHTML = html;
-  // Tap a row → edit that day's plan (move/change/clear); today with plan → offer start
-  list.querySelectorAll(".dw-row").forEach(row => {
-    row.addEventListener("click", () => {
-      const dayName = row.dataset.day;
-      const k = row.dataset.date;
-      // v39: "The main screen should have the list of days planner for
-      // week. You click it." One destination, always — the day sheet.
-      // Start timer lives inside it, so there is no branch here.
-      openDaySheet(k);
-    });
-  });
-}
 
 onReady(() => {
   // v41: was go("plan") — a view deleted in v18. The week lives on Fitness,
   // and tapping a day there opens the day sheet.
-  on("#dwEditPlan", "click", () => go("fitness"));
 });
 
 
@@ -10668,6 +9991,30 @@ function _muscleFill(days){
 // a flip button. Shapes are from react-native-body-highlighter (MIT),
 // shipped in body.js; each muscle carries data-part so recency colour and
 // tap-through work as before.
+// Finer than the seven parts: each drawn muscle (biceps, triceps, quads,
+// hamstrings, lats/mid-back, traps…) gets its own recency, from the same
+// region resolver the Muscle coverage card uses. A lift the resolver
+// cannot place falls back to colouring its whole body part.
+const SLUG_REGIONS = {
+  chest:["chest.upperchest","chest.midchest","chest.lowerchest"], abs:["core.abs","core.deepcore"], obliques:["core.obliques"],
+  "lower-back":["back.erectors"], "upper-back":["back.lats","back.midback"], trapezius:["back.traps"],
+  deltoids:["shoulders.frontdelt","shoulders.sidedelt","shoulders.reardelt","back.reardelt"],
+  biceps:["arms.biceps"], triceps:["arms.triceps"], forearm:["arms.forearms"], gluteal:["glutes.glutemax","glutes.glutemed"],
+  quadriceps:["legs.quads"], knees:["legs.quads"], hamstring:["legs.hams"], adductors:["legs.adductors"], calves:["legs.calves"], tibialis:["legs.calves"],
+};
+const SLUG_PART = { chest:"chest", abs:"core", obliques:"core", "lower-back":"back", "upper-back":"back", trapezius:"back", deltoids:"shoulders", biceps:"arms", triceps:"arms", forearm:"arms", gluteal:"glutes", quadriceps:"legs", knees:"legs", hamstring:"legs", adductors:"legs", calves:"legs", tibialis:"legs" };
+function _daysSinceSlug(){
+  const last = {}; const hit = (slug, k) => { if(!last[slug] || k > last[slug]) last[slug] = k; };
+  Object.keys(state.days).sort().reverse().slice(0, 60).forEach(k => ((state.days[k] || {}).sessions || []).forEach(s => {
+    if(!s || !s.name || s.type === "cardio") return;
+    let regs = []; try{ regs = Array.from(subMusclesForExercise(s.name) || []); }catch(e){ _report("slug regions", e); }
+    if(regs.length){ Object.keys(SLUG_REGIONS).forEach(slug => { if(SLUG_REGIONS[slug].some(r => regs.includes(r))) hit(slug, k); }); }
+    else { const parts = partsForExercise(s.name) || []; Object.keys(SLUG_PART).forEach(slug => { if(parts.includes(SLUG_PART[slug])) hit(slug, k); }); }
+  }));
+  const today = new Date(); today.setHours(0,0,0,0); const out = {};
+  Object.keys(last).forEach(slug => { out[slug] = Math.round((today - new Date(last[slug] + "T00:00:00")) / 86400000); });
+  return out;
+}
 function bodyFigureHtml(F){
   const ui = state.ui = state.ui || {};
   const sex = ui.mmSex || (profileSex() === "male" ? "male" : "female");
@@ -10676,8 +10023,9 @@ function bodyFigureHtml(F){
   if(!fig) return `<div class="hv-empty">Body figure unavailable.</div>`;
   // one <path> per shape: the female paths start with relative moves, so
   // merging left + right into a single path scatters them across the figure
+  const sd = _daysSinceSlug();
   const shapes = fig.p.map(([part, slug, ds]) => ds.map(d => part
-    ? `<path data-part="${part}" class="mm-m" d="${d}" fill="${F(part)}"/>`
+    ? `<path data-part="${part}" data-slug="${slug}" class="mm-m" d="${d}" fill="${_muscleFill(sd[slug] === undefined ? null : sd[slug])}"/>`
     : `<path class="mm-b ${slug === "hair" ? "mm-hair" : ""}" d="${d}"/>`).join("")).join("");
   return `<div class="mm-wrap">
       <div class="mm-ctl">
@@ -10993,8 +10341,6 @@ function renderBodyComp(){
 // =================================================================
 // COMPARE CARD — this week vs a chosen week
 // =================================================================
-let _cmpOffset = 1;      // weeks back
-let _cmpCustomStart = null; // YYYY-MM-DD of any day in the custom week
 function _weekMetrics(monDate){
   const out = { workouts:0, liftDays:0, lifts:0, sets:0, volume:0,
                 calDays:0, calSum:0, waterSum:0, cardioMin:0, days:0, best:{} };
@@ -11026,82 +10372,6 @@ function _weekMetrics(monDate){
   }
   return out;
 }
-function renderCompareCard(){
-  const wrap = document.getElementById("cmpRows");
-  if(!wrap) return;
-  const thisMon = weekStart(new Date());
-  let thatMon;
-  if(_cmpCustomStart){
-    thatMon = weekStart(new Date(_cmpCustomStart + "T12:00:00"));
-  } else {
-    thatMon = new Date(thisMon.getTime() - _cmpOffset*7*86400000);
-  }
-  const A = _weekMetrics(thisMon);
-  // For the comparison week, count the same number of elapsed days for fairness
-  const B = _weekMetrics(thatMon);
-  const bDays = Math.min(B.days, A.days) || 1;
-  const label = thatMon.toLocaleDateString(undefined,{month:"short",day:"numeric"});
-  const row = (name, a, b, fmt, higherBetter=true) => {
-    const diff = a - b;
-    const arrow = diff === 0 ? "—" : (diff > 0 ? "▲" : "▼");
-    const good = diff === 0 ? "" : ((diff > 0) === higherBetter ? "cmp-good" : "cmp-bad");
-    return `<div class="cmp-row">
-      <span>${name}</span>
-      <b>${fmt(a)}</b>
-      <s>vs ${fmt(b)}</s>
-      <em class="${good}">${arrow} ${fmt(Math.abs(diff))}</em>
-    </div>`;
-  };
-  const n0 = (v) => Math.round(v).toLocaleString();
-  wrap.innerHTML = `
-    <div class="cmp-sub">This week (${A.days}d) vs week of ${label}</div>
-    ${row("Workouts", A.workouts, B.workouts, n0)}
-    ${row("Lift days", A.liftDays, B.liftDays, n0)}
-    ${row("Lifts logged", A.lifts, B.lifts, n0)}
-    ${row("Working sets", A.sets, B.sets, n0)}
-    ${row("Volume (" + unit() + ")", A.volume, B.volume, n0)}
-    ${row("Cardio (min)", A.cardioMin, B.cardioMin, n0)}
-    ${row("Avg cal/day", A.calDays ? A.calSum/A.calDays : 0, B.calDays ? B.calSum/B.calDays : 0, n0, false)}
-    ${row("Water (" + unitVol() + ")", A.waterSum, B.waterSum, n0)}
-    ${_liftDeltaHtml(A, B)}
-  `;
-}
-
-// Per-exercise heaviest set, this week vs the comparison week. This is the
-// number that answers "am I actually getting stronger".
-function _liftDeltaHtml(A, B){
-  const names = Object.keys(A.best).filter(n => B.best[n] != null);
-  if(!names.length) return "";
-  const rows = names.map(n => ({ n, a:A.best[n], b:B.best[n], d:A.best[n]-B.best[n] }))
-                    .sort((x,y) => Math.abs(y.d) - Math.abs(x.d))
-                    .slice(0, 5);
-  return `<div class="cmp-lifts">
-    <div class="cmp-lifts-h">Heaviest set, lift by lift</div>
-    ${rows.map(r => `<div class="cmp-lift">
-      <span>${escape(r.n)}</span>
-      <b>${r.a} ${unit()}</b>
-      <em class="${r.d > 0 ? "cmp-good" : (r.d < 0 ? "cmp-bad" : "")}">${r.d === 0 ? "same" : (r.d > 0 ? "+" : "") + r.d}</em>
-    </div>`).join("")}
-  </div>`;
-}
-onReady(() => {
-  const sel = document.getElementById("cmpWeekSel");
-  const custom = document.getElementById("cmpCustom");
-  if(sel) sel.addEventListener("change", () => {
-    if(sel.value === "custom"){
-      custom.style.display = "";
-      if(custom.value){ _cmpCustomStart = custom.value; renderCompareCard(); }
-    } else {
-      custom.style.display = "none";
-      _cmpCustomStart = null;
-      _cmpOffset = parseInt(sel.value, 10) || 1;
-      renderCompareCard();
-    }
-  });
-  if(custom) custom.addEventListener("change", () => {
-    if(custom.value){ _cmpCustomStart = custom.value; renderCompareCard(); }
-  });
-});
 
 
 // =================================================================
@@ -15862,21 +15132,9 @@ function renderFitness(){
 }
 
 function renderDashboard(){
-  // v42: HOME renders first. The legacy dashboard renders below it into a
-  // hidden container until step 6 removes it with a proper orphan sweep.
-  try{ renderHome(); }catch(e){ console.warn("home", e); }
-  renderDashboardBase();
-  drawActivityRings();
-  applyRedFlags();
-  renderHubsAll();
-  renderDashboardStep_RDForAcc();
-  renderDashboardStep_RDForToday();
-  try{ renderAdaptiveCard(); }catch(e){ console.warn("adaptive card", e); }
-  try{ renderSmartBanners(); }catch(e){ console.warn("smart banners", e); }
-  try{ appendAccountabilityBanners(); }catch(e){ console.warn("accountability", e); }
-  try{ renderDeck(); }catch(e){ console.warn("deck", e); }
-  try{ renderDashWorkList(); }catch(e){ console.warn("dash work", e); }
-  try{ renderCompareCard(); }catch(e){ console.warn("compare", e); }
+  // v60: Home IS the dashboard. The legacy dashboard DOM and its renders
+  // were removed with an orphan sweep.
+  try{ renderHome(); }catch(e){ _report("home", e); }
 }
 
 function openLiftDetail(lift){
@@ -15884,30 +15142,18 @@ function openLiftDetail(lift){
   openLiftDetailStep_OpenLiftDetail(lift);
 }
 
-function renderNutritionWeek(){
-  renderNutritionWeekBase();
-  renderNutritionWeekStep_RNW();
-}
 
 function drawActivityRings(){
   drawActivityRingsBase();
   drawActivityRingsStep_DrawRingsForStrip();
 }
 
-function renderNutritionHub(){
-  renderNutritionHubBase();
-  renderNutritionWeek();
-}
 
 function renderDetailView(){
   renderDetailViewBase();
   ensureMetricTabs();
 }
 
-function renderHubsAll(){
-  renderHubsAllBase();
-  renderHubsAllStep_RenderHubsAll();
-}
 
 function go(tab){
   goBase(tab);

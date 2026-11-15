@@ -129,7 +129,7 @@ cause), then offers an export. Guarded by a smoke test that patches
 `Storage.prototype.setItem` to throw.
 
 ### Editing app.js
-It is **~15.5k lines, one IIFE** (v54 sweep took it from 16.3k). New code gets spliced inside
+It is **~16.0k lines, one IIFE**. New code gets spliced inside
 the IIFE before the final `})();`. **A python3 heredoc splice is the working
 method** — giant single `Write` calls have caused API stream timeouts. Append
 in chunks. Always `node --check tracker/app.js` before committing.
@@ -140,9 +140,9 @@ in chunks. Always `node --check tracker/app.js` before committing.
 
 | File | What it is |
 |---|---|
-| `tracker/index.html` (~1.4k) | SPA shell. Views: dashboard, nutrition, fitness, library, body, goals, trends (**Health**), history, settings. Version marker + `?v=NN` cache-busting. |
-| `tracker/app.js` (~12.6k) | Everything. Has a CODE MAP comment at the top. |
-| `tracker/styles.css` (~4.1k) | **Layered — bottom wins.** Has a LAYER MAP header. Because legacy layers use `!important`, hide things with a **class**, never inline `style.display`. |
+| `tracker/index.html` (~1.4k) | SPA shell. Views: dashboard (Home), fitness (Workouts), nutrition, progress, more, lifts, coach, library, body, goals, trends (**Health**), history, settings. Version marker + `?v=NN` cache-busting. |
+| `tracker/app.js` (~16.0k) | Everything. Has a CODE MAP comment at the top. |
+| `tracker/styles.css` (~5.1k) | **Layered — bottom wins.** Has a LAYER MAP header. Because legacy layers use `!important`, hide things with a **class**, never inline `style.display`. |
 | `tracker/data.js` (~520) | Food DB (~355 items), WOD library, movements, programs, activity levels. |
 | `tracker/bryl.js` (43KB) | **Workout Guide by Bryl Lim**: 302 exercises, white-on-transparent line art (3 frames; we use frame 1), equipment, primary/secondary muscle. Assets **CC BY-SA 4.0** (76 first poses adapted from Everkinetic). Used unmodified from the npm CDN (`BRYL_IMG(path)`), credited on More. The style that actually matches the dark UI. |
 | `tracker/repdb.js` (125KB) | **RepDB free tier** (repdb.co): 701 exercises — name, category, body part, primary/secondary muscles (fine anatomy: gluteus_medius, posterior_deltoid, rhomboids…), bodyweight flag, MET, image kind. Illustrations from jsDelivr via `REPDB_IMG(id, kind)`, cache-first. **Licence requires the visible credit** on the More screen (`.credits`) — never remove it. In-app use only; never republish as a dataset. |
@@ -1180,7 +1180,7 @@ then "go and fix all of it":
 
 ## 8. Honest state assessment
 
-This is a strong **single-player prototype**: ~19k lines, 26 automated tests,
+This is a strong **single-player prototype**: ~22k lines, 86 automated tests (49 browser smoke, 10 week-durability, 27 API),
 and an analysis layer that genuinely has no equivalent in MyFitnessPal,
 Fitbod or Strong. It is **not** a product yet. In priority order:
 
@@ -1201,7 +1201,7 @@ Fitbod or Strong. It is **not** a product yet. In priority order:
    873 with photos, public domain.
 5. **AI cost is unmetered.** `ai-parse.js` bills the project owner per call
    with no rate limit or per-user cap.
-6. **`app.js` is 12.6k lines in one file.** It works and the pipeline
+6. **`app.js` is ~16.0k lines in one file.** It works and the pipeline
    architecture is sound, but onboarding a second developer is expensive and
    technical diligence will flag it.
 

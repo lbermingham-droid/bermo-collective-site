@@ -4912,3 +4912,6 @@ input, select, textarea{ border-radius: var(--g-r-sm) !important; }
 .mm-lists span{ display:block; font-size:10px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:#8b93a1; margin-bottom:5px; }
 .mm-lists b{ display:block; font-size:14px; font-weight:700; color:#ff4d9d; line-height:1.45; }
 .mm-lists em{ display:block; font-style:normal; font-size:13px; color:#c9d1dc; line-height:1.45; }
+
+/* v62 — swipe the figure to turn her */
+.mm-svg{ touch-action:pan-y; will-change:transform; }

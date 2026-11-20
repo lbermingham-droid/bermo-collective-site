@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v61**.
+- Current build: **v62**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -1078,6 +1078,28 @@ are gitignored; `/tracker-ad/*` is 404'd on the public site in
   above the phone, which overlaps the last line; on body shots it sits
   behind the figure. The caption band is gone. Mattes are gitignored too.
   Keep lines 5–9 letters: 2–3 letter lines stretch badly.
+- **Fourth cut — she finally sent the Ladder reel as screen recordings
+  and said the earlier cuts looked "home done AI… not a real phone" and
+  the text was "dumb".** What the reel actually does (watched frame by
+  frame): almost all filmed footage; small clean sentence-case text, white
+  with ONE accent italic key word, building word by word, with a repeated
+  opener that stays put while the last word swaps ("Your … body. / workouts.
+  / results."); the app on a REAL phone in a hand or as an angled macro
+  close-up; a three-band split screen with a big condensed number per
+  band; an ending of three short lines then the logo. The cut now follows
+  that: `Word` / `Pair` / `Build` (text), `Macro` (angled screen close-up
+  with depth-of-field, replaces the drawn phone), `Band` (split screen),
+  `Turn` (a touch dot swipes and the figure rotates front to back in 3D —
+  no "front and back" caption), `Footage` (full-screen clip; words passed
+  as `behind` sit behind her cutout). Copy: "Your gym still runs on
+  paper." → "Mine runs on this." → "Every lift. / PR. / muscle. / run. /
+  member. / month. / macro." → "Your gym. Your app. Built for you." →
+  BERMO.
+- **Still not Ladder quality, and why:** Ladder's is professionally shot
+  and graded, with a real hand-held phone. Hers is three phone clips. To
+  close the gap she needs to FILM her phone showing the app (in hand at
+  the gym, on a bench, held up at the beach) and send screen recordings
+  of using it. A drawn or tilted screen will never read as a real phone.
 - Honesty rules that apply to the ad too: only dated entries with numbers
   are logged; ranges use the lower bound; year-only historical bests (450
   lb leg press, 2021) are NOT entered because the app needs a date.
@@ -1390,4 +1412,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v58` COACH HUB v2 (class sheet, month calendar with weekday pattern, CRM tables) and the app-wide glass + depth layer, pills removed ·
 `v59` BODY FIGURE replaced with an MIT anatomical set: male + female, front + back, flip button, Fitbod layout ·
 `v60` legacy dashboard deleted with a full orphan sweep; body figure coloured per muscle; row cleanup on Nutrition and Body ·
-`v61` body figure gets a "This workout" mode: only the muscles that session used are lit, with worked / not worked lists.
+`v61` body figure gets a "This workout" mode: only the muscles that session used are lit, with worked / not worked lists ·
+`v62` swipe the body figure sideways and she turns in 3D (front to back); the round button does the same.

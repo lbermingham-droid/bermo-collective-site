@@ -10,7 +10,7 @@ import os, subprocess, sys, glob
 from rembg import remove, new_session
 from PIL import Image
 ROOT = os.path.join(os.path.dirname(__file__), "..", "public")
-N = 50
+N = 56
 session = new_session("u2net")
 for clip in ["gym", "run", "beach"]:
     src = os.path.join(ROOT, "clips", clip + ".mp4")

@@ -4,8 +4,8 @@
   "beach": "clips/beach.mp4",
   "food": null,
   "mattes": {
-    "gym": 50,
-    "run": 50,
-    "beach": 50
+    "gym": 56,
+    "run": 56,
+    "beach": 56
   }
 }

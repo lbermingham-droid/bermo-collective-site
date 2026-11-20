@@ -10048,7 +10048,7 @@ function bodyFigureHtml(F){
       <div class="hm-seg mm-mode">${[["workout","This workout"],["recovery","Recovery"]].map(([id, l]) => `<button type="button" class="${mode === id ? "on" : ""}" data-mmmode="${id}">${l}</button>`).join("")}</div>
       <div class="mm-ctl">
         <div class="hm-seg mm-sex">${[["female","Female"],["male","Male"]].map(([id, l]) => `<button type="button" class="${sex === id ? "on" : ""}" data-mmsex="${id}">${l}</button>`).join("")}</div>
-        <span class="mm-side">${side === "front" ? "Front" : "Back"}</span>
+        <span class="mm-side">Swipe to turn</span>
       </div>
       <svg class="mm-svg" viewBox="${fig.vb}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${sex} body, ${side}">
         <path class="mm-o" d="${fig.o}"/>${shapes}
@@ -10093,7 +10093,21 @@ function renderMuscleMap(){
   `;
   card.querySelectorAll("[data-mmmode]").forEach(b => b.addEventListener("click", () => { (state.ui = state.ui || {}).mmMode = b.getAttribute("data-mmmode"); save(); renderMuscleMap(); }));
   card.querySelectorAll("[data-mmsex]").forEach(b => b.addEventListener("click", () => { (state.ui = state.ui || {}).mmSex = b.getAttribute("data-mmsex"); save(); renderMuscleMap(); }));
-  const flip = card.querySelector("#mmFlip"); if(flip) flip.addEventListener("click", () => { const ui = state.ui = state.ui || {}; ui.mmSide = ui.mmSide === "back" ? "front" : "back"; save(); renderMuscleMap(); });
+  // Turn her: the round button, or swipe the figure sideways. She turns in
+  // 3D — rotate to edge-on, swap front/back, rotate out — no label needed.
+  const turn = (dir) => { const svg = card.querySelector(".mm-svg"); const ui = state.ui = state.ui || {}; if(!svg || card._turning) return; card._turning = true;
+    svg.style.transition = "transform .16s ease-in"; svg.style.transform = `perspective(900px) rotateY(${dir * 90}deg)`;
+    setTimeout(() => { ui.mmSide = ui.mmSide === "back" ? "front" : "back"; save(); renderMuscleMap();
+      const n = card.querySelector(".mm-svg"); if(n){ n.style.transform = `perspective(900px) rotateY(${-dir * 90}deg)`; requestAnimationFrame(() => requestAnimationFrame(() => { n.style.transition = "transform .2s ease-out"; n.style.transform = "perspective(900px) rotateY(0deg)"; })); }
+      card._turning = false; }, 170); };
+  const flip = card.querySelector("#mmFlip"); if(flip) flip.addEventListener("click", () => turn(1));
+  const fig = card.querySelector(".mm-svg");
+  if(fig){ let x0 = null, moved = false;
+    fig.addEventListener("pointerdown", (e) => { x0 = e.clientX; moved = false; });
+    fig.addEventListener("pointermove", (e) => { if(x0 == null) return; const dx = e.clientX - x0; if(Math.abs(dx) > 12){ moved = true; fig.style.transform = `perspective(900px) rotateY(${Math.max(-80, Math.min(80, dx * 0.6))}deg)`; } });
+    const end = (e) => { if(x0 == null) return; const dx = e.clientX - x0; x0 = null; if(Math.abs(dx) > 45) turn(dx > 0 ? 1 : -1); else if(moved){ fig.style.transition = "transform .15s"; fig.style.transform = "none"; } };
+    fig.addEventListener("pointerup", end); fig.addEventListener("pointercancel", end);
+    fig.addEventListener("click", (e) => { if(moved){ e.stopPropagation(); e.preventDefault(); } }, true); }
   card.querySelectorAll("[data-part]").forEach(el => {
     el.style.cursor = "pointer";
     el.addEventListener("click", () => {

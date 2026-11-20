@@ -90,7 +90,11 @@ See §8 — fixing this is the top priority for any serious next step.
   weights[], measurements[], prs, prsRep,
   plan: { "YYYY-W##": { mon:{type,time,gym,why,exercises[],extra[]} } },
   cycle, contract, activityGoals, equipment, exPhotos, favLifts,
-  workoutLib, customExercises, ai, ui, wodIndex
+  workoutLib, customExercises, ai, ui, wodIndex,
+  inbodyScans[],             // body-comp scans (setup wizard + Body page)
+  coach: { enabled, members[], logs{memberId:{date:[rows]}}, workouts[], plan{date:workoutId}, att{date:{memberId:true}}, ui },
+  gpt:   { token, lastPush, lastPull, applied[] },   // ChatGPT link; never pushed to the server
+  schema                     // SCHEMA = 3, migrated in load()
 }
 ```
 
@@ -202,9 +206,9 @@ calories donut, macros donut, nutrients table, **micronutrients** (real data
 only, always reports its own coverage), fiber/sugar goals, inline macro
 calculator, red-flag food classifier, carb cycling day tags.
 
-**Fitness** — Sunday-first week list, day card, Fitbod-style live session
-logger (inline sets, set kinds, rest timer at the bottom, previous
-performance, YouTube how-to), categorised lifts with 1/2/3/5RM drill-down and
+**Fitness** — Sunday-first week list, day card, the ten-screen Hevy-style
+workout flow (v45; the older Fitbod-style live logger was removed in v54),
+the male/female front/back body figure coloured per muscle (v59/v60), categorised lifts with 1/2/3/5RM drill-down and
 percentages, PR tracking, cardio logger (16 MET types incl. uphill walk),
 month calendar, **Library** (searchable movements, photos, favourites,
 exercise sheet, workout builder), **My Gym** equipment multi-select, muscle
@@ -221,7 +225,9 @@ lifting), clamps the deficit by her own calorie floor first and 25% of TDEE
 second, and **stretches the timeline rather than shrinking the food** when the
 floor binds. Every output editable before saving. Plan card shows progress
 toward the body-fat target. Plain-language **BMR vs BMI** and body-fat
-explainers. Goal contract, consistency chain, restart card.
+explainers. Goal contract, consistency chain. (The restart card, streak
+counter and weekly adaptive-macro check lived only on the legacy dashboard
+and were removed with it in v60 — rebuild on Home/Progress if she asks.)
 
 **Goal Designer maths — four bugs fixed in v28, do not regress them:**
 1. The pace selector did **nothing** outside "lose" mode — recomp was
@@ -996,6 +1002,11 @@ capture. Several bugs were only visible in a screenshot, never in a test.
   Designer? Does saving a plan update Settings and the inline calculator?
   Does dashboard water show on Nutrition?
 
+The scratchpad is wiped between sessions, so these scripts may need
+rewriting; `pass.js` / `errs.js` (v60) are the current equivalents: every
+screen screenshotted with seeded data, plus console warnings and
+`window.__errs` collected across all tabs.
+
 Last full run (v33): **0 page errors, 0 dead controls, 0 stuck modals, 47
 modals verified, 8/8 journey steps, no sideways overflow on any page.**
 
@@ -1254,6 +1265,13 @@ wrapper, native — are correct, but for the tracker specifically:
 - Moving the tracker to its own repo (asked twice; ~20 min once she says go).
 - Weekly buddy-email recap via `send-emails.js` — needs a recipient.
 - Twilio SMS (~$2–3/mo) — she hasn't opted in.
+
+**What she still has to do herself (told her at v59):** add to Home
+Screen from Safari; reload the demo gym; test editing a saved coach
+workout on a real iPhone; set `GPT_API_TOKEN` in Netlify + paste it in
+Settings + create the GPT Action; add Anthropic credits; send a 512×512
+icon; decide App Store (Apple Developer $99/yr + a Mac) vs backend first
+(Supabase project) — recommendation is backend first.
 
 **Buildable now:**
 - **Settings never got the page-by-page design pass** that Dashboard,

@@ -10003,16 +10003,28 @@ const SLUG_REGIONS = {
   quadriceps:["legs.quads"], knees:["legs.quads"], hamstring:["legs.hams"], adductors:["legs.adductors"], calves:["legs.calves"], tibialis:["legs.calves"],
 };
 const SLUG_PART = { chest:"chest", abs:"core", obliques:"core", "lower-back":"back", "upper-back":"back", trapezius:"back", deltoids:"shoulders", biceps:"arms", triceps:"arms", forearm:"arms", gluteal:"glutes", quadriceps:"legs", knees:"legs", hamstring:"legs", adductors:"legs", calves:"legs", tibialis:"legs" };
+// Which drawn muscles one lift hits. Region resolver first; a lift it
+// cannot place falls back to its whole body part.
+function _slugsForLift(name){
+  let regs = []; try{ regs = Array.from(subMusclesForExercise(name) || []); }catch(e){ _report("slug regions", e); }
+  if(regs.length) return Object.keys(SLUG_REGIONS).filter(slug => SLUG_REGIONS[slug].some(r => regs.includes(r)));
+  const parts = partsForExercise(name) || []; return Object.keys(SLUG_PART).filter(slug => parts.includes(SLUG_PART[slug]));
+}
 function _daysSinceSlug(){
-  const last = {}; const hit = (slug, k) => { if(!last[slug] || k > last[slug]) last[slug] = k; };
+  const last = {};
   Object.keys(state.days).sort().reverse().slice(0, 60).forEach(k => ((state.days[k] || {}).sessions || []).forEach(s => {
     if(!s || !s.name || s.type === "cardio") return;
-    let regs = []; try{ regs = Array.from(subMusclesForExercise(s.name) || []); }catch(e){ _report("slug regions", e); }
-    if(regs.length){ Object.keys(SLUG_REGIONS).forEach(slug => { if(SLUG_REGIONS[slug].some(r => regs.includes(r))) hit(slug, k); }); }
-    else { const parts = partsForExercise(s.name) || []; Object.keys(SLUG_PART).forEach(slug => { if(parts.includes(SLUG_PART[slug])) hit(slug, k); }); }
+    _slugsForLift(s.name).forEach(slug => { if(!last[slug] || k > last[slug]) last[slug] = k; });
   }));
   const today = new Date(); today.setHours(0,0,0,0); const out = {};
   Object.keys(last).forEach(slug => { out[slug] = Math.round((today - new Date(last[slug] + "T00:00:00")) / 86400000); });
+  return out;
+}
+// THIS WORKOUT: only the muscles the selected day's lifts used.
+const SLUG_NAME = { chest:"Chest", abs:"Abs", obliques:"Obliques", "lower-back":"Lower back", "upper-back":"Lats and upper back", trapezius:"Traps", deltoids:"Shoulders", biceps:"Biceps", triceps:"Triceps", forearm:"Forearms", gluteal:"Glutes", quadriceps:"Quads", hamstring:"Hamstrings", adductors:"Inner thigh", calves:"Calves" };
+function _slugsWorkedOn(dateKey){
+  const out = new Set();
+  (((state.days || {})[dateKey] || {}).sessions || []).forEach(s => { if(s && s.name && s.type !== "cardio") _slugsForLift(s.name).forEach(x => out.add(x)); });
   return out;
 }
 function bodyFigureHtml(F){
@@ -10023,11 +10035,17 @@ function bodyFigureHtml(F){
   if(!fig) return `<div class="hv-empty">Body figure unavailable.</div>`;
   // one <path> per shape: the female paths start with relative moves, so
   // merging left + right into a single path scatters them across the figure
-  const sd = _daysSinceSlug();
+  const worked = _slugsWorkedOn(currentDate);
+  // "This workout" is the default whenever the selected day has lifts.
+  const mode = ui.mmMode === "recovery" || (!worked.size && ui.mmMode !== "workout") ? "recovery" : "workout";
+  const sd = mode === "recovery" ? _daysSinceSlug() : null;
+  const fillFor = (slug) => mode === "workout" ? (worked.has(slug) || (slug === "knees" && worked.has("quadriceps")) || (slug === "tibialis" && worked.has("calves")) ? "#ff4d9d" : "#5b6170")
+                                               : _muscleFill(sd[slug] === undefined ? null : sd[slug]);
   const shapes = fig.p.map(([part, slug, ds]) => ds.map(d => part
-    ? `<path data-part="${part}" data-slug="${slug}" class="mm-m" d="${d}" fill="${_muscleFill(sd[slug] === undefined ? null : sd[slug])}"/>`
+    ? `<path data-part="${part}" data-slug="${slug}" class="mm-m" d="${d}" fill="${fillFor(slug)}"/>`
     : `<path class="mm-b ${slug === "hair" ? "mm-hair" : ""}" d="${d}"/>`).join("")).join("");
   return `<div class="mm-wrap">
+      <div class="hm-seg mm-mode">${[["workout","This workout"],["recovery","Recovery"]].map(([id, l]) => `<button type="button" class="${mode === id ? "on" : ""}" data-mmmode="${id}">${l}</button>`).join("")}</div>
       <div class="mm-ctl">
         <div class="hm-seg mm-sex">${[["female","Female"],["male","Male"]].map(([id, l]) => `<button type="button" class="${sex === id ? "on" : ""}" data-mmsex="${id}">${l}</button>`).join("")}</div>
         <span class="mm-side">${side === "front" ? "Front" : "Back"}</span>
@@ -10036,7 +10054,13 @@ function bodyFigureHtml(F){
         <path class="mm-o" d="${fig.o}"/>${shapes}
       </svg>
       <button type="button" class="mm-flip" id="mmFlip" aria-label="Flip to ${side === "front" ? "back" : "front"}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 5 0 0 1 16 0"/><path d="M20 12a8 5 0 0 1-12 4.3"/><path d="M5 16.5l3-.2-.3 3"/></svg></button>
-      <div class="mm-legend"><span><i style="background:#ff4d9d"></i>0–2 days</span><span><i style="background:#b788ff"></i>3–5</span><span><i style="background:#00f5d4"></i>6–8</span><span><i style="background:#5b6170"></i>9+ or none</span></div>
+      ${mode === "workout"
+        ? `<div class="mm-legend"><span><i style="background:#ff4d9d"></i>Worked</span><span><i style="background:#5b6170"></i>Not worked</span></div>
+           <div class="mm-lists">
+             <div><span>${escape(fmtDate(currentDate))} · worked</span><b>${Object.keys(SLUG_NAME).filter(k => worked.has(k)).map(k => SLUG_NAME[k]).join(" · ") || "No lifts logged this day"}</b></div>
+             <div><span>Not worked</span><em>${Object.keys(SLUG_NAME).filter(k => !worked.has(k)).map(k => SLUG_NAME[k]).join(" · ") || "Nothing: every group was hit"}</em></div>
+           </div>`
+        : `<div class="mm-legend"><span><i style="background:#ff4d9d"></i>0–2 days</span><span><i style="background:#b788ff"></i>3–5</span><span><i style="background:#00f5d4"></i>6–8</span><span><i style="background:#5b6170"></i>9+ or none</span></div>`}
     </div>`;
 }
 function renderMuscleMap(){
@@ -10067,6 +10091,7 @@ function renderMuscleMap(){
     ${bodyFigureHtml(F)}
     ${stale.length ? `<div class="mm-callout">GOING COLD: ${stale.map(p => p.toUpperCase()).join(" · ")} — ${ds[stale[0]]}+ days. Build them into this week.</div>` : ""}
   `;
+  card.querySelectorAll("[data-mmmode]").forEach(b => b.addEventListener("click", () => { (state.ui = state.ui || {}).mmMode = b.getAttribute("data-mmmode"); save(); renderMuscleMap(); }));
   card.querySelectorAll("[data-mmsex]").forEach(b => b.addEventListener("click", () => { (state.ui = state.ui || {}).mmSex = b.getAttribute("data-mmsex"); save(); renderMuscleMap(); }));
   const flip = card.querySelector("#mmFlip"); if(flip) flip.addEventListener("click", () => { const ui = state.ui = state.ui || {}; ui.mmSide = ui.mmSide === "back" ? "front" : "back"; save(); renderMuscleMap(); });
   card.querySelectorAll("[data-part]").forEach(el => {
@@ -12155,11 +12180,11 @@ function subMusclesForExercise(name){
   /* LEGS */
   if(has(/squat|leg press|leg extension|lunge|split squat|step ?up|sissy|wall sit|hack|pistol|thruster|wall ball|box jump/)) s.add("legs.quads");
   if(has(/adduct|inner thigh|copenhagen|cossack|sumo|wide stance/)) s.add("legs.adductors");
-  if(has(/leg curl|hamstring|\brdl\b|romanian|good morning|nordic|glute ham|stiff ?leg|deadlift/)) s.add("legs.hams");
+  if(has(/leg curl|hamstring|\brdl\b|romanian|good morning|nordic|glute ham|stiff ?leg|deadlift|pull ?through/)) s.add("legs.hams");
   if(has(/calf|calves|donkey raise|toe raise|jump rope|double under/)) s.add("legs.calves");
 
   /* GLUTES */
-  if(has(/hip thrust|glute bridge|\bbridge\b|glute|squat|lunge|step ?up|deadlift|\brdl\b|romanian|thruster|good morning/)) s.add("glutes.glutemax");
+  if(has(/hip thrust|glute bridge|\bbridge\b|glute|squat|lunge|step ?up|deadlift|\brdl\b|romanian|thruster|good morning|pull ?through/)) s.add("glutes.glutemax");
   if(has(/kick ?back/) && !tri) s.add("glutes.glutemax");
   if(has(/abduct|clam ?shell|curtsy|monster walk|fire hydrant|side ?lying|lateral (band|walk|step)|banded walk/)) s.add("glutes.glutemed");
 
@@ -12169,7 +12194,7 @@ function subMusclesForExercise(name){
   if(has(/bench press|chest press|push ?up|pec deck|chest fly|cable fly|\bflye?\b|floor press|db bench/) && !incline && !decline && !has(/shoulder|overhead/)) s.add("chest.midchest");
 
   /* SHOULDERS */
-  if(has(/overhead press|shoulder press|military|arnold|push press|\bjerk\b|front raise|landmine press|\bohp\b|strict press|\bpress\b.*shoulder|handstand|snatch|overhead squat/)) s.add("shoulders.frontdelt");
+  if(has(/overhead press|shoulder press|military|arnold|push press|\bz press\b|z sit press|seesaw press|\bjerk\b|front raise|landmine press|\bohp\b|strict press|\bpress\b.*shoulder|handstand|snatch|overhead squat/)) s.add("shoulders.frontdelt");
   if(has(/lateral raise|side raise|upright row|lateral delt|\bhalo\b|\by raise\b/)) s.add("shoulders.sidedelt");
 
   /* ARMS */

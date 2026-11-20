@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v60**.
+- Current build: **v61**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -1021,6 +1021,19 @@ render of that page.
 
 ---
 
+**THIS WORKOUT ON THE BODY FIGURE (v61).** *"It highlights only muscle
+groups used during the workout and shows what's not. The app should do
+that."* The body card has a second mode, **This workout | Recovery**
+(`state.ui.mmMode`). This workout is the default whenever the selected day
+(`currentDate`) has lifts: muscles those lifts used are pink, everything
+else grey, with two lists underneath — "worked" and "not worked"
+(`_slugsWorkedOn`, `SLUG_NAME`). Recovery is the v60 days-since colouring.
+First capture over-claimed (lats, traps, calves on a deadlift day) because
+two of her lifts were unknown to `subMusclesForExercise()` and fell back
+to whole body parts; **Z-press / Z-sit press / seesaw press → front
+delts and pull-through → glutes + hamstrings are now in the resolver.**
+When a lift lights too much, fix the resolver, not the figure.
+
 **THE AD (tracker-ad/, Remotion).** She asked for an Instagram ad aimed at
 gym owners, showing the app in use with her own data. `tracker-ad/` is a
 separate Remotion project (own `package.json`; `node_modules` and `out/`
@@ -1041,6 +1054,19 @@ are gitignored; `/tracker-ad/*` is 404'd on the public site in
 - Style reference was a Ladder reel (instagram.com/reel/DQUR0j0jgrK).
   The link yields caption text only, not the visuals — ask her for
   screenshots before claiming a style match.
+- **Second cut (her feedback):** no gradient/ombré backdrop ("obviously
+  AI") — the background is her own footage, blurred and darkened; chips,
+  tags and the body plinth are frosted glass (`GLASS`). The phone is drawn
+  to iPhone 16 Pro proportions (1206x2622 screen, Dynamic Island, status
+  bar, side buttons, home indicator) with the app's real tab bar captured
+  per tab (`shots/nav-*.png`). Chips are siblings of the phone inside
+  `Stage`, not children, because `backdrop-filter` breaks under 3D.
+- Her clips: gym = hip thrust (screen recording, black bars cropped),
+  run = legs POV, beach = jump over the barbell. Trimmed to 3 s with
+  system `ffmpeg` (the Remotion-bundled ffmpeg cannot write stills).
+  **The raw clips are gitignored** — the repo is public — so a new session
+  needs her to re-upload them. No food clip yet.
+- The body shots use the app's new "This workout" view for Nov 16.
 - Honesty rules that apply to the ad too: only dated entries with numbers
   are logged; ranges use the lower bound; year-only historical bests (450
   lb leg press, 2021) are NOT entered because the app needs a date.
@@ -1352,4 +1378,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v57` SETUP rebuilt in the current look: four goals, 7 + doubles, eating styles, editable macros, body-comp scans feeding the plan ·
 `v58` COACH HUB v2 (class sheet, month calendar with weekday pattern, CRM tables) and the app-wide glass + depth layer, pills removed ·
 `v59` BODY FIGURE replaced with an MIT anatomical set: male + female, front + back, flip button, Fitbod layout ·
-`v60` legacy dashboard deleted with a full orphan sweep; body figure coloured per muscle; row cleanup on Nutrition and Body.
+`v60` legacy dashboard deleted with a full orphan sweep; body figure coloured per muscle; row cleanup on Nutrition and Body ·
+`v61` body figure gets a "This workout" mode: only the muscles that session used are lit, with worked / not worked lists.

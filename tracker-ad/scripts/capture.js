@@ -23,6 +23,8 @@ const TODAY = "2026-11-20";
   const n = await p.evaluate((days) => { let n = 0; Object.keys(days).sort().forEach(k => days[k].forEach(r => { window.__bermo.logSession(k, Object.assign({ lift: r.name }, r), { quiet: true }); n++; })); window.__bermo.save(); return n; }, data.days);
   await p.evaluate(() => { const s = JSON.parse(localStorage.getItem("bermo.tracker.v1")); s.ui = s.ui || {}; s.ui.mmSex = "female"; s.ui.hmPeriod = "month"; s.coach = Object.assign(s.coach || {}, { enabled: false }); localStorage.setItem("bermo.tracker.v1", JSON.stringify(s)); });
   await p.reload({ waitUntil: "load" }); await p.waitForTimeout(1000);
+  // the app's real tab bar, one per active tab, overlaid on the phone
+  for(const t of ["dashboard", "fitness", "nutrition", "lifts", "more"]){ await p.evaluate(t => document.querySelector(`[data-tab="${t}"]`).click(), t); await p.waitForTimeout(500); await (await p.$(".mobnav")).screenshot({ path: path.join(OUT, `nav-${t}.png`) }); }
   await p.addStyleTag({ content: `.toast,#toast,.mobnav,.topbar{display:none!important} .main,#app{padding-bottom:0!important}` });
   const go = async (t) => { await p.evaluate(t => document.querySelector(`[data-tab="${t}"]`).click(), t); await p.waitForTimeout(900); };
   const full = async (name) => { await p.screenshot({ path: path.join(OUT, name + ".png"), fullPage: true }); };
@@ -43,7 +45,11 @@ const TODAY = "2026-11-20";
   await p.evaluate(() => document.querySelector('[data-cotab="calendar"]').click()); await p.waitForTimeout(400); await full("coach-calendar");
   await p.evaluate(() => document.querySelector('[data-cotab="members"]').click()); await p.waitForTimeout(400); await full("coach-members");
   // body figure cutouts: lift the SVG out of the app onto a blank transparent page
-  await go("fitness");
+  // the Nov 16 workout: only the muscles that session used are lit
+  await p.evaluate(() => window.BERMO_TRACKER.setCurrentDate("2026-11-16"));
+  await go("fitness"); await full("workout-body");
+  const lists = await p.evaluate(() => [...document.querySelectorAll("#muscleMapCard .mm-lists > div")].map(d => d.innerText.replace(/\n/g, " | ")));
+  console.log("workout lists:", JSON.stringify(lists));
   const grab = async () => p.evaluate(() => { const svg = document.querySelector("#muscleMapCard .mm-svg"); const c = svg.cloneNode(true);
     const src = svg.querySelectorAll("path"), dst = c.querySelectorAll("path");
     src.forEach((el, i) => { const cs = getComputedStyle(el); dst[i].setAttribute("style", `fill:${cs.fill};stroke:${cs.stroke};stroke-width:${cs.strokeWidth};stroke-linejoin:round`); });

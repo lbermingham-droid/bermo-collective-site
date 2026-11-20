@@ -13,10 +13,10 @@ or `.mov`). Any that are missing show a labelled placeholder card.
 |---|---|---|
 | `gym.mp4` | opening shot | 1.5 s |
 | `run.mp4` | "Runs, walks, all of it." | 1.5 s |
-| `food.mp4` | "Snap your food." | 1.5 s |
+| `food.mp4` | not used in the current cut (slot kept for later) | – |
 | `beach.mp4` | end card | 1.5 s |
 
-Vertical footage works best. Each clip is cropped to fill a tall rounded
+The raw clips are gitignored because this repository is public. Vertical footage works best. Each clip is cropped to fill a tall rounded
 card; the first 1.5 seconds are used (change `startFrom` on the
 `ClipCard` in `src/Ad.tsx` to start later, in frames at 30 fps).
 

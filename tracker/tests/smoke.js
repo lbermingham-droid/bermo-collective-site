@@ -667,9 +667,9 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
       const el = document.querySelector(".hm-deltas");   // v60: the comparison lives on Home
       return el ? el.innerText : "";
     });
-    /lift days/i.test(cmp) && /load/i.test(cmp) && /cardio/i.test(cmp)
+    /lift days?/i.test(cmp) && /load/i.test(cmp) && /cardio/i.test(cmp)
       ? ok("v29 week comparison includes lift days, load and cardio")
-      : fail("v29 compare card", cmp.slice(0, 120));
+      : fail("v29 compare card", JSON.stringify(cmp).slice(0, 130));
   } catch (e) { fail("v29 compare card", e); }
 
   // 22. v45: START WORKOUT on a day with nothing planned opens the workout
@@ -839,7 +839,7 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
         out.fitStats = /2,?\d{3}|3,?\d{3}/.test((document.getElementById("fitTopStats")||{}).innerText || "");
         const d = document.querySelector('.mtab[data-tab="dashboard"]'); if(d) d.click();
         setTimeout(() => {
-          out.compare = /lift days/i.test((document.querySelector(".hm-deltas")||{}).innerText || "");
+          out.compare = /lift days?/i.test((document.querySelector(".hm-deltas")||{}).innerText || "");
           r(out);
         }, 500);
       }, 500));

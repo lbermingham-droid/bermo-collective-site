@@ -4903,3 +4903,12 @@ input, select, textarea{ border-radius: var(--g-r-sm) !important; }
 .weigh-list .weigh-row:last-child{ border-bottom:0 !important; }
 .fw-row{ border-radius:10px !important; }
 .stat-cell, .gs-cell, .nt-block, .fq-stats > div, .bc-cell{ border-radius:12px !important; }
+
+/* v61 — body figure: This workout / Recovery */
+.mm-mode{ display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)); width:100%; margin:0 0 10px; }
+.mm-mode button{ height:36px; padding:0 !important; }
+.mm-lists{ width:100%; margin-top:12px; display:flex; flex-direction:column; gap:10px; }
+.mm-lists > div{ padding:12px 14px; border-radius:12px; background: rgba(255,255,255,.04); border:1px solid var(--g-edge); }
+.mm-lists span{ display:block; font-size:10px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:#8b93a1; margin-bottom:5px; }
+.mm-lists b{ display:block; font-size:14px; font-weight:700; color:#ff4d9d; line-height:1.45; }
+.mm-lists em{ display:block; font-style:normal; font-size:13px; color:#c9d1dc; line-height:1.45; }

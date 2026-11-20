@@ -3,3 +3,4 @@ out/
 # her raw footage stays out of the public repo; re-upload or copy into public/clips/
 public/clips/*.mp4
 public/clips/*.mov
+public/mattes/

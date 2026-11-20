@@ -2,5 +2,10 @@
   "gym": "clips/gym.mp4",
   "run": "clips/run.mp4",
   "beach": "clips/beach.mp4",
-  "food": null
+  "food": null,
+  "mattes": {
+    "gym": 50,
+    "run": 50,
+    "beach": 50
+  }
 }

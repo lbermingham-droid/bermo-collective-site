@@ -20,6 +20,13 @@ The raw clips are gitignored because this repository is public. Vertical footage
 card; the first 1.5 seconds are used (change `startFrom` on the
 `ClipCard` in `src/Ad.tsx` to start later, in frames at 30 fps).
 
+## After adding or changing a clip
+
+The big text sits behind you, so each clip needs a cutout of you per frame:
+
+    pip install rembg onnxruntime pillow
+    /usr/local/bin/python3.13 scripts/matte.py
+
 ## Commands (from `tracker-ad/`)
 
     npm install
@@ -29,9 +36,10 @@ card; the first 1.5 seconds are used (change `startFrom` on the
 
 ## Layout rules the code holds to
 
-- 120 px safe margin on every side. Captions sit in the top band; the
-  phone, clip or body figure sits in the stage below, so text never covers
-  the subject. Floating number chips sit in the empty bottom of each screen.
+- 120 px safe margin on every side for text and the phone. Footage runs
+  full-screen behind. The big text is drawn BEHIND the subject (you, the
+  phone, the body figure), so it never covers anything; small glass chips
+  sit in the empty bottom of each screen.
 - No shot is longer than 2 seconds (see `SHOTS` in `src/Ad.tsx`).
 - Every number on screen is real: it is either read off the captured app
   screen or comes straight from `scripts/review-data.js`.

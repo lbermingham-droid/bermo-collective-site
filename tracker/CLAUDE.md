@@ -1067,6 +1067,17 @@ are gitignored; `/tracker-ad/*` is 404'd on the public site in
   **The raw clips are gitignored** — the repo is public — so a new session
   needs her to re-upload them. No food clip yet.
 - The body shots use the app's new "This workout" view for Nov 16.
+- **Third cut — text is IN the scene, not placed on it.** She sent a
+  Ladder frame (huge grey condensed capitals with the athlete standing in
+  front of the letters) and said "all text should be part of the video".
+  `BigText` draws stacked Anton capitals, each line stretched to the safe
+  width with SVG `textLength`, BEHIND the subject. For her footage that
+  needs a per-frame cutout: `scripts/matte.py` (rembg `u2net`, run with
+  `/usr/local/bin/python3.13`) writes `public/mattes/<clip>/NNN.webp`;
+  `ClipScene` layers video → text → cutout. On phone shots the text sits
+  above the phone, which overlaps the last line; on body shots it sits
+  behind the figure. The caption band is gone. Mattes are gitignored too.
+  Keep lines 5–9 letters: 2–3 letter lines stretch badly.
 - Honesty rules that apply to the ad too: only dated entries with numbers
   are logged; ranges use the lower bound; year-only historical bests (450
   lb leg press, 2021) are NOT entered because the app needs a date.

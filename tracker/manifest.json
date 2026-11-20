@@ -1,0 +1,22 @@
+{
+  "name": "BERMO Tracker",
+  "short_name": "BERMO",
+  "description": "Personal nutrition + fitness tracker. Local-first.",
+  "start_url": "/tracker/",
+  "scope": "/tracker/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "lang": "en",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/favicon.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "maskable" }
+  ],
+  "categories": ["health", "fitness", "lifestyle"],
+  "shortcuts": [
+    { "name": "Quick Log", "short_name": "Log", "url": "/tracker/?action=log", "description": "Open the quick log menu" },
+    { "name": "Today's Dashboard", "short_name": "Today", "url": "/tracker/", "description": "Today's stats" },
+    { "name": "Trends", "url": "/tracker/?tab=trends", "description": "Insights + correlations" }
+  ]
+}

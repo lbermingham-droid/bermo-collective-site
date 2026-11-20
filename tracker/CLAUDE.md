@@ -1021,6 +1021,30 @@ render of that page.
 
 ---
 
+**THE AD (tracker-ad/, Remotion).** She asked for an Instagram ad aimed at
+gym owners, showing the app in use with her own data. `tracker-ad/` is a
+separate Remotion project (own `package.json`; `node_modules` and `out/`
+are gitignored; `/tracker-ad/*` is 404'd on the public site in
+`netlify.toml`). Read `tracker-ad/README.md` first.
+- 1080x1920, 30 fps, 600 frames (20 s), 12 shots, none over 2 s. 120px
+  safe margin: captions in the top band, phone / clip / body figure in the
+  stage below, number chips in the empty bottom of each screen.
+- Screens are REAL captures (`scripts/capture.js`, Playwright, DPR 3,
+  `Date` frozen to 2026-11-20) with her Oct 20–Nov 20 review entered
+  through `__bermo.logSession` from `scripts/review-data.js`. The body
+  figure is lifted out of the app onto a transparent page for a clean
+  cutout.
+- Four footage slots (`public/clips/gym|run|food|beach.mp4`);
+  `scripts/clips.js` writes `src/clips.json` so missing clips show a
+  labelled placeholder. She will supply the clips.
+- Render: `npm run render` (uses `/opt/pw-browsers/chromium`), ~90 s.
+- Style reference was a Ladder reel (instagram.com/reel/DQUR0j0jgrK).
+  The link yields caption text only, not the visuals — ask her for
+  screenshots before claiming a style match.
+- Honesty rules that apply to the ad too: only dated entries with numbers
+  are logged; ranges use the lower bound; year-only historical bests (450
+  lb leg press, 2021) are NOT entered because the app needs a date.
+
 **LEGACY DASHBOARD REMOVED + FINER MUSCLES + SCREEN PASS (v60).**
 - `#dashLegacy` (243 lines of hidden DOM, 63 ids) is GONE. `renderDashboard()`
   is now just `renderHome()`. Swept with it: 33 functions (the hubs, deck,

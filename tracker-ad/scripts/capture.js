@@ -31,13 +31,19 @@ const TODAY = "2026-11-20";
   await go("dashboard"); await full("home");
   await go("fitness"); await full("workouts");
   await go("lifts"); await full("lifts");
+  console.log("deadlift row at (css px):", JSON.stringify(await p.evaluate(() => { const r = document.querySelector('#lifts [data-lift="Deadlift"]').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 + window.scrollY }; })));
   await p.evaluate(() => document.querySelector('#lifts [data-lift="Deadlift"]').click()); await p.waitForTimeout(500); await full("lift-deadlift");
   await p.evaluate(() => document.getElementById("lfBack").click()); await p.waitForTimeout(300);
   await p.evaluate(() => document.querySelector('#lifts [data-lift="Back Squat"]').click()); await p.waitForTimeout(500); await full("lift-squat");
   await go("nutrition"); await full("nutrition");
   // coach hub with the demo gym
   await go("settings"); await p.evaluate(() => document.getElementById("coachDemoBtn").click()); await p.waitForTimeout(900);
-  for(const i of [0, 1, 3, 4, 6]){ await p.evaluate(i => document.querySelectorAll("#coach [data-att]")[i].click(), i); await p.waitForTimeout(250); }
+  for(const i of [0, 1, 3, 4]){ await p.evaluate(i => document.querySelectorAll("#coach [data-att]")[i].click(), i); await p.waitForTimeout(250); }
+  { const c0 = await p.$$("#coach tr.on td input[data-cell]"); const v0 = [65, 95, 35, 30, 50, 75, 30, 25, 90, 135, 50, 40, 55, 85, 30, 30]; for(let i = 0; i < c0.length && i < v0.length; i++){ await c0[i].fill(String(v0[i])); await c0[i].dispatchEvent("change"); } }
+  await p.waitForTimeout(250); await full("coach-class-a");   // before the tap: four members in
+  const tapBox = await p.evaluate(() => { const el = document.querySelectorAll("#coach .co-chk i")[6]; const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 + window.scrollY }; });
+  console.log("class tap at (css px):", JSON.stringify(tapBox));
+  await p.evaluate(() => document.querySelectorAll("#coach [data-att]")[6].click()); await p.waitForTimeout(250);
   const cells = await p.$$("#coach tr.on td input[data-cell]");
   const vals = [65, 95, 35, 30, 50, 75, 30, 25, 90, 135, 50, 40, 55, 85, 30, 30, 70, 105, 40, 35];
   for(let i = 0; i < cells.length && i < vals.length; i++){ await cells[i].fill(String(vals[i])); await cells[i].dispatchEvent("change"); }
@@ -54,11 +60,15 @@ const TODAY = "2026-11-20";
     const src = svg.querySelectorAll("path"), dst = c.querySelectorAll("path");
     src.forEach((el, i) => { const cs = getComputedStyle(el); dst[i].setAttribute("style", `fill:${cs.fill};stroke:${cs.stroke};stroke-width:${cs.strokeWidth};stroke-linejoin:round`); });
     return c.outerHTML; });
+  const add = await p.evaluate(() => { const d = document.querySelector("#muscleMapCard .mm-add"); return d ? d.innerText.replace(/\n/g, " | ") : null; });
+  console.log("add one more:", JSON.stringify(add));
+  const liftRow = await p.evaluate(() => 0);
   const front = await grab();
   await p.evaluate(() => document.getElementById("mmFlip").click()); await p.waitForTimeout(300);
   const back = await grab();
   const p2 = await ctx.newPage();
-  for(const [name, html] of [["body-front", front], ["body-back", back]]){
+  const grey = (h) => h.replace(/fill: ?rgb\(255, 77, 157\)/g, "fill:rgb(91, 97, 112)");
+  for(const [name, html] of [["body-front", front], ["body-back", back], ["body-front-off", grey(front)]]){
     await p2.setContent(`<html><body style="margin:0;background:transparent"><div id="w" style="width:360px;height:760px;display:flex;justify-content:center">${html.replace('class="mm-svg"', 'style="height:760px;width:auto"')}</div></body></html>`);
     await (await p2.$("#w")).screenshot({ path: path.join(OUT, name + ".png"), omitBackground: true });
   }

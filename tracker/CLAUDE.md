@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v62**.
+- Current build: **v63**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -1034,6 +1034,13 @@ to whole body parts; **Z-press / Z-sit press / seesaw press → front
 delts and pull-through → glutes + hamstrings are now in the resolver.**
 When a lift lights too much, fix the resolver, not the figure.
 
+**ADD ONE MORE (v63).** She asked that after showing what a workout
+lit up, the app "say something about adding one more". In This workout
+mode a third box appears: **Add one more** — the missed group that has
+gone longest without work (never-trained first) plus one lift that fixes
+it, from `SUB_FIX` (`_addOneMore`). For Nov 16 it says Chest · Incline
+Dumbbell Press. The ad shows exactly this, nothing invented.
+
 **THE AD (tracker-ad/, Remotion).** She asked for an Instagram ad aimed at
 gym owners, showing the app in use with her own data. `tracker-ad/` is a
 separate Remotion project (own `package.json`; `node_modules` and `out/`
@@ -1095,6 +1102,16 @@ are gitignored; `/tracker-ad/*` is 404'd on the public site in
   paper." → "Mine runs on this." → "Every lift. / PR. / muscle. / run. /
   member. / month. / macro." → "Your gym. Your app. Built for you." →
   BERMO.
+- **Fifth cut (her notes on the fourth):** the screen kept changing
+  angle and confused her → ONE fixed `ANGLE` for every `Macro`. "Do any
+  screens show it actually working?" → a finger dot drags while the page
+  scrolls, taps the Deadlift row before the PR shot, and ticks a member
+  on the class sheet (`swap` from `coach-class-a` to `coach-class`, count
+  4 → 5). The figure arrives grey and the worked muscles LIGHT UP
+  (`LightUp`, `body-front-off.png`), then she turns and the app's own
+  "Add one more" suggestion lands (`Turn`). "Every" and its key word sit
+  together (no gap). Calendar line: "Every month, planned." Food line:
+  "Even every macro." 13 shots, max 1.8 s.
 - **Still not Ladder quality, and why:** Ladder's is professionally shot
   and graded, with a real hand-held phone. Hers is three phone clips. To
   close the gap she needs to FILM her phone showing the app (in hand at
@@ -1413,4 +1430,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v59` BODY FIGURE replaced with an MIT anatomical set: male + female, front + back, flip button, Fitbod layout ·
 `v60` legacy dashboard deleted with a full orphan sweep; body figure coloured per muscle; row cleanup on Nutrition and Body ·
 `v61` body figure gets a "This workout" mode: only the muscles that session used are lit, with worked / not worked lists ·
-`v62` swipe the body figure sideways and she turns in 3D (front to back); the round button does the same.
+`v62` swipe the body figure sideways and she turns in 3D (front to back); the round button does the same ·
+`v63` "Add one more": the workout view names the missed muscle group and a lift for it.

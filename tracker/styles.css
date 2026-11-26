@@ -4915,3 +4915,7 @@ input, select, textarea{ border-radius: var(--g-r-sm) !important; }
 
 /* v62 — swipe the figure to turn her */
 .mm-svg{ touch-action:pan-y; will-change:transform; }
+
+/* v63 — add one more */
+.mm-lists .mm-add{ border-color:#00f5d4 !important; }
+.mm-lists .mm-add b{ color:#00f5d4; }

@@ -10027,6 +10027,17 @@ function _slugsWorkedOn(dateKey){
   (((state.days || {})[dateKey] || {}).sessions || []).forEach(s => { if(s && s.name && s.type !== "cardio") _slugsForLift(s.name).forEach(x => out.add(x)); });
   return out;
 }
+// One concrete suggestion for a workout: the group it skipped that has gone
+// longest without work (never-trained first), with a lift that fixes it.
+function _addOneMore(worked){
+  if(!worked || !worked.size) return null;
+  const sd = _daysSinceSlug();
+  const missed = Object.keys(SLUG_NAME).filter(k => !worked.has(k));
+  if(!missed.length) return null;
+  missed.sort((a, b) => (sd[b] === undefined ? 9999 : sd[b]) - (sd[a] === undefined ? 9999 : sd[a]));
+  const slug = missed[0]; const region = (SLUG_REGIONS[slug] || []).find(r => SUB_FIX[r]);
+  return { slug, name: SLUG_NAME[slug], fix: region ? SUB_FIX[region] : "One lift for " + SLUG_NAME[slug].toLowerCase() };
+}
 function bodyFigureHtml(F){
   const ui = state.ui = state.ui || {};
   const sex = ui.mmSex || (profileSex() === "male" ? "male" : "female");
@@ -10059,6 +10070,7 @@ function bodyFigureHtml(F){
            <div class="mm-lists">
              <div><span>${escape(fmtDate(currentDate))} · worked</span><b>${Object.keys(SLUG_NAME).filter(k => worked.has(k)).map(k => SLUG_NAME[k]).join(" · ") || "No lifts logged this day"}</b></div>
              <div><span>Not worked</span><em>${Object.keys(SLUG_NAME).filter(k => !worked.has(k)).map(k => SLUG_NAME[k]).join(" · ") || "Nothing: every group was hit"}</em></div>
+             ${(() => { const add = _addOneMore(worked); return add ? `<div class="mm-add"><span>Add one more</span><b>${escape(add.name)}</b><em>${escape(add.fix)}</em></div>` : ""; })()}
            </div>`
         : `<div class="mm-legend"><span><i style="background:#ff4d9d"></i>0–2 days</span><span><i style="background:#b788ff"></i>3–5</span><span><i style="background:#00f5d4"></i>6–8</span><span><i style="background:#5b6170"></i>9+ or none</span></div>`}
     </div>`;

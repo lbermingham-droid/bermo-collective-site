@@ -34,11 +34,6 @@ const Word: React.FC<{ t: string; at: number; k?: boolean; c?: string; size?: nu
   return <span style={{ display: "inline-block", fontFamily: FONT, fontWeight: 800, fontSize: size, letterSpacing: -2.5, lineHeight: 1.04, color: k ? c : "#fff",
     transform: `translateY(${(1 - s) * 22}px) scale(${interpolate(s, [0, 1], [0.9, 1])})${k ? " skewX(-9deg)" : ""}`, opacity: Math.min(1, s * 1.4), textShadow: "0 2px 24px rgba(0,0,0,.45)" }}>{t}</span>;
 };
-// "Every ............ lift."  — opener pinned left, key word pinned right.
-const Pair: React.FC<{ left: string; right: string; y: number; c?: string; at?: number }> = ({ left, right, y, c, at = 7 }) =>
-  <div style={{ position: "absolute", left: SAFE, right: SAFE, top: y, display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-    <Word t={left} at={0} /><Word t={right} at={at} k c={c} />
-  </div>;
 // A sentence that builds word by word, left aligned, wrapping.
 const Build: React.FC<{ words: { t: string; k?: boolean; c?: string; br?: boolean }[]; y: number; step?: number; size?: number }> = ({ words, y, step = 4, size }) =>
   <div style={{ position: "absolute", left: SAFE, right: SAFE, top: y, display: "flex", flexWrap: "wrap", columnGap: 22, rowGap: 0 }}>
@@ -72,38 +67,70 @@ const Footage: React.FC<{ name: ClipName; len: number; from?: number; behind?: R
 // The captured screen fills the frame at an angle, like a macro shot of a
 // phone: tilted, edges falling out of focus, a soft glare, scrolling.
 const SHOT_W = 1170;
-const Macro: React.FC<{ shot: string; shotH: number; from: number; to: number; len: number; rz?: number; rx?: number; ry?: number; scale?: number; x?: number; y?: number }> = ({ shot, shotH, from, to, len, rz = -9, rx = 26, ry = -10, scale = 1.0, x = 0, y = 0 }) => {
-  const f = useCurrentFrame(); const W = 900; const k = W / SHOT_W; const viewH = 1560;
-  const max = Math.max(0, shotH * k - viewH);
-  const scroll = interpolate(f, [4, len - 4], [Math.min(from, max), Math.min(to, max)], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.cubic) });
-  const push = interpolate(f, [0, len], [0.94, 1.02]);
+// ONE camera angle for every screen shot, so the phone never appears to jump.
+const ANGLE = { rx: 24, ry: -9, rz: -7 };
+const MW = 900, MH = 1560, CSS = MW / 390;   // CSS px on the phone -> px on the plane
+type Tap = { x: number; y: number; at: number };   // x,y in the app's own CSS px (page coordinates)
+const Macro: React.FC<{ shot: string; shotH: number; from: number; to: number; len: number; scrollEnd?: number; tap?: Tap; swap?: { shot: string; at: number } }> = ({ shot, shotH, from, to, len, scrollEnd, tap, swap }) => {
+  const f = useCurrentFrame(); const k = MW / SHOT_W; const max = Math.max(0, shotH * k - MH);
+  const s0 = 5, s1 = scrollEnd || len - 5; const moving = to !== from;
+  const scroll = interpolate(f, [s0, s1], [Math.min(from, max), Math.min(to, max)], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.cubic) });
+  const push = interpolate(f, [0, len], [0.95, 1.01]);
+  const img = swap && f >= swap.at ? swap.shot : shot;
+  // the finger: drags up while the page scrolls, then taps
+  const dragY = interpolate(f, [s0, s1], [MH * 0.62, MH * 0.36], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.cubic) });
+  const dragO = moving ? interpolate(f, [s0 - 3, s0, s1, s1 + 3], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) : 0;
+  const tapO = tap ? interpolate(f, [tap.at - 3, tap.at, tap.at + 6, tap.at + 10], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) : 0;
+  const ring = tap ? interpolate(f, [tap.at, tap.at + 10], [0.6, 2.4], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) : 1;
+  const dot: React.CSSProperties = { position: "absolute", width: 96, height: 96, marginLeft: -48, marginTop: -48, borderRadius: "50%", background: "rgba(255,255,255,.26)", border: "3px solid rgba(255,255,255,.8)", boxShadow: "0 0 36px rgba(255,255,255,.35)" };
   return <AbsoluteFill style={{ background: "#040507", perspective: 1900, perspectiveOrigin: "50% 42%", overflow: "hidden" }}>
-    <div style={{ position: "absolute", left: (1080 - W) / 2 + x, top: 330 + y, width: W, height: viewH, transform: `scale(${scale * push}) rotateX(${rx}deg) rotateY(${ry + interpolate(f, [0, len], [-2, 2])}deg) rotateZ(${rz}deg)`, transformOrigin: "50% 45%" }}>
+    <div style={{ position: "absolute", left: (1080 - MW) / 2, top: 330, width: MW, height: MH, transform: `scale(${push}) rotateX(${ANGLE.rx}deg) rotateY(${ANGLE.ry}deg) rotateZ(${ANGLE.rz}deg)`, transformOrigin: "50% 45%" }}>
       <div style={{ position: "absolute", inset: -22, borderRadius: 96, background: "linear-gradient(140deg,#3b3d44,#0b0c0f 40%,#26282e)", boxShadow: "0 120px 160px -40px rgba(0,0,0,.9)" }} />
       <div style={{ position: "absolute", inset: 0, borderRadius: 78, overflow: "hidden", background: "#05060a" }}>
-        <Img src={staticFile(`shots/${shot}.png`)} style={{ width: "100%", display: "block", transform: `translateY(${-scroll}px)` }} />
+        <Img src={staticFile(`shots/${img}.png`)} style={{ width: "100%", display: "block", transform: `translateY(${-scroll}px)` }} />
+        {swap && swap.shot !== shot ? <Img src={staticFile(`shots/${swap.shot}.png`)} style={{ position: "absolute", left: 0, top: 0, width: "100%", opacity: 0 }} /> : null}
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(112deg, rgba(255,255,255,.13), transparent 26%, transparent 74%, rgba(255,255,255,.05))" }} />
+        <div style={{ ...dot, left: MW * 0.56, top: dragY, opacity: dragO }} />
+        {tap ? <><div style={{ ...dot, left: tap.x * CSS, top: tap.y * CSS - scroll, opacity: tapO, transform: `scale(${interpolate(f, [tap.at - 3, tap.at], [1.3, 0.85], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })})` }} />
+          <div style={{ ...dot, left: tap.x * CSS, top: tap.y * CSS - scroll, background: "none", opacity: tapO * 0.7, transform: `scale(${ring})` }} /></> : null}
       </div>
     </div>
-    {/* depth of field: top and bottom fall out of focus and into shadow */}
-    <AbsoluteFill style={{ backdropFilter: "blur(7px)", WebkitBackdropFilter: "blur(7px)", maskImage: "linear-gradient(180deg, #000 0%, transparent 24%, transparent 76%, #000 100%)", WebkitMaskImage: "linear-gradient(180deg, #000 0%, transparent 24%, transparent 76%, #000 100%)" }} />
-    <AbsoluteFill style={{ background: "radial-gradient(ellipse at 50% 46%, transparent 42%, rgba(0,0,0,.72) 100%)" }} />
+    <AbsoluteFill style={{ backdropFilter: "blur(7px)", WebkitBackdropFilter: "blur(7px)", maskImage: "linear-gradient(180deg, #000 0%, transparent 24%, transparent 78%, #000 100%)", WebkitMaskImage: "linear-gradient(180deg, #000 0%, transparent 24%, transparent 78%, #000 100%)" }} />
+    <AbsoluteFill style={{ background: "radial-gradient(ellipse at 50% 46%, transparent 44%, rgba(0,0,0,.7) 100%)" }} />
   </AbsoluteFill>;
 };
 
-// ---- the figure: a finger swipes and she turns in 3D ------------------------
-const Turn: React.FC<{ len: number }> = ({ len }) => {
+// ---- the figure ----------------------------------------------------------
+const FIG: React.CSSProperties = { position: "absolute", left: (1080 - 640) / 2, top: 380, width: 640 };
+const Floor: React.FC = () => <><AbsoluteFill style={{ background: "radial-gradient(ellipse at 50% 55%, rgba(255,255,255,.07), transparent 60%)" }} />
+  <div style={{ position: "absolute", left: 230, top: 1540, width: 620, height: 70, borderRadius: "50%", background: "radial-gradient(ellipse, rgba(0,0,0,.9), transparent 70%)" }} /></>;
+// A: she arrives grey, then the muscles this workout used light up.
+const LightUp: React.FC = () => {
   const f = useCurrentFrame(); const inn = useSpring(0, 130);
-  const t = interpolate(f, [16, 34], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.cubic) });
+  const on = interpolate(f, [13, 24], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.out(Easing.cubic) });
+  const flash = interpolate(f, [13, 20, 32], [0, 1, 0.25], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const t = `translateY(${(1 - inn) * 120}px) scale(${interpolate(inn, [0, 1], [0.86, 1])})`;
+  return <AbsoluteFill style={{ background: "#040507" }}><Floor />
+    <Img src={staticFile("shots/body-front-off.png")} style={{ ...FIG, transform: t, opacity: Math.min(1, inn * 1.5), filter: "drop-shadow(0 50px 50px rgba(0,0,0,.7))" }} />
+    <Img src={staticFile("shots/body-front.png")} style={{ ...FIG, transform: t, opacity: on, filter: `drop-shadow(0 0 ${30 + flash * 50}px rgba(255,77,157,${0.12 + flash * 0.5}))` }} />
+  </AbsoluteFill>;
+};
+// B: a finger swipes and she turns in 3D; then the app's suggestion lands.
+const Turn: React.FC = () => {
+  const f = useCurrentFrame();
+  const t = interpolate(f, [8, 26], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.cubic) });
   const deg = t * 180; const back = deg > 90;
-  const touchX = interpolate(f, [12, 34], [690, 380], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.cubic) });
-  const touchO = interpolate(f, [8, 13, 33, 38], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-  return <AbsoluteFill style={{ background: "#040507", perspective: 1700 }}>
-    <AbsoluteFill style={{ background: "radial-gradient(ellipse at 50% 55%, rgba(255,255,255,.07), transparent 60%)" }} />
-    <div style={{ position: "absolute", left: 230, top: 1540, width: 620, height: 70, borderRadius: "50%", background: "radial-gradient(ellipse, rgba(0,0,0,.9), transparent 70%)" }} />
-    <Img src={staticFile(`shots/body-${back ? "back" : "front"}.png`)} style={{ position: "absolute", left: (1080 - 640) / 2, top: 380, width: 640,
-      transform: `translateY(${(1 - inn) * 120}px) rotateY(${back ? deg - 180 : deg}deg) scale(${interpolate(inn, [0, 1], [0.86, 1])})`, opacity: Math.min(1, inn * 1.5), filter: "drop-shadow(0 50px 50px rgba(0,0,0,.7))" }} />
-    <div style={{ position: "absolute", left: touchX - 46, top: 1010, width: 92, height: 92, borderRadius: "50%", background: "rgba(255,255,255,.22)", border: "3px solid rgba(255,255,255,.75)", opacity: touchO, boxShadow: "0 0 40px rgba(255,255,255,.35)" }} />
+  const touchX = interpolate(f, [5, 26], [700, 380], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.cubic) });
+  const touchO = interpolate(f, [2, 6, 25, 30], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const s = useSpring(27, 190);
+  return <AbsoluteFill style={{ background: "#040507", perspective: 1700 }}><Floor />
+    <Img src={staticFile(`shots/body-${back ? "back" : "front"}.png`)} style={{ ...FIG, transform: `rotateY(${back ? deg - 180 : deg}deg)`, filter: "drop-shadow(0 0 26px rgba(255,77,157,.2)) drop-shadow(0 50px 50px rgba(0,0,0,.7))" }} />
+    <div style={{ position: "absolute", left: touchX - 46, top: 1010, width: 92, height: 92, borderRadius: "50%", background: "rgba(255,255,255,.26)", border: "3px solid rgba(255,255,255,.8)", opacity: touchO, boxShadow: "0 0 40px rgba(255,255,255,.35)" }} />
+    <div style={{ position: "absolute", left: SAFE, right: SAFE, bottom: SAFE, padding: "26px 32px", borderRadius: 26, fontFamily: FONT, opacity: s, transform: `translateY(${(1 - s) * 50}px)`,
+        background: "rgba(22,24,30,.62)", backdropFilter: "blur(26px)", WebkitBackdropFilter: "blur(26px)", border: `2px solid ${C.teal}`, boxShadow: "inset 0 1.5px 0 rgba(255,255,255,.3), 0 30px 60px -20px rgba(0,0,0,.8)" }}>
+      <div style={{ fontSize: 24, fontWeight: 600, letterSpacing: 4, textTransform: "uppercase", color: C.teal }}>Chest was missed · try</div>
+      <div style={{ fontSize: 50, fontWeight: 800, letterSpacing: -1.5, color: "#fff", marginTop: 6 }}>Incline Dumbbell Press</div>
+    </div>
   </AbsoluteFill>;
 };
 const Legend: React.FC<{ at: number }> = ({ at }) => { const s = useSpring(at);
@@ -123,23 +150,27 @@ const Band: React.FC<{ name: ClipName; i: number; n: string; unit?: string; labe
 
 // ---- shots: nothing on screen longer than 2 seconds ---------------------------
 type Shot = { len: number; el: (len: number) => React.ReactNode };
-const MID = 760;   // y for words over footage
-const TOP = SAFE + 40;   // y for words over a screen close-up
+const MID = 760;        // y for words over footage
+const TOP = SAFE + 40;  // y for words over a screen close-up
+// "Every lift." — the two words sit together; only the last one changes.
+const Every: React.FC<{ w: string; c?: string; y?: number; lead?: string; tail?: string }> = ({ w, c, y = TOP, lead = "Every", tail }) =>
+  <Build y={y} step={6} words={[{ t: lead }, { t: w, k: true, c }, ...(tail ? [{ t: tail }] : [])]} />;
 const SHOTS: Shot[] = [
-  { len: 48, el: (len) => <Footage name="gym" len={len} behind={<Build y={520} words={[{ t: "Your" }, { t: "gym" }, { t: "still" }, { t: "runs" }, { t: "on", br: true }, { t: "paper.", k: true, c: C.pink }]} step={4} size={108} />} /> },
-  { len: 50, el: (len) => <><Macro shot="home" shotH={3753} from={0} to={420} len={len} /><Build y={TOP} words={[{ t: "Mine" }, { t: "runs" }, { t: "on" }, { t: "this.", k: true }]} step={4} /></> },
-  { len: 46, el: (len) => <><Macro shot="lifts" shotH={2532} from={0} to={520} len={len} rz={8} ry={12} /><Pair left="Every" right="lift." y={TOP} /></> },
-  { len: 56, el: (len) => <><Macro shot="lift-deadlift" shotH={2532} from={0} to={40} len={len} rz={-6} rx={22} scale={1.12} y={-60} /><Pair left="Every" right="PR." y={TOP} c={C.pink} />
+  { len: 46, el: (len) => <Footage name="gym" len={len} behind={<Build y={520} words={[{ t: "Your" }, { t: "gym" }, { t: "still" }, { t: "runs" }, { t: "on", br: true }, { t: "paper.", k: true, c: C.pink }]} step={4} size={108} />} /> },
+  { len: 48, el: (len) => <><Macro shot="home" shotH={3753} from={0} to={520} len={len} /><Build y={TOP} words={[{ t: "Mine" }, { t: "runs" }, { t: "on" }, { t: "this.", k: true }]} step={4} /></> },
+  { len: 46, el: (len) => <><Macro shot="lifts" shotH={2532} from={0} to={250} len={len} scrollEnd={24} tap={{ x: 195, y: 340, at: 33 }} /><Every w="lift." /></> },
+  { len: 54, el: (len) => <><Macro shot="lift-deadlift" shotH={2532} from={0} to={0} len={len} /><Every w="PR." c={C.pink} />
       <Num n="175" unit="lb x 3" label="Deadlift · Nov 16" c={C.pink} at={12} style={{ left: SAFE, bottom: SAFE + 20 }} /></> },
-  { len: 60, el: (len) => <><Turn len={len} /><Pair left="Every" right="muscle." y={TOP} c={C.pink} /><Legend at={10} /></> },
-  { len: 44, el: (len) => <Footage name="run" len={len} dim={0.6} behind={<Pair left="Every" right="run." y={MID} c={C.blue} />} /> },
-  { len: 54, el: () => <AbsoluteFill style={{ background: "#000" }}>
+  { len: 50, el: () => <><LightUp /><Every w="muscle." c={C.pink} /><Legend at={20} /></> },
+  { len: 50, el: () => <><Turn /><Build y={TOP} step={5} words={[{ t: "Add" }, { t: "one" }, { t: "more.", k: true }]} /></> },
+  { len: 42, el: (len) => <Footage name="run" len={len} dim={0.6} behind={<Every w="run." c={C.blue} y={MID} />} /> },
+  { len: 52, el: () => <AbsoluteFill style={{ background: "#000" }}>
       <Band name="gym" i={0} n="+11" label="Lift days" c={C.teal} pos="50% 70%" /><Band name="run" i={1} n="+205" unit="min" label="Cardio" c={C.blue} pos="50% 80%" /><Band name="beach" i={2} n="+13,035" unit="lb" label="Moved, vs last month" c={C.pink} pos="50% 40%" /></AbsoluteFill> },
-  { len: 48, el: (len) => <><Macro shot="coach-class" shotH={2532} from={0} to={300} len={len} rz={7} ry={10} /><Pair left="Every" right="member." y={TOP} /></> },
-  { len: 44, el: (len) => <><Macro shot="coach-calendar" shotH={2688} from={140} to={520} len={len} rz={-8} /><Pair left="Every" right="month." y={TOP} c={C.blue} /></> },
-  { len: 46, el: (len) => <><Macro shot="nutrition" shotH={2568} from={0} to={260} len={len} rz={6} ry={9} /><Pair left="Every" right="macro." y={TOP} /></> },
-  { len: 52, el: (len) => <Footage name="beach" len={len} dim={0.7}><div style={{ position: "absolute", left: SAFE, top: 140 }}><Word t="Your gym." at={2} size={98} /></div><div style={{ position: "absolute", left: SAFE, top: 256 }}><Word t="Your app." at={14} size={98} /></div><div style={{ position: "absolute", left: SAFE, top: 372 }}><Word t="Built for you." at={26} size={98} k /></div></Footage> },
-  { len: 52, el: (len) => <Footage name="beach" len={len} from={52} dim={0.38}><EndCard /></Footage> },
+  { len: 48, el: (len) => <><Macro shot="coach-class-a" shotH={2532} from={0} to={300} len={len} scrollEnd={20} tap={{ x: 34, y: 614.5, at: 27 }} swap={{ shot: "coach-class", at: 30 }} /><Every w="member." /></> },
+  { len: 44, el: (len) => <><Macro shot="coach-calendar" shotH={2688} from={120} to={560} len={len} /><Every w="month," c={C.blue} tail="planned." /></> },
+  { len: 44, el: (len) => <><Macro shot="nutrition" shotH={2568} from={0} to={300} len={len} /><Every w="macro." lead="Even every" /></> },
+  { len: 40, el: (len) => <Footage name="beach" len={len} dim={0.7}><div style={{ position: "absolute", left: SAFE, top: 140 }}><Word t="Your gym." at={1} size={98} /></div><div style={{ position: "absolute", left: SAFE, top: 256 }}><Word t="Your app." at={10} size={98} /></div><div style={{ position: "absolute", left: SAFE, top: 372 }}><Word t="Built for you." at={19} size={98} k /></div></Footage> },
+  { len: 36, el: (len) => <Footage name="beach" len={len} from={40} dim={0.38}><EndCard /></Footage> },
 ];
 
 const EndCard: React.FC = () => { const a = useSpring(2, 170), b = useSpring(12, 170);

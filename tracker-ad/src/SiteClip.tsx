@@ -25,12 +25,19 @@ const LENS = [244, 244, 132, 120, 132];
 export const SITE_DURATION = LENS.reduce((a, b) => a + b, 0);
 const U = 3;                                  // px per pt
 const u = (n: number) => n * U;
-const C = { bg: "#000", cell: "#1c1c1e", cell2: "#2c2c2e", sep: "rgba(84,84,88,.55)", text: "#fff", sec: "rgba(235,235,245,.6)", ter: "rgba(235,235,245,.3)", acc: "#7c6cff", accDeep: "#4a3fc4" };
+const BASE_THEME = { bg: "#000", cell: "#1c1c1e", cell2: "#2c2c2e", sep: "rgba(84,84,88,.55)", text: "#fff", sec: "rgba(235,235,245,.6)", ter: "rgba(235,235,245,.3)", acc: "#7c6cff", accDeep: "#4a3fc4",
+  onAcc: "#fff", tab: "rgba(18,18,20,.94)", thumb: "linear-gradient(150deg,#3a3a41 0%,#26262b 55%,#1d1d21 100%)", art: "linear-gradient(160deg,#ffffff 35%,#b9b0ff 100%)", fig: "none" };
+export type SiteTheme = typeof BASE_THEME;
+// The palette every screen reads. Mutable on purpose: <Themed> swaps it for a subtree
+// (used by the colourway mock). React renders depth-first, so a Themed's children read
+// its palette before a sibling Themed changes it.
+const C: SiteTheme = { ...BASE_THEME };
+export const Themed: React.FC<{ theme?: Partial<SiteTheme>; children: React.ReactNode }> = ({ theme, children }) => { Object.assign(C, BASE_THEME, theme || {}); return <>{children}</>; };
 const FONT = "InterVar", WIDE = "ArchivoWide";
 const fontFace = `@font-face{font-family:${FONT};font-weight:100 900;src:url(${staticFile("fonts/inter-var.woff2")}) format("woff2")}
 @font-face{font-family:ArchivoWide;font-weight:900;src:url(${staticFile("fonts/archivo-wide-900.woff2")}) format("woff2")}`;
 const PAD = u(16), STATUS = u(50), TAB = u(83);
-const T = { body: { fontSize: u(17), fontWeight: 400, letterSpacing: -0.4 * U } as React.CSSProperties, sub: { fontSize: u(14), fontWeight: 400, color: C.sec, letterSpacing: -0.2 * U } as React.CSSProperties, foot: { fontSize: u(12.5), fontWeight: 500, color: C.sec, letterSpacing: 0.3 * U, textTransform: "uppercase" } as React.CSSProperties };
+const T = { get body(): React.CSSProperties { return { fontSize: u(17), fontWeight: 400, letterSpacing: -0.4 * U }; }, get sub(): React.CSSProperties { return { fontSize: u(14), fontWeight: 400, color: C.sec, letterSpacing: -0.2 * U }; }, get foot(): React.CSSProperties { return { fontSize: u(12.5), fontWeight: 500, color: C.sec, letterSpacing: 0.3 * U, textTransform: "uppercase" }; } };
 const tint = (hex: string, a: number) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
 const sp = (f: number, at: number, stiff = 240, damp = 22) => spring({ frame: f - at, fps: SITE_FPS, config: { damping: damp, stiffness: stiff, mass: 0.8 } });
 const ease = (f: number, a: number, b: number, from = 0, to = 1) => interpolate(f, [a, b], [from, to], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.bezier(0.25, 0.8, 0.25, 1) });
@@ -40,9 +47,9 @@ const In: React.FC<{ at: number; y?: number; style?: React.CSSProperties; childr
 const StatusBar: React.FC = () => <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: STATUS, display: "flex", alignItems: "flex-end", justifyContent: "space-between", padding: `0 ${u(30)}px ${u(8)}px`, fontWeight: 600, fontSize: u(16), letterSpacing: -0.3 * U }}>
   <span>9:41</span>
   <span style={{ display: "flex", alignItems: "center", gap: u(6) }}>
-    <svg width={u(18)} height={u(12)} viewBox="0 0 18 12">{[0, 1, 2, 3].map(i => <rect key={i} x={i * 4.6} y={9 - i * 2.6} width={3.2} height={3 + i * 2.6} rx={0.8} fill="#fff" />)}</svg>
-    <svg width={u(16)} height={u(12)} viewBox="0 0 16 12"><path d="M8 10.6l2-2.1a2.9 2.9 0 0 0-4 0zM3.3 5.8a6.7 6.7 0 0 1 9.4 0l-1.4 1.4a4.7 4.7 0 0 0-6.6 0zM.6 3.1a10.5 10.5 0 0 1 14.8 0L14 4.5a8.5 8.5 0 0 0-12 0z" fill="#fff" /></svg>
-    <svg width={u(26)} height={u(12)} viewBox="0 0 26 12"><rect x={0.5} y={0.5} width={22} height={11} rx={3.2} fill="none" stroke="rgba(255,255,255,.4)" /><rect x={2} y={2} width={19} height={8} rx={1.9} fill="#fff" /><rect x={23.6} y={4} width={1.6} height={4} rx={0.8} fill="rgba(255,255,255,.45)" /></svg>
+    <svg width={u(18)} height={u(12)} viewBox="0 0 18 12">{[0, 1, 2, 3].map(i => <rect key={i} x={i * 4.6} y={9 - i * 2.6} width={3.2} height={3 + i * 2.6} rx={0.8} fill={C.text} />)}</svg>
+    <svg width={u(16)} height={u(12)} viewBox="0 0 16 12"><path d="M8 10.6l2-2.1a2.9 2.9 0 0 0-4 0zM3.3 5.8a6.7 6.7 0 0 1 9.4 0l-1.4 1.4a4.7 4.7 0 0 0-6.6 0zM.6 3.1a10.5 10.5 0 0 1 14.8 0L14 4.5a8.5 8.5 0 0 0-12 0z" fill={C.text} /></svg>
+    <svg width={u(26)} height={u(12)} viewBox="0 0 26 12"><rect x={0.5} y={0.5} width={22} height={11} rx={3.2} fill="none" stroke={C.ter} /><rect x={2} y={2} width={19} height={8} rx={1.9} fill={C.text} /><rect x={23.6} y={4} width={1.6} height={4} rx={0.8} fill={C.ter} /></svg>
   </span>
 </div>;
 const ICON: Record<string, React.ReactNode> = {
@@ -56,14 +63,14 @@ const ICON: Record<string, React.ReactNode> = {
   progress: <path d="M4 20V11M9.300 20V5M14.700 20v-7M20 20V8" />,
   body: <><circle cx="12" cy="5" r="2.400" /><path d="M5 9.500c4.500 1.300 9.500 1.300 14 0M9.200 10.300l-.7 5.200L7 21M14.800 10.300l.7 5.200L17 21" /></>,
 };
-const TabBar: React.FC<{ tabs: [string, string][]; active: number; o: number }> = ({ tabs, active, o }) => <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: TAB, background: "rgba(18,18,20,.94)", borderTop: `1px solid ${C.sep}`, opacity: o }}>
+const TabBar: React.FC<{ tabs: [string, string][]; active: number; o: number }> = ({ tabs, active, o }) => <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: TAB, background: C.tab, borderTop: `1px solid ${C.sep}`, opacity: o }}>
   <div style={{ display: "flex", padding: `${u(8)}px ${u(4)}px 0` }}>
     {tabs.map(([id, label], i) => { const on = Math.round(active) === i; return <div key={id} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: u(3), color: on ? C.acc : C.sec }}>
       <svg width={u(26)} height={u(26)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">{ICON[id]}</svg>
       <span style={{ fontSize: u(10.5), fontWeight: 500 }}>{label}</span>
     </div>; })}
   </div>
-  <div style={{ position: "absolute", left: "50%", bottom: u(8), width: u(134), height: u(5), marginLeft: -u(67), borderRadius: u(3), background: "#fff" }} />
+  <div style={{ position: "absolute", left: "50%", bottom: u(8), width: u(134), height: u(5), marginLeft: -u(67), borderRadius: u(3), background: C.text }} />
 </div>;
 const COACH: [string, string][] = [["class", "Class"], ["calendar", "Calendar"], ["members", "Members"], ["lifts", "Lifts"], ["more", "More"]];
 const MEMBER: [string, string][] = [["home", "Home"], ["lifts", "Workouts"], ["food", "Nutrition"], ["progress", "Progress"], ["body", "Body"]];
@@ -87,17 +94,17 @@ const ART: Record<string, string> = { Barbell_Squat: "squat", Arnold_Dumbbell_Pr
 // Workout Guide by Bryl Lim, CC BY-SA 4.0 (credit required wherever this clip is published).
 const Thumb: React.FC<{ id: string; size?: number; light?: boolean }> = ({ id, size = 44, light }) => { const url = staticFile(`site/art/${ART[id]}.png`); const r = u(size * 0.26);
   return <div style={{ width: u(size), height: u(size), flex: "none", borderRadius: r, position: "relative", marginBottom: u(size * 0.06),
-    background: light ? "linear-gradient(150deg,#2b2b31,#151518)" : "linear-gradient(150deg,#3a3a41 0%,#26262b 55%,#1d1d21 100%)",
+    background: light ? "linear-gradient(150deg,#2b2b31,#151518)" : C.thumb,
     boxShadow: `inset 0 ${u(1)}px 0 rgba(255,255,255,.22), inset 0 -${u(1)}px 0 rgba(0,0,0,.4), 0 ${u(size * 0.06)}px 0 #0d0d10, 0 ${u(size * 0.14)}px ${u(size * 0.18)}px rgba(0,0,0,.55)` }}>
-    <div style={{ position: "absolute", inset: u(size * 0.07), background: "linear-gradient(160deg,#ffffff 35%,#b9b0ff 100%)", WebkitMaskImage: `url(${url})`, maskImage: `url(${url})`, WebkitMaskSize: "contain", maskSize: "contain", WebkitMaskRepeat: "no-repeat", maskRepeat: "no-repeat", WebkitMaskPosition: "center", maskPosition: "center" }} />
+    <div style={{ position: "absolute", inset: u(size * 0.07), background: light ? "linear-gradient(160deg,#ffffff 35%,#b9b0ff 100%)" : C.art, WebkitMaskImage: `url(${url})`, maskImage: `url(${url})`, WebkitMaskSize: "contain", maskSize: "contain", WebkitMaskRepeat: "no-repeat", maskRepeat: "no-repeat", WebkitMaskPosition: "center", maskPosition: "center" }} />
     <Img src={url} style={{ position: "absolute", width: 1, height: 1, opacity: 0 }} />
   </div>; };
-const Avatar: React.FC<{ name: string; size?: number; hue?: number }> = ({ name, size = 34, hue = 200 }) => <div style={{ width: u(size), height: u(size), borderRadius: u(size / 2), background: `hsl(${hue} 22% 30%)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: u(size * 0.38), fontWeight: 600, flex: "none" }}>{name.split(" ").map(w => w[0]).join("")}</div>;
+const Avatar: React.FC<{ name: string; size?: number; hue?: number }> = ({ name, size = 34, hue = 200 }) => <div style={{ width: u(size), height: u(size), borderRadius: u(size / 2), background: `hsl(${hue} 22% 30%)`, display: "flex", color: "#fff", alignItems: "center", justifyContent: "center", fontSize: u(size * 0.38), fontWeight: 600, flex: "none" }}>{name.split(" ").map(w => w[0]).join("")}</div>;
 const Chevron: React.FC = () => <svg width={u(8)} height={u(14)} viewBox="0 0 8 14" fill="none" stroke={C.ter} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M1.500 1.500L7 7l-5.500 5.500" /></svg>;
 const CheckDot: React.FC<{ at: number; size?: number; square?: boolean }> = ({ at, size = 24, square }) => {
   const f = useCurrentFrame(); const s = sp(f, at, 320, 18); const d = ease(f, at + 1, at + 8);
   return <div style={{ width: u(size), height: u(size), borderRadius: square ? u(size * 0.3) : u(size / 2), background: s > 0.02 ? C.acc : C.cell2, transform: `scale(${1 + 0.14 * Math.sin(Math.min(1, s) * Math.PI)})`, display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
-    <svg width={u(size * 0.56)} height={u(size * 0.56)} viewBox="0 0 24 24"><path d="M5 12.500l4.500 4.500L19 7.500" fill="none" stroke={s > 0.02 ? "#fff" : C.ter} strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round" strokeDasharray={22} strokeDashoffset={s > 0.02 ? 22 * (1 - d) : 0} /></svg>
+    <svg width={u(size * 0.56)} height={u(size * 0.56)} viewBox="0 0 24 24"><path d="M5 12.500l4.500 4.500L19 7.500" fill="none" stroke={s > 0.02 ? C.onAcc : C.ter} strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round" strokeDasharray={22} strokeDashoffset={s > 0.02 ? 22 * (1 - d) : 0} /></svg>
   </div>;
 };
 const Typed: React.FC<{ text: string; at: number; per?: number; ghost?: string }> = ({ text, at, per = 1.4, ghost }) => {
@@ -152,7 +159,7 @@ const CalendarScreen: React.FC = () => {
           const day = i - 1, dow = i % 7, row = Math.floor(i / 7); if(day < 1 || day > 31) return <div key={i} style={{ width: cw, height: u(58) }} />;   // Dec 1, 2026 is a Tuesday
           const mon = dow === 1; const s = mon ? sp(f, FILL + (row - 1) * 9, 280, 15) : 0;
           return <div key={i} style={{ width: cw, height: u(58), display: "flex", flexDirection: "column", alignItems: "center", borderTop: `1.500px solid ${C.sep}`, paddingTop: u(5) }}>
-            <div style={{ width: u(31), height: u(31), borderRadius: u(16), background: tint(C.acc, Math.min(1, s * 1.3)), boxShadow: mon ? `0 ${u(3.5) * Math.min(1, s)}px 0 ${tint(C.accDeep, Math.min(1, s))}, 0 ${u(8) * Math.min(1, s)}px ${u(8)}px rgba(0,0,0,${0.5 * Math.min(1, s)})` : "none", transform: `translateY(${-u(3) * Math.min(1, s)}px) scale(${1 + 0.2 * Math.sin(Math.min(1, s) * Math.PI)})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: u(17), fontWeight: mon && s > 0.5 ? 600 : 400, color: mon && s > 0.5 ? "#fff" : dow === 0 ? C.ter : C.text }}>{day}</div>
+            <div style={{ width: u(31), height: u(31), borderRadius: u(16), background: tint(C.acc, Math.min(1, s * 1.3)), boxShadow: mon ? `0 ${u(3.5) * Math.min(1, s)}px 0 ${tint(C.accDeep, Math.min(1, s))}, 0 ${u(8) * Math.min(1, s)}px ${u(8)}px rgba(0,0,0,${0.5 * Math.min(1, s)})` : "none", transform: `translateY(${-u(3) * Math.min(1, s)}px) scale(${1 + 0.2 * Math.sin(Math.min(1, s) * Math.PI)})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: u(17), fontWeight: mon && s > 0.5 ? 600 : 400, color: mon && s > 0.5 ? C.onAcc : dow === 0 ? C.ter : C.text }}>{day}</div>
             {NOTE[dow] ? <div style={{ fontSize: u(9.5), fontWeight: 500, marginTop: u(2), color: mon ? C.acc : C.ter, opacity: mon ? Math.min(1, s * 1.4) : 1 }}>{NOTE[dow]}</div> : null}
           </div>;
         })}
@@ -170,7 +177,7 @@ const CalendarScreen: React.FC = () => {
         <div style={{ display: "flex" }}>{LIFTS.slice(0, 3).map(([, , id], i) => <div key={id} style={{ marginLeft: i ? -u(14) : 0 }}><Thumb id={id} size={42} light /></div>)}</div>
         <div style={{ flex: 1 }}><div style={{ fontSize: u(19), fontWeight: 700, letterSpacing: -0.5 * U }}>Strength</div><div style={{ fontSize: u(14), color: "#6b6b76", whiteSpace: "nowrap" }}>Every Monday, Dec 1 – 28</div></div>
       </div>
-      <div style={{ background: C.acc, color: "#fff", padding: `${u(14)}px ${u(18)}px ${u(16)}px` }}>
+      <div style={{ background: C.acc, color: C.onAcc, padding: `${u(14)}px ${u(18)}px ${u(16)}px` }}>
         <div style={{ fontFamily: WIDE, fontWeight: 900, fontSize: u(50), lineHeight: 1 }}>{Math.round(ease(f, 66, 84) * 4)}<span style={{ fontSize: u(20), marginLeft: u(9) }}>MONDAYS</span></div>
         <div style={{ fontSize: u(15), fontWeight: 600, marginTop: u(5), opacity: 0.92 }}>Planned from one entry</div>
       </div>
@@ -219,7 +226,7 @@ const ClassScreen: React.FC = () => {
       <div style={{ display: "flex", alignItems: "center", gap: u(12), padding: `${u(16)}px ${u(16)}px ${u(6)}px` }}>
         <Thumb id="Barbell_Squat" size={46} light />
         <div style={{ flex: 1 }}><div style={{ fontSize: u(19), fontWeight: 700, letterSpacing: -0.5 * U }}>Chris Walker</div><div style={{ fontSize: u(14), color: "#6b6b76", whiteSpace: "nowrap" }}>Back Squat · bonus set</div></div>
-        <div style={{ background: C.acc, color: "#fff", borderRadius: u(9), padding: `${u(7)}px ${u(11)}px`, fontSize: u(13), fontWeight: 800, letterSpacing: 0.6 * U, whiteSpace: "nowrap", flex: "none" }}>NEW PR</div>
+        <div style={{ background: C.acc, color: C.onAcc, borderRadius: u(9), padding: `${u(7)}px ${u(11)}px`, fontSize: u(13), fontWeight: 800, letterSpacing: 0.6 * U, whiteSpace: "nowrap", flex: "none" }}>NEW PR</div>
       </div>
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", padding: `0 ${u(18)}px ${u(16)}px` }}>
         <div><div style={{ fontFamily: WIDE, fontWeight: 900, fontSize: u(56), lineHeight: 1.02, letterSpacing: -1.2 * U, whiteSpace: "nowrap" }}>{Math.round(165 + ease(f, 126, 148) * 10)}<span style={{ fontFamily: FONT, fontWeight: 700, fontSize: u(19), marginLeft: u(7), letterSpacing: 0, whiteSpace: "nowrap" }}>lb × 3</span></div>
@@ -248,7 +255,7 @@ const MemberScreen: React.FC = () => {
     <Group label="Back Squat · top set">
       <div style={{ padding: `${u(14)}px ${u(16)}px ${u(12)}px` }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: u(10) }}><div style={{ fontFamily: WIDE, fontWeight: 900, fontSize: u(46), lineHeight: 1, letterSpacing: -1 * U }}>{Math.round(95 + ease(f, 22, 60) * 20)}<span style={{ fontSize: u(17), marginLeft: u(5), letterSpacing: 0 }}>lb</span></div><div style={{ ...T.sub, color: C.acc, fontWeight: 600, opacity: ease(f, 60, 68) }}>+20 lb since October</div></div>
-        <div style={{ display: "flex", alignItems: "flex-end", gap: u(7), height: H, marginTop: u(12) }}>{SQ.map((v, i) => <div key={i} style={{ flex: 1, height: (H * (0.3 + 0.7 * (v - 90) / 25)) * ease(f, 24 + i * 3, 42 + i * 3), borderRadius: `${u(5)}px ${u(5)}px ${u(2)}px ${u(2)}px`, background: i === SQ.length - 1 ? "#fff" : C.acc }} />)}</div>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: u(7), height: H, marginTop: u(12) }}>{SQ.map((v, i) => <div key={i} style={{ flex: 1, height: (H * (0.3 + 0.7 * (v - 90) / 25)) * ease(f, 24 + i * 3, 42 + i * 3), borderRadius: `${u(5)}px ${u(5)}px ${u(2)}px ${u(2)}px`, background: i === SQ.length - 1 ? C.text : C.acc }} />)}</div>
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: u(7), ...T.sub, fontSize: u(12.5) }}><span>Oct 5</span><span>Nov 2</span><span>Dec 7</span></div>
       </div>
     </Group>
@@ -308,7 +315,7 @@ const BodyScreen: React.FC = () => {
           <div style={{ position: "absolute", inset: 0, transform: `rotateY(${turn * 180}deg)`, transformStyle: "preserve-3d" }}>
             <div style={{ position: "absolute", inset: 0, backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}>
               <Img src={staticFile("site/body-front-off.png")} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
-              <Img src={staticFile("site/body-front.png")} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: lit }} />
+              <Img src={staticFile("site/body-front.png")} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: lit, filter: C.fig }} />
             </div>
             <div style={{ position: "absolute", inset: 0, transform: "rotateY(180deg)", backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}>
               <Img src={staticFile("site/body-back.png")} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
@@ -328,7 +335,7 @@ const BodyScreen: React.FC = () => {
       <div style={{ display: "flex", alignItems: "center", gap: u(12), padding: `0 ${u(14)}px`, height: u(66) }}>
         <Thumb id="Side_Plank" />
         <div style={{ flex: 1 }}><div style={{ ...T.body, fontWeight: 500 }}>Side Plank</div><div style={T.sub}>Obliques were missed</div></div>
-        <div style={{ background: C.acc, color: "#fff", borderRadius: u(16), padding: `${u(7)}px ${u(18)}px`, fontSize: u(15), fontWeight: 700 }}>Add</div>
+        <div style={{ background: C.acc, color: C.onAcc, borderRadius: u(16), padding: `${u(7)}px ${u(18)}px`, fontSize: u(15), fontWeight: 700 }}>Add</div>
       </div>
     </Group></In>
   </>;

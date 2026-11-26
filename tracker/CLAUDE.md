@@ -1209,6 +1209,14 @@ compositions, both keeping **130 px clear on each side** (her number):
   clip and the BERMO end card. Replaces the old `Ad` cut, which still
   shows the teal screenshots. Needs `public/clips/*` (gitignored), so
   the rendered reel is NOT committed; the photo is in `site/`.
+- **Colourway mocks.** She sent four reference palettes (yellow +
+  cobalt, sky + tomato, red + cream, cobalt + black) and asked what the
+  APP would look like in them — the app's own screens, not the poster
+  background (I got that wrong first: `InstaColorways`). `AppColorways`
+  (Still, 2200x2130) shows the class set table and the member page in
+  all four. `SiteClip`'s palette `C` is mutable and `<Themed theme>`
+  swaps it for a subtree; `T` reads it through getters. No colourway
+  has been chosen; the app is still violet.
 - To show `SiteClip` from a given frame inside another composition use
   `<Sequence from={-n}>`. `<Freeze>` did not hold its nested Sequences.
 

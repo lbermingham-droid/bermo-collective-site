@@ -1,6 +1,6 @@
 import React from "react";
 import { AbsoluteFill, Sequence, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
-import { SiteClip } from "./SiteClip";
+import { SiteClip, Themed, SiteTheme } from "./SiteClip";
 import { Footage, Word, fontFace as adFonts } from "./Ad";
 
 // Instagram pieces in the v65 look (black, white, one violet accent):
@@ -121,4 +121,20 @@ export const InstaReel: React.FC = () => <AbsoluteFill style={{ background: "#00
   <Sequence from={GYM} durationInFrames={APP} layout="none"><AppSection /></Sequence>
   <Sequence from={GYM + APP} durationInFrames={BEACH} layout="none"><Footage name="beach" len={BEACH} dim={0.7}><Line y={150} size={96} step={8} words={[{ t: "Your gym." }, { t: "Your app.", br: true }, { t: "Built for you.", k: true, br: true }]} /></Footage></Sequence>
   <Sequence from={GYM + APP + BEACH} durationInFrames={END} layout="none"><Footage name="beach" len={END} from={BEACH} dim={0.38}><End /></Footage></Sequence>
+</AbsoluteFill>;
+
+// ---- the APP in each colourway (she meant the app's own screens, not the poster) ----
+const APPS: [string, Partial<SiteTheme>][] = [
+  ["A · Sun + cobalt", { bg: "#F6CE45", cell: "#FBDF7C", cell2: "#FFEFAF", sep: "rgba(42,84,180,.22)", text: "#1F4398", sec: "rgba(31,67,152,.72)", ter: "rgba(31,67,152,.4)", acc: "#2A54B4", accDeep: "#1b3a80", onAcc: "#F6CE45", tab: "rgba(246,206,69,.97)", thumb: "linear-gradient(150deg,#3566cf,#1f4296)", art: "linear-gradient(160deg,#fff,#F6CE45)", fig: "hue-rotate(-22deg)" }],
+  ["B · Sky + tomato", { bg: "#C5EEF2", cell: "#FFFFFF", cell2: "#E4F7F9", sep: "rgba(226,51,42,.2)", text: "#C3271E", sec: "rgba(150,38,30,.75)", ter: "rgba(150,38,30,.4)", acc: "#E2332A", accDeep: "#a8211a", onAcc: "#fff", tab: "rgba(197,238,242,.97)", thumb: "linear-gradient(150deg,#f0483f,#c2251d)", art: "linear-gradient(160deg,#fff,#ffe1de)", fig: "hue-rotate(118deg)" }],
+  ["C · Red + cream", { bg: "#D8352B", cell: "#C12A21", cell2: "#A9221A", sep: "rgba(247,239,221,.25)", text: "#F7EFDD", sec: "rgba(247,239,221,.74)", ter: "rgba(247,239,221,.42)", acc: "#141110", accDeep: "#000", onAcc: "#F7EFDD", tab: "rgba(196,43,34,.97)", thumb: "linear-gradient(150deg,#2a2422,#0e0c0b)", art: "linear-gradient(160deg,#fff,#F7EFDD)", fig: "grayscale(1) brightness(1.7)" }],
+  ["D · Cobalt + black", { bg: "#4257F2", cell: "#566AF5", cell2: "#6D7EF8", sep: "rgba(255,255,255,.24)", text: "#fff", sec: "rgba(255,255,255,.78)", ter: "rgba(255,255,255,.45)", acc: "#0b0b0d", accDeep: "#000", onAcc: "#fff", tab: "rgba(58,78,226,.97)", thumb: "linear-gradient(150deg,#26262b,#0b0b0d)", art: "linear-gradient(160deg,#fff,#cfd5fb)", fig: "grayscale(1) brightness(1.9)" }],
+];
+const ROWS = [362, 603];   // the class set table, the member page
+export const AppColorways: React.FC = () => <AbsoluteFill style={{ background: "#101012", fontFamily: "InterVar, InterTight, sans-serif", color: "#fff" }}>
+  <style>{adFonts}</style><style>{wide}</style>
+  {APPS.map(([name, theme], c) => <React.Fragment key={c}>
+    <div style={{ position: "absolute", left: 40 + c * 530, top: 44, width: 490, textAlign: "center", fontSize: 26, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", opacity: 0.8 }}>{name}</div>
+    {ROWS.map((frame, r) => <Phone key={r} w={470} style={{ left: 50 + c * 530, top: 110 + r * 1010 }}><Themed theme={theme}><Clip start={frame} /></Themed></Phone>)}
+  </React.Fragment>)}
 </AbsoluteFill>;

@@ -1177,11 +1177,18 @@ a website a live demo beats a video, so it is a page, not another cut.
   looping phone recording: `media/apps/fitness.mp4` (360x736, 24 fps,
   ~25 s) + poster `fitness-p.jpg`, shown in a 176px phone and a small
   "Fitness app · Live" tile. The old clip was the pre-rebuild brain dump.
-  The replacement is in `tracker-ad/site/` (same names and size, plus
-  `fitness-2x.mp4`), recorded from demo mode at a 320px-wide viewport so
-  the UI reads at that size, by `tracker-ad/scripts/site-clip.js`: class
-  check-in → calendar → members → a member → her Home, lifts, body.
+  The replacement is in `tracker-ad/site/`: `fitness.mp4` (720x1472,
+  same aspect as the slot), `fitness-p.jpg`, `fitness-full.mp4`
+  (1080x2208), made by `tracker-ad/scripts/site-clip.js`: class check-in
+  → calendar → members → a member → her Home, lifts, body.
   Someone with the new site's repo has to drop the files in.
+  **The first version was broken and she caught it:** Playwright's
+  `recordVideo` with a `size` larger than the viewport does NOT scale up;
+  it pads with grey, so the app sat in the top-left quarter, blurry. The
+  CDP screencast ignores the device scale factor too. What works: true 3x
+  `page.screenshot` frames with script-stepped scrolling, joined with an
+  ffmpeg concat list. **Always look at a frame pulled from the FINAL
+  file**, not from an intermediate sheet.
 - Screens are re-shot with scratchpad `demoshot.js` (viewport 390x800,
   DPR 2, then ffmpeg to 585px webp).
 

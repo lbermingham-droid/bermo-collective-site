@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Custom App for Your Gym | BERMO.COLLECTIVE</title>
+<meta name="description" content="A working example of a custom gym app: the coach plans the month, checks the class in, and every member's lifts and PRs keep themselves. Try the live demo.">
+<link rel="canonical" href="https://bermoco.com/gym-app/">
+<meta property="og:title" content="A Custom App for Your Gym | BERMO.COLLECTIVE">
+<meta property="og:description" content="Your gym still runs on paper. Try a working example of the app that replaces it.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://bermoco.com/gym-app/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@800;900&family=Inter:wght@400;500;600&family=Montserrat:wght@900&display=swap" rel="stylesheet">
+<style>
+:root{--cyan:#00f5d4;--pink:#ff2d7a;--black:#0a0a0a;--line:rgba(255,255,255,.08);--dim:rgba(255,255,255,.62);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:#fff;font-family:'Inter',sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+a{color:inherit;}
+.wrap{max-width:1160px;margin:0 auto;padding:0 40px;}
+
+nav{position:sticky;top:0;z-index:50;height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 40px;background:rgba(10,10,10,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line);}
+.logo{display:flex;flex-direction:column;text-decoration:none;line-height:1;}
+.logo span{font-family:'Montserrat',sans-serif;font-weight:900;font-size:13px;line-height:.9;letter-spacing:-.01em;text-transform:uppercase;}
+.logo .c{color:var(--cyan);}
+.logo i{display:block;width:28px;height:3px;background:var(--cyan);margin-top:4px;}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:'Inter',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:15px 28px;text-decoration:none;border-radius:100px;white-space:nowrap;cursor:pointer;transition:background .2s,border-color .2s,color .2s;}
+.btn-primary{background:var(--cyan);color:var(--black);border:1.5px solid var(--cyan);}
+.btn-primary:hover{background:#fff;border-color:#fff;}
+.btn-ghost{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.3);}
+.btn-ghost:hover{border-color:var(--cyan);color:var(--cyan);}
+nav .btn{padding:10px 20px;font-size:9px;}
+
+.kicker{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--cyan);font-weight:600;display:flex;align-items:center;gap:10px;margin-bottom:22px;}
+.kicker::before{content:"";width:28px;height:2px;background:var(--cyan);}
+h1,h2{font-family:'Inter Tight',sans-serif;font-weight:900;text-transform:uppercase;letter-spacing:-.04em;line-height:.9;}
+h1{font-size:clamp(44px,6.4vw,92px);}
+h2{font-size:clamp(34px,4.6vw,64px);}
+h1 em,h2 em{font-style:normal;color:var(--cyan);}
+h2 em.pk{color:var(--pink);}
+.lead{font-size:clamp(15px,1.35vw,18px);line-height:1.6;color:var(--dim);max-width:520px;}
+.lead strong{color:#fff;font-weight:600;}
+
+/* HERO */
+.hero{padding:72px 0 96px;position:relative;}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:56px;align-items:center;}
+.hero h1{margin-bottom:28px;}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:34px;}
+.hero-note{margin-top:22px;font-size:12px;color:rgba(255,255,255,.42);line-height:1.5;}
+
+/* PHONE */
+.demo{display:flex;flex-direction:column;align-items:center;gap:18px;}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:100px;padding:4px;background:rgba(255,255,255,.03);}
+.seg button{font:600 10px 'Inter',sans-serif;letter-spacing:2px;text-transform:uppercase;color:var(--dim);background:none;border:0;padding:10px 20px;border-radius:100px;cursor:pointer;}
+.seg button.on{background:#fff;color:var(--black);}
+.phone{--s:.82;position:relative;width:calc(390px * var(--s) + 20px);height:calc(800px * var(--s) + 20px);border-radius:52px;padding:10px;background:linear-gradient(145deg,#3a3c43,#101114 38%,#26282e);box-shadow:0 0 0 1px rgba(255,255,255,.08),0 50px 90px -30px rgba(0,0,0,.9),0 0 120px -30px rgba(0,245,212,.22);}
+.screen{position:relative;width:100%;height:100%;border-radius:43px;overflow:hidden;background:#05060a;}
+.screen img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;opacity:0;transition:opacity .7s;}
+.screen img.on{opacity:1;}
+.screen iframe{position:absolute;left:0;top:0;width:390px;height:800px;border:0;transform:scale(var(--s));transform-origin:0 0;background:#05060a;}
+.try{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:86px;background:linear-gradient(180deg,transparent 55%,rgba(5,6,10,.82));border:0;cursor:pointer;width:100%;}
+.try span{background:var(--cyan);color:var(--black);font:600 10px 'Inter',sans-serif;letter-spacing:2px;text-transform:uppercase;padding:15px 26px;border-radius:100px;box-shadow:0 12px 40px -8px rgba(0,245,212,.6);}
+.demo-cap{font-size:12px;color:rgba(255,255,255,.42);text-align:center;max-width:300px;line-height:1.5;}
+
+/* BEFORE / AFTER */
+.swap{border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+.swap-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));}
+.swap-cell{padding:38px 32px;border-left:1px solid var(--line);}
+.swap-cell:first-child{border-left:0;padding-left:0;}
+.swap-old{font-size:13px;color:rgba(255,255,255,.4);text-decoration:line-through;text-decoration-color:var(--pink);margin-bottom:10px;}
+.swap-new{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(18px,1.9vw,24px);letter-spacing:-.02em;text-transform:uppercase;line-height:1.05;}
+
+/* FEATURE ROWS */
+.sec{padding:110px 0 0;}
+.sec-head{max-width:760px;margin-bottom:64px;}
+.sec-head h2{margin-bottom:22px;}
+.rows{display:grid;gap:28px;}
+.row{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:48px;align-items:center;background:linear-gradient(160deg,rgba(255,255,255,.05),rgba(255,255,255,.015));border:1px solid var(--line);border-radius:24px;padding:48px 56px 0;overflow:hidden;}
+.row:nth-child(even){grid-template-columns:300px minmax(0,1fr);}
+.row:nth-child(even) .shot{order:-1;}
+.row-num{font:600 10px 'Inter',sans-serif;letter-spacing:3px;color:var(--cyan);margin-bottom:16px;}
+.pk .row-num{color:var(--pink);}
+.row h3{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:clamp(24px,2.8vw,38px);letter-spacing:-.03em;text-transform:uppercase;line-height:.98;margin-bottom:16px;}
+.row p{font-size:15px;line-height:1.65;color:var(--dim);max-width:460px;padding-bottom:48px;}
+.shot{align-self:end;height:400px;border-radius:30px 30px 0 0;padding:8px 8px 0;background:linear-gradient(145deg,#3a3c43,#101114 40%,#26282e);box-shadow:0 -20px 70px -30px rgba(0,245,212,.25);}
+.pk .shot{box-shadow:0 -20px 70px -30px rgba(255,45,122,.3);}
+.shot img{display:block;width:100%;height:100%;object-fit:cover;object-position:top;border-radius:23px 23px 0 0;}
+
+/* YOURS */
+.yours-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;}
+.card{border:1px solid var(--line);border-radius:20px;padding:30px 28px;background:rgba(255,255,255,.03);}
+.card h4{font-family:'Inter Tight',sans-serif;font-weight:900;font-size:18px;text-transform:uppercase;letter-spacing:-.02em;margin-bottom:10px;}
+.card p{font-size:14px;line-height:1.6;color:var(--dim);}
+.fine{margin-top:28px;font-size:13px;line-height:1.6;color:rgba(255,255,255,.45);max-width:720px;}
+
+/* CTA */
+.cta{margin-top:110px;background:var(--cyan);color:var(--black);padding:96px 0;text-align:center;}
+.cta h2{font-size:clamp(44px,7vw,100px);margin-bottom:22px;}
+.cta p{font-size:16px;max-width:480px;margin:0 auto 32px;line-height:1.6;color:rgba(0,0,0,.7);}
+.cta .btn{background:var(--black);color:#fff;border:1.5px solid var(--black);}
+.cta .btn:hover{background:#fff;color:var(--black);border-color:#fff;}
+footer{padding:30px 40px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:11px;letter-spacing:1px;color:rgba(255,255,255,.4);}
+footer a{text-decoration:none;}
+footer a:hover{color:var(--cyan);}
+
+@media (max-width:900px){
+  .wrap{padding:0 20px;} nav{padding:0 20px;}
+  .hero{padding:44px 0 64px;}
+  .hero-grid{grid-template-columns:minmax(0,1fr);gap:48px;}
+  .phone{--s:.74;}
+  .swap-grid{grid-template-columns:minmax(0,1fr);}
+  .swap-cell{padding:24px 0;border-left:0;border-top:1px solid var(--line);}
+  .swap-cell:first-child{border-top:0;}
+  .sec{padding-top:72px;} .sec-head{margin-bottom:40px;}
+  .row,.row:nth-child(even){grid-template-columns:minmax(0,1fr);gap:0;padding:32px 24px 0;}
+  .row:nth-child(even) .shot{order:0;}
+  .row p{padding-bottom:32px;}
+  .shot{width:min(100%,280px);height:340px;margin:0 auto;}
+  .yours-grid{grid-template-columns:minmax(0,1fr);}
+  .cta{margin-top:72px;padding:72px 0;}
+  footer{padding:24px 20px;}
+}
+@media (prefers-reduced-motion:reduce){ .screen img{transition:none;} html{scroll-behavior:auto;} }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo" aria-label="BERMO.COLLECTIVE home"><span><span class="c">BERMO.</span></span><span>COLLECTIVE</span><i></i></a>
+  <a href="/contact" class="btn btn-primary">Let's Chat</a>
+</nav>
+
+<main>
+  <header class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="kicker">Mini app example · Built for gyms</div>
+        <h1>Your gym still runs on <em>paper.</em></h1>
+        <p class="lead">This is a working app, not a mockup. <strong>The coach plans the month, checks the class in each morning, and types the weights once.</strong> Every member's lifts, PRs and attendance keep themselves from there. Tap through it, then picture it with your gym's name on it.</p>
+        <div class="hero-btns">
+          <a href="/tracker/?demo=gym" class="btn btn-primary" id="heroTry">Try the live demo</a>
+          <a href="/contact" class="btn btn-ghost">Build one for my gym</a>
+        </div>
+        <p class="hero-note">The demo gym and its members are made up. Tap anything; it resets when you reload.</p>
+      </div>
+
+      <div class="demo" id="demo">
+        <div class="seg" role="tablist" aria-label="Which side of the app">
+          <button class="on" data-view="coach" role="tab" aria-selected="true">Coach</button>
+          <button data-view="member" role="tab" aria-selected="false">Member</button>
+        </div>
+        <div class="phone">
+          <div class="screen" id="screen">
+            <img class="on" data-for="coach" src="coach-class.webp" alt="Class sheet: members ticked in with the weights they lifted" width="585" height="1200">
+            <img data-for="coach" src="coach-calendar.webp" alt="Month calendar with the planned workout on each day" width="585" height="1200" loading="lazy">
+            <img data-for="coach" src="coach-members.webp" alt="Member list with visits, last visit and volume" width="585" height="1200" loading="lazy">
+            <img data-for="member" src="home.webp" alt="A member's home screen with this week's classes" width="585" height="1200" loading="lazy">
+            <img data-for="member" src="lifts.webp" alt="A member's lifts with their best for each" width="585" height="1200" loading="lazy">
+            <img data-for="member" src="body.webp" alt="Body figure showing the muscles today's class worked" width="585" height="1200" loading="lazy">
+            <button class="try" id="try" aria-label="Start the live demo"><span>Tap to try it</span></button>
+          </div>
+        </div>
+        <p class="demo-cap" id="demoCap">The real app, running in your browser.</p>
+      </div>
+    </div>
+  </header>
+
+  <section class="swap" aria-label="What it replaces">
+    <div class="wrap swap-grid">
+      <div class="swap-cell"><div class="swap-old">The printed sign-in sheet</div><div class="swap-new">One tap per member, every morning</div></div>
+      <div class="swap-cell"><div class="swap-old">The spreadsheet nobody updates</div><div class="swap-new">Weights typed once, history forever</div></div>
+      <div class="swap-cell"><div class="swap-old">"What did I lift last time?"</div><div class="swap-new">Last time is already in the box</div></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="kicker">For the coach</div>
+        <h2>Run the floor from <em>one screen.</em></h2>
+        <p class="lead">Built around how a class gym actually works: you plan by the month, you never know who will walk in, and you have about ten seconds per person.</p>
+      </div>
+      <div class="rows">
+        <article class="row">
+          <div><div class="row-num">01 · Plan the month</div><h3>Every Monday is Lower A. Done.</h3><p>Set the workout for each weekday once and fill the whole month. Change a single day when the plan changes. The calendar shows what ran and how many came.</p></div>
+          <div class="shot"><img src="coach-calendar.webp" alt="Month calendar with a weekday pattern and the planned workouts" loading="lazy" width="585" height="1200"></div>
+        </article>
+        <article class="row">
+          <div><div class="row-num">02 · Check the class in</div><h3>Tick who came. Type what they lifted.</h3><p>The morning's class is one sheet. Tick a member and today's lifts appear on their row, with what they lifted last time already showing. No clipboard, no retyping later.</p></div>
+          <div class="shot"><img src="coach-class.webp" alt="Class sheet with ticked members and weight columns" loading="lazy" width="585" height="1200"></div>
+        </article>
+        <article class="row">
+          <div><div class="row-num">03 · Know your members</div><h3>Who is showing up. Who is slipping.</h3><p>Visits, last visit, volume and PRs for every member, by day, week, month, year or any dates you pick. The answer to "how is she doing?" takes one tap, not a binder.</p></div>
+          <div class="shot"><img src="coach-members.webp" alt="Member table with visits, last visit and volume" loading="lazy" width="585" height="1200"></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="kicker" style="color:var(--pink)">For your members</div>
+        <h2>The reason they <em class="pk">keep coming back.</em></h2>
+        <p class="lead">Members stay where they can see themselves getting stronger. This puts the proof in their pocket, under your gym's name.</p>
+      </div>
+      <div class="rows">
+        <article class="row pk">
+          <div><div class="row-num">01 · Every lift, every PR</div><h3>Their numbers, by lift, by date.</h3><p>Each lift shows the heaviest set, the best session and every day they did it. A new PR is marked the day it happens.</p></div>
+          <div class="shot"><img src="lifts.webp" alt="A member's lift list with their best for each lift" loading="lazy" width="585" height="1200"></div>
+        </article>
+        <article class="row pk">
+          <div><div class="row-num">02 · What today worked</div><h3>The muscles light up.</h3><p>After class, the figure shows exactly which muscles that workout hit and which it missed, with one lift to add for the gap.</p></div>
+          <div class="shot"><img src="body.webp" alt="Body figure with the worked muscles highlighted" loading="lazy" width="585" height="1200"></div>
+        </article>
+        <article class="row pk">
+          <div><div class="row-num">03 · Their week at a glance</div><h3>This week's classes, ticked off.</h3><p>Home shows the week, what is done and what is next, plus food and water if they want to track it. Nothing to learn.</p></div>
+          <div class="shot"><img src="home.webp" alt="A member's home screen with rings and this week's classes" loading="lazy" width="585" height="1200"></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="kicker">Make it yours</div>
+        <h2>This is the example. <em>Yours is built around you.</em></h2>
+      </div>
+      <div class="yours-grid">
+        <div class="card"><h4>Your name on it</h4><p>Your logo, your colours, your gym's voice. Members open your app, not someone else's platform.</p></div>
+        <div class="card"><h4>Your programming</h4><p>Your workouts, your class schedule, your way of running the floor. We start from how you work today, paper and all.</p></div>
+        <div class="card"><h4>Only what you need</h4><p>A mini app does a few jobs well. We build the screens your coaches will actually use and leave the rest out.</p></div>
+      </div>
+      <p class="fine">What you see here is a demonstration with sample data. What your build includes, such as member sign-in and how data is stored, is scoped with you before anything is built.</p>
+    </div>
+  </section>
+
+  <section class="cta">
+    <div class="wrap">
+      <h2>Let's build yours.</h2>
+      <p>Tell us how your gym runs today. We will show you what your app would look like.</p>
+      <a href="/contact" class="btn">Start the conversation</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span>BERMO.COLLECTIVE · Human-Led. AI-Leveraged.</span>
+  <span><a href="/">Home</a> &nbsp;·&nbsp; <a href="/services">The Bermo Shop</a> &nbsp;·&nbsp; <a href="/contact">Contact</a></span>
+</footer>
+
+<script>
+(function(){
+  var screen = document.getElementById("screen"), tryBtn = document.getElementById("try"), cap = document.getElementById("demoCap");
+  var tabs = [].slice.call(document.querySelectorAll(".seg button"));
+  var view = "coach", live = false, i = 0, timer = null;
+  var narrow = function(){ return window.matchMedia("(max-width: 900px)").matches; };
+  var url = function(){ return "/tracker/?demo=gym" + (view === "member" ? "&view=member" : ""); };
+  function imgs(){ return [].slice.call(screen.querySelectorAll('img[data-for="' + view + '"]')); }
+  function show(n){ var list = imgs(); i = n % list.length; [].forEach.call(screen.querySelectorAll("img"), function(el){ el.classList.remove("on"); }); list[i].classList.add("on"); }
+  function cycle(){ clearInterval(timer); if(live || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return; timer = setInterval(function(){ show(i + 1); }, 2600); }
+  function start(){
+    // on a phone the demo opens full screen; on a wider screen it runs inside the frame
+    if(narrow()){ location.href = url(); return; }
+    live = true; clearInterval(timer);
+    var f = screen.querySelector("iframe") || document.createElement("iframe");
+    f.title = "Live demo of the gym app"; f.src = url();
+    if(!f.parentNode) screen.appendChild(f);
+    tryBtn.style.display = "none";
+    cap.textContent = "Live. Tap around: tick a member in, open the calendar, switch to Member.";
+  }
+  tabs.forEach(function(b){ b.addEventListener("click", function(){
+    view = b.getAttribute("data-view");
+    tabs.forEach(function(t){ var on = t === b; t.classList.toggle("on", on); t.setAttribute("aria-selected", on); });
+    if(live) screen.querySelector("iframe").src = url(); else { show(0); cycle(); }
+  }); });
+  tryBtn.addEventListener("click", start);
+  document.getElementById("heroTry").addEventListener("click", function(e){ if(narrow()) return; e.preventDefault(); document.getElementById("demo").scrollIntoView({ behavior: "smooth", block: "center" }); start(); });
+  cycle();
+})();
+</script>
+</body>
+</html>

@@ -51,7 +51,11 @@ function on(sel, evt, fn){
 
 
 // ---------- STORAGE ----------
-const KEY = "bermo.tracker.v1";
+// DEMO MODE (v64): /tracker/?demo=gym is the public showcase on the
+// marketing site. It uses its own storage key, starts from a made-up gym
+// on every load, and never reads or writes the real tracker's data.
+const DEMO = /[?&]demo=gym\b/.test(location.search);
+const KEY = DEMO ? "bermo.tracker.demo" : "bermo.tracker.v1";
 const SCHEMA = 3;
 // Every saved shape change gets a migration here. Without this, an old
 // phone opening a new build got silently wrong numbers, not an error.
@@ -78,6 +82,7 @@ function migrate(st){
   return st;
 }
 function load(){
+  if(DEMO){ const st = migrate(defaultState()); st.profile = Object.assign(st.profile, { name:"Maya", sex:"female", onboarded:true }); st.ui = Object.assign(st.ui || {}, { mmSex:"female", hmPeriod:"month" }); return st; }
   try{ const raw = localStorage.getItem(KEY); if(raw) return migrate(JSON.parse(raw)); }
   catch(e){ _report("load", e); }
   return migrate(defaultState());
@@ -4519,7 +4524,7 @@ function fmtTime12(hm){
 // =================================================================
 // PWA — Service worker registration + install-to-home-screen helper
 // =================================================================
-if("serviceWorker" in navigator){
+if("serviceWorker" in navigator && !DEMO){
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/tracker/sw.js").catch(() => {});
   });
@@ -7757,7 +7762,7 @@ HV_BIND.rest = (o, dateKey, params) => {
     state.restDefault = Math.max(15, (state.restDefault || 90) + d); save(); tick();
   }));
   o.querySelector("#hvBell").onclick = () => { state.restSound = state.restSound === false ? true : false; save(); hvRender(); };
-  try{ if("Notification" in window && Notification.permission === "default") Notification.requestPermission(); }catch(e){ _report("caught", e); }
+  try{ if(!DEMO && "Notification" in window && Notification.permission === "default") Notification.requestPermission(); }catch(e){ _report("caught", e); }
 };
 
 // ---- 5. FINISH -------------------------------------------------------
@@ -15237,6 +15242,33 @@ function renderNutrition(){
     else if(window._nutSub === "macros") renderMacroSub();
   }catch(e){ console.warn("nut sub", e); }
 }
+
+// ---------- DEMO SEED ----------
+// The demo gym, plus one member's own app filled from her class history,
+// so both sides of the product have something real-looking to tap.
+function demoSeed(){
+  const c = coachSt(); c.enabled = true; coachLoadDemo();
+  const maya = c.members.find(m => m.name === "Maya Chen") || c.members[0];
+  const t = todayKey(), day = dayObj(t);
+  const food = [["breakfast","Greek yogurt, berries, granola",320,24,38,8],["breakfast","Coffee with milk",60,3,5,3],["lunch","Chicken burrito bowl",560,44,58,16],["snacks","Protein shake",160,30,4,3]];
+  food.forEach(([slot, name, cal, p, cb, f]) => day.meals[slot].push({ id: uid(), name, cal, p, c: cb, f, qty: 1 }));
+  day.water = 48;
+  // this morning's class: most of the room is in, weights typed
+  const wid = c.plan[t], w = c.workouts.find(x => x.id === wid);
+  if(w){ c.members.slice(0, 5).forEach((m, i) => { if(i === 2) return; coachAtt(t)[m.id] = true;
+    const prev = Object.keys(c.logs[m.id] || {}).sort().reverse().map(k => c.logs[m.id][k]);
+    coachLog(m.id)[t] = w.exercises.map(e => { let last = 0; for(const rows of prev){ const hit = rows.find(r => r.name === e.name); if(hit){ last = hit.weight; break; } } return { name: e.name, sets: e.sets, reps: e.reps, weight: last }; }); }); }
+  else c.ui.screen = "calendar";
+  // Maya's own app = her class history, and her week = the gym's plan on her days
+  const log = (maya && c.logs[maya.id]) || {};
+  Object.keys(log).sort().forEach(k => log[k].filter(r => r.weight > 0 || /pull-up/i.test(r.name)).forEach(r => logSession(k, { name: r.name, type:"strength", weight: r.weight, reps: r.reps, sets: r.sets }, { quiet:true })));
+  const ws = weekStart(new Date());
+  for(let i = 0; i < 7; i++){ const d = new Date(ws.getTime()); d.setDate(d.getDate() + i); const k = todayKey(d); const pw = c.workouts.find(x => x.id === c.plan[k]);
+    if(pw && (log[k] || (k > t && [1, 3, 5].includes(d.getDay())))) setPlanLines(k, [{ text: pw.name + " class", done: !!log[k] }].concat(pw.exercises.slice(0, 3).map(e => ({ text: e.name, done: !!log[k] })))); }
+  save();
+  go(/[?&]view=member\b/.test(location.search) ? "dashboard" : "coach");
+}
+if(DEMO) onReady(demoSeed);
 
 // ---------- SINGLE INIT ----------
 document.addEventListener("DOMContentLoaded", () => {

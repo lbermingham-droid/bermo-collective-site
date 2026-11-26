@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v63**.
+- Current build: **v64**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -1152,6 +1152,28 @@ are gitignored; `/tracker-ad/*` is 404'd on the public site in
   are logged; ranges use the lower bound; year-only historical bests (450
   lb leg press, 2021) are NOT entered because the app needs a date.
 
+**THE WEBSITE SHOWCASE + DEMO MODE (v64).** She asked for a version
+"purely for my website… a mini app example. Buyer: gyms." Answer given: on
+a website a live demo beats a video, so it is a page, not another cut.
+- `/gym-app/` (`gym-app/index.html` + six webp screens) in the MARKETING
+  site's style (Inter Tight caps, cyan/pink, pill buttons — the site's
+  rules, not the app's). Coach side first, because the gym owner is the
+  buyer; members second. Not linked from the nav or sitemap yet — her call.
+- The phone in the hero cycles real screens until "Tap to try it", then
+  loads the real app in an iframe (390x800, CSS-scaled). Coach / Member
+  toggle. Under 900px wide the button opens the demo full screen instead
+  (an iframe phone inside a phone traps scrolling).
+- **Demo mode:** `/tracker/?demo=gym` (`DEMO` at the top of app.js). Own
+  storage key `bermo.tracker.demo`, rebuilt from scratch on every load
+  (`demoSeed`): the demo gym, this morning's class part-ticked, and one
+  member ("Maya") whose own app is filled from her class history. No
+  service worker, no notification prompt, no ChatGPT sync. It never reads
+  or writes `bermo.tracker.v1`. `&view=member` starts on Home.
+- The page promises only what exists. Member sign-in and storage are
+  described as "scoped with you", because there is no backend yet (§8).
+- Screens are re-shot with scratchpad `demoshot.js` (viewport 390x800,
+  DPR 2, then ffmpeg to 585px webp).
+
 **LEGACY DASHBOARD REMOVED + FINER MUSCLES + SCREEN PASS (v60).**
 - `#dashLegacy` (243 lines of hidden DOM, 63 ids) is GONE. `renderDashboard()`
   is now just `renderHome()`. Swept with it: 33 functions (the hubs, deck,
@@ -1462,4 +1484,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v60` legacy dashboard deleted with a full orphan sweep; body figure coloured per muscle; row cleanup on Nutrition and Body ·
 `v61` body figure gets a "This workout" mode: only the muscles that session used are lit, with worked / not worked lists ·
 `v62` swipe the body figure sideways and she turns in 3D (front to back); the round button does the same ·
-`v63` "Add one more": the workout view names the missed muscle group and a lift for it.
+`v63` "Add one more": the workout view names the missed muscle group and a lift for it. ·
+`v64` demo mode (`?demo=gym`) and the `/gym-app/` website showcase page for gym owners.

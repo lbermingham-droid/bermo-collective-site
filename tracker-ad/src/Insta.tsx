@@ -159,3 +159,24 @@ export const AppDark: React.FC = () => <AbsoluteFill style={{ background: "#1010
     <div style={{ position: "absolute", left: 95 + (i % 3) * 560, width: 470, top: 170 + Math.floor(i / 3) * 1040 + 968, textAlign: "center", fontSize: 22, fontWeight: 600, color: "rgba(255,255,255,.6)" }}>{name}</div>
   </React.Fragment>)}
 </AbsoluteFill>;
+
+// ---- all four colourways in that same treatment: black ground, the colourway's main
+// colour as the BLOCKS, its other colours as the pops, no grey ----
+const RED = "#E8382E";
+const BLOCKS: [string, Partial<SiteTheme>][] = [
+  ["A · Sun blocks, cobalt pops", { bg: "#000", text: "#fff", sec: "rgba(246,206,69,.95)", ter: "rgba(246,206,69,.55)", sep: "rgba(246,206,69,.3)", cell: "#F6CE45", cell2: "#FFE994", cellText: "#17307A", cellSec: "rgba(23,48,122,.8)", cellTer: "rgba(23,48,122,.48)", cellSep: "rgba(23,48,122,.24)",
+    acc: "#2A54B4", accDeep: "#1b3a80", onAcc: "#F6CE45", link: "#F6CE45", tab: "rgba(0,0,0,.96)", thumb: "linear-gradient(150deg,#3b6be0,#1f4296)", art: "linear-gradient(160deg,#fff,#FFE994)", up: "#2A54B4", hi: RED, ring2: RED, pr: RED, prDeep: "#C22A21", muscle: RED, soft: "#FFE994", conf: "#2A54B4", avatar: "#2A54B4", avatarInk: "#F6CE45", cardSub: "#2A54B4", cardEdge: "#F6CE45", figSet: "-b" }],
+  ["B · Sky blocks, tomato pops", { bg: "#000", text: "#fff", sec: "rgba(197,238,242,.95)", ter: "rgba(197,238,242,.55)", sep: "rgba(197,238,242,.3)", cell: "#C5EEF2", cell2: "#FFFFFF", cellText: "#8E1B14", cellSec: "rgba(142,27,20,.82)", cellTer: "rgba(142,27,20,.48)", cellSep: "rgba(142,27,20,.2)",
+    acc: "#E2332A", accDeep: "#a8211a", onAcc: "#fff", link: "#C5EEF2", tab: "rgba(0,0,0,.96)", thumb: "linear-gradient(150deg,#f4554c,#c2251d)", art: "linear-gradient(160deg,#fff,#ffe1de)", up: "#E2332A", hi: "#E2332A", ring2: "#8E1B14", pr: "#E2332A", prDeep: "#a8211a", muscle: "#E2332A", soft: "#C5EEF2", conf: "#C5EEF2", avatar: "#E2332A", avatarInk: "#fff", cardSub: "#E2332A", cardEdge: "#C5EEF2", figSet: "-b" }],
+  ["C · Red blocks, cream pops", { bg: "#000", text: "#F7EFDD", sec: "rgba(247,239,221,.9)", ter: "rgba(247,239,221,.5)", sep: "rgba(247,239,221,.26)", cell: "#D8352B", cell2: "#B5271E", cellText: "#F7EFDD", cellSec: "rgba(247,239,221,.85)", cellTer: "rgba(247,239,221,.52)", cellSep: "rgba(247,239,221,.26)",
+    acc: "#F7EFDD", accDeep: "#d9cfb8", onAcc: "#C22A21", link: "#F7EFDD", tab: "rgba(0,0,0,.96)", thumb: "linear-gradient(150deg,#fffaf0,#e9dcc3)", art: "linear-gradient(160deg,#7a1610,#b5271e)", up: "#F7EFDD", hi: "#F7EFDD", ring2: "#141110", pr: "#141110", prDeep: "#141110", muscle: "#F7EFDD", soft: "#E9DCC3", conf: "#F7EFDD", avatar: "#F7EFDD", avatarInk: "#C22A21", cardSub: "#C22A21", cardEdge: "#E9DCC3", figSet: "-b" }],
+  ["D · Cobalt blocks, yellow + red pops", { ...DARK, cellText: "#fff" }],
+];
+const BROWS = [362, 603, 730];   // class set table, member page, today
+export const AppBlocks: React.FC = () => <AbsoluteFill style={{ background: "#101012", fontFamily: "InterVar, InterTight, sans-serif", color: "#fff" }}>
+  <style>{adFonts}</style><style>{wide}</style>
+  {BLOCKS.map(([name, theme], c) => <React.Fragment key={c}>
+    <div style={{ position: "absolute", left: 30 + c * 540, top: 40, width: 510, textAlign: "center", fontSize: 23, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", opacity: 0.85 }}>{name}</div>
+    {BROWS.map((frame, r) => <Phone key={r} w={470} style={{ left: 50 + c * 540, top: 104 + r * 1000 }}><Themed theme={theme}><Clip start={frame} /></Themed></Phone>)}
+  </React.Fragment>)}
+</AbsoluteFill>;

@@ -197,3 +197,19 @@ export const AppAgreed: React.FC = () => <AbsoluteFill style={{ background: "#10
     {ROWS.map((frame, r) => <Phone key={r} w={470} style={{ left: 50 + c * 530, top: 110 + r * 1010 }}><Themed theme={theme}><Clip start={frame} /></Themed></Phone>)}
   </React.Fragment>)}
 </AbsoluteFill>;
+
+// ---- colourway A inverted as she described: black ground, BLUE blocks, and YELLOW doing
+// everything cobalt did in the original (ticks, bars, tiles, and in the second column the text too) ----
+const A_INV: Partial<SiteTheme> = { ...DARK, cellText: "#fff", acc: YL, accDeep: "#E3B92F", onAcc: "#1B2AA8", link: YL, up: YL, hi: YL, ring2: "#fff", avatar: YL, avatarInk: "#1B2AA8", sec: "rgba(246,206,69,.95)", ter: "rgba(246,206,69,.55)", cardSub: BL, conf: YL };
+const A_SET: [string, Partial<SiteTheme>][] = [
+  ["Yellow accents, white text", A_INV],
+  ["Yellow text too", { ...A_INV, text: YL, cellText: YL, cellSec: "rgba(246,206,69,.85)", cellTer: "rgba(246,206,69,.5)", cellSep: "rgba(246,206,69,.28)" }],
+];
+const A_ROWS = [362, 603, 730];
+export const AppBlueYellow: React.FC = () => <AbsoluteFill style={{ background: "#101012", fontFamily: "InterVar, InterTight, sans-serif", color: "#fff" }}>
+  <style>{adFonts}</style><style>{wide}</style>
+  {A_SET.map(([name, theme], r) => <React.Fragment key={r}>
+    <div style={{ position: "absolute", left: 50, top: 40 + r * 1050, fontSize: 26, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", opacity: 0.8 }}>{name}</div>
+    {A_ROWS.map((frame, c) => <Phone key={c} w={470} style={{ left: 50 + c * 530, top: 96 + r * 1050 }}><Themed theme={theme}><Clip start={frame} /></Themed></Phone>)}
+  </React.Fragment>)}
+</AbsoluteFill>;

@@ -78,21 +78,23 @@ const STATUS_H = Math.round(54 * PT), NAV_H = Math.round(SW * 201 / 1170), HOME_
 const VIEW_H = SH - STATUS_H - NAV_H - HOME_H;
 const NAVS: Record<string, string> = { home: "dashboard", lifts: "lifts", "lift-deadlift": "lifts", nutrition: "nutrition", "coach-class": "more", "coach-class-a": "more", "coach-calendar": "more" };
 type Press = { x: number; y: number; w: number; h: number; at: number; r?: number };   // app CSS px, page coordinates
-const Macro: React.FC<{ shot: string; shotH: number; from: number; to: number; len: number; scrollEnd?: number; press?: Press; swap?: { shot: string; at: number } }> = ({ shot, shotH, from, to, len, scrollEnd, press, swap }) => {
+const Macro: React.FC<{ shot: string; shotH: number; from: number; to: number; len: number; scrollEnd?: number; press?: Press; swap?: { shot: string; at: number }; bg?: ClipName }> = ({ shot, shotH, from, to, len, scrollEnd, press, swap, bg = "gym" }) => {
   const f = useCurrentFrame(); const inn = useSpring(0, 120);
   const k = SW / SHOT_W; const max = Math.max(0, shotH * k - VIEW_H); const sc = SW / 900;   // scroll values were authored at 900px
   const s1 = scrollEnd || len - 6;
   const scroll = interpolate(f, [6, s1], [Math.min(from * sc, max), Math.min(to * sc, max)], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.bezier(0.22, 0.9, 0.24, 1) });
   const img = swap && f >= swap.at ? swap.shot : shot;
   const pressO = press ? interpolate(f, [press.at, press.at + 2, press.at + 6, press.at + 9], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) : 0;
-  const drift = interpolate(f, [0, len], [-1.2, 1.2]);
+  const drift = interpolate(f, [0, len], [-0.8, 0.8]);
   const depth = Array.from({ length: 9 }, (_, i) => i);   // stacked slices give the body real thickness
   const btn = (side: "left" | "right", top: number, h: number) => <div style={{ position: "absolute", [side]: -5, top, width: 7, height: h, borderRadius: 4, background: "linear-gradient(90deg,#9a9da5,#4a4c53 45%,#2a2c31)", boxShadow: "inset 0 1px 0 rgba(255,255,255,.35)" }} />;
-  return <AbsoluteFill style={{ background: "#050608", perspective: 2600, perspectiveOrigin: "50% 45%" }}>
-    <AbsoluteFill style={{ background: "radial-gradient(ellipse at 50% 58%, rgba(255,255,255,.075), transparent 62%)" }} />
+  const bgSrc = clips[bg];
+  return <AbsoluteFill style={{ background: "#050608", perspective: 3000, perspectiveOrigin: "50% 46%" }}>
+    {bgSrc ? <AbsoluteFill style={{ transform: `scale(${interpolate(f, [0, len], [1.22, 1.3])})` }}><OffthreadVideo src={staticFile(bgSrc)} muted playbackRate={0.6} style={{ width: "100%", height: "100%", objectFit: "cover", filter: "blur(34px) brightness(.5) saturate(.9)" }} /></AbsoluteFill> : null}
+    <AbsoluteFill style={{ background: "radial-gradient(ellipse at 50% 52%, rgba(5,6,8,.15) 0%, rgba(5,6,8,.62) 62%, rgba(5,6,8,.9) 100%)" }} />
     <div style={{ position: "absolute", left: (1080 - PW) / 2 - 40, top: 1760, width: PW + 80, height: 70, borderRadius: "50%", background: "radial-gradient(ellipse, rgba(0,0,0,.95), transparent 70%)", filter: "blur(6px)" }} />
     <div style={{ position: "absolute", left: (1080 - PW) / 2, top: 345, width: PW, height: PH, transformStyle: "preserve-3d",
-        transform: `translateY(${(1 - inn) * 60}px) rotateY(${-17 + drift}deg) rotateX(5deg) rotateZ(-1.5deg) scale(${interpolate(inn, [0, 1], [0.96, 1])})` }}>
+        transform: `translateY(${(1 - inn) * 60}px) rotateY(${-9 + drift}deg) rotateX(2.5deg) scale(${interpolate(inn, [0, 1], [0.96, 1]) * interpolate(f, [0, len], [1, 1.025])})` }}>
       {depth.map(i => <div key={i} style={{ position: "absolute", inset: 0, borderRadius: 104, transform: `translateZ(${-i * 3}px)`, background: i === 0 ? "transparent" : "linear-gradient(90deg,#6b6e76,#2c2e34 30%,#55585f 70%,#1d1e22)" }} />)}
       {btn("left", 214, 50)}{btn("left", 306, 96)}{btn("left", 422, 96)}{btn("right", 340, 150)}
       {/* titanium band: brushed gradient + a hairline specular edge */}
@@ -189,15 +191,15 @@ const SHOTS: Shot[] = [
   { len: 48, el: (len) => <><Macro shot="home" shotH={3753} from={0} to={520} len={len} /><Build y={TOP} words={[{ t: "Mine" }, { t: "runs" }, { t: "on" }, { t: "this.", k: true }]} step={4} /></> },
   { len: 46, el: (len) => <><Macro shot="lifts" shotH={2532} from={0} to={250} len={len} scrollEnd={24} press={{ x: 12, y: 302, w: 366, h: 76, at: 31 }} /><Every w="lift." /></> },
   { len: 54, el: (len) => <><Macro shot="lift-deadlift" shotH={2532} from={0} to={0} len={len} /><Every w="PR." c={C.pink} />
-      <Num n="175" unit="lb x 3" label="Deadlift · Nov 16" c={C.pink} at={12} style={{ right: SAFE, top: SAFE + 22, textAlign: "right", transform: "scale(.66)", transformOrigin: "100% 0%" }} /></> },
+      <Num n="175" unit="lb x 3" label="Deadlift · Nov 16" c={C.pink} at={12} style={{ right: SAFE + 6, top: SAFE + 24, textAlign: "right", transform: "scale(.56)", transformOrigin: "100% 0%" }} /></> },
   { len: 50, el: () => <><LightUp /><Every w="muscle." c={C.pink} /><Legend at={20} /></> },
   { len: 50, el: () => <><Turn /><Build y={TOP} step={5} words={[{ t: "Add" }, { t: "one" }, { t: "more.", k: true }]} /></> },
   { len: 42, el: (len) => <Footage name="run" len={len} dim={0.6} behind={<Every w="run." c={C.blue} y={MID} />} /> },
   { len: 52, el: () => <AbsoluteFill style={{ background: "#000" }}>
       <Band name="gym" i={0} n="+11" label="Lift days" c={C.teal} pos="50% 70%" /><Band name="run" i={1} n="+205" unit="min" label="Cardio" c={C.blue} pos="50% 80%" /><Band name="beach" i={2} n="+13,035" unit="lb" label="Moved, vs last month" c={C.pink} pos="50% 40%" /></AbsoluteFill> },
-  { len: 48, el: (len) => <><Macro shot="coach-class-a" shotH={2532} from={0} to={300} len={len} scrollEnd={20} press={{ x: 12, y: 591, w: 366, h: 47, at: 26, r: 0 }} swap={{ shot: "coach-class", at: 29 }} /><Every w="member." /></> },
-  { len: 44, el: (len) => <><Macro shot="coach-calendar" shotH={2688} from={120} to={560} len={len} /><Every w="month," c={C.blue} tail="planned." /></> },
-  { len: 44, el: (len) => <><Macro shot="nutrition" shotH={2568} from={0} to={300} len={len} /><Every w="macro." lead="Even every" /></> },
+  { len: 48, el: (len) => <><Macro bg="beach" shot="coach-class-a" shotH={2532} from={0} to={300} len={len} scrollEnd={20} press={{ x: 12, y: 591, w: 366, h: 47, at: 26, r: 0 }} swap={{ shot: "coach-class", at: 29 }} /><Every w="member." /></> },
+  { len: 44, el: (len) => <><Macro bg="beach" shot="coach-calendar" shotH={2688} from={120} to={560} len={len} /><Every w="month," c={C.blue} tail="planned." /></> },
+  { len: 44, el: (len) => <><Macro bg="beach" shot="nutrition" shotH={2568} from={0} to={300} len={len} /><Every w="macro." lead="Even every" /></> },
   { len: 40, el: (len) => <Footage name="beach" len={len} dim={0.7}><div style={{ position: "absolute", left: SAFE, top: 140 }}><Word t="Your gym." at={1} size={98} /></div><div style={{ position: "absolute", left: SAFE, top: 256 }}><Word t="Your app." at={10} size={98} /></div><div style={{ position: "absolute", left: SAFE, top: 372 }}><Word t="Built for you." at={19} size={98} k /></div></Footage> },
   { len: 36, el: (len) => <Footage name="beach" len={len} from={40} dim={0.38}><EndCard /></Footage> },
 ];

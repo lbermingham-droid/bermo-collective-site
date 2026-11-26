@@ -24,8 +24,12 @@ const TODAY = "2026-11-20";
   await p.evaluate(() => { const s = JSON.parse(localStorage.getItem("bermo.tracker.v1")); s.ui = s.ui || {}; s.ui.mmSex = "female"; s.ui.hmPeriod = "month"; s.coach = Object.assign(s.coach || {}, { enabled: false }); localStorage.setItem("bermo.tracker.v1", JSON.stringify(s)); });
   await p.reload({ waitUntil: "load" }); await p.waitForTimeout(1000);
   // the app's real tab bar, one per active tab, overlaid on the phone
-  for(const t of ["dashboard", "fitness", "nutrition", "lifts", "more"]){ await p.evaluate(t => document.querySelector(`[data-tab="${t}"]`).click(), t); await p.waitForTimeout(500); await (await p.$(".mobnav")).screenshot({ path: path.join(OUT, `nav-${t}.png`) }); }
-  await p.addStyleTag({ content: `.toast,#toast,.mobnav,.topbar{display:none!important} .main,#app{padding-bottom:0!important}` });
+  for(const t of ["dashboard", "fitness", "nutrition", "lifts", "more"]){ await p.evaluate(t => document.querySelector(`[data-tab="${t}"]`).click(), t); await p.waitForTimeout(500);
+    // hide the page while the bar is captured: it is translucent, and the list behind it was ghosting through
+    await p.evaluate(() => document.querySelectorAll(".view").forEach(v => { v.style.visibility = "hidden"; }));
+    await (await p.$(".mobnav")).screenshot({ path: path.join(OUT, `nav-${t}.png`) });
+    await p.evaluate(() => document.querySelectorAll(".view").forEach(v => { v.style.visibility = ""; })); }
+  await p.addStyleTag({ content: `.toast,#toast,.mobnav,.topbar,.main::after{display:none!important} .main,#app{padding-bottom:0!important}` });
   const go = async (t) => { await p.evaluate(t => document.querySelector(`[data-tab="${t}"]`).click(), t); await p.waitForTimeout(900); };
   const full = async (name) => { await p.screenshot({ path: path.join(OUT, name + ".png"), fullPage: true }); };
   await go("dashboard"); await full("home");

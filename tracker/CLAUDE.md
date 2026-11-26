@@ -1120,6 +1120,15 @@ are gitignored; `/tracker-ad/*` is 404'd on the public site in
   specular edge, antenna breaks, buttons, stacked slices for thickness,
   Dynamic Island with lens, status bar, real tab bar, home indicator,
   glass reflection) at one steady angle. Still a render, not a photo.
+- **Seventh cut — she asked "no yes man, is the angle right? should
+  there be more depth?"** Honest answer was no and yes: the phone was
+  turned 17° AND rolled 1.5°, which reads as tipping over / stock mockup,
+  and it floated in a black void. Now `rotateY(-9) rotateX(2.5)`, no roll,
+  slow push-in, and each `Macro` takes `bg` — her footage far out of focus
+  behind the phone for real depth and light. Also fixed a capture bug:
+  `.main::after` is a FIXED bottom fade, so full-page captures froze it
+  mid-list and ghost text showed above the tab bar — hide it (and the
+  page, when shooting the translucent tab bar) in `capture.js`.
 - **Still not Ladder quality, and why:** Ladder's is professionally shot
   and graded, with a real hand-held phone. Hers is three phone clips. To
   close the gap she needs to FILM her phone showing the app (in hand at

@@ -1240,6 +1240,11 @@ compositions, both keeping **130 px clear on each side** (her number):
   for reference: `AppColorways`, `AppDark`, `AppBlocks`, `AppAgreed`,
   `AppBlueYellow`, `AppFlipped`. **No palette chosen yet — the app,
   clip, reel and photo are still violet.**
+  **She rejected the deep-tint version outright: "Nooooooo that's too
+  dark! Yuck."** Do not propose dark/muted tints again — she has said
+  "bright, not faded" since v7. `AppBright` is the current mock: full-
+  strength blocks, with inner boxes a RICHER shade of the block (never a
+  paler, washed one).
 - To show `SiteClip` from a given frame inside another composition use
   `<Sequence from={-n}>`. `<Freeze>` did not hold its nested Sequences.
 

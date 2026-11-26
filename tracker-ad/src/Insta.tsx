@@ -253,3 +253,19 @@ export const AppBrand: React.FC = () => <AbsoluteFill style={{ background: "#101
     {BROWS.map((frame, r) => <Phone key={r} w={470} style={{ left: 50 + c * 540, top: 104 + r * 1000 }}><Themed theme={theme}><Clip start={frame} /></Themed></Phone>)}
   </React.Fragment>)}
 </AbsoluteFill>;
+
+// ---- BRIGHT again (she hated the deep tints: "too dark! yuck"). Full-strength blocks as in
+// FLIPPED, but nothing washed out: inner boxes are a RICHER shade of the block, not a paler one ----
+const BRIGHT: [string, Partial<SiteTheme>][] = [
+  ["A · Blue + yellow", { ...FLIPPED[0][1], cell: "#3347F0", cell2: "#2233C9", cellSep: "rgba(255,255,255,.22)" }],
+  ["B · Tomato + sky", { ...FLIPPED[1][1], cell: "#E8382E", cell2: "#C2261D", cellSep: "rgba(255,255,255,.24)" }],
+  ["C · Cream + red", { ...FLIPPED[2][1], cell2: "#EADDC0" }],
+  ["D · Cobalt + white", { ...FLIPPED[3][1], cell: "#3347F0", cell2: "#2233C9", cellSep: "rgba(255,255,255,.22)", avatar: "#fff", avatarInk: "#2233C9" }],
+];
+export const AppBright: React.FC = () => <AbsoluteFill style={{ background: "#101012", fontFamily: "InterVar, InterTight, sans-serif", color: "#fff" }}>
+  <style>{adFonts}</style><style>{wide}</style>
+  {BRIGHT.map(([name, theme], c) => <React.Fragment key={c}>
+    <div style={{ position: "absolute", left: 30 + c * 540, top: 40, width: 510, textAlign: "center", fontSize: 24, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", opacity: 0.85 }}>{name}</div>
+    {BROWS.map((frame, r) => <Phone key={r} w={470} style={{ left: 50 + c * 540, top: 104 + r * 1000 }}><Themed theme={theme}><Clip start={frame} /></Themed></Phone>)}
+  </React.Fragment>)}
+</AbsoluteFill>;

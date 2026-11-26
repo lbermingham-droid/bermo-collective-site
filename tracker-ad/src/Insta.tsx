@@ -213,3 +213,22 @@ export const AppBlueYellow: React.FC = () => <AbsoluteFill style={{ background: 
     {A_ROWS.map((frame, c) => <Phone key={c} w={470} style={{ left: 50 + c * 530, top: 96 + r * 1050 }}><Themed theme={theme}><Clip start={frame} /></Themed></Phone>)}
   </React.Fragment>)}
 </AbsoluteFill>;
+
+// ---- all four reference colourways FLIPPED the way she described for the first:
+// black ground, the original ACCENT becomes the blocks, the original GROUND becomes the accent ----
+const TOM = "#E2332A", CREAM = "#F7EFDD";
+const FLIPPED: [string, Partial<SiteTheme>][] = [
+  ["A · Blue blocks, yellow", A_INV],
+  ["B · Tomato blocks, sky", { ...DARK, cell: TOM, cell2: "#EE5A52", cellText: "#fff", cellSec: "rgba(255,255,255,.88)", cellTer: "rgba(255,255,255,.5)", cellSep: "rgba(255,255,255,.26)", sec: "rgba(197,238,242,.95)", ter: "rgba(197,238,242,.55)",
+    acc: LB, accDeep: "#9fd3d9", onAcc: "#8E1B14", link: LB, up: LB, hi: LB, ring2: "#fff", pr: LB, prDeep: "#8E1B14", avatar: LB, avatarInk: "#8E1B14", thumb: "linear-gradient(150deg,#e6fbfd,#C5EEF2 55%,#a5dbe1)", art: "linear-gradient(160deg,#8E1B14,#C3271E)", cardSub: TOM, cardEdge: LB, conf: LB, soft: LB }],
+  ["C · Cream blocks, red", { ...DARK, cell: CREAM, cell2: "#FFFFFF", cellText: "#A8211A", cellSec: "rgba(168,33,26,.85)", cellTer: "rgba(168,33,26,.45)", cellSep: "rgba(168,33,26,.2)", text: CREAM, sec: "rgba(247,239,221,.9)", ter: "rgba(247,239,221,.5)",
+    acc: "#D8352B", accDeep: "#A8211A", onAcc: CREAM, link: CREAM, up: "#D8352B", hi: "#D8352B", ring2: "#141110", pr: "#D8352B", prDeep: "#A8211A", avatar: "#D8352B", avatarInk: CREAM, thumb: "linear-gradient(150deg,#ee4a40,#D8352B 55%,#b3271e)", art: "linear-gradient(160deg,#fff,#F7EFDD)", cardSub: "#D8352B", cardEdge: "#E9DCC3", conf: "#D8352B", soft: "#E9DCC3" }],
+  ["D · Cobalt blocks, white", { ...DARK, cellText: "#fff" }],
+];
+export const AppFlipped: React.FC = () => <AbsoluteFill style={{ background: "#101012", fontFamily: "InterVar, InterTight, sans-serif", color: "#fff" }}>
+  <style>{adFonts}</style><style>{wide}</style>
+  {FLIPPED.map(([name, theme], c) => <React.Fragment key={c}>
+    <div style={{ position: "absolute", left: 40 + c * 530, top: 44, width: 490, textAlign: "center", fontSize: 25, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", opacity: 0.8 }}>{name}</div>
+    {ROWS.map((frame, r) => <Phone key={r} w={470} style={{ left: 50 + c * 530, top: 110 + r * 1010 }}><Themed theme={theme}><Clip start={frame} /></Themed></Phone>)}
+  </React.Fragment>)}
+</AbsoluteFill>;

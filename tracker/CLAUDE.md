@@ -1171,6 +1171,17 @@ a website a live demo beats a video, so it is a page, not another cut.
   or writes `bermo.tracker.v1`. `&view=member` starts on Home.
 - The page promises only what exists. Member sign-in and storage are
   described as "scoped with you", because there is no backend yet (§8).
+- **`/gym-app/` was styled for the OLD site.** She then said the live
+  site is the new one (bermo-site--quiet-youtiao-0e2544.netlify.app:
+  light theme, lives OUTSIDE this repo). There, app examples are a silent
+  looping phone recording: `media/apps/fitness.mp4` (360x736, 24 fps,
+  ~25 s) + poster `fitness-p.jpg`, shown in a 176px phone and a small
+  "Fitness app · Live" tile. The old clip was the pre-rebuild brain dump.
+  The replacement is in `tracker-ad/site/` (same names and size, plus
+  `fitness-2x.mp4`), recorded from demo mode at a 320px-wide viewport so
+  the UI reads at that size, by `tracker-ad/scripts/site-clip.js`: class
+  check-in → calendar → members → a member → her Home, lifts, body.
+  Someone with the new site's repo has to drop the files in.
 - Screens are re-shot with scratchpad `demoshot.js` (viewport 390x800,
   DPR 2, then ffmpeg to 585px webp).
 

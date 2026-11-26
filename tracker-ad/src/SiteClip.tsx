@@ -83,7 +83,7 @@ const Back: React.FC<{ to: string }> = ({ to }) => <><svg width={u(12)} height={
 const Large: React.FC<{ children: React.ReactNode; sub?: string }> = ({ children, sub }) => <div style={{ padding: `${u(2)}px ${PAD}px ${u(12)}px` }}><div style={{ fontSize: u(33), fontWeight: 700, letterSpacing: -0.9 * U, lineHeight: 1.12 }}>{children}</div>{sub ? <div style={{ ...T.sub, fontSize: u(15), marginTop: u(2) }}>{sub}</div> : null}</div>;
 const Group: React.FC<{ label?: string; style?: React.CSSProperties; children: React.ReactNode }> = ({ label, style, children }) => <div style={{ margin: `0 ${PAD}px ${u(18)}px`, ...style }}>{label ? <div style={{ ...T.foot, padding: `0 ${u(4)}px ${u(7)}px` }}>{label}</div> : null}<div style={{ background: C.cell, borderRadius: u(13), overflow: "hidden" }}>{children}</div></div>;
 const Sep: React.FC<{ inset?: number }> = ({ inset = 16 }) => <div style={{ height: 1.5, background: C.sep, marginLeft: u(inset) }} />;
-const ART: Record<string, string> = { Barbell_Squat: "squat", Arnold_Dumbbell_Press: "arnold-press", Dumbbell_Rear_Lunge: "reverse-lunge", Plank: "plank", Pallof_Press: "pallof-press", Barbell_Deadlift: "deadlift" };
+const ART: Record<string, string> = { Barbell_Squat: "squat", Arnold_Dumbbell_Press: "arnold-press", Dumbbell_Rear_Lunge: "reverse-lunge", Plank: "plank", Side_Plank: "side-plank", Barbell_Deadlift: "deadlift" };
 // Workout Guide by Bryl Lim, CC BY-SA 4.0 (credit required wherever this clip is published).
 const Thumb: React.FC<{ id: string; size?: number; light?: boolean }> = ({ id, size = 44, light }) => { const url = staticFile(`site/art/${ART[id]}.png`); const r = u(size * 0.26);
   return <div style={{ width: u(size), height: u(size), flex: "none", borderRadius: r, position: "relative", marginBottom: u(size * 0.06),
@@ -326,8 +326,8 @@ const BodyScreen: React.FC = () => {
     </Group>
     <In at={98}><Group label="Add one more">
       <div style={{ display: "flex", alignItems: "center", gap: u(12), padding: `0 ${u(14)}px`, height: u(66) }}>
-        <Thumb id="Pallof_Press" />
-        <div style={{ flex: 1 }}><div style={{ ...T.body, fontWeight: 500 }}>Pallof Press</div><div style={T.sub}>Obliques were missed</div></div>
+        <Thumb id="Side_Plank" />
+        <div style={{ flex: 1 }}><div style={{ ...T.body, fontWeight: 500 }}>Side Plank</div><div style={T.sub}>Obliques were missed</div></div>
         <div style={{ background: C.acc, color: "#fff", borderRadius: u(16), padding: `${u(7)}px ${u(18)}px`, fontSize: u(15), fontWeight: 700 }}>Add</div>
       </div>
     </Group></In>

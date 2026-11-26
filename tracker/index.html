@@ -10,7 +10,7 @@
 
 <!-- PWA: install to home screen -->
 <link rel="manifest" href="/tracker/manifest.json">
-<meta name="theme-color" content="#0a0a0a">
+<meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="BERMO Tracker">
@@ -20,8 +20,8 @@
 <link rel="apple-touch-startup-image" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Inter+Tight:wght@600;700;800;900&family=Montserrat:wght@600;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./styles.css?v=64">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles.css?v=65">
 </head>
 <body>
 
@@ -109,7 +109,7 @@
   <span class="ptr-text" id="ptrText">Pull to refresh</span>
 </div>
 
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="artGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00f5d4"/><stop offset="1" stop-color="#4db8ff"/></linearGradient></defs></svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="artGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c6cff"/><stop offset="1" stop-color="#b3a9ff"/></linearGradient></defs></svg>
 <div id="app" class="app hidden">
 
   <!-- TOP BAR -->
@@ -117,7 +117,7 @@
     <div class="tb-left">
       <div class="tb-logo">
         <span class="tb-top">BERMO<span class="c">.</span></span>
-        <span class="tb-bot">TRACKER <span id="appVer" style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v64</span></span>
+        <span class="tb-bot">TRACKER <span id="appVer" style="font-size:8px;opacity:.5;font-weight:600;letter-spacing:.5px">v65</span></span>
       </div>
     </div>
     <nav class="tb-nav" id="tabNav">
@@ -1071,12 +1071,12 @@
         <span class="fa-sub">AI fills in calories + macros</span>
       </button>
       <button class="fab-action" data-fab="text">
-        <span class="fa-icon" style="background:#ffb347">💬</span>
+        <span class="fa-icon" style="background:#b3a9ff">💬</span>
         <span class="fa-label">Type what you ate</span>
         <span class="fa-sub">"2 eggs and oatmeal"</span>
       </button>
       <button class="fab-action" data-fab="water">
-        <span class="fa-icon" style="background:#7cd9f1"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 6.4 6 10.4A6 6 0 0 1 6 13.4C6 9.4 12 3 12 3Z"/></svg></span></span>
+        <span class="fa-icon" style="background:#b3a9ff"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 6.4 6 10.4A6 6 0 0 1 6 13.4C6 9.4 12 3 12 3Z"/></svg></span></span>
         <span class="fa-label">+ 8 oz water</span>
         <span class="fa-sub">Quick add</span>
       </button>
@@ -1086,7 +1086,7 @@
         <span class="fa-sub">Sets + reps + weight</span>
       </button>
       <button class="fab-action" data-fab="weigh">
-        <span class="fa-icon" style="background:#0a8538;color:#fff">⚖</span>
+        <span class="fa-icon" style="background:#4a3fc4;color:#fff">⚖</span>
         <span class="fa-label">Weigh in</span>
         <span class="fa-sub">Today's weight</span>
       </button>
@@ -1122,11 +1122,11 @@
 <div class="toast" id="toast" aria-live="polite"></div>
 
 <script src="/tracker/vendor/chart.umd.js"></script>
-<script src="./data.js?v=64"></script>
-<script src="./exdb.js?v=64"></script>
-<script src="./repdb.js?v=64"></script>
-<script src="./bryl.js?v=64"></script>
-<script src="./body.js?v=64"></script>
-<script src="./app.js?v=64"></script>
+<script src="./data.js?v=65"></script>
+<script src="./exdb.js?v=65"></script>
+<script src="./repdb.js?v=65"></script>
+<script src="./bryl.js?v=65"></script>
+<script src="./body.js?v=65"></script>
+<script src="./app.js?v=65"></script>
 </body>
 </html>

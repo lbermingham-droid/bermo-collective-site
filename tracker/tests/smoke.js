@@ -432,12 +432,14 @@ function fail(name, err){ results.push(["FAIL", name + " — " + String(err).spl
         const bg = getComputedStyle(v).backgroundColor;
         if(bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent" && bg !== ground) out.slabs.push(v.id + ":" + bg);
       });
+      // v65 reversed the v24 rule on purpose: cards are FILLED cells with no outline
+      // and no glow (native look). "flat" now means a card that is not a filled cell.
       const c = document.querySelector(".view.active .card");
-      if(c && getComputedStyle(c).boxShadow === "none") out.flat++;
+      if(c){ const cs = getComputedStyle(c); if(cs.backgroundColor === ground || cs.backgroundColor === "rgba(0, 0, 0, 0)" || parseFloat(cs.borderTopWidth) > 0) out.flat++; }
       return out;
     });
     (surfaces.slabs.length === 0 && surfaces.flat === 0)
-      ? ok("v24 one ground, no view slab, cards are elevated")
+      ? ok("v24/v65 one ground, no view slab, cards are filled borderless cells")
       : fail("v24 surfaces", JSON.stringify(surfaces));
   } catch (e) { fail("v24 surfaces", e); }
 

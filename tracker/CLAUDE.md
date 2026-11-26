@@ -26,7 +26,7 @@ on iPhone as a PWA. It is deliberately **not** linked from the site nav.
   the link, saw no change, and reported the app as broken.
 - Preview: `https://deploy-preview-1--quiet-youtiao-0e2544.netlify.app/tracker/`
   Netlify rebuilds ~60s after a push.
-- Current build: **v64**.
+- Current build: **v65**.
 
 ### Working with her — read this twice
 - **She asked explicitly for no yes-man.** When she is wrong, say so plainly
@@ -52,7 +52,8 @@ means redoing the work.
 
 | Rule | Detail |
 |---|---|
-| **Palette** | Exactly four accents: electric teal `#00f5d4` (primary), bright blue `#4db8ff`, purple `#b788ff`, hot pink `#ff4d9d`. **No yellow or amber, ever.** No muted/faded blues. |
+| **Palette (changed in v65)** | **ONE accent: violet `#7c6cff`** (`--acc`), with lavender tints (`#9b8cff`, `#b3a9ff`) for secondary data, on true black with white text and neutral iOS greys. She said "I hate the cyan" and the cyan + pink combo — **never reintroduce teal/cyan or pink.** Still no yellow or amber. Red `#ff453a` is for destructive actions only. The old four-accent rule is dead. |
+| **Native, not "vibe coded" (v65)** | Filled grey cells (`--cell` `#1c1c1e`, `--cell-2` `#2c2c2e`) on `#000`, hairline separators (`--sep`), **no outlined boxes, no glow, no blur, no gradients on surfaces**. One type family (`--font`: SF on iPhone, Inter elsewhere); the wide display face (`--wide`, Archivo 900) only for hero numbers. Exercise art sits on a raised 3D tile. The whole look lives in the "v65 — NATIVE" layer at the end of `styles.css`; change it there, not with new layers. |
 | **Bright, not faded** | She reported "faded" twice. Causes were: colour-tinted ring tracks, grey text on grey panels, and translucent `rgba(...,.05)` tint fills behind bordered rows. Ring/bar troughs are one neutral `#111622`. |
 | **Border rule** | Status = a **full 1px coloured border + matching coloured text**. **Never a left-edge accent rail** — she rejected those explicitly. |
 | **Icon rule** | **No emoji in the UI.** Inline stroke SVGs only (`.bi` wrapper, or `INS_ICONS` for insight cards). Emoji are fine in code comments and AI prompts. |
@@ -1152,6 +1153,45 @@ are gitignored; `/tracker-ad/*` is 404'd on the public site in
   are logged; ranges use the lower bound; year-only historical bests (450
   lb leg press, 2021) are NOT entered because the app needs a date.
 
+**THE APP TAKES THE VIDEO'S LOOK (v65).** After the site clip finally
+landed ("Yes!"), she said "make the app look like that… every page run
+through and clean the code". What was done:
+- **Recolour by value, everywhere** (`styles.css`, `app.js`, `index.html`):
+  every teal / blue / purple / pink / lime / orange / green literal and
+  `rgba()` → the violet family; blue-grey neutrals → iOS neutrals; dark
+  "text on teal" → white. ~650 substitutions. A hue scan of all hex and
+  rgba values now finds only violet, neutral and the one red.
+- **The v58 glass layer was replaced in place** by the "v65 — NATIVE"
+  layer: new tokens (`--acc`, `--cell*`, `--sep`, `--txt*`, `--font`,
+  `--wide`), the old `--g-*`, `--surf-*`, `--edge-top`, `--lift-*`
+  tokens redefined flat so older rules follow, borders and shadows off,
+  segmented controls / pills / inputs / search in the native style,
+  `text-shadow` off globally, buttons in sentence case, eyebrows grey.
+- **Type:** JetBrains Mono, Inter Tight and Montserrat are gone (CSS,
+  canvas fonts, the Google Fonts link). `fonts/archivo-wide-900.woff2`
+  is self-hosted for the hero numbers.
+- **Tiles:** `.mrow-thumb / .hv-thumb / .lf-tile` are raised keys;
+  `.art-mask` paints the line art white → lavender.
+- **Rings:** Home fitness = violet, nutrition = light lavender.
+- "Add one more" for obliques now says **Side Plank or Russian Twist**
+  (she did not know what a Pallof press is).
+- **Dead-code sweep:** 271 CSS rules removed and 54 selector lists
+  trimmed (270 KB → 245 KB, 4921 → 4534 lines); the JS orphan scan found
+  none. Method: a rule is dead when any class/id in the selector appears
+  nowhere in `app.js` / `index.html` / `data.js` as a word, allowing for
+  dynamic prefixes (`"tl-" + x`, `` `t-${x}` ``). 18 page screenshots were
+  compared before and after the sweep: 17 byte-identical, Lifts
+  visually identical.
+- Smoke test 16 ("v24 surfaces") asserted the OLD rule (cards must have
+  a shadow). It now asserts the new one: a card is a filled cell with no
+  border.
+- `tracker-ad/scripts/site-body.js` expects the app's violet now.
+- **Not done:** the Coach hub still stores ONE weight per member per
+  lift; the video shows a per-set table. The setup wizard, modals and
+  deep sub-screens got the token/colour pass but not an individual
+  screenshot review. Layout and information density were not redesigned
+  — this pass is colour, surfaces, type and tiles.
+
 **THE WEBSITE SHOWCASE + DEMO MODE (v64).** She asked for a version
 "purely for my website… a mini app example. Buyer: gyms." Answer given: on
 a website a live demo beats a video, so it is a page, not another cut.
@@ -1575,4 +1615,5 @@ two never-declared constants · `v31` movement-text parsing and plan-to-log ·
 `v61` body figure gets a "This workout" mode: only the muscles that session used are lit, with worked / not worked lists ·
 `v62` swipe the body figure sideways and she turns in 3D (front to back); the round button does the same ·
 `v63` "Add one more": the workout view names the missed muscle group and a lift for it. ·
-`v64` demo mode (`?demo=gym`) and the `/gym-app/` website showcase page for gym owners.
+`v64` demo mode (`?demo=gym`) and the `/gym-app/` website showcase page for gym owners. ·
+`v65` the app takes the video's look: one violet accent, native filled cells, one typeface, raised line-art tiles; 271 dead CSS rules removed.

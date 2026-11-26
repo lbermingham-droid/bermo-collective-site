@@ -1110,7 +1110,7 @@ function openWodResultModal(){
   const idx = day.wodId !== null && day.wodId !== undefined ? day.wodId : (state.wodIndex % DATA.wods.length);
   const wod = DATA.wods[idx];
   openModal(`Log result · ${wod.name}`, `
-    <p style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#888;margin:0 0 8px">${escape(wod.type)}</p>
+    <p style="font-family:var(--font);font-size:12px;color:#888;margin:0 0 8px">${escape(wod.type)}</p>
     <label><span>Score (time, rounds, or load)</span><input id="wodScore" class="search-input" placeholder="e.g. 12:34 or 8 rounds + 12" required></label>
     <label><span>Notes</span><input id="wodNotes" class="search-input" placeholder="RX'd, scaled to ring rows…"></label>
     <div class="modal-foot">
@@ -1224,16 +1224,16 @@ function drawWeightChart(){
       labels: ws.map(w => fmtDate(w.date)),
       datasets:[{
         data: ws.map(w => w.val),
-        borderColor:"#00f5d4", backgroundColor:"rgba(0,245,212,0.1)",
-        fill:true, tension:.3, pointRadius:3, pointBackgroundColor:"#00f5d4",
+        borderColor:"#7c6cff", backgroundColor:"rgba(124,108,255,0.1)",
+        fill:true, tension:.3, pointRadius:3, pointBackgroundColor:"#7c6cff",
         borderWidth:2.5
       }]
     },
     options:{
       plugins:{legend:{display:false}},
       scales:{
-        y:{grid:{color:"rgba(255,255,255,.06)"}, ticks:{color:"#a7b1c6",font:{size:10}}},
-        x:{grid:{display:false}, ticks:{color:"#a7b1c6",font:{size:10},maxRotation:0,autoSkip:true}}
+        y:{grid:{color:"rgba(255,255,255,.06)"}, ticks:{color:"#aeaeb2",font:{size:10}}},
+        x:{grid:{display:false}, ticks:{color:"#aeaeb2",font:{size:10},maxRotation:0,autoSkip:true}}
       }
     }
   });
@@ -1867,9 +1867,9 @@ function drawActivityRingsBase(){
   const a = getActivityForDay(currentDate);
   const g = getActivityGoals();
   const rings = [
-    { color:"#ff2d56", track:"#3a0a14", val:a.move,     goal:g.move,     r:88, lw:18 }, // Move (red)
-    { color:"#00f5d4", track:"#111622", val:a.exercise, goal:g.exercise, r:65, lw:18 }, // Exercise (lime)
-    { color:"#00f5d4", track:"#003a32", val:a.stand,    goal:g.stand,    r:42, lw:18 }, // Stand (cyan)
+    { color:"#ff453a", track:"#3a0a14", val:a.move,     goal:g.move,     r:88, lw:18 }, // Move (red)
+    { color:"#7c6cff", track:"#2c2c2e", val:a.exercise, goal:g.exercise, r:65, lw:18 }, // Exercise (lime)
+    { color:"#7c6cff", track:"#003a32", val:a.stand,    goal:g.stand,    r:42, lw:18 }, // Stand (cyan)
   ];
   rings.forEach(ring => {
     ctx.beginPath();
@@ -2641,12 +2641,12 @@ function renderDetail(){
     <div class="detail-pill ${t.fiber < fiberGoal*0.5 ? "over" : ""}">
       <div class="dp-lbl">Fiber</div>
       <div class="dp-val">${t.fiber}<i>g / ${fiberGoal}g</i></div>
-      <div class="dp-bar"><span style="width:${Math.min(100, (t.fiber/fiberGoal)*100)}%;background:#00f5d4"></span></div>
+      <div class="dp-bar"><span style="width:${Math.min(100, (t.fiber/fiberGoal)*100)}%;background:#7c6cff"></span></div>
     </div>
     <div class="detail-pill ${t.sugar > sugarLimit ? "over" : ""}">
       <div class="dp-lbl">Sugar</div>
       <div class="dp-val">${t.sugar}<i>g / ${sugarLimit}g cap</i></div>
-      <div class="dp-bar"><span style="width:${Math.min(100, (t.sugar/sugarLimit)*100)}%;background:${t.sugar > sugarLimit ? 'var(--pink)' : '#b788ff'}"></span></div>
+      <div class="dp-bar"><span style="width:${Math.min(100, (t.sugar/sugarLimit)*100)}%;background:${t.sugar > sugarLimit ? 'var(--pink)' : '#9b8cff'}"></span></div>
     </div>
     <div class="detail-pill">
       <div class="dp-lbl">Protein density</div>
@@ -2839,10 +2839,10 @@ function renderCyclePanel(){
     </div>
     <div class="cycle-bar">
       ${[
-        ["menstrual","#ff4d9d","1-5"],
-        ["follicular","#b788ff","5-13"],
-        ["ovulation","#00f5d4","13-16"],
-        ["luteal","#4db8ff","16-"+cycle.avgLen],
+        ["menstrual","#7c6cff","1-5"],
+        ["follicular","#9b8cff","5-13"],
+        ["ovulation","#7c6cff","13-16"],
+        ["luteal","#b3a9ff","16-"+cycle.avgLen],
       ].map(([p,c,r]) => `<div class="cph ${p===phase?"on":""}" style="--cc:${c}"><b class="cph-dot"></b><span>${p}</span><i>${r}</i></div>`).join("")}
     </div>
   `;
@@ -3023,10 +3023,10 @@ function renderDowChart(){
   if(window._dowChart) window._dowChart.destroy();
   window._dowChart = new Chart(c.getContext("2d"), {
     type:"bar",
-    data:{ labels, datasets:[{ data, backgroundColor:"#00f5d4", borderRadius:6, maxBarThickness:32 }] },
+    data:{ labels, datasets:[{ data, backgroundColor:"#7c6cff", borderRadius:6, maxBarThickness:32 }] },
     options:{
       plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>c.parsed.y+" kcal"}}},
-      scales:{ y:{beginAtZero:true, grid:{color:"rgba(255,255,255,.06)"}, ticks:{color:"#a7b1c6",font:{size:10}}}, x:{grid:{display:false}, ticks:{color:"#a7b1c6",font:{size:10}}} }
+      scales:{ y:{beginAtZero:true, grid:{color:"rgba(255,255,255,.06)"}, ticks:{color:"#aeaeb2",font:{size:10}}}, x:{grid:{display:false}, ticks:{color:"#aeaeb2",font:{size:10}}} }
     }
   });
 }
@@ -3043,10 +3043,10 @@ function renderSleepChart(){
   window._sleepChart = new Chart(c.getContext("2d"), {
     type:"line",
     data:{ labels, datasets:[
-      { data, borderColor:"#00f5d4", backgroundColor:"rgba(0,245,212,0.12)", fill:true, tension:.3, pointRadius:2, borderWidth:2, spanGaps:true },
-      { type:"line", data:labels.map(()=>7), borderColor:"#4db8ff", borderWidth:1, borderDash:[4,4], pointRadius:0 }
+      { data, borderColor:"#7c6cff", backgroundColor:"rgba(124,108,255,0.12)", fill:true, tension:.3, pointRadius:2, borderWidth:2, spanGaps:true },
+      { type:"line", data:labels.map(()=>7), borderColor:"#b3a9ff", borderWidth:1, borderDash:[4,4], pointRadius:0 }
     ] },
-    options:{ plugins:{legend:{display:false}}, scales:{ y:{min:0, max:12, grid:{color:"rgba(255,255,255,.06)"}, ticks:{color:"#a7b1c6",font:{size:10}}}, x:{grid:{display:false}, ticks:{display:false}} } }
+    options:{ plugins:{legend:{display:false}}, scales:{ y:{min:0, max:12, grid:{color:"rgba(255,255,255,.06)"}, ticks:{color:"#aeaeb2",font:{size:10}}}, x:{grid:{display:false}, ticks:{display:false}} } }
   });
 }
 
@@ -4597,53 +4597,53 @@ const METRICS = {
   calories: {
     eyebrow: "Calories",
     title: "Calories Eaten",
-    color: "#c8f500",
+    color: "#7c6cff",
     unitLbl: "kcal",
     valueFor: (k) => totalsFor(k).cal,
     goalFor: () => state.goals.cal,
     todaySub: () => `${totalsFor(todayKey()).cal} of ${state.goals.cal} kcal goal`,
   },
   protein: {
-    eyebrow: "Protein", title: "Protein Intake", color: "#00f5d4", unitLbl: "g",
+    eyebrow: "Protein", title: "Protein Intake", color: "#7c6cff", unitLbl: "g",
     valueFor: (k) => totalsFor(k).p, goalFor: () => state.goals.protein,
     todaySub: () => `${totalsFor(todayKey()).p}g of ${state.goals.protein}g goal`,
   },
   carbs: {
-    eyebrow: "Carbs", title: "Carbohydrates", color: "#a8f000", unitLbl: "g",
+    eyebrow: "Carbs", title: "Carbohydrates", color: "#7c6cff", unitLbl: "g",
     valueFor: (k) => totalsFor(k).c, goalFor: () => state.goals.carbs,
     todaySub: () => `${totalsFor(todayKey()).c}g of ${state.goals.carbs}g goal`,
   },
   fat: {
-    eyebrow: "Fat", title: "Fat Intake", color: "#ff4d9d", unitLbl: "g",
+    eyebrow: "Fat", title: "Fat Intake", color: "#7c6cff", unitLbl: "g",
     valueFor: (k) => totalsFor(k).f, goalFor: () => state.goals.fat,
     todaySub: () => `${totalsFor(todayKey()).f}g of ${state.goals.fat}g goal`,
   },
   water: {
-    eyebrow: "Water", title: "Water Intake", color: "#7cd9f1", unitLbl: "oz",
+    eyebrow: "Water", title: "Water Intake", color: "#b3a9ff", unitLbl: "oz",
     valueFor: (k) => (state.days[k] && state.days[k].water) || 0,
     goalFor: () => state.goals.water,
     todaySub: () => `${(state.days[todayKey()]||{}).water||0} of ${state.goals.water} oz goal`,
   },
   move: {
-    eyebrow: "Activity · Move", title: "Calories Burned", color: "#ff2d56", unitLbl: "cal",
+    eyebrow: "Activity · Move", title: "Calories Burned", color: "#ff453a", unitLbl: "cal",
     valueFor: (k) => (state.days[k] && state.days[k].activity && state.days[k].activity.move) || 0,
     goalFor: () => (state.activityGoals && state.activityGoals.move) || 800,
     todaySub: () => `${Math.round((dayObj(todayKey()).activity||{move:0}).move)} of ${(state.activityGoals||{move:800}).move} cal`,
   },
   exercise: {
-    eyebrow: "Activity · Exercise", title: "Exercise Minutes", color: "#a8f000", unitLbl: "min",
+    eyebrow: "Activity · Exercise", title: "Exercise Minutes", color: "#7c6cff", unitLbl: "min",
     valueFor: (k) => (state.days[k] && state.days[k].activity && state.days[k].activity.exercise) || 0,
     goalFor: () => (state.activityGoals && state.activityGoals.exercise) || 60,
     todaySub: () => `${Math.round((dayObj(todayKey()).activity||{exercise:0}).exercise)} of ${(state.activityGoals||{exercise:60}).exercise} min`,
   },
   stand: {
-    eyebrow: "Activity · Stand", title: "Stand Hours", color: "#00f5d4", unitLbl: "hrs",
+    eyebrow: "Activity · Stand", title: "Stand Hours", color: "#7c6cff", unitLbl: "hrs",
     valueFor: (k) => (state.days[k] && state.days[k].activity && state.days[k].activity.stand) || 0,
     goalFor: () => (state.activityGoals && state.activityGoals.stand) || 16,
     todaySub: () => `${Math.round((dayObj(todayKey()).activity||{stand:0}).stand)} of ${(state.activityGoals||{stand:16}).stand} hrs`,
   },
   weight: {
-    eyebrow: "Body weight", title: "Weight Trend", color: "#00f5d4", unitLbl: () => unit(),
+    eyebrow: "Body weight", title: "Weight Trend", color: "#7c6cff", unitLbl: () => unit(),
     valueFor: (k) => {
       // Find last weight on or before this date
       const ws = state.weights || [];
@@ -4821,8 +4821,8 @@ function drawDetailChart(series, goal, color, unitStr){
         tooltip:{callbacks:{label:(c)=>`${c.parsed.y} ${unitStr}`}}
       },
       scales: {
-        y: { beginAtZero: true, grid:{color:"rgba(255,255,255,.06)"}, ticks:{color:"#a7b1c6",font:{size:10}}},
-        x: { grid:{display:false}, ticks:{color:"#a7b1c6",font:{size:10},maxRotation:0,autoSkip:true,autoSkipPadding:8}}
+        y: { beginAtZero: true, grid:{color:"rgba(255,255,255,.06)"}, ticks:{color:"#aeaeb2",font:{size:10}}},
+        x: { grid:{display:false}, ticks:{color:"#aeaeb2",font:{size:10},maxRotation:0,autoSkip:true,autoSkipPadding:8}}
       }
     }
   });
@@ -5082,8 +5082,8 @@ drawDetailChart = function(series, goal, color, unitStr, mode){
         tooltip:{callbacks:{label:(c)=>`${c.parsed.y} ${unitStr}`}}
       },
       scales: {
-        y: { beginAtZero: true, grid:{color:"rgba(255,255,255,.06)"}, ticks:{color:"#a7b1c6",font:{size:10}}},
-        x: { grid:{display:false}, ticks:{color:"#a7b1c6",font:{size:10},maxRotation:0,autoSkip:true,autoSkipPadding:8}}
+        y: { beginAtZero: true, grid:{color:"rgba(255,255,255,.06)"}, ticks:{color:"#aeaeb2",font:{size:10}}},
+        x: { grid:{display:false}, ticks:{color:"#aeaeb2",font:{size:10},maxRotation:0,autoSkip:true,autoSkipPadding:8}}
       }
     }
   });
@@ -5153,10 +5153,10 @@ drawActivityRings = function(){
 
   // BERMO ring: gradient stroke + thick + segmented dots at the head
   const rings = [
-    { c1:"#ff4d9d", c2:"#ff6b35", track:"rgba(255,45,122,.10)", val:a.move,     goal:g.move,     r:80, lw:16 },
-    { c1:"#c8f500", c2:"#7be600", track:"rgba(200,245,0,.10)",  val:a.exercise, goal:g.exercise, r:60, lw:16 },
-    { c1:"#00f5d4", c2:"#00b8a3", track:"rgba(0,245,212,.10)",  val:a.stand,    goal:g.stand,    r:40, lw:16 },
-    { c1:"#b788ff", c2:"#ff8c1a", track:"rgba(183,136,255,.10)", val:calVal,     goal:calGoal,    r:20, lw:16 },
+    { c1:"#7c6cff", c2:"#9b8cff", track:"rgba(124,108,255,.10)", val:a.move,     goal:g.move,     r:80, lw:16 },
+    { c1:"#7c6cff", c2:"#b3a9ff", track:"rgba(124,108,255,.10)",  val:a.exercise, goal:g.exercise, r:60, lw:16 },
+    { c1:"#7c6cff", c2:"#e9e6ff", track:"rgba(124,108,255,.10)",  val:a.stand,    goal:g.stand,    r:40, lw:16 },
+    { c1:"#9b8cff", c2:"#aeaeb2", track:"rgba(155,140,255,.10)", val:calVal,     goal:calGoal,    r:20, lw:16 },
   ];
   rings.forEach(ring => {
     // Track
@@ -5225,10 +5225,10 @@ drawActivityRings = function(){
       const dayLetter = d.toLocaleDateString(undefined,{weekday:"narrow"});
       html += `<div class="rwk" title="${k}">
         <div class="rwk-stack">
-          <div class="rwk-bar rwk-move"><span style="height:${m}%;background:#ff4d9d"></span></div>
-          <div class="rwk-bar rwk-ex"><span style="height:${e}%;background:#c8f500"></span></div>
-          <div class="rwk-bar rwk-st"><span style="height:${s}%;background:#00f5d4"></span></div>
-          <div class="rwk-bar rwk-nut"><span style="height:${n}%;background:#b788ff"></span></div>
+          <div class="rwk-bar rwk-move"><span style="height:${m}%;background:#7c6cff"></span></div>
+          <div class="rwk-bar rwk-ex"><span style="height:${e}%;background:#7c6cff"></span></div>
+          <div class="rwk-bar rwk-st"><span style="height:${s}%;background:#7c6cff"></span></div>
+          <div class="rwk-bar rwk-nut"><span style="height:${n}%;background:#9b8cff"></span></div>
         </div>
         <div class="rwk-day">${dayLetter}</div>
       </div>`;
@@ -5660,7 +5660,7 @@ function ensureMetricTabs(){
   tabs.style.display = "flex";
   tabs.innerHTML = RING_METRICS.map(m => {
     const lbl = m === "nutrition" ? "Nutrition" : m.charAt(0).toUpperCase()+m.slice(1);
-    const dotColor = m === "move" ? "#ff4d9d" : m === "exercise" ? "#c8f500" : m === "stand" ? "#00f5d4" : "#b788ff";
+    const dotColor = m === "move" ? "#7c6cff" : m === "exercise" ? "#7c6cff" : m === "stand" ? "#7c6cff" : "#9b8cff";
     return `<button class="dmt ${m===detailMetric?"on":""}" data-mt="${m}"><span class="dmt-dot" style="background:${dotColor}"></span>${lbl}</button>`;
   }).join("");
   tabs.querySelectorAll("[data-mt]").forEach(b => b.addEventListener("click", () => {
@@ -6937,14 +6937,14 @@ function ringSvg(size, rings, opts){
     const gid = `g${size}${i}${(r.stops[0] || "").replace("#", "")}`;
     defs += `<linearGradient id="${gid}" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${size}" y2="${size}">
       ${r.stops.map((c, j) => `<stop offset="${j / (r.stops.length - 1)}" stop-color="${c}"/>`).join("")}</linearGradient>`;
-    arcs += `<circle cx="${cx}" cy="${cx}" r="${radius}" fill="none" stroke="${r.track || "#1a1b21"}" stroke-width="${sw}"/>`;
+    arcs += `<circle cx="${cx}" cy="${cx}" r="${radius}" fill="none" stroke="${r.track || "#1c1c1e"}" stroke-width="${sw}"/>`;
     if(pct > 0) arcs += `<circle class="hm-arc" cx="${cx}" cy="${cx}" r="${radius}" fill="none" stroke="url(#${gid})" stroke-width="${sw}"
       stroke-linecap="round" stroke-dasharray="${(C * pct).toFixed(2)} ${C.toFixed(2)}" transform="rotate(-90 ${cx} ${cx})"/>`;
   });
   return `<svg class="hm-ring" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><defs>${defs}</defs>${arcs}</svg>`;
 }
-const HM_FIT_STOPS = ["#ff2d95", "#ff4dcc", "#b788ff"];
-const HM_NUT_STOPS = ["#00f5d4", "#4dd8ff", "#4db8ff"];
+const HM_FIT_STOPS = ["#6a5af0", "#7c6cff", "#9b8cff"];
+const HM_NUT_STOPS = ["#b3a9ff", "#d6d0ff", "#f2f0ff"];
 const HM_ICON = {
   run:  `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg>`,
   fork: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/></svg>`,
@@ -6959,7 +6959,7 @@ const HM_ICON = {
   check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`,
 };
 const _PART_ICON = { legs:"legs", glutes:"glutes", back:"back", chest:"chest", shoulders:"shoulders", arms:"arms", core:"core" };
-const _PART_COLOR = { legs:"#ff2d95", glutes:"#ff2d95", arms:"#b788ff", back:"#b788ff", chest:"#4db8ff", shoulders:"#4db8ff", core:"#00f5d4" };
+const _PART_COLOR = { legs:"#7c6cff", glutes:"#7c6cff", arms:"#9b8cff", back:"#9b8cff", chest:"#b3a9ff", shoulders:"#b3a9ff", core:"#7c6cff" };
 
 // ---- render --------------------------------------------------------
 function renderHome(){
@@ -7034,7 +7034,7 @@ function renderHome(){
     leftHtml = missing.length
       ? `<div class="hm-left-grid">${missing.map(m => `
           <button type="button" class="hm-left-cell" data-go="fitness">
-            <span class="hm-left-ic" style="color:${_PART_COLOR[m.part] || "#00f5d4"}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${_MG_ICON[_PART_ICON[m.part]] || _MG_ICON.core}</svg></span>
+            <span class="hm-left-ic" style="color:${_PART_COLOR[m.part] || "#7c6cff"}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${_MG_ICON[_PART_ICON[m.part]] || _MG_ICON.core}</svg></span>
             <div><b>${escape(m.label.replace(/(^|\s|\/)([a-z])/g, (a, b, c) => b + c.toUpperCase()))}</b><span>0 sets</span></div>
           </button>`).join("")}</div>`
       : `<div class="hm-left-ok">${HM_ICON.check} Coverage complete</div>`;
@@ -7072,10 +7072,10 @@ function renderHome(){
 
     <div class="hm-rings">
       <div class="hm-ringwrap fit" role="button" tabindex="0" data-go="fitness" title="Workouts">${ringSvg(176, [{ pct: d.fitPct, stops: HM_FIT_STOPS, stroke: 17 }])}
-        <div class="hm-ringmid"><i style="color:#ff2d95">${HM_ICON.run}</i><b>Fitness</b><span>Today${d.synced ? "" : " · not synced"}</span></div>
+        <div class="hm-ringmid"><i style="color:#7c6cff">${HM_ICON.run}</i><b>Fitness</b><span>Today${d.synced ? "" : " · not synced"}</span></div>
       </div>
       <div class="hm-ringwrap nut" role="button" tabindex="0" data-go="nutrition" title="Nutrition">${ringSvg(176, [{ pct: d.nutPct, stops: HM_NUT_STOPS, stroke: 17 }])}
-        <div class="hm-ringmid"><i style="color:#00f5d4">${HM_ICON.fork}</i><b>Nutrition</b><span>Today</span></div>
+        <div class="hm-ringmid"><i style="color:#7c6cff">${HM_ICON.fork}</i><b>Nutrition</b><span>Today</span></div>
       </div>
     </div>
 
@@ -7628,7 +7628,7 @@ HV_BIND.sets = (o, dateKey, params) => {
         <li class="mrow" data-a="note"><div class="mrow-main"><div class="mrow-title">Exercise note</div></div><span class="mrow-chev">›</span></li>
         <li class="mrow" data-a="replace"><div class="mrow-main"><div class="mrow-title">Replace exercise</div></div><span class="mrow-chev">›</span></li>
         <li class="mrow" data-a="fav"><div class="mrow-main"><div class="mrow-title">${(state.favLifts || []).includes(e.name) ? "Remove from favorites" : "Add to favorites"}</div></div><span class="mrow-chev">›</span></li>
-        <li class="mrow" data-a="remove"><div class="mrow-main"><div class="mrow-title" style="color:#ff4d9d">Remove from workout</div></div><span class="mrow-chev">›</span></li>
+        <li class="mrow" data-a="remove"><div class="mrow-main"><div class="mrow-title" style="color:#7c6cff">Remove from workout</div></div><span class="mrow-chev">›</span></li>
       </ul>
       <div class="modal-foot"><button class="btn btn-ghost" data-close>Cancel</button></div>`, (root) => {
       root.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
@@ -7729,8 +7729,8 @@ HV_SCREENS.rest = (dateKey, params) => {
     <div class="hv-rest-top"><button type="button" class="hv-link pink" data-hv-back>Close</button><button type="button" class="hv-link" id="hvSkip">Skip</button></div>
     <div class="hv-rest-lbl">Rest</div>
     <div class="hv-rest-ring">
-      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><defs><linearGradient id="hvRestG" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${size}" y2="${size}"><stop offset="0" stop-color="#b788ff"/><stop offset="1" stop-color="#ff2d95"/></linearGradient></defs>
-        <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#1a1b21" stroke-width="${sw}"/>
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><defs><linearGradient id="hvRestG" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${size}" y2="${size}"><stop offset="0" stop-color="#9b8cff"/><stop offset="1" stop-color="#7c6cff"/></linearGradient></defs>
+        <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#1c1c1e" stroke-width="${sw}"/>
         <circle id="hvRestArc" cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="url(#hvRestG)" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${C.toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="0" transform="rotate(-90 ${size/2} ${size/2})"/></svg>
       <div class="hv-rest-time" id="hvRestTime">${_fmtClock(total)}</div>
     </div>
@@ -9530,9 +9530,9 @@ function _drawDayMini(canvas, k){
   const cal = totalsFor(k).cal;
   const calG = state.goals.cal || 2200;
   const rings = [
-    { color:"#ff4d9d", track:"#111622", val:a.move,     goal:g.move,     r:13, lw:3.5 },
-    { color:"#00f5d4", track:"#111622", val:a.exercise, goal:g.exercise, r:9,  lw:3.5 },
-    { color:"#4db8ff", track:"#111622", val:cal,        goal:calG,       r:5,  lw:3.5 },
+    { color:"#7c6cff", track:"#2c2c2e", val:a.move,     goal:g.move,     r:13, lw:3.5 },
+    { color:"#7c6cff", track:"#2c2c2e", val:a.exercise, goal:g.exercise, r:9,  lw:3.5 },
+    { color:"#b3a9ff", track:"#2c2c2e", val:cal,        goal:calG,       r:5,  lw:3.5 },
   ];
   const w = canvas.width, h = canvas.height, cx = w/2, cy = h/2;
   ctx.clearRect(0,0,w,h);
@@ -9580,32 +9580,32 @@ function renderDeck(){
   const a = getActivityForDay(currentDate);
   const lifted = _liftedLbFor(currentDate);
   drawRingStack("deckFitRings", [
-    { color:"#ff4d9d", track:"#111622", val:a.move,     goal:g.move,     r:56, lw:13 },
-    { color:"#00f5d4", track:"#111622", val:a.exercise, goal:g.exercise, r:41, lw:13 },
-    { color:"#4db8ff", track:"#111622", val:a.stand,    goal:g.stand,    r:26, lw:13 },
+    { color:"#7c6cff", track:"#2c2c2e", val:a.move,     goal:g.move,     r:56, lw:13 },
+    { color:"#7c6cff", track:"#2c2c2e", val:a.exercise, goal:g.exercise, r:41, lw:13 },
+    { color:"#b3a9ff", track:"#2c2c2e", val:a.stand,    goal:g.stand,    r:26, lw:13 },
   ]);
   const fs = document.getElementById("deckFitStats");
   if(fs) fs.innerHTML = `
     <div class="dds-h">FITNESS</div>
-    <div class="dds"><i style="color:#ff4d9d">Move</i><b>${Math.round(a.move)}</b><s>/${g.move} cal</s></div>
-    <div class="dds"><i style="color:#00f5d4">Exercise</i><b>${Math.round(a.exercise)}</b><s>/${g.exercise} min</s></div>
-    <div class="dds"><i style="color:#4db8ff">Stand</i><b>${Math.round(a.stand)}</b><s>/${g.stand} hr</s></div>
-    <div class="dds"><i style="color:#8b95a1">Lifted</i><b>${Math.round(lifted).toLocaleString()}</b><s>${unit()}</s></div>`;
+    <div class="dds"><i style="color:#7c6cff">Move</i><b>${Math.round(a.move)}</b><s>/${g.move} cal</s></div>
+    <div class="dds"><i style="color:#7c6cff">Exercise</i><b>${Math.round(a.exercise)}</b><s>/${g.exercise} min</s></div>
+    <div class="dds"><i style="color:#b3a9ff">Stand</i><b>${Math.round(a.stand)}</b><s>/${g.stand} hr</s></div>
+    <div class="dds"><i style="color:#98989f">Lifted</i><b>${Math.round(lifted).toLocaleString()}</b><s>${unit()}</s></div>`;
 
   // ---- Nutrition ring stack + stats for the selected day ----
   const t = totalsFor(currentDate);
   drawRingStack("deckNutRings", [
-    { color:"#b788ff", track:"#111622", val:t.cal, goal:calG,           r:56, lw:13 },
-    { color:"#4db8ff", track:"#111622", val:t.p,   goal:gl.protein||1,  r:41, lw:13 },
-    { color:"#00f5d4", track:"#111622", val:t.c,   goal:gl.carbs||1,    r:26, lw:13 },
+    { color:"#9b8cff", track:"#2c2c2e", val:t.cal, goal:calG,           r:56, lw:13 },
+    { color:"#b3a9ff", track:"#2c2c2e", val:t.p,   goal:gl.protein||1,  r:41, lw:13 },
+    { color:"#7c6cff", track:"#2c2c2e", val:t.c,   goal:gl.carbs||1,    r:26, lw:13 },
   ]);
   const ns = document.getElementById("deckNutStats");
   if(ns) ns.innerHTML = `
     <div class="dds-h">NUTRITION</div>
-    <div class="dds"><i style="color:#b788ff">Calories</i><b>${Math.round(t.cal)}</b><s>/${calG}</s></div>
-    <div class="dds"><i style="color:#4db8ff">Protein</i><b>${Math.round(t.p)}</b><s>/${gl.protein||0} g</s></div>
-    <div class="dds"><i style="color:#00f5d4">Carbs</i><b>${Math.round(t.c)}</b><s>/${gl.carbs||0} g</s></div>
-    <div class="dds"><i style="color:#ff4d9d">Fat</i><b>${Math.round(t.f)}</b><s>/${gl.fat||0} g</s></div>`;
+    <div class="dds"><i style="color:#9b8cff">Calories</i><b>${Math.round(t.cal)}</b><s>/${calG}</s></div>
+    <div class="dds"><i style="color:#b3a9ff">Protein</i><b>${Math.round(t.p)}</b><s>/${gl.protein||0} g</s></div>
+    <div class="dds"><i style="color:#7c6cff">Carbs</i><b>${Math.round(t.c)}</b><s>/${gl.carbs||0} g</s></div>
+    <div class="dds"><i style="color:#7c6cff">Fat</i><b>${Math.round(t.f)}</b><s>/${gl.fat||0} g</s></div>`;
 
   // ---- Water row (one line, one-tap +8) ----
   const wr = document.getElementById("deckWaterRow");
@@ -9613,7 +9613,7 @@ function renderDeck(){
     const water = (state.days[currentDate] || {}).water || 0;
     wr.innerHTML = `
       <span class="dw-lbl">WATER</span>
-      <div class="bar dw-bar"><div class="bar-fill" style="width:${Math.min(100,(water/watG)*100)}%;background:#4db8ff"></div></div>
+      <div class="bar dw-bar"><div class="bar-fill" style="width:${Math.min(100,(water/watG)*100)}%;background:#b3a9ff"></div></div>
       <b>${Math.round(water)}/${watG} oz</b>
       <button class="dn-w-add" id="deckWaterAdd">+8</button>`;
     wr.querySelector("#deckWaterAdd").addEventListener("click", () => {
@@ -9944,11 +9944,11 @@ function renderGoalsView(){
       const X = (i) => 6 + (i/(wts.length-1)) * (cv.width - 12);
       const Y = (v) => 6 + (1 - (v - min)/(max - min)) * (cv.height - 12);
       if(goalW){
-        ctx.strokeStyle = "#00f5d4"; ctx.setLineDash([4,4]); ctx.lineWidth = 1;
+        ctx.strokeStyle = "#7c6cff"; ctx.setLineDash([4,4]); ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(0, Y(goalW)); ctx.lineTo(cv.width, Y(goalW)); ctx.stroke();
         ctx.setLineDash([]);
       }
-      ctx.strokeStyle = "#4db8ff"; ctx.lineWidth = 2;
+      ctx.strokeStyle = "#b3a9ff"; ctx.lineWidth = 2;
       ctx.beginPath();
       wts.forEach((w, i) => { i ? ctx.lineTo(X(i), Y(w.val)) : ctx.moveTo(X(i), Y(w.val)); });
       ctx.stroke();
@@ -9987,9 +9987,9 @@ function _daysSincePart(){
 }
 function _muscleFill(days){
   if(days === null) return "#5b6170";       // never trained — neutral
-  if(days <= 2) return "#ff4d9d";           // just hit — recovering (red like Fitbod's worked)
-  if(days <= 5) return "#b788ff";           // recently
-  if(days <= 8) return "#00f5d4";           // fresh — ready to train
+  if(days <= 2) return "#7c6cff";           // just hit — recovering (red like Fitbod's worked)
+  if(days <= 5) return "#9b8cff";           // recently
+  if(days <= 8) return "#7c6cff";           // fresh — ready to train
   return "#5b6170";                          // stale — going cold
 }
 // The body figure: male or female, front or back, one view at a time with
@@ -10055,7 +10055,7 @@ function bodyFigureHtml(F){
   // "This workout" is the default whenever the selected day has lifts.
   const mode = ui.mmMode === "recovery" || (!worked.size && ui.mmMode !== "workout") ? "recovery" : "workout";
   const sd = mode === "recovery" ? _daysSinceSlug() : null;
-  const fillFor = (slug) => mode === "workout" ? (worked.has(slug) || (slug === "knees" && worked.has("quadriceps")) || (slug === "tibialis" && worked.has("calves")) ? "#ff4d9d" : "#5b6170")
+  const fillFor = (slug) => mode === "workout" ? (worked.has(slug) || (slug === "knees" && worked.has("quadriceps")) || (slug === "tibialis" && worked.has("calves")) ? "#7c6cff" : "#5b6170")
                                                : _muscleFill(sd[slug] === undefined ? null : sd[slug]);
   const shapes = fig.p.map(([part, slug, ds]) => ds.map(d => part
     ? `<path data-part="${part}" data-slug="${slug}" class="mm-m" d="${d}" fill="${fillFor(slug)}"/>`
@@ -10071,13 +10071,13 @@ function bodyFigureHtml(F){
       </svg>
       <button type="button" class="mm-flip" id="mmFlip" aria-label="Flip to ${side === "front" ? "back" : "front"}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 5 0 0 1 16 0"/><path d="M20 12a8 5 0 0 1-12 4.3"/><path d="M5 16.5l3-.2-.3 3"/></svg></button>
       ${mode === "workout"
-        ? `<div class="mm-legend"><span><i style="background:#ff4d9d"></i>Worked</span><span><i style="background:#5b6170"></i>Not worked</span></div>
+        ? `<div class="mm-legend"><span><i style="background:#7c6cff"></i>Worked</span><span><i style="background:#5b6170"></i>Not worked</span></div>
            <div class="mm-lists">
              <div><span>${escape(fmtDate(currentDate))} · worked</span><b>${Object.keys(SLUG_NAME).filter(k => worked.has(k)).map(k => SLUG_NAME[k]).join(" · ") || "No lifts logged this day"}</b></div>
              <div><span>Not worked</span><em>${Object.keys(SLUG_NAME).filter(k => !worked.has(k)).map(k => SLUG_NAME[k]).join(" · ") || "Nothing: every group was hit"}</em></div>
              ${(() => { const add = _addOneMore(worked); return add ? `<div class="mm-add"><span>Add one more</span><b>${escape(add.name)}</b><em>${escape(add.fix)}</em></div>` : ""; })()}
            </div>`
-        : `<div class="mm-legend"><span><i style="background:#ff4d9d"></i>0–2 days</span><span><i style="background:#b788ff"></i>3–5</span><span><i style="background:#00f5d4"></i>6–8</span><span><i style="background:#5b6170"></i>9+ or none</span></div>`}
+        : `<div class="mm-legend"><span><i style="background:#7c6cff"></i>0–2 days</span><span><i style="background:#9b8cff"></i>3–5</span><span><i style="background:#7c6cff"></i>6–8</span><span><i style="background:#5b6170"></i>9+ or none</span></div>`}
     </div>`;
 }
 function renderMuscleMap(){
@@ -10295,14 +10295,14 @@ function renderFitProgress(){
     type: "bar",
     data: {
       labels: data.map(d => d.label),
-      datasets: [{ data: vols, backgroundColor: vols.map(v => v > 0 ? "#00f5d4" : "#20262e"), borderRadius: 2 }],
+      datasets: [{ data: vols, backgroundColor: vols.map(v => v > 0 ? "#7c6cff" : "#2c2c2e"), borderRadius: 2 }],
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false }, tooltip: { enabled: true } },
       scales: {
-        x: { grid: { display: false }, ticks: { color: "#8b95a1", font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } },
-        y: { grid: { color: "rgba(255,255,255,.06)" }, ticks: { color: "#8b95a1", font: { size: 9 }, maxTicksLimit: 5 } },
+        x: { grid: { display: false }, ticks: { color: "#98989f", font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } },
+        y: { grid: { color: "rgba(255,255,255,.06)" }, ticks: { color: "#98989f", font: { size: 9 }, maxTicksLimit: 5 } },
       },
     },
   });
@@ -10460,11 +10460,11 @@ function renderNutTopStats(){
   el.innerHTML =
     (g.mode ? `<span class="cyc-tag cyc-${g.mode}">${g.mode === "training" ? "TRAINING" : "REST"} DAY CARBS</span>` : "")
     + statBandHtml([
-      { label:"Cal",     val:t.cal,  goal:g.cal||0,     color:"#b788ff" },
-      { label:"Protein", val:t.p,    goal:g.protein||0, color:"#4db8ff", unit:"g" },
-      { label:"Carbs",   val:t.c,    goal:g.carbs||0,   color:"#00f5d4", unit:"g" },
-      { label:"Fat",     val:t.f,    goal:g.fat||0,     color:"#ff4d9d", unit:"g" },
-      { label:"Water",   val:water,  goal:g.water||64,  color:"#4db8ff", unit:unitVol() },
+      { label:"Cal",     val:t.cal,  goal:g.cal||0,     color:"#9b8cff" },
+      { label:"Protein", val:t.p,    goal:g.protein||0, color:"#b3a9ff", unit:"g" },
+      { label:"Carbs",   val:t.c,    goal:g.carbs||0,   color:"#7c6cff", unit:"g" },
+      { label:"Fat",     val:t.f,    goal:g.fat||0,     color:"#7c6cff", unit:"g" },
+      { label:"Water",   val:water,  goal:g.water||64,  color:"#b3a9ff", unit:unitVol() },
     ]);
 }
 function renderFitTopStats(){
@@ -10474,10 +10474,10 @@ function renderFitTopStats(){
   const g = getActivityGoals();
   const lifted = _liftedLbFor(currentDate);
   el.innerHTML = statBandHtml([
-    { label:"Move",     val:a.move,     goal:g.move,     color:"#ff4d9d" },
-    { label:"Exercise", val:a.exercise, goal:g.exercise, color:"#00f5d4", goalUnit:"m" },
-    { label:"Stand",    val:a.stand,    goal:g.stand,    color:"#4db8ff", goalUnit:"h" },
-    { label:"Lifted",   val:lifted,     color:"#b788ff", unit:" "+unit(), sub:"today" },
+    { label:"Move",     val:a.move,     goal:g.move,     color:"#7c6cff" },
+    { label:"Exercise", val:a.exercise, goal:g.exercise, color:"#7c6cff", goalUnit:"m" },
+    { label:"Stand",    val:a.stand,    goal:g.stand,    color:"#b3a9ff", goalUnit:"h" },
+    { label:"Lifted",   val:lifted,     color:"#9b8cff", unit:" "+unit(), sub:"today" },
   ]);
 }
 function renderBodyTopStats(){
@@ -10492,11 +10492,11 @@ function renderBodyTopStats(){
     return;
   }
   const items = [
-    { label:"Now",  val:last.val, color:"#4db8ff", unit:" "+unit(), sub:"latest" },
-    { label:"Goal", val:goal != null ? goal : "—", color:"#00f5d4", unit:goal != null ? " "+unit() : "", sub:goal != null ? "target" : "not set" },
-    { label:"To go",val:goal != null ? Math.abs(last.val-goal).toFixed(1) : "—", color:"#b788ff", unit:goal != null ? " "+unit() : "", sub:goal != null ? "remaining" : "set a goal" },
+    { label:"Now",  val:last.val, color:"#b3a9ff", unit:" "+unit(), sub:"latest" },
+    { label:"Goal", val:goal != null ? goal : "—", color:"#7c6cff", unit:goal != null ? " "+unit() : "", sub:goal != null ? "target" : "not set" },
+    { label:"To go",val:goal != null ? Math.abs(last.val-goal).toFixed(1) : "—", color:"#9b8cff", unit:goal != null ? " "+unit() : "", sub:goal != null ? "remaining" : "set a goal" },
   ];
-  if(bf != null) items.push({ label:"Body fat", val:bf, color:"#ff4d9d", unit:"%", sub:"latest scan" });
+  if(bf != null) items.push({ label:"Body fat", val:bf, color:"#7c6cff", unit:"%", sub:"latest scan" });
   el.innerHTML = statBandHtml(items);
 }
 
@@ -10681,7 +10681,7 @@ function saveSelectionAsMeal(){
 }
 
 // ---- CALORIES sub-page (MFP: donut by meal + totals rows) ----
-const MEAL_COLORS = { breakfast:"#4d8dff", lunch:"#1f5fd6", dinner:"#7ab0ff", snacks:"#2e77e6" };
+const MEAL_COLORS = { breakfast:"#9b8cff", lunch:"#4a3fc4", dinner:"#b3a9ff", snacks:"#6a5af0" };
 let _calDonutRef = null, _macroDonutRef = null;
 function renderCalSub(){
   const cv = document.getElementById("calDonut");
@@ -10695,8 +10695,8 @@ function renderCalSub(){
       labels: MEAL_ORDER.map(m => MEAL_LABEL[m]),
       datasets: [{
         data: totalCal ? totals : [1],
-        backgroundColor: totalCal ? MEAL_ORDER.map(m => MEAL_COLORS[m]) : ["#161b22"],
-        borderColor: "#07080a", borderWidth: 2,
+        backgroundColor: totalCal ? MEAL_ORDER.map(m => MEAL_COLORS[m]) : ["#1c1c1e"],
+        borderColor: "#000000", borderWidth: 2,
       }],
     },
     options: { responsive:true, maintainAspectRatio:false, cutout:"62%",
@@ -10729,7 +10729,7 @@ function renderMacroSub(){
   const totalMacroCal = calFrom.c + calFrom.f + calFrom.p;
   const goalCal = { c:(g.carbs||0)*4, f:(g.fat||0)*9, p:(g.protein||0)*4 };
   const goalTotal = goalCal.c + goalCal.f + goalCal.p || 1;
-  const COLORS = { c:"#00f5d4", f:"#b788ff", p:"#b788ff" };
+  const COLORS = { c:"#7c6cff", f:"#9b8cff", p:"#9b8cff" };
   if(_macroDonutRef){ _macroDonutRef.destroy(); _macroDonutRef = null; }
   _macroDonutRef = new Chart(cv.getContext("2d"), {
     type:"doughnut",
@@ -10737,8 +10737,8 @@ function renderMacroSub(){
       labels:["Carbohydrates","Fat","Protein"],
       datasets:[{
         data: totalMacroCal ? [calFrom.c, calFrom.f, calFrom.p] : [1],
-        backgroundColor: totalMacroCal ? [COLORS.c, COLORS.f, COLORS.p] : ["#161b22"],
-        borderColor:"#07080a", borderWidth:2,
+        backgroundColor: totalMacroCal ? [COLORS.c, COLORS.f, COLORS.p] : ["#1c1c1e"],
+        borderColor:"#000000", borderWidth:2,
       }],
     },
     options:{ responsive:true, maintainAspectRatio:false, cutout:"62%",
@@ -11333,7 +11333,7 @@ function renderMacroCalc(hostId){
       <div class="mc-from">from macros <b>${Math.round(fromMacros)}</b> kcal</div>
     </div>
     <div class="mc-grid">
-      ${[["p","Protein","#00f5d4"],["c","Carbs","#4db8ff"],["f","Fat","#ff4d9d"]].map(([k,label,col]) => `
+      ${[["p","Protein","#7c6cff"],["c","Carbs","#b3a9ff"],["f","Fat","#7c6cff"]].map(([k,label,col]) => `
         <div class="mc-macro">
           <div class="mc-m-head"><i style="background:${col}"></i><span>${label}</span><em>${pct(cur[k], KCAL[k])}%</em></div>
           <input id="${hostId}_${k}" type="number" min="0" max="600" step="1" value="${Math.round(cur[k])}">
@@ -12180,7 +12180,7 @@ const SUB_FIX = {
   "arms.triceps":     "Cable Pushdown or Close-Grip Bench",
   "arms.forearms":    "Farmer Carry or Wrist Curl",
   "core.abs":         "Hanging Leg Raise or Cable Crunch",
-  "core.obliques":    "Pallof Press or Russian Twist",
+  "core.obliques":    "Side Plank or Russian Twist",
   "core.deepcore":    "Plank or Ab Wheel Rollout",
 };
 

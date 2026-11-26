@@ -14,9 +14,9 @@ const OUT = path.join(__dirname, "..", "public", "site");
     return c.outerHTML; });
   console.log(JSON.stringify(await p.evaluate(() => [...document.querySelectorAll("#muscleMapCard .mm-lists > div, #muscleMapCard .mm-add")].map(d => d.innerText.replace(/\n/g, " | ")))));
   const front = await grab(); await p.evaluate(() => document.getElementById("mmFlip").click()); await p.waitForTimeout(500); const back = await grab();
-  // the clip uses ONE accent (violet), so the worked muscles are recoloured from the app's pink
-  const grey = (h) => h.replace(/fill: ?rgb\(255, 77, 157\)/g, "fill:rgb(74, 76, 86)");
-  const acc = (h) => h.replace(/fill: ?rgb\(255, 77, 157\)/g, "fill:rgb(124, 108, 255)").replace(/fill: ?rgb\(91, 97, 112\)/g, "fill:rgb(74, 76, 86)");
+  // the app is violet since v65; the "off" copy just greys the worked muscles
+  const grey = (h) => h.replace(/fill: ?rgb\(124, 108, 255\)/g, "fill:rgb(74, 76, 86)").replace(/fill: ?rgb\(91, 97, 112\)/g, "fill:rgb(74, 76, 86)");
+  const acc = (h) => h.replace(/fill: ?rgb\(91, 97, 112\)/g, "fill:rgb(74, 76, 86)");
   const p2 = await ctx.newPage();
   for(const [name, html] of [["body-front", acc(front)], ["body-front-off", grey(front)], ["body-back", acc(back)], ["body-back-off", grey(back)]]){
     await p2.setContent(`<html><body style="margin:0;background:transparent"><div id="w" style="width:360px;height:760px;display:flex;justify-content:center">${html.replace('class="mm-svg"', 'style="height:760px;width:auto"')}</div></body></html>`);

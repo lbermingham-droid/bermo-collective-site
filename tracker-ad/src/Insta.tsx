@@ -141,8 +141,13 @@ export const AppColorways: React.FC = () => <AbsoluteFill style={{ background: "
 
 // ---- the direction she described: black ground, cobalt primary, light-blue tint,
 // red secondary, bright yellow highlight, white only for the big pops ----
-const DARK: Partial<SiteTheme> = { acc: "#4A5DFF", accDeep: "#2E3ECC", onAcc: "#fff", up: "#A9DDF0", soft: "#C5EEF2", conf: "#F6CE45", pr: "#E8382E", prDeep: "#C22A21", hi: "#F6CE45", ring2: "#F6CE45", muscle: "#E8382E", fig: "hue-rotate(118deg) saturate(1.2)", art: "linear-gradient(160deg,#ffffff 35%,#C5EEF2 100%)" };
-const SWATCH: [string, string, string][] = [["#000000", "Black", "Background"], ["#4A5DFF", "Cobalt", "Buttons, ticks, charts"], ["#C5EEF2", "Light blue", "Tints, trends"], ["#E8382E", "Red", "PRs, muscles worked"], ["#F6CE45", "Yellow", "Small highlights"], ["#FFFFFF", "White", "The big pops"]];
+// Black ground. The BLOCKS are the secondary colour (cobalt, with lighter blue inside them);
+// the POP colours (yellow, red, white) are for tiles and pop items. No grey anywhere.
+const DARK: Partial<SiteTheme> = { bg: "#000", cell: "#3D50EE", cell2: "#596CF6", sep: "rgba(255,255,255,.24)", text: "#fff", sec: "rgba(206,218,255,.92)", ter: "rgba(206,218,255,.55)",
+  acc: "#fff", accDeep: "#C5EEF2", onAcc: "#2B3CD6", tab: "rgba(0,0,0,.96)", thumb: "linear-gradient(150deg,#FFE27A 0%,#F6CE45 55%,#E3B92F 100%)", art: "linear-gradient(160deg,#101a6b,#1b2aa8)",
+  up: "#F6CE45", hi: "#F6CE45", ring2: "#F6CE45", pr: "#E8382E", prDeep: "#C22A21", muscle: "#E8382E", soft: "#C5EEF2", conf: "#F6CE45",
+  avatar: "#C5EEF2", avatarInk: "#2B3CD6", cardSub: "#3D50EE", cardEdge: "#C5EEF2", figSet: "-b" };
+const SWATCH: [string, string, string][] = [["#000000", "Black", "Background"], ["#3D50EE", "Cobalt", "The blocks"], ["#C5EEF2", "Light blue", "Inside blocks, labels"], ["#F6CE45", "Yellow", "Pop: tiles, highlights"], ["#E8382E", "Red", "Pop: PRs, muscles"], ["#FFFFFF", "White", "Pop: ticks, numbers, cards"]];
 const SHOTS: [number, string][] = [[362, "Class"], [398, "A PR"], [228, "Calendar"], [603, "Member"], [730, "Today"], [800, "Muscles"]];
 export const AppDark: React.FC = () => <AbsoluteFill style={{ background: "#101012", fontFamily: "InterVar, InterTight, sans-serif", color: "#fff" }}>
   <style>{adFonts}</style><style>{wide}</style>

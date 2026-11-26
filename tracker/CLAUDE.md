@@ -1217,14 +1217,17 @@ compositions, both keeping **130 px clear on each side** (her number):
   all four. `SiteClip`'s palette `C` is mutable and `<Themed theme>`
   swaps it for a subtree; `T` reads it through getters. No colourway
   has been chosen; the app is still violet.
-- **Her follow-up direction (`AppDark` still, `DARK` theme in
-  Insta.tsx):** keep the app on BLACK, with cobalt `#4A5DFF` as the
-  primary, light blue `#C5EEF2` as its tint, red `#E8382E` as the
-  secondary (PRs, muscles worked), bright yellow `#F6CE45` for small
-  highlights, and white reserved for "the big pops" (lift-out cards,
-  hero numbers). `SiteTheme` has role fields for this (`pr`, `up`, `hi`,
-  `muscle`, `ring2`, `soft`, `conf`) that default to the single accent.
-  Awaiting her yes before the clip, reel, photo or app change colour.
+- **Her direction, as corrected (`AppDark` still, `DARK` theme in
+  Insta.tsx):** black ground; **the BLOCKS (cells) are the secondary
+  colour** — cobalt `#3D50EE`, with lighter blue `#596CF6` inside them
+  and light blue `#C5EEF2` for labels/avatars; **the POP colours go on
+  tiles and pop items** — yellow `#F6CE45` (exercise tiles, highlights),
+  red `#E8382E` (PRs, muscles worked), white (ticks, hero numbers, bars,
+  lift-out cards). **"There is no gray"** — no grey cells, text or
+  figure (navy body cutouts: `site/body-*-b.png`). My first attempt kept
+  grey cells with coloured accents; that was wrong. Known flaw: red text
+  on a cobalt block is hard to read — keep red for badges/fills, not
+  small text on blue. Awaiting her yes before anything changes colour.
   Note this brings yellow back, which §2 banned — her call now.
 - To show `SiteClip` from a given frame inside another composition use
   `<Sequence from={-n}>`. `<Freeze>` did not hold its nested Sequences.

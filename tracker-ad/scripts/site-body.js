@@ -17,8 +17,13 @@ const OUT = path.join(__dirname, "..", "public", "site");
   // the app is violet since v65; the "off" copy just greys the worked muscles
   const grey = (h) => h.replace(/fill: ?rgb\(124, 108, 255\)/g, "fill:rgb(74, 76, 86)").replace(/fill: ?rgb\(91, 97, 112\)/g, "fill:rgb(74, 76, 86)");
   const acc = (h) => h.replace(/fill: ?rgb\(91, 97, 112\)/g, "fill:rgb(74, 76, 86)");
+  // "no grey" variant for a coloured palette: navy body, red worked muscles
+  const navy = (h, lit) => h.replace(/rgb\((\d+), (\d+), (\d+)\)/g, (m, r, g, b) => { r = +r; g = +g; b = +b;
+    if(r === 124 && g === 108 && b === 255) return lit ? "rgb(232, 56, 46)" : "rgb(30, 42, 150)";
+    if(Math.abs(r - g) < 14 && Math.abs(g - b) < 22 && r < 130){ const k = r / 100; return `rgb(${Math.round(16 + 14 * k)}, ${Math.round(24 + 20 * k)}, ${Math.round(96 + 60 * k)})`; }
+    return m; });
   const p2 = await ctx.newPage();
-  for(const [name, html] of [["body-front", acc(front)], ["body-front-off", grey(front)], ["body-back", acc(back)], ["body-back-off", grey(back)]]){
+  for(const [name, html] of [["body-front-b", navy(front, true)], ["body-front-off-b", navy(front, false)], ["body-back-b", navy(back, true)], ["body-front", acc(front)], ["body-front-off", grey(front)], ["body-back", acc(back)], ["body-back-off", grey(back)]]){
     await p2.setContent(`<html><body style="margin:0;background:transparent"><div id="w" style="width:360px;height:760px;display:flex;justify-content:center">${html.replace('class="mm-svg"', 'style="height:760px;width:auto"')}</div></body></html>`);
     await (await p2.$("#w")).screenshot({ path: path.join(OUT, name + ".png"), omitBackground: true });
   }

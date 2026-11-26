@@ -28,7 +28,7 @@ const u = (n: number) => n * U;
 const BASE_THEME = { bg: "#000", cell: "#1c1c1e", cell2: "#2c2c2e", sep: "rgba(84,84,88,.55)", text: "#fff", sec: "rgba(235,235,245,.6)", ter: "rgba(235,235,245,.3)", acc: "#7c6cff", accDeep: "#4a3fc4",
   onAcc: "#fff", tab: "rgba(18,18,20,.94)", thumb: "linear-gradient(150deg,#3a3a41 0%,#26262b 55%,#1d1d21 100%)", art: "linear-gradient(160deg,#ffffff 35%,#b9b0ff 100%)", fig: "none",
   // roles a multi-colour palette can split out; by default they all fall back to the one accent
-  pr: "", up: "", hi: "", muscle: "", ring2: "#8e8e93", soft: "#d9d6ee", conf: "#b9b0ff", prDeep: "" };
+  pr: "", up: "", hi: "", muscle: "", ring2: "#8e8e93", soft: "#d9d6ee", conf: "#b9b0ff", prDeep: "", avatar: "", avatarInk: "#fff", cardSub: "#6b6b76", cardEdge: "#cfcfd6", figSet: "" };
 export type SiteTheme = typeof BASE_THEME;
 // The palette every screen reads. Mutable on purpose: <Themed> swaps it for a subtree
 // (used by the colourway mock). React renders depth-first, so a Themed's children read
@@ -102,7 +102,7 @@ const Thumb: React.FC<{ id: string; size?: number; light?: boolean }> = ({ id, s
     <div style={{ position: "absolute", inset: u(size * 0.07), background: light ? "linear-gradient(160deg,#ffffff 35%,#b9b0ff 100%)" : C.art, WebkitMaskImage: `url(${url})`, maskImage: `url(${url})`, WebkitMaskSize: "contain", maskSize: "contain", WebkitMaskRepeat: "no-repeat", maskRepeat: "no-repeat", WebkitMaskPosition: "center", maskPosition: "center" }} />
     <Img src={url} style={{ position: "absolute", width: 1, height: 1, opacity: 0 }} />
   </div>; };
-const Avatar: React.FC<{ name: string; size?: number; hue?: number }> = ({ name, size = 34, hue = 200 }) => <div style={{ width: u(size), height: u(size), borderRadius: u(size / 2), background: `hsl(${hue} 22% 30%)`, display: "flex", color: "#fff", alignItems: "center", justifyContent: "center", fontSize: u(size * 0.38), fontWeight: 600, flex: "none" }}>{name.split(" ").map(w => w[0]).join("")}</div>;
+const Avatar: React.FC<{ name: string; size?: number; hue?: number }> = ({ name, size = 34, hue = 200 }) => <div style={{ width: u(size), height: u(size), borderRadius: u(size / 2), background: C.avatar || `hsl(${hue} 22% 30%)`, display: "flex", color: C.avatarInk, alignItems: "center", justifyContent: "center", fontSize: u(size * 0.38), fontWeight: 600, flex: "none" }}>{name.split(" ").map(w => w[0]).join("")}</div>;
 const Chevron: React.FC = () => <svg width={u(8)} height={u(14)} viewBox="0 0 8 14" fill="none" stroke={C.ter} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M1.500 1.500L7 7l-5.500 5.500" /></svg>;
 const CheckDot: React.FC<{ at: number; size?: number; square?: boolean }> = ({ at, size = 24, square }) => {
   const f = useCurrentFrame(); const s = sp(f, at, 320, 18); const d = ease(f, at + 1, at + 8);
@@ -121,7 +121,7 @@ const Lift: React.FC<{ at: number; end: number; top?: number; children: React.Re
     <AbsoluteFill style={{ background: `rgba(0,0,0,${0.74 * v})` }} />
     <div style={{ position: "absolute", left: u(18), right: u(18), top: u(top), perspective: u(620) }}>
       {bits.map((b, i) => <div key={i} style={{ position: "absolute", left: "50%", top: "50%", width: u(b.r), height: u(b.r), borderRadius: i % 4 === 0 ? u(1.5) : u(b.r), background: b.c, opacity: b.o * (1 - out), transform: `translate(${b.x}px, ${b.y}px) rotate(${i * 40}deg)` }} />)}
-      <div style={{ transform: `translateY(${(1 - k) * u(70) - out * u(20)}px) rotateX(${(1 - k) * 46}deg) scale(${0.82 + 0.18 * k - out * 0.08})`, transformOrigin: "50% 100%", opacity: Math.min(1, k * 1.8) * (1 - out), background: "#fff", color: "#0b0b0d", borderRadius: u(24), boxShadow: `0 ${u(4)}px 0 #cfcfd6, 0 ${u(36)}px ${u(60)}px rgba(0,0,0,.75)`, overflow: "hidden" }}>{children}</div>
+      <div style={{ transform: `translateY(${(1 - k) * u(70) - out * u(20)}px) rotateX(${(1 - k) * 46}deg) scale(${0.82 + 0.18 * k - out * 0.08})`, transformOrigin: "50% 100%", opacity: Math.min(1, k * 1.8) * (1 - out), background: "#fff", color: "#0b0b0d", borderRadius: u(24), boxShadow: `0 ${u(4)}px 0 ${C.cardEdge}, 0 ${u(36)}px ${u(60)}px rgba(0,0,0,.75)`, overflow: "hidden" }}>{children}</div>
     </div>
   </AbsoluteFill>;
 };
@@ -178,7 +178,7 @@ const CalendarScreen: React.FC = () => {
     <Lift at={64} end={108} top={176}>
       <div style={{ display: "flex", alignItems: "center", gap: u(12), padding: `${u(16)}px ${u(16)}px ${u(14)}px` }}>
         <div style={{ display: "flex" }}>{LIFTS.slice(0, 3).map(([, , id], i) => <div key={id} style={{ marginLeft: i ? -u(14) : 0 }}><Thumb id={id} size={42} light /></div>)}</div>
-        <div style={{ flex: 1 }}><div style={{ fontSize: u(19), fontWeight: 700, letterSpacing: -0.5 * U }}>Strength</div><div style={{ fontSize: u(14), color: "#6b6b76", whiteSpace: "nowrap" }}>Every Monday, Dec 1 – 28</div></div>
+        <div style={{ flex: 1 }}><div style={{ fontSize: u(19), fontWeight: 700, letterSpacing: -0.5 * U }}>Strength</div><div style={{ fontSize: u(14), color: C.cardSub, whiteSpace: "nowrap" }}>Every Monday, Dec 1 – 28</div></div>
       </div>
       <div style={{ background: C.acc, color: C.onAcc, padding: `${u(14)}px ${u(18)}px ${u(16)}px` }}>
         <div style={{ fontFamily: WIDE, fontWeight: 900, fontSize: u(50), lineHeight: 1 }}>{Math.round(ease(f, 66, 84) * 4)}<span style={{ fontSize: u(20), marginLeft: u(9) }}>MONDAYS</span></div>
@@ -228,7 +228,7 @@ const ClassScreen: React.FC = () => {
     <Lift at={122} end={176} top={128}>
       <div style={{ display: "flex", alignItems: "center", gap: u(12), padding: `${u(16)}px ${u(16)}px ${u(6)}px` }}>
         <Thumb id="Barbell_Squat" size={46} light />
-        <div style={{ flex: 1 }}><div style={{ fontSize: u(19), fontWeight: 700, letterSpacing: -0.5 * U }}>Chris Walker</div><div style={{ fontSize: u(14), color: "#6b6b76", whiteSpace: "nowrap" }}>Back Squat · bonus set</div></div>
+        <div style={{ flex: 1 }}><div style={{ fontSize: u(19), fontWeight: 700, letterSpacing: -0.5 * U }}>Chris Walker</div><div style={{ fontSize: u(14), color: C.cardSub, whiteSpace: "nowrap" }}>Back Squat · bonus set</div></div>
         <div style={{ background: C.pr, color: "#fff", borderRadius: u(9), padding: `${u(7)}px ${u(11)}px`, fontSize: u(13), fontWeight: 800, letterSpacing: 0.6 * U, whiteSpace: "nowrap", flex: "none" }}>NEW PR</div>
       </div>
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", padding: `0 ${u(18)}px ${u(16)}px` }}>
@@ -317,11 +317,11 @@ const BodyScreen: React.FC = () => {
         <div style={{ position: "absolute", right: u(18), top: u(12), width: BW, height: BH, perspective: u(900) }}>
           <div style={{ position: "absolute", inset: 0, transform: `rotateY(${turn * 180}deg)`, transformStyle: "preserve-3d" }}>
             <div style={{ position: "absolute", inset: 0, backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}>
-              <Img src={staticFile("site/body-front-off.png")} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
-              <Img src={staticFile("site/body-front.png")} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: lit, filter: C.fig }} />
+              <Img src={staticFile(`site/body-front-off${C.figSet}.png`)} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+              <Img src={staticFile(`site/body-front${C.figSet}.png`)} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: lit, filter: C.fig }} />
             </div>
             <div style={{ position: "absolute", inset: 0, transform: "rotateY(180deg)", backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}>
-              <Img src={staticFile("site/body-back.png")} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+              <Img src={staticFile(`site/body-back${C.figSet}.png`)} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
             </div>
           </div>
         </div>

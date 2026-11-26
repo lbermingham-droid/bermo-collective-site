@@ -3,11 +3,14 @@ import { AbsoluteFill, Img, Sequence, interpolate, spring, staticFile, useCurren
 
 // The website's phone-slot clip (1080 x 2208, the slot's 360:736 shape).
 // NOT a screen recording: each scene is the app's own screen redrawn large
-// and animated, the way product sites show software. Five scenes, 4 s each,
-// loops. Names and numbers are the demo gym's (tracker/?demo=gym).
+// and animated, the way product sites show software. Five scenes, loops.
+// The first two follow the gym's real paper sheets: the coach writes
+// Monday's workout once and it repeats all month; in class the coach enters
+// the lift and rounds x reps, and every member gets a row for their weight. Names and numbers are the demo gym's (tracker/?demo=gym).
 export const SITE_FPS = 30;
 const SCENE = 120, OVER = 14;
-export const SITE_DURATION = SCENE * 5;
+const LENS = [216, 174, 120, 120, 120];   // plan the month, run the class, one member, her app, the body
+export const SITE_DURATION = LENS.reduce((a, b) => a + b, 0);
 const C = { teal: "#00f5d4", blue: "#4db8ff", purple: "#b788ff", pink: "#ff4d9d", ink: "#06070b", dim: "rgba(255,255,255,.52)", line: "rgba(255,255,255,.09)" };
 const FONT = "InterTight";
 const fontFace = `@font-face{font-family:${FONT};font-weight:800;src:url(${staticFile("fonts/intertight-800.woff2")}) format("woff2")}
@@ -20,9 +23,9 @@ const ease = (f: number, a: number, b: number, from = 0, to = 1) => interpolate(
 const Pop: React.FC<{ at: number; y?: number; style?: React.CSSProperties; children: React.ReactNode }> = ({ at, y = 46, style, children }) => { const s = useS(at); return <div style={{ opacity: Math.min(1, s * 1.6), transform: `translateY(${(1 - s) * y}px) scale(${0.96 + 0.04 * s})`, ...style }}>{children}</div>; };
 
 // One scene: rises in, holds, lifts away.
-const Scene: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const Scene: React.FC<{ len?: number; children: React.ReactNode }> = ({ len = SCENE, children }) => {
   const f = useCurrentFrame(); const s = useS(0, 120, 19);
-  const out = ease(f, SCENE - 2, SCENE + OVER - 2);
+  const out = ease(f, len - 2, len + OVER - 2);
   return <AbsoluteFill style={{ opacity: Math.min(1, s * 1.5) * (1 - out), transform: `translateY(${(1 - s) * 150 - out * 110}px) scale(${1 - out * 0.04})`, padding: `0 ${M}px 40px`, display: "flex", flexDirection: "column", justifyContent: "center", fontFamily: FONT, color: "#fff" }}>{children}</AbsoluteFill>;
 };
 const Head: React.FC<{ eyebrow: string; title: string; color?: string; right?: React.ReactNode }> = ({ eyebrow, title, color = C.teal, right }) => (
@@ -41,52 +44,90 @@ const Check: React.FC<{ at: number; size?: number }> = ({ at, size = 76 }) => {
   </div>;
 };
 
-// ---- 1. the class sheet --------------------------------------------------
-const ROWS: [string, number | null, string][] = [["Ana Souza", -99, "120"], ["Chris Walker", -99, "165"], ["Jordan Reyes", 40, "145"], ["Lena Fischer", -99, "90"], ["Maya Chen", -99, "110"], ["Priya Nair", 86, "85"], ["Sam Okafor", null, ""], ["Theo Park", null, ""]];
+// text that types itself, with a caret while it is being written
+const Typed: React.FC<{ text: string; at: number; per?: number; style?: React.CSSProperties; ghost?: string }> = ({ text, at, per = 1.4, style, ghost }) => {
+  const f = useCurrentFrame(); const n = Math.max(0, Math.min(text.length, Math.floor((f - at) / per))); const typing = f >= at - 4 && n < text.length;
+  return <span style={style}>{n === 0 && ghost ? <span style={{ color: "rgba(255,255,255,.25)" }}>{ghost}</span> : text.slice(0, n)}{typing ? <span style={{ display: "inline-block", width: 5, height: "0.95em", background: C.teal, marginLeft: 4, verticalAlign: "-0.12em", opacity: Math.floor(f / 8) % 2 ? 0.25 : 1 }} /> : null}</span>;
+};
+
+// ---- 2. the class: enter the lift once, every member gets a row ---------
+const PEOPLE: [string, string][] = [["Ana Souza", "95"], ["Chris Walker", "135"], ["Jordan Reyes", "115"], ["Lena Fischer", "75"], ["Maya Chen", "95"], ["Priya Nair", "65"]];
 const ClassScene: React.FC = () => {
-  const f = useCurrentFrame(); const n = 4 + (f >= 42 ? 1 : 0) + (f >= 88 ? 1 : 0);
-  const b1 = useS(42, 300, 12), b2 = useS(88, 300, 12);
-  const bump = Math.max(b1 < 1 ? Math.sin(b1 * Math.PI) : 0, b2 < 1 ? Math.sin(b2 * Math.PI) : 0);
-  return <Scene>
-    <Head eyebrow="Today's class" title="Lower B" right={<Pop at={8}><div style={{ textAlign: "right" }}><div style={{ fontWeight: 800, fontSize: 170, lineHeight: 0.9, color: C.teal, transform: `scale(${1 + bump * 0.18})`, transformOrigin: "100% 60%", textShadow: "0 0 60px rgba(0,245,212,.4)" }}>{n}</div><div style={{ fontWeight: 600, fontSize: 36, color: C.dim, marginTop: 8 }}>of 8 here</div></div></Pop>} />
-    <Pop at={10} style={{ ...CARD, overflow: "hidden" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", padding: "34px 44px", borderBottom: `2px solid ${C.line}`, fontWeight: 600, fontSize: 32, letterSpacing: 4, color: C.dim, textTransform: "uppercase" }}><span>Member</span><span>Front squat · 4 × 6</span></div>
-      {ROWS.map(([name, at, w], i) => {
-        const on = at !== null && f >= (at as number); const press = at !== null && at > 0 ? ease(f, at - 3, at + 3) * (1 - ease(f, at + 10, at + 24)) : 0;
-        const typed = at !== null && at > 0 ? w.slice(0, Math.max(0, Math.min(w.length, Math.floor((f - at - 10) / 4)))) : w;
-        return <Pop key={name} at={14 + i * 3} y={30}><div style={{ display: "flex", alignItems: "center", gap: 34, padding: "0 44px", height: 172, borderBottom: i < ROWS.length - 1 ? `2px solid ${C.line}` : "none", background: `rgba(0,245,212,${press * 0.12})`, opacity: at === null ? 0.42 : 1 }}>
-          {at === null ? <div style={{ width: 76, height: 76, borderRadius: 21, border: "3px solid rgba(255,255,255,.28)", flex: "none" }} /> : <Check at={at as number} />}
-          <div style={{ flex: 1, fontWeight: 600, fontSize: 54, letterSpacing: -1, color: on ? "#fff" : C.dim }}>{name}</div>
-          <div style={{ width: 210, height: 104, borderRadius: 28, border: `2px solid ${press > 0.1 ? C.teal : C.line}`, background: "#0a0c12", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 56, color: typed ? "#fff" : "rgba(255,255,255,.22)" }}>{typed || (at === null ? "" : "–")}</div>
-        </div></Pop>;
-      })}
+  const f = useCurrentFrame(); const LIFT_AT = 14, SET_AT = 34, ROWS_AT = 58, W_AT = 84;
+  const field: React.CSSProperties = { background: "#0a0c12", border: `2px solid ${C.line}`, borderRadius: 28, height: 118, display: "flex", alignItems: "center", padding: "0 34px", fontWeight: 800, fontSize: 58, letterSpacing: -1 };
+  const lab: React.CSSProperties = { fontWeight: 600, fontSize: 28, letterSpacing: 4, color: C.dim, textTransform: "uppercase", marginBottom: 12 };
+  const glow = (a: number, b: number) => (f >= a - 4 && f < b ? { borderColor: C.teal, boxShadow: "0 0 0 6px rgba(0,245,212,.12)" } : { borderColor: C.line, boxShadow: "none" });
+  return <Scene len={LENS[1]}>
+    <Head eyebrow="Monday class" title="Today" right={<Pop at={8}><div style={{ textAlign: "right" }}><div style={{ fontWeight: 800, fontSize: 150, lineHeight: 0.9, color: C.teal, textShadow: "0 0 60px rgba(0,245,212,.4)" }}>6</div><div style={{ fontWeight: 600, fontSize: 36, color: C.dim, marginTop: 8 }}>of 8 here</div></div></Pop>} />
+    <Pop at={8} style={{ ...CARD, padding: "36px 40px 40px", marginBottom: 26 }}>
+      <div style={lab}>Lift</div>
+      <div style={{ ...field, ...glow(LIFT_AT, SET_AT) }}><Typed text="Back Squat" at={LIFT_AT} per={1.6} ghost="Type a lift" /></div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0,1fr))", gap: 20, marginTop: 24 }}>
+        <div><div style={lab}>Rounds</div><div style={{ ...field, ...glow(SET_AT, SET_AT + 9) }}><Typed text="3" at={SET_AT} per={3} ghost="–" /></div></div>
+        <div><div style={lab}>Reps</div><div style={{ ...field, ...glow(SET_AT + 9, ROWS_AT - 6) }}><Typed text="8" at={SET_AT + 10} per={3} ghost="–" /></div></div>
+      </div>
     </Pop>
+    <div style={{ ...CARD, overflow: "hidden", opacity: ease(f, ROWS_AT - 8, ROWS_AT), transform: `translateY(${(1 - ease(f, ROWS_AT - 8, ROWS_AT + 6)) * 50}px)` }}>
+      <div style={{ display: "flex", justifyContent: "space-between", padding: "30px 44px", borderBottom: `2px solid ${C.line}`, fontWeight: 600, fontSize: 30, letterSpacing: 4, color: C.dim, textTransform: "uppercase" }}><span>Member</span><span>Weight</span></div>
+      {PEOPLE.map(([name, w], i) => { const at = W_AT + i * 11; const active = f >= at - 3 && f < at + 9;
+        return <Pop key={name} at={ROWS_AT + i * 3} y={30}><div style={{ display: "flex", alignItems: "center", gap: 22, padding: "0 40px", height: 150, borderBottom: i < PEOPLE.length - 1 ? `2px solid ${C.line}` : "none", background: `rgba(0,245,212,${active ? 0.09 : 0})` }}>
+          <div style={{ flex: 1, minWidth: 0, fontWeight: 600, fontSize: 47, letterSpacing: -1.2, whiteSpace: "nowrap" }}>{name}</div>
+          <div style={{ fontWeight: 600, fontSize: 30, color: C.teal, background: "rgba(0,245,212,.1)", borderRadius: 16, padding: "10px 16px", whiteSpace: "nowrap", flex: "none" }}>Back Squat · 3 × 8</div>
+          <div style={{ width: 168, height: 100, borderRadius: 26, border: `2px solid ${active ? C.teal : C.line}`, background: "#0a0c12", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 54, flex: "none" }}><Typed text={w} at={at} per={3} ghost="–" /></div>
+        </div></Pop>; })}
+    </div>
   </Scene>;
 };
 
-// ---- 2. the month --------------------------------------------------------
-const WK: [string, string, string][] = [["Mon", "Lower A", C.teal], ["Tue", "Upper A", C.blue], ["Wed", "Full Body", C.purple], ["Thu", "Lower B", C.teal], ["Fri", "Upper B", C.blue], ["Sat", "Full Body", C.purple]];
+// ---- 1. plan the month: write Monday once, it repeats -------------------
+const LIFTS: [string, string][] = [["Back Squat", "3 × 8"], ["Arnold Press", "3 × 10"], ["Back Lunge", "3 × 10"], ["Plank Pull-Through", "3 × 12"]];
+const WK: [string, string][] = [["Strength", C.teal], ["Upper", C.blue], ["Full", C.purple], ["Lower", C.pink], ["Upper", C.blue], ["Full", C.purple]];   // Mon..Sat
 const MonthScene: React.FC = () => {
-  const f = useCurrentFrame(); const cell = (1080 - M * 2 - 6 * 14) / 7;
-  return <Scene>
-    <Head eyebrow="The month, planned" title="November" color={C.blue} />
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 18, marginBottom: 50 }}>
-      {WK.map(([d, w, col], i) => <Pop key={d} at={10 + i * 3} y={28} style={{ ...CARD, borderRadius: 30, padding: "24px 28px" }}><div style={{ fontWeight: 600, fontSize: 28, letterSpacing: 4, color: C.dim, textTransform: "uppercase" }}>{d}</div><div style={{ fontWeight: 800, fontSize: 44, color: col, marginTop: 6, letterSpacing: -1 }}>{w}</div></Pop>)}
-    </div>
-    <Pop at={30} style={{ ...CARD, padding: 30 }}>
-      <div style={{ display: "grid", gridTemplateColumns: `repeat(7, ${cell - 60 / 7}px)`, gap: 14 }}>
-        {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => <div key={i} style={{ textAlign: "center", fontWeight: 600, fontSize: 28, color: C.dim, paddingBottom: 8 }}>{d}</div>)}
-        {Array.from({ length: 35 }, (_, i) => {
-          const day = i + 1, dow = i % 7, row = Math.floor(i / 7); if(day > 30) return <div key={i} />;
-          const w = dow === 0 ? null : WK[dow - 1]; const at = 40 + dow * 3 + row * 5; const s = spring({ frame: f - at, fps: SITE_FPS, config: { damping: 15, stiffness: 220, mass: 0.7 } });
-          const today = day === 26; const pulse = today ? ease(f, 86, 96) : 0;
-          return <div key={i} style={{ height: 152, borderRadius: 22, background: "#0a0c12", border: `2.5px solid ${today && pulse > 0 ? C.teal : C.line}`, padding: "12px 12px", position: "relative", overflow: "hidden", boxShadow: today ? `0 0 ${50 * pulse}px rgba(0,245,212,${0.55 * pulse})` : "none", transform: `scale(${1 + pulse * 0.07})` }}>
-            <div style={{ fontWeight: 600, fontSize: 30, color: day > 26 ? "rgba(255,255,255,.38)" : "#fff" }}>{day}</div>
-            {w ? <div style={{ position: "absolute", left: 10, right: 10, bottom: 12, height: 56, borderRadius: 14, background: w[2], opacity: Math.min(1, s) * (day > 26 ? 0.34 : 1), transform: `scaleY(${s})`, transformOrigin: "50% 100%", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 25, color: C.ink, letterSpacing: -0.5 }}>{w[1].split(" ")[0]}</div> : null}
-          </div>;
-        })}
+  const f = useCurrentFrame(); const SAVE = 112, FLIP = 126, FILL = 156;
+  const starts = LIFTS.reduce((a: number[], [n], i) => a.concat(i ? a[i - 1] + LIFTS[i - 1][0].length * 1.3 + 9 : 16), [] as number[]);
+  const press = ease(f, SAVE - 3, SAVE + 2) * (1 - ease(f, SAVE + 3, SAVE + 9)); const saved = f >= SAVE + 3;
+  const a = 1 - ease(f, FLIP - 6, FLIP + 4), b = ease(f, FLIP, FLIP + 12);
+  const cellW = (1080 - M * 2 - 60 - 6 * 14) / 7;
+  return <Scene len={LENS[0]}>
+    <Pop at={2}><div style={{ fontWeight: 600, fontSize: 34, letterSpacing: 7, color: C.blue, textTransform: "uppercase", marginBottom: 14 }}>Plan the month</div></Pop>
+    <div style={{ position: "relative", height: 1400 }}>
+      <div style={{ position: "absolute", inset: 0, opacity: a, transform: `translateY(${-(1 - a) * 90}px) scale(${0.96 + 0.04 * a})` }}>
+        <Pop at={5}><div style={{ display: "flex", alignItems: "baseline", gap: 26, marginBottom: 46 }}><div style={{ fontWeight: 800, fontSize: 118, letterSpacing: -4, lineHeight: 1 }}>Monday</div><div style={{ fontWeight: 600, fontSize: 46, color: C.teal }}>Strength</div></div></Pop>
+        <Pop at={9} style={{ ...CARD, overflow: "hidden" }}>
+          {LIFTS.map(([n, sets], i) => { const at = starts[i]; const done = at + n.length * 1.3; const s = spring({ frame: f - done, fps: SITE_FPS, config: { damping: 14, stiffness: 240 } });
+            return <div key={n} style={{ display: "flex", alignItems: "center", gap: 26, padding: "0 44px", height: 158, borderBottom: `2px solid ${C.line}`, opacity: f >= at - 6 ? 1 : 0.28 }}>
+              <div style={{ width: 62, fontWeight: 800, fontSize: 40, color: C.dim }}>{i + 1}</div>
+              <div style={{ flex: 1, fontWeight: 600, fontSize: 56, letterSpacing: -1 }}><Typed text={n} at={at} per={1.3} ghost="Add a lift" /></div>
+              <div style={{ fontWeight: 800, fontSize: 44, color: C.ink, background: C.teal, borderRadius: 20, padding: "10px 24px", opacity: Math.min(1, s * 1.5), transform: `scale(${0.6 + 0.4 * s})` }}>{sets}</div>
+            </div>; })}
+          <Pop at={90} y={24}><div style={{ display: "flex", alignItems: "center", gap: 20, padding: "34px 44px" }}>
+            <div style={{ fontWeight: 600, fontSize: 28, letterSpacing: 4, color: C.dim, textTransform: "uppercase" }}>Repeat</div>
+            <div style={{ fontWeight: 800, fontSize: 40, border: `2.5px solid ${C.teal}`, color: C.teal, borderRadius: 22, padding: "12px 24px", whiteSpace: "nowrap" }}>Every Monday</div>
+            <div style={{ fontWeight: 800, fontSize: 40, border: `2.5px solid ${C.line}`, borderRadius: 22, padding: "12px 24px", whiteSpace: "nowrap" }}>Dec 1 – Dec 28</div>
+          </div></Pop>
+        </Pop>
+        <Pop at={98} style={{ marginTop: 30 }}><div style={{ height: 134, borderRadius: 40, background: saved ? "rgba(0,245,212,.14)" : C.teal, border: `3px solid ${C.teal}`, color: saved ? C.teal : C.ink, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 54, letterSpacing: -1, transform: `scale(${1 - press * 0.05})`, boxShadow: saved ? "none" : "0 24px 60px -18px rgba(0,245,212,.6)" }}>{saved ? "Saved to 4 Mondays" : "Save to every Monday"}</div></Pop>
       </div>
-    </Pop>
+      <div style={{ position: "absolute", inset: 0, opacity: b, transform: `translateY(${(1 - b) * 110}px)` }}>
+        <div style={{ fontWeight: 800, fontSize: 118, letterSpacing: -4, lineHeight: 1, marginBottom: 46 }}>December</div>
+        <div style={{ ...CARD, padding: 30 }}>
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(7, ${cellW}px)`, gap: 14 }}>
+            {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => <div key={i} style={{ textAlign: "center", fontWeight: 600, fontSize: 30, color: i === 1 ? C.teal : C.dim, paddingBottom: 8 }}>{d}</div>)}
+            {Array.from({ length: 35 }, (_, i) => {
+              const day = i - 1, dow = i % 7, row = Math.floor(i / 7); if(day < 1 || day > 31) return <div key={i} />;   // Dec 1, 2026 is a Tuesday
+              const w = dow === 0 ? null : WK[dow - 1]; const mon = dow === 1;
+              const s = mon ? spring({ frame: f - (FILL + (row - 1) * 9), fps: SITE_FPS, config: { damping: 11, stiffness: 230, mass: 0.8 } }) : 1;
+              const flash = mon ? Math.max(0, 1 - Math.abs(f - (FILL + (row - 1) * 9 + 6)) / 16) : 0;
+              return <div key={i} style={{ height: 196, borderRadius: 24, background: "#0a0c12", border: `2.5px solid ${mon && s > 0.05 ? C.teal : C.line}`, padding: "14px 14px", position: "relative", boxShadow: mon ? `0 0 ${60 * flash}px rgba(0,245,212,${0.7 * flash})` : "none", transform: `scale(${1 + flash * 0.09})`, zIndex: mon ? 2 : 1 }}>
+                <div style={{ fontWeight: 600, fontSize: 34 }}>{day}</div>
+                {w ? <div style={{ position: "absolute", left: 9, right: 9, bottom: 12, height: 64, borderRadius: 16, background: w[1], opacity: mon ? Math.min(1, s * 1.4) : 0.82, transform: `scale(${mon ? 0.4 + 0.6 * s : 1})`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: mon ? 20.5 : 26, color: C.ink, letterSpacing: mon ? -1 : -0.6 }}>{w[0]}</div> : null}
+              </div>;
+            })}
+          </div>
+        </div>
+        <div style={{ marginTop: 34, display: "flex", alignItems: "center", gap: 20, opacity: ease(f, FILL + 30, FILL + 40) }}><Check at={FILL + 30} size={64} /><div style={{ fontWeight: 600, fontSize: 46 }}>Every Monday is set. <span style={{ color: C.dim }}>One entry.</span></div></div>
+      </div>
+    </div>
   </Scene>;
 };
 
@@ -180,10 +221,11 @@ const BodyScene: React.FC = () => {
 };
 
 export const SiteClip: React.FC = () => {
-  const scenes = [ClassScene, MonthScene, MemberScene, AppScene, BodyScene];
+  const scenes: [React.FC, number][] = [[MonthScene, 0], [ClassScene, 0], [() => <MemberScene />, 0], [() => <AppScene />, 0], [() => <BodyScene />, 0]];
+  let from = 0;
   return <AbsoluteFill style={{ background: C.ink }}>
     <style>{fontFace}</style>
     <AbsoluteFill style={{ background: "radial-gradient(900px 700px at 80% -6%, rgba(0,245,212,.13), transparent 70%), radial-gradient(800px 800px at 0% 100%, rgba(77,184,255,.08), transparent 70%)" }} />
-    {scenes.map((S, i) => <Sequence key={i} from={i * SCENE} durationInFrames={SCENE + OVER} layout="none"><S /></Sequence>)}
+    {scenes.map(([S], i) => { const at = from; from += LENS[i]; return <Sequence key={i} from={at} durationInFrames={LENS[i] + OVER} layout="none"><S /></Sequence>; })}
   </AbsoluteFill>;
 };

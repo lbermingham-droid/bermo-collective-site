@@ -1201,6 +1201,16 @@ a website a live demo beats a video, so it is a page, not another cut.
   from `scripts/site-body.js`. Render: `npx remotion render src/index.ts
   SiteClip out/site-master.mp4 --browser-executable=/opt/pw-browsers/chromium`,
   then ffmpeg to `site/fitness.mp4` (720x1472) and `fitness-full.mp4`.
+  **Second pass, from the gym's real paper sheets (she sent photos):**
+  scene 1 is now the coach typing Monday's actual workout (Back Squat,
+  Arnold Press, Back Lunge, Plank Pull-Through), "Repeat: Every Monday,
+  Dec 1 – Dec 28", Save, then December with every Monday filling in;
+  scene 2 is the coach entering the lift + rounds x reps, then every
+  member appears with that lift and their weight is typed. 25 s total.
+  **The app does not have that exact "repeat on a weekday between two
+  dates" save yet** (it has a weekday pattern + Fill the month); build
+  it if she wants the app to match the video. Never use the real
+  members' names from her sheet photos.
   Rule learned: for her WEBSITE, show big simple animated pieces of the
   product, never a full dense screen.
 - Screens are re-shot with scratchpad `demoshot.js` (viewport 390x800,

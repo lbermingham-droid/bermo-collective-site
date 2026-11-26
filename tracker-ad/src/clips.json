@@ -1,0 +1,11 @@
+{
+  "gym": "clips/gym.mp4",
+  "run": "clips/run.mp4",
+  "beach": "clips/beach.mp4",
+  "food": null,
+  "mattes": {
+    "gym": 56,
+    "run": 56,
+    "beach": 56
+  }
+}

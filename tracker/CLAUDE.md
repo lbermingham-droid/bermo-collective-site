@@ -1237,6 +1237,28 @@ a website a live demo beats a video, so it is a page, not another cut.
   Previous / Lbs / Reps / check) for one member, then the others'
   set summaries. **These are the rules to apply if the real app gets
   the same treatment** — its neon multi-accent look is the same tell.
+  **Fifth pass (she sent Ladder's site and pointed at Monday.com):**
+  - "I hate the cyan" and the cyan + pink combo. The clip is now ONE
+    accent, violet `#7c6cff`, on black with white. **This contradicts the
+    four-accent palette rule in §2 for the real app — ask before
+    recolouring the app, but do not use cyan in new marketing work.**
+  - She prefers the app's ORIGINAL line-art exercise images over stock
+    photos, "with a 3D element, not glowing": `Thumb` is a raised tile
+    (top highlight, hard bottom edge, soft drop shadow) with the Bryl Lim
+    art masked white→lavender (`public/site/art/`). **CC BY-SA 4.0: the
+    credit "Exercise art: Workout Guide by Bryl Lim" must appear wherever
+    the clip is published.** The stock photos are no longer used.
+  - "Cool but no wow moment": each key beat now LIFTS OUT of the screen
+    on a white card over the dimmed UI, tilting up from perspective, with
+    a wide display numeral (Archivo 125/900) and a solid accent block —
+    Monday.com's move. Calendar save → "4 MONDAYS"; Chris's bonus set →
+    "NEW PR 175 lb × 3" with bars. Also: Mondays rise as raised pucks,
+    the member's lift is a growing bar chart with an attendance grid,
+    and the body figure turns front to back in perspective.
+  - Do not use `backdrop-filter: blur` under Remotion for this: it
+    mirrored text at the edges. Plain dim only. And never mix a
+    `background` shorthand with a conditional `backgroundColor`/
+    `borderColor` — frames render in one page and the reset wipes it.
   Rule learned: for her WEBSITE, show big simple animated pieces of the
   product, never a full dense screen.
 - Screens are re-shot with scratchpad `demoshot.js` (viewport 390x800,

@@ -232,3 +232,24 @@ export const AppFlipped: React.FC = () => <AbsoluteFill style={{ background: "#1
     {ROWS.map((frame, r) => <Phone key={r} w={470} style={{ left: 50 + c * 530, top: 110 + r * 1010 }}><Themed theme={theme}><Clip start={frame} /></Themed></Phone>)}
   </React.Fragment>)}
 </AbsoluteFill>;
+
+// ---- BRAND treatment of the four colourways: black ground, blocks are DEEP tints of the
+// hero colour (no grey, but quiet), the hero at full strength only on actions / progress /
+// tiles, one rare spark colour for achievements, white for hero numbers ----
+const brand = (deep: string, deep2: string, hero: string, heroDeep: string, onHero: string, spark: string, label: string): Partial<SiteTheme> => ({ ...DARK, cell: deep, cell2: deep2, cellText: "#fff", cellSec: label, cellTer: label.replace(/[\d.]+\)$/, ".45)"), cellSep: "rgba(255,255,255,.1)",
+  text: "#fff", sec: label, ter: label.replace(/[\d.]+\)$/, ".5)"), sep: "rgba(255,255,255,.12)", acc: hero, accDeep: heroDeep, onAcc: onHero, link: hero,
+  thumb: `linear-gradient(150deg, ${hero}, ${heroDeep})`, art: `linear-gradient(160deg, ${onHero}, ${onHero})`, up: spark, hi: spark, pr: spark, prDeep: heroDeep, ring2: spark, muscle: hero, soft: deep2, conf: spark,
+  avatar: deep2, avatarInk: hero, cardSub: heroDeep, cardEdge: "#d9d9e2", figSet: "-b" });
+const BRANDS: [string, Partial<SiteTheme>][] = [
+  ["A · Sun on navy", brand("#0E1640", "#1A2566", "#F6CE45", "#D9AE22", "#0E1640", "#6F86FF", "rgba(190,200,255,.75)")],
+  ["B · Tomato on deep teal", brand("#0B2429", "#143A42", "#E2332A", "#B3231C", "#fff", "#C5EEF2", "rgba(197,238,242,.75)")],
+  ["C · Red on maroon", brand("#260B09", "#3D1411", "#E8382E", "#B3231C", "#fff", "#F7EFDD", "rgba(247,239,221,.72)")],
+  ["D · Cobalt on blue-black", brand("#0C1238", "#182060", "#4A5DFF", "#2E3ECC", "#fff", "#F6CE45", "rgba(190,200,255,.75)")],
+];
+export const AppBrand: React.FC = () => <AbsoluteFill style={{ background: "#101012", fontFamily: "InterVar, InterTight, sans-serif", color: "#fff" }}>
+  <style>{adFonts}</style><style>{wide}</style>
+  {BRANDS.map(([name, theme], c) => <React.Fragment key={c}>
+    <div style={{ position: "absolute", left: 30 + c * 540, top: 40, width: 510, textAlign: "center", fontSize: 24, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", opacity: 0.85 }}>{name}</div>
+    {BROWS.map((frame, r) => <Phone key={r} w={470} style={{ left: 50 + c * 540, top: 104 + r * 1000 }}><Themed theme={theme}><Clip start={frame} /></Themed></Phone>)}
+  </React.Fragment>)}
+</AbsoluteFill>;

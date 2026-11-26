@@ -1229,6 +1229,17 @@ compositions, both keeping **130 px clear on each side** (her number):
   on a cobalt block is hard to read — keep red for badges/fills, not
   small text on blue. Awaiting her yes before anything changes colour.
   Note this brings yellow back, which §2 banned — her call now.
+- **"Something feels off — how to make this look like a brand
+  colour?"** Diagnosis given: saturated colour on every block reads as
+  wallpaper, several colours at equal volume, borrowed primaries, no tie
+  to her site. The brand recipe (`AppBrand` still, `brand()` in
+  Insta.tsx): black ground; blocks are DEEP tints of the hero colour
+  (quiet, but not grey); the hero at full strength only on actions,
+  progress and tiles; ONE rare spark colour for achievements; white for
+  hero numbers. Shown for all four colourways. Other mock stills kept
+  for reference: `AppColorways`, `AppDark`, `AppBlocks`, `AppAgreed`,
+  `AppBlueYellow`, `AppFlipped`. **No palette chosen yet — the app,
+  clip, reel and photo are still violet.**
 - To show `SiteClip` from a given frame inside another composition use
   `<Sequence from={-n}>`. `<Freeze>` did not hold its nested Sequences.
 

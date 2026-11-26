@@ -1194,10 +1194,13 @@ through and clean the code". What was done:
 
 **INSTAGRAM IN THE NEW LOOK (`tracker-ad/src/Insta.tsx`).** Two
 compositions, both keeping **130 px clear on each side** (her number):
-- `InstaPhoto` (Still, 1080x1350): two overlapping drawn iPhones on
-  black — member progress behind, the "NEW PR" lift-out in front — and
-  one line, "YOUR GYM. YOUR APP." Layout modelled on a Ladder site
-  image she sent; screens, colours and copy are ours. Render:
+- `InstaPhoto` (Still, 1080x1350): OUR layout — one phone turned in
+  space showing the class set table, with the white "NEW PR" card and
+  the violet "4 MONDAYS" block floating in front of it, the reel's
+  caption style at the top ("Every lift. Every member.") and BERMO at
+  the bottom. The first version copied a Ladder site image (two upright
+  overlapping phones) and she said "don't make it exact — use ours".
+  **Take inspiration from references, never their composition.** Render:
   `npx remotion still src/index.ts InstaPhoto out/insta-photo.png`.
 - `InstaReel` (1080x1920, ~26 s): her gym clip ("Your gym still runs on
   paper."), then the app in a phone playing four ranges of `SiteClip`

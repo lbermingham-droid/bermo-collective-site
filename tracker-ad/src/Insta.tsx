@@ -10,7 +10,8 @@ import { Footage, Word, fontFace as adFonts } from "./Ad";
 // (the app redrawn and animated), frozen for the photo, playing in the reel.
 export const INSTA_FPS = 30;
 const PAD = 130, ACC = "#7c6cff";
-const wide = `@font-face{font-family:ArchivoWide;font-weight:900;src:url(${staticFile("fonts/archivo-wide-900.woff2")}) format("woff2")}`;
+const wide = `@font-face{font-family:InterVar;font-weight:100 900;src:url(${staticFile("fonts/inter-var.woff2")}) format("woff2")}
+@font-face{font-family:ArchivoWide;font-weight:900;src:url(${staticFile("fonts/archivo-wide-900.woff2")}) format("woff2")}`;
 
 // An iPhone drawn around a 1080 x 2208 screen. `w` = outer width in px.
 const Phone: React.FC<{ w: number; style?: React.CSSProperties; children: React.ReactNode }> = ({ w, style, children }) => {
@@ -30,11 +31,41 @@ const Phone: React.FC<{ w: number; style?: React.CSSProperties; children: React.
 const Clip: React.FC<{ start: number }> = ({ start }) => <Sequence from={-start} layout="none"><SiteClip /></Sequence>;
 
 // ---- the feed post -------------------------------------------------------
-export const InstaPhoto: React.FC = () => <AbsoluteFill style={{ background: "#050506" }}>
-  <style>{wide}</style>
-  <Phone w={492} style={{ left: PAD, top: 64 }}><Clip start={603} /></Phone>
-  <Phone w={418} style={{ left: 1080 - PAD - 418, top: 282 }}><Clip start={398} /></Phone>
-  <div style={{ position: "absolute", left: PAD, right: PAD, bottom: 68, textAlign: "center", fontFamily: "ArchivoWide", fontWeight: 900, fontSize: 53, letterSpacing: 1, color: "#fff", whiteSpace: "nowrap" }}>YOUR GYM. <span style={{ color: ACC }}>YOUR APP.</span></div>
+// OUR composition, not Ladder's two upright phones: one phone turned in
+// space, and the two things the product is about pulled OUT of the screen
+// in front of it (the PR card and the "4 Mondays" block), with the reel's
+// own caption style. 130 px clear each side.
+const Tile: React.FC<{ id: string; size: number }> = ({ id, size }) => { const url = staticFile(`site/art/${id}.png`);
+  return <div style={{ width: size, height: size, flex: "none", borderRadius: size * 0.26, position: "relative", background: "linear-gradient(150deg,#2b2b31,#151518)", boxShadow: `inset 0 2px 0 rgba(255,255,255,.22), 0 ${size * 0.06}px 0 #0d0d10, 0 ${size * 0.14}px ${size * 0.18}px rgba(0,0,0,.45)` }}>
+    <div style={{ position: "absolute", inset: size * 0.07, background: "linear-gradient(160deg,#fff 35%,#b9b0ff)", WebkitMaskImage: `url(${url})`, maskImage: `url(${url})`, WebkitMaskSize: "contain", maskSize: "contain", WebkitMaskRepeat: "no-repeat", maskRepeat: "no-repeat", WebkitMaskPosition: "center", maskPosition: "center" }} />
+  </div>; };
+const cap = (key: string) => <span style={{ color: ACC, display: "inline-block", transform: "skewX(-9deg)" }}>{key}</span>;
+export const InstaPhoto: React.FC = () => <AbsoluteFill style={{ background: "#050506", fontFamily: "InterVar, InterTight, sans-serif", color: "#fff" }}>
+  <style>{adFonts}</style><style>{wide}</style>
+  <div style={{ position: "absolute", left: PAD, top: 92, fontFamily: "InterTight", fontWeight: 800, fontSize: 82, letterSpacing: -2.6, lineHeight: 1.05 }}>Every {cap("lift.")}<br />Every {cap("member.")}</div>
+  <div style={{ position: "absolute", left: 0, top: 0, width: 1080, height: 1350, perspective: 2200, perspectiveOrigin: "50% 40%" }}>
+    <div style={{ position: "absolute", left: 356, top: 322, width: 440, transform: "rotateY(-17deg) rotateX(7deg) rotateZ(3deg)", transformOrigin: "50% 50%" }}><Phone w={440} style={{ left: 0, top: 0 }}><Clip start={362} /></Phone></div>
+  </div>
+  <div style={{ position: "absolute", left: 494, top: 706, width: 456, transform: "rotate(-3deg)", background: "#fff", color: "#0b0b0d", borderRadius: 34, boxShadow: "0 6px 0 #cfcfd6, 0 50px 90px rgba(0,0,0,.8)", overflow: "hidden" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "24px 24px 8px" }}>
+      <Tile id="squat" size={60} />
+      <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 28, fontWeight: 700, letterSpacing: -0.7 }}>Chris Walker</div><div style={{ fontSize: 19, color: "#6b6b76", whiteSpace: "nowrap" }}>Back Squat · bonus set</div></div>
+      <div style={{ background: ACC, color: "#fff", borderRadius: 13, padding: "9px 13px", fontSize: 17, fontWeight: 800, letterSpacing: 0.8, whiteSpace: "nowrap", flex: "none" }}>NEW PR</div>
+    </div>
+    <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", padding: "0 26px 24px" }}>
+      <div><div style={{ fontFamily: "ArchivoWide", fontWeight: 900, fontSize: 84, lineHeight: 1.04, letterSpacing: -2, whiteSpace: "nowrap" }}>175<span style={{ fontFamily: "InterVar, InterTight", fontWeight: 700, fontSize: 28, marginLeft: 10, letterSpacing: 0 }}>lb × 3</span></div>
+        <div style={{ fontSize: 22, fontWeight: 600, color: "#4a3fc4" }}>+10 lb on his best</div></div>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 100 }}>{[0.52, 0.6, 0.66, 0.74, 1].map((h, i) => <div key={i} style={{ width: 21, height: 100 * h, borderRadius: 6, background: i === 4 ? ACC : "#d9d6ee" }} />)}</div>
+    </div>
+  </div>
+  <div style={{ position: "absolute", left: PAD, top: 992, width: 372, transform: "rotate(4deg)", background: ACC, borderRadius: 30, boxShadow: "0 6px 0 #4a3fc4, 0 44px 80px rgba(0,0,0,.75)", padding: "22px 26px 24px" }}>
+    <div style={{ fontFamily: "ArchivoWide", fontWeight: 900, fontSize: 66, lineHeight: 1 }}>4<span style={{ fontSize: 26, marginLeft: 12 }}>MONDAYS</span></div>
+    <div style={{ fontSize: 22, fontWeight: 600, marginTop: 8, opacity: 0.94 }}>Planned from one entry</div>
+  </div>
+  <div style={{ position: "absolute", left: PAD, right: PAD, bottom: 62, display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+    <div style={{ fontFamily: "InterTight", fontWeight: 800, fontSize: 46, letterSpacing: -1.5 }}>BERMO<span style={{ color: ACC }}>.</span></div>
+    <div style={{ fontSize: 24, fontWeight: 600, color: "rgba(255,255,255,.7)" }}>Custom apps for gyms</div>
+  </div>
 </AbsoluteFill>;
 
 // ---- the reel ------------------------------------------------------------

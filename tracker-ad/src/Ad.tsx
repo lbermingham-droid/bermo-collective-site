@@ -89,12 +89,13 @@ const Macro: React.FC<{ shot: string; shotH: number; from: number; to: number; l
   const depth = Array.from({ length: 9 }, (_, i) => i);   // stacked slices give the body real thickness
   const btn = (side: "left" | "right", top: number, h: number) => <div style={{ position: "absolute", [side]: -5, top, width: 7, height: h, borderRadius: 4, background: "linear-gradient(90deg,#9a9da5,#4a4c53 45%,#2a2c31)", boxShadow: "inset 0 1px 0 rgba(255,255,255,.35)" }} />;
   const bgSrc = clips[bg];
-  return <AbsoluteFill style={{ background: "#050608", perspective: 3000, perspectiveOrigin: "50% 46%" }}>
+  return <AbsoluteFill style={{ background: "#050608", perspective: 1700, perspectiveOrigin: "50% 62%" }}>
     {bgSrc ? <AbsoluteFill style={{ transform: `scale(${interpolate(f, [0, len], [1.22, 1.3])})` }}><OffthreadVideo src={staticFile(bgSrc)} muted playbackRate={0.6} style={{ width: "100%", height: "100%", objectFit: "cover", filter: "blur(34px) brightness(.5) saturate(.9)" }} /></AbsoluteFill> : null}
     <AbsoluteFill style={{ background: "radial-gradient(ellipse at 50% 52%, rgba(5,6,8,.15) 0%, rgba(5,6,8,.62) 62%, rgba(5,6,8,.9) 100%)" }} />
     <div style={{ position: "absolute", left: (1080 - PW) / 2 - 40, top: 1760, width: PW + 80, height: 70, borderRadius: "50%", background: "radial-gradient(ellipse, rgba(0,0,0,.95), transparent 70%)", filter: "blur(6px)" }} />
     <div style={{ position: "absolute", left: (1080 - PW) / 2, top: 345, width: PW, height: PH, transformStyle: "preserve-3d",
-        transform: `translateY(${(1 - inn) * 60}px) rotateY(${-9 + drift}deg) rotateX(2.5deg) scale(${interpolate(inn, [0, 1], [0.96, 1]) * interpolate(f, [0, len], [1, 1.025])})` }}>
+        // held-in-hand POV: looking down at it, top tilted away, turned the way a right hand holds a phone, close enough to read
+        transformOrigin: "50% 42%", transform: `translate(-14px, ${(1 - inn) * 60 + 44}px) scale(${1.07 * interpolate(inn, [0, 1], [0.96, 1]) * interpolate(f, [0, len], [1, 1.025])}) rotateX(19deg) rotateY(${-4 + drift}deg) rotateZ(-4deg)` }}>
       {depth.map(i => <div key={i} style={{ position: "absolute", inset: 0, borderRadius: 104, transform: `translateZ(${-i * 3}px)`, background: i === 0 ? "transparent" : "linear-gradient(90deg,#6b6e76,#2c2e34 30%,#55585f 70%,#1d1e22)" }} />)}
       {btn("left", 214, 50)}{btn("left", 306, 96)}{btn("left", 422, 96)}{btn("right", 340, 150)}
       {/* titanium band: brushed gradient + a hairline specular edge */}

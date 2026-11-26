@@ -1129,6 +1129,13 @@ are gitignored; `/tracker-ad/*` is 404'd on the public site in
   `.main::after` is a FIXED bottom fade, so full-page captures froze it
   mid-list and ghost text showed above the tab bar — hide it (and the
   page, when shooting the translucent tab bar) in `capture.js`.
+- **Eighth cut — the upright phone was WRONG.** "No! Not that angle! I
+  can't read that… the angle should be as if the person is holding it."
+  Upright made the screen small. The phone is now a held-in-hand POV:
+  `scale(1.07) rotateX(19) rotateY(-4) rotateZ(-4)`, perspective 1700 with
+  the origin low, so you look down at it and the top tilts away. The
+  bottom edge runs just off the frame, where a hand would be. Rule:
+  **readability first; a phone shot she cannot read is a failed shot.**
 - **Still not Ladder quality, and why:** Ladder's is professionally shot
   and graded, with a real hand-held phone. Hers is three phone clips. To
   close the gap she needs to FILM her phone showing the app (in hand at

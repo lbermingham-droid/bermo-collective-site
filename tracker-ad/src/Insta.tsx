@@ -138,3 +138,19 @@ export const AppColorways: React.FC = () => <AbsoluteFill style={{ background: "
     {ROWS.map((frame, r) => <Phone key={r} w={470} style={{ left: 50 + c * 530, top: 110 + r * 1010 }}><Themed theme={theme}><Clip start={frame} /></Themed></Phone>)}
   </React.Fragment>)}
 </AbsoluteFill>;
+
+// ---- the direction she described: black ground, cobalt primary, light-blue tint,
+// red secondary, bright yellow highlight, white only for the big pops ----
+const DARK: Partial<SiteTheme> = { acc: "#4A5DFF", accDeep: "#2E3ECC", onAcc: "#fff", up: "#A9DDF0", soft: "#C5EEF2", conf: "#F6CE45", pr: "#E8382E", prDeep: "#C22A21", hi: "#F6CE45", ring2: "#F6CE45", muscle: "#E8382E", fig: "hue-rotate(118deg) saturate(1.2)", art: "linear-gradient(160deg,#ffffff 35%,#C5EEF2 100%)" };
+const SWATCH: [string, string, string][] = [["#000000", "Black", "Background"], ["#4A5DFF", "Cobalt", "Buttons, ticks, charts"], ["#C5EEF2", "Light blue", "Tints, trends"], ["#E8382E", "Red", "PRs, muscles worked"], ["#F6CE45", "Yellow", "Small highlights"], ["#FFFFFF", "White", "The big pops"]];
+const SHOTS: [number, string][] = [[362, "Class"], [398, "A PR"], [228, "Calendar"], [603, "Member"], [730, "Today"], [800, "Muscles"]];
+export const AppDark: React.FC = () => <AbsoluteFill style={{ background: "#101012", fontFamily: "InterVar, InterTight, sans-serif", color: "#fff" }}>
+  <style>{adFonts}</style><style>{wide}</style>
+  <div style={{ position: "absolute", left: 60, right: 60, top: 44, display: "flex", gap: 18 }}>
+    {SWATCH.map(([c, n, use]) => <div key={n} style={{ flex: 1, display: "flex", alignItems: "center", gap: 14 }}><div style={{ width: 62, height: 62, borderRadius: 16, background: c, border: c === "#000000" ? "2px solid #3a3a3c" : "none", flex: "none" }} /><div><div style={{ fontSize: 23, fontWeight: 700 }}>{n}</div><div style={{ fontSize: 17, color: "rgba(255,255,255,.6)" }}>{use}</div></div></div>)}
+  </div>
+  {SHOTS.map(([frame, name], i) => <React.Fragment key={i}>
+    <Phone w={470} style={{ left: 95 + (i % 3) * 560, top: 170 + Math.floor(i / 3) * 1040 }}><Themed theme={DARK}><Clip start={frame} /></Themed></Phone>
+    <div style={{ position: "absolute", left: 95 + (i % 3) * 560, width: 470, top: 170 + Math.floor(i / 3) * 1040 + 968, textAlign: "center", fontSize: 22, fontWeight: 600, color: "rgba(255,255,255,.6)" }}>{name}</div>
+  </React.Fragment>)}
+</AbsoluteFill>;

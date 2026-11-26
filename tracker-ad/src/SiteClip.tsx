@@ -26,13 +26,16 @@ export const SITE_DURATION = LENS.reduce((a, b) => a + b, 0);
 const U = 3;                                  // px per pt
 const u = (n: number) => n * U;
 const BASE_THEME = { bg: "#000", cell: "#1c1c1e", cell2: "#2c2c2e", sep: "rgba(84,84,88,.55)", text: "#fff", sec: "rgba(235,235,245,.6)", ter: "rgba(235,235,245,.3)", acc: "#7c6cff", accDeep: "#4a3fc4",
-  onAcc: "#fff", tab: "rgba(18,18,20,.94)", thumb: "linear-gradient(150deg,#3a3a41 0%,#26262b 55%,#1d1d21 100%)", art: "linear-gradient(160deg,#ffffff 35%,#b9b0ff 100%)", fig: "none" };
+  onAcc: "#fff", tab: "rgba(18,18,20,.94)", thumb: "linear-gradient(150deg,#3a3a41 0%,#26262b 55%,#1d1d21 100%)", art: "linear-gradient(160deg,#ffffff 35%,#b9b0ff 100%)", fig: "none",
+  // roles a multi-colour palette can split out; by default they all fall back to the one accent
+  pr: "", up: "", hi: "", muscle: "", ring2: "#8e8e93", soft: "#d9d6ee", conf: "#b9b0ff", prDeep: "" };
 export type SiteTheme = typeof BASE_THEME;
 // The palette every screen reads. Mutable on purpose: <Themed> swaps it for a subtree
 // (used by the colourway mock). React renders depth-first, so a Themed's children read
 // its palette before a sibling Themed changes it.
-const C: SiteTheme = { ...BASE_THEME };
-export const Themed: React.FC<{ theme?: Partial<SiteTheme>; children: React.ReactNode }> = ({ theme, children }) => { Object.assign(C, BASE_THEME, theme || {}); return <>{children}</>; };
+const fill = (t: SiteTheme): SiteTheme => ({ ...t, pr: t.pr || t.acc, up: t.up || t.acc, hi: t.hi || t.acc, muscle: t.muscle || t.acc, prDeep: t.prDeep || t.accDeep });
+const C: SiteTheme = fill({ ...BASE_THEME });
+export const Themed: React.FC<{ theme?: Partial<SiteTheme>; children: React.ReactNode }> = ({ theme, children }) => { Object.assign(C, fill({ ...BASE_THEME, ...(theme || {}) })); return <>{children}</>; };
 const FONT = "InterVar", WIDE = "ArchivoWide";
 const fontFace = `@font-face{font-family:${FONT};font-weight:100 900;src:url(${staticFile("fonts/inter-var.woff2")}) format("woff2")}
 @font-face{font-family:ArchivoWide;font-weight:900;src:url(${staticFile("fonts/archivo-wide-900.woff2")}) format("woff2")}`;
@@ -113,7 +116,7 @@ const Typed: React.FC<{ text: string; at: number; per?: number; ghost?: string }
 };
 const Lift: React.FC<{ at: number; end: number; top?: number; children: React.ReactNode }> = ({ at, end, top = 150, children }) => {
   const f = useCurrentFrame(); const k = sp(f, at, 150, 17); const out = ease(f, end, end + 9); const v = Math.min(1, k) * (1 - out);
-  const bits = Array.from({ length: 14 }, (_, i) => { const a = (i / 14) * Math.PI * 2 + 0.4, d = ease(f, at + 3, at + 30) * u(150 + (i % 4) * 28); return { x: Math.cos(a) * d * 1.15, y: Math.sin(a) * d * 0.62 - ease(f, at + 3, at + 40) * u(10), c: i % 3 === 0 ? "#fff" : i % 3 === 1 ? C.acc : "#b9b0ff", r: i % 2 ? 4 : 6, o: ease(f, at + 2, at + 8) * (1 - ease(f, at + 24, at + 40)) }; });
+  const bits = Array.from({ length: 14 }, (_, i) => { const a = (i / 14) * Math.PI * 2 + 0.4, d = ease(f, at + 3, at + 30) * u(150 + (i % 4) * 28); return { x: Math.cos(a) * d * 1.15, y: Math.sin(a) * d * 0.62 - ease(f, at + 3, at + 40) * u(10), c: i % 3 === 0 ? "#fff" : i % 3 === 1 ? C.pr : C.conf, r: i % 2 ? 4 : 6, o: ease(f, at + 2, at + 8) * (1 - ease(f, at + 24, at + 40)) }; });
   return <AbsoluteFill style={{ zIndex: 9 }}>
     <AbsoluteFill style={{ background: `rgba(0,0,0,${0.74 * v})` }} />
     <div style={{ position: "absolute", left: u(18), right: u(18), top: u(top), perspective: u(620) }}>
@@ -205,7 +208,7 @@ const ClassScreen: React.FC = () => {
       </div>
       {SETS.map(([prev, w, r], i) => { const at = ROW + i * STEP; const done = f >= at + 13; const on = sp(f, at + 13, 260, 24);
         return <div key={i} style={{ display: "grid", gridTemplateColumns: `${u(34)}px 1fr ${u(72)}px ${u(60)}px ${u(34)}px`, columnGap: u(8), alignItems: "center", padding: `${u(4)}px ${u(14)}px`, background: tint(C.acc, 0.13 * on), opacity: i === 3 ? ease(f, at - 8, at - 2) : 1 }}>
-          <div style={{ fontSize: u(17), fontWeight: 600, color: i === 3 ? C.acc : C.text }}>{i === 3 ? "+" : i + 1}</div>
+          <div style={{ fontSize: u(17), fontWeight: 600, color: i === 3 ? C.hi : C.text }}>{i === 3 ? "+" : i + 1}</div>
           <div style={{ ...T.body, color: C.ter }}>{i === 3 ? "Bonus" : prev}</div>
           <div style={{ ...field, color: done ? C.text : undefined }}><Typed text={w} at={at} per={2.2} ghost={i === 3 ? "" : prev.split(" ")[0]} /></div>
           <div style={field}><Typed text={r} at={at + 8} per={2.2} ghost="6" /></div>
@@ -217,7 +220,7 @@ const ClassScreen: React.FC = () => {
       {OTHERS.map(([name, sets, pr, hue], i) => { const at = REST + i * 12; const k = ease(f, at, at + 7);
         return <React.Fragment key={name}>{i ? <Sep inset={58} /> : null}<div style={{ display: "flex", alignItems: "center", gap: u(10), padding: `0 ${u(14)}px`, height: u(54) }}>
           <Avatar name={name} hue={hue} />
-          <div style={{ flex: 1, minWidth: 0 }}><div style={{ ...T.body, fontWeight: 500, display: "flex", alignItems: "center", gap: u(7) }}>{name}{pr ? <span style={{ opacity: k, fontSize: u(11), fontWeight: 700, color: C.acc, border: `1.500px solid ${C.acc}`, borderRadius: u(5), padding: `${u(1)}px ${u(5)}px`, letterSpacing: 0.4 * U }}>PR</span> : null}</div>
+          <div style={{ flex: 1, minWidth: 0 }}><div style={{ ...T.body, fontWeight: 500, display: "flex", alignItems: "center", gap: u(7) }}>{name}{pr ? <span style={{ opacity: k, fontSize: u(11), fontWeight: 700, color: C.pr, border: `1.500px solid ${C.pr}`, borderRadius: u(5), padding: `${u(1)}px ${u(5)}px`, letterSpacing: 0.4 * U }}>PR</span> : null}</div>
             <div style={{ ...T.sub, position: "relative", height: u(18) }}><span style={{ position: "absolute", opacity: 1 - k, whiteSpace: "nowrap" }}>Not logged yet</span><span style={{ position: "absolute", opacity: k, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>{sets}</span></div></div>
           <CheckDot at={at} />
         </div></React.Fragment>; })}
@@ -226,12 +229,12 @@ const ClassScreen: React.FC = () => {
       <div style={{ display: "flex", alignItems: "center", gap: u(12), padding: `${u(16)}px ${u(16)}px ${u(6)}px` }}>
         <Thumb id="Barbell_Squat" size={46} light />
         <div style={{ flex: 1 }}><div style={{ fontSize: u(19), fontWeight: 700, letterSpacing: -0.5 * U }}>Chris Walker</div><div style={{ fontSize: u(14), color: "#6b6b76", whiteSpace: "nowrap" }}>Back Squat · bonus set</div></div>
-        <div style={{ background: C.acc, color: C.onAcc, borderRadius: u(9), padding: `${u(7)}px ${u(11)}px`, fontSize: u(13), fontWeight: 800, letterSpacing: 0.6 * U, whiteSpace: "nowrap", flex: "none" }}>NEW PR</div>
+        <div style={{ background: C.pr, color: "#fff", borderRadius: u(9), padding: `${u(7)}px ${u(11)}px`, fontSize: u(13), fontWeight: 800, letterSpacing: 0.6 * U, whiteSpace: "nowrap", flex: "none" }}>NEW PR</div>
       </div>
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", padding: `0 ${u(18)}px ${u(16)}px` }}>
         <div><div style={{ fontFamily: WIDE, fontWeight: 900, fontSize: u(56), lineHeight: 1.02, letterSpacing: -1.2 * U, whiteSpace: "nowrap" }}>{Math.round(165 + ease(f, 126, 148) * 10)}<span style={{ fontFamily: FONT, fontWeight: 700, fontSize: u(19), marginLeft: u(7), letterSpacing: 0, whiteSpace: "nowrap" }}>lb × 3</span></div>
-          <div style={{ fontSize: u(15), fontWeight: 600, color: C.accDeep, marginTop: u(2) }}>+10 lb on his best</div></div>
-        <div style={{ display: "flex", alignItems: "flex-end", gap: u(6), height: u(70) }}>{[0.52, 0.6, 0.66, 0.74, 1].map((h, i) => <div key={i} style={{ width: u(15), height: u(70) * h * ease(f, 128 + i * 3, 144 + i * 3), borderRadius: u(4), background: i === 4 ? C.acc : "#d9d6ee" }} />)}</div>
+          <div style={{ fontSize: u(15), fontWeight: 600, color: C.prDeep, marginTop: u(2) }}>+10 lb on his best</div></div>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: u(6), height: u(70) }}>{[0.52, 0.6, 0.66, 0.74, 1].map((h, i) => <div key={i} style={{ width: u(15), height: u(70) * h * ease(f, 128 + i * 3, 144 + i * 3), borderRadius: u(4), background: i === 4 ? C.pr : C.soft }} />)}</div>
       </div>
     </Lift>
   </>;
@@ -254,7 +257,7 @@ const MemberScreen: React.FC = () => {
     </Group>
     <Group label="Back Squat · top set">
       <div style={{ padding: `${u(14)}px ${u(16)}px ${u(12)}px` }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: u(10) }}><div style={{ fontFamily: WIDE, fontWeight: 900, fontSize: u(46), lineHeight: 1, letterSpacing: -1 * U }}>{Math.round(95 + ease(f, 22, 60) * 20)}<span style={{ fontSize: u(17), marginLeft: u(5), letterSpacing: 0 }}>lb</span></div><div style={{ ...T.sub, color: C.acc, fontWeight: 600, opacity: ease(f, 60, 68) }}>+20 lb since October</div></div>
+        <div style={{ display: "flex", alignItems: "baseline", gap: u(10) }}><div style={{ fontFamily: WIDE, fontWeight: 900, fontSize: u(46), lineHeight: 1, letterSpacing: -1 * U }}>{Math.round(95 + ease(f, 22, 60) * 20)}<span style={{ fontSize: u(17), marginLeft: u(5), letterSpacing: 0 }}>lb</span></div><div style={{ ...T.sub, color: C.up, fontWeight: 600, opacity: ease(f, 60, 68) }}>+20 lb since October</div></div>
         <div style={{ display: "flex", alignItems: "flex-end", gap: u(7), height: H, marginTop: u(12) }}>{SQ.map((v, i) => <div key={i} style={{ flex: 1, height: (H * (0.3 + 0.7 * (v - 90) / 25)) * ease(f, 24 + i * 3, 42 + i * 3), borderRadius: `${u(5)}px ${u(5)}px ${u(2)}px ${u(2)}px`, background: i === SQ.length - 1 ? C.text : C.acc }} />)}</div>
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: u(7), ...T.sub, fontSize: u(12.5) }}><span>Oct 5</span><span>Nov 2</span><span>Dec 7</span></div>
       </div>
@@ -286,11 +289,11 @@ const HomeScreen: React.FC = () => {
   return <>
     <div style={{ height: u(14) }} />
     <div style={{ position: "relative" }}><Large sub="Monday, December 7">Today</Large><div style={{ position: "absolute", right: PAD, top: u(6) }}><Avatar name="Maya Chen" size={36} hue={330} /></div></div>
-    <Group><div style={{ display: "flex" }}><Ring at={10} pct={0.72} color={C.acc} label="Move" value="43 of 60 min" /><div style={{ width: 1.5, background: C.sep, margin: `${u(18)}px 0` }} /><Ring at={16} pct={0.64} color="#8e8e93" label="Fuel" value="1,150 of 1,800 cal" /></div></Group>
+    <Group><div style={{ display: "flex" }}><Ring at={10} pct={0.72} color={C.acc} label="Move" value="43 of 60 min" /><div style={{ width: 1.5, background: C.sep, margin: `${u(18)}px 0` }} /><Ring at={16} pct={0.64} color={C.ring2} label="Fuel" value="1,150 of 1,800 cal" /></div></Group>
     <In at={26}><Group label="This week">
       {week.map(([d, t, note, id, at], i) => { const done = at !== null && f >= at; return <React.Fragment key={d}>{i ? <Sep inset={72} /> : null}<div style={{ display: "flex", alignItems: "center", gap: u(12), padding: `0 ${u(14)}px`, height: u(60) }}>
         <Thumb id={id} />
-        <div style={{ flex: 1 }}><div style={{ ...T.body, fontWeight: 500 }}>{t} <span style={{ color: C.sec, fontWeight: 400 }}>· {d}</span></div><div style={{ ...T.sub, color: done ? C.acc : C.sec }}>{at !== null && !done ? "In class now" : note}</div></div>
+        <div style={{ flex: 1 }}><div style={{ ...T.body, fontWeight: 500 }}>{t} <span style={{ color: C.sec, fontWeight: 400 }}>· {d}</span></div><div style={{ ...T.sub, color: done ? C.pr : C.sec }}>{at !== null && !done ? "In class now" : note}</div></div>
         {at === null ? <div style={{ width: u(24), height: u(24), borderRadius: u(12), border: `${u(1.6)}px solid ${C.ter}` }} /> : <CheckDot at={at} />}
       </div></React.Fragment>; })}
     </Group></In>
@@ -325,7 +328,7 @@ const BodyScreen: React.FC = () => {
         <div style={{ position: "absolute", left: u(16), top: u(20), width: u(128) }}>
           {worked.map(([t, v], i) => { const k = ease(f, 40 + i * 6, 58 + i * 6); return <div key={t} style={{ marginBottom: u(16), opacity: ease(f, 36 + i * 6, 44 + i * 6) }}>
             <div style={{ display: "flex", justifyContent: "space-between", ...T.body, fontWeight: 500 }}><span>{t}</span><span style={{ color: C.sec, fontVariantNumeric: "tabular-nums" }}>{Math.round(v * k * 100)}%</span></div>
-            <div style={{ height: u(5), borderRadius: u(3), background: C.cell2, marginTop: u(6), overflow: "hidden" }}><div style={{ width: `${v * k * 100}%`, height: "100%", borderRadius: u(3), background: C.acc }} /></div>
+            <div style={{ height: u(5), borderRadius: u(3), background: C.cell2, marginTop: u(6), overflow: "hidden" }}><div style={{ width: `${v * k * 100}%`, height: "100%", borderRadius: u(3), background: C.muscle }} /></div>
           </div>; })}
           <div style={{ ...T.sub, marginTop: u(4), opacity: ease(f, 60, 68) }}>Not worked: chest, back, shoulders, obliques</div>
         </div>

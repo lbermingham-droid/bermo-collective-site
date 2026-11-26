@@ -1217,6 +1217,15 @@ compositions, both keeping **130 px clear on each side** (her number):
   all four. `SiteClip`'s palette `C` is mutable and `<Themed theme>`
   swaps it for a subtree; `T` reads it through getters. No colourway
   has been chosen; the app is still violet.
+- **Her follow-up direction (`AppDark` still, `DARK` theme in
+  Insta.tsx):** keep the app on BLACK, with cobalt `#4A5DFF` as the
+  primary, light blue `#C5EEF2` as its tint, red `#E8382E` as the
+  secondary (PRs, muscles worked), bright yellow `#F6CE45` for small
+  highlights, and white reserved for "the big pops" (lift-out cards,
+  hero numbers). `SiteTheme` has role fields for this (`pr`, `up`, `hi`,
+  `muscle`, `ring2`, `soft`, `conf`) that default to the single accent.
+  Awaiting her yes before the clip, reel, photo or app change colour.
+  Note this brings yellow back, which §2 banned — her call now.
 - To show `SiteClip` from a given frame inside another composition use
   `<Sequence from={-n}>`. `<Freeze>` did not hold its nested Sequences.
 

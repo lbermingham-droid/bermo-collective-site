@@ -180,3 +180,20 @@ export const AppBlocks: React.FC = () => <AbsoluteFill style={{ background: "#10
     {BROWS.map((frame, r) => <Phone key={r} w={470} style={{ left: 50 + c * 540, top: 104 + r * 1000 }}><Themed theme={theme}><Clip start={frame} /></Themed></Phone>)}
   </React.Fragment>)}
 </AbsoluteFill>;
+
+// ---- the agreed palette only (black, blue, light blue, red + yellow / red / white pops),
+// in the layout of the first colourway sheet: which colour the BLOCKS take ----
+const LB = "#C5EEF2", BL = "#3D50EE", YL = "#F6CE45";
+const AGREED: [string, Partial<SiteTheme>][] = [
+  ["A · Blue blocks", { ...DARK, cellText: "#fff" }],
+  ["B · Light blue blocks", { ...DARK, cell: LB, cell2: "#FFFFFF", cellText: "#1B2AA8", cellSec: "rgba(27,42,168,.82)", cellTer: "rgba(27,42,168,.45)", cellSep: "rgba(27,42,168,.2)", acc: BL, accDeep: "#2B3CD6", onAcc: "#fff", link: "#fff", up: RED, ring2: RED, avatar: BL, avatarInk: "#fff" }],
+  ["C · Red blocks", { ...DARK, cell: RED, cell2: "#F0625A", cellText: "#fff", cellSec: "rgba(255,255,255,.88)", cellTer: "rgba(255,255,255,.5)", cellSep: "rgba(255,255,255,.26)", acc: "#fff", onAcc: RED, link: "#fff", up: YL, pr: YL, prDeep: "#b8901a", muscle: YL, avatar: LB, avatarInk: "#2B3CD6" }],
+  ["D · Blue + red blocks", { ...DARK, cellText: "#fff", cells: [{ cell: BL, cell2: "#596CF6" }, { cell: RED, cell2: "#F0625A" }], up: YL, pr: YL }],
+];
+export const AppAgreed: React.FC = () => <AbsoluteFill style={{ background: "#101012", fontFamily: "InterVar, InterTight, sans-serif", color: "#fff" }}>
+  <style>{adFonts}</style><style>{wide}</style>
+  {AGREED.map(([name, theme], c) => <React.Fragment key={c}>
+    <div style={{ position: "absolute", left: 40 + c * 530, top: 44, width: 490, textAlign: "center", fontSize: 26, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", opacity: 0.8 }}>{name}</div>
+    {ROWS.map((frame, r) => <Phone key={r} w={470} style={{ left: 50 + c * 530, top: 110 + r * 1010 }}><Themed theme={theme}><Clip start={frame} /></Themed></Phone>)}
+  </React.Fragment>)}
+</AbsoluteFill>;

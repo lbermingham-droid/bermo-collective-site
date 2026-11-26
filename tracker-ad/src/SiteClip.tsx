@@ -30,16 +30,20 @@ const BASE_THEME = { bg: "#000", cell: "#1c1c1e", cell2: "#2c2c2e", sep: "rgba(8
   // roles a multi-colour palette can split out; by default they all fall back to the one accent
   pr: "", up: "", hi: "", muscle: "", ring2: "#8e8e93", soft: "#d9d6ee", conf: "#b9b0ff", prDeep: "", avatar: "", avatarInk: "#fff", cardSub: "#6b6b76", cardEdge: "#cfcfd6", figSet: "",
   // text inside a block, when the block is a colour that needs different ink from the page; and the page-level link colour
-  cellText: "", cellSec: "", cellTer: "", cellSep: "", link: "" };
-const V = { text: "var(--tx)", sec: "var(--tx2)", ter: "var(--tx3)", sep: "var(--sp)" };
-const vars = (a: string, b: string, c: string, d: string) => ({ "--tx": a, "--tx2": b, "--tx3": c, "--sp": d } as React.CSSProperties);
+  cellText: "", cellSec: "", cellTer: "", cellSep: "", link: "",
+  // optional: blocks take turns through several colours (reset per <Themed>)
+  cells: [] as { cell: string; cell2: string }[] };
+let GI = 0;
+const BASE_CELL2 = () => (C as any)["cell2"] as string;
+const V = { text: "var(--tx)", sec: "var(--tx2)", ter: "var(--tx3)", sep: "var(--sp)", cell2: "var(--c2)" };
+const vars = (a: string, b: string, c: string, d: string, e: string) => ({ "--tx": a, "--tx2": b, "--tx3": c, "--sp": d, "--c2": e } as React.CSSProperties);
 export type SiteTheme = typeof BASE_THEME;
 // The palette every screen reads. Mutable on purpose: <Themed> swaps it for a subtree
 // (used by the colourway mock). React renders depth-first, so a Themed's children read
 // its palette before a sibling Themed changes it.
 const fill = (t: SiteTheme): SiteTheme => ({ ...t, pr: t.pr || t.acc, up: t.up || t.acc, hi: t.hi || t.acc, muscle: t.muscle || t.acc, prDeep: t.prDeep || t.accDeep, cellText: t.cellText || t.text, cellSec: t.cellSec || t.sec, cellTer: t.cellTer || t.ter, cellSep: t.cellSep || t.sep, link: t.link || t.acc });
 const C: SiteTheme = fill({ ...BASE_THEME });
-export const Themed: React.FC<{ theme?: Partial<SiteTheme>; children: React.ReactNode }> = ({ theme, children }) => { Object.assign(C, fill({ ...BASE_THEME, ...(theme || {}) })); return <>{children}</>; };
+export const Themed: React.FC<{ theme?: Partial<SiteTheme>; children: React.ReactNode }> = ({ theme, children }) => { Object.assign(C, fill({ ...BASE_THEME, ...(theme || {}) })); GI = 0; return <>{children}</>; };
 const FONT = "InterVar", WIDE = "ArchivoWide";
 const fontFace = `@font-face{font-family:${FONT};font-weight:100 900;src:url(${staticFile("fonts/inter-var.woff2")}) format("woff2")}
 @font-face{font-family:ArchivoWide;font-weight:900;src:url(${staticFile("fonts/archivo-wide-900.woff2")}) format("woff2")}`;
@@ -95,7 +99,7 @@ const Nav: React.FC<{ left?: React.ReactNode; title?: string; right?: React.Reac
 </div>;
 const Back: React.FC<{ to: string }> = ({ to }) => <><svg width={u(12)} height={u(20)} viewBox="0 0 12 20" fill="none" stroke={C.link} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><path d="M10 2L2 10l8 8" /></svg>{to}</>;
 const Large: React.FC<{ children: React.ReactNode; sub?: string }> = ({ children, sub }) => <div style={{ padding: `${u(2)}px ${PAD}px ${u(12)}px` }}><div style={{ fontSize: u(33), fontWeight: 700, letterSpacing: -0.9 * U, lineHeight: 1.12 }}>{children}</div>{sub ? <div style={{ ...T.sub, fontSize: u(15), marginTop: u(2) }}>{sub}</div> : null}</div>;
-const Group: React.FC<{ label?: string; style?: React.CSSProperties; children: React.ReactNode }> = ({ label, style, children }) => <div style={{ margin: `0 ${PAD}px ${u(18)}px`, ...style }}>{label ? <div style={{ ...T.foot, padding: `0 ${u(4)}px ${u(7)}px` }}>{label}</div> : null}<div style={{ background: C.cell, borderRadius: u(13), overflow: "hidden", color: V.text, ...vars(C.cellText, C.cellSec, C.cellTer, C.cellSep) }}>{children}</div></div>;
+const Group: React.FC<{ label?: string; style?: React.CSSProperties; children: React.ReactNode }> = ({ label, style, children }) => { const g = C.cells.length ? C.cells[GI++ % C.cells.length] : { cell: C.cell, cell2: BASE_CELL2() }; return <div style={{ margin: `0 ${PAD}px ${u(18)}px`, ...style }}>{label ? <div style={{ ...T.foot, padding: `0 ${u(4)}px ${u(7)}px` }}>{label}</div> : null}<div style={{ background: g.cell, borderRadius: u(13), overflow: "hidden", color: V.text, ...vars(C.cellText, C.cellSec, C.cellTer, C.cellSep, g.cell2) }}>{children}</div></div>; };
 const Sep: React.FC<{ inset?: number }> = ({ inset = 16 }) => <div style={{ height: 1.5, background: V.sep, marginLeft: u(inset) }} />;
 const ART: Record<string, string> = { Barbell_Squat: "squat", Arnold_Dumbbell_Press: "arnold-press", Dumbbell_Rear_Lunge: "reverse-lunge", Plank: "plank", Side_Plank: "side-plank", Barbell_Deadlift: "deadlift" };
 // Workout Guide by Bryl Lim, CC BY-SA 4.0 (credit required wherever this clip is published).
@@ -110,7 +114,7 @@ const Avatar: React.FC<{ name: string; size?: number; hue?: number }> = ({ name,
 const Chevron: React.FC = () => <svg width={u(8)} height={u(14)} viewBox="0 0 8 14" fill="none" style={{ stroke: V.ter }} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M1.500 1.500L7 7l-5.500 5.500" /></svg>;
 const CheckDot: React.FC<{ at: number; size?: number; square?: boolean }> = ({ at, size = 24, square }) => {
   const f = useCurrentFrame(); const s = sp(f, at, 320, 18); const d = ease(f, at + 1, at + 8);
-  return <div style={{ width: u(size), height: u(size), borderRadius: square ? u(size * 0.3) : u(size / 2), background: s > 0.02 ? C.acc : C.cell2, transform: `scale(${1 + 0.14 * Math.sin(Math.min(1, s) * Math.PI)})`, display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
+  return <div style={{ width: u(size), height: u(size), borderRadius: square ? u(size * 0.3) : u(size / 2), background: s > 0.02 ? C.acc : V.cell2, transform: `scale(${1 + 0.14 * Math.sin(Math.min(1, s) * Math.PI)})`, display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
     <svg width={u(size * 0.56)} height={u(size * 0.56)} viewBox="0 0 24 24"><path d="M5 12.500l4.500 4.500L19 7.500" fill="none" style={{ stroke: s > 0.02 ? C.onAcc : V.ter }} strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round" strokeDasharray={22} strokeDashoffset={s > 0.02 ? 22 * (1 - d) : 0} /></svg>
   </div>;
 };
@@ -198,7 +202,7 @@ const OTHERS: [string, string, boolean, number][] = [["Ana Souza", "95 × 8 · 1
 const ClassScreen: React.FC = () => {
   const f = useCurrentFrame(); const ROW = 32, STEP = 24, REST = 186;
   const col: React.CSSProperties = { ...T.foot, fontSize: u(11.5) };
-  const field: React.CSSProperties = { background: C.cell2, borderRadius: u(8), height: u(32), display: "flex", alignItems: "center", justifyContent: "center", fontSize: u(17), fontWeight: 600, fontVariantNumeric: "tabular-nums" };
+  const field: React.CSSProperties = { background: V.cell2, borderRadius: u(8), height: u(32), display: "flex", alignItems: "center", justifyContent: "center", fontSize: u(17), fontWeight: 600, fontVariantNumeric: "tabular-nums" };
   return <>
     <Nav left={<Back to="Calendar" />} title="Mon, Dec 7" right="Finish" />
     <div style={{ display: "flex", alignItems: "center", gap: u(12), padding: `${u(6)}px ${PAD}px ${u(12)}px` }}>
@@ -270,7 +274,7 @@ const MemberScreen: React.FC = () => {
       <div style={{ padding: `${u(12)}px ${u(16)}px ${u(14)}px` }}>
         {[0, 1, 2].map(w => <div key={w} style={{ display: "flex", alignItems: "center", gap: u(7), marginTop: w ? u(7) : 0 }}>
           <div style={{ width: u(26), ...T.sub, fontSize: u(12.5) }}>W{w + 1}</div>
-          {[0, 1, 2, 3, 4, 5, 6].map(dd => { const came = [1, 3, 5].includes(dd) && !(w === 1 && dd === 3); const k = came ? sp(f, 46 + w * 7 + dd * 2, 260, 16) : 0; return <div key={dd} style={{ flex: 1, height: u(26), borderRadius: u(6), background: came && k > 0.02 ? C.acc : C.cell2, opacity: came ? Math.max(0.35, Math.min(1, k)) : 1, transform: `scale(${came ? 0.8 + 0.2 * Math.min(1, k) : 1})` }} />; })}
+          {[0, 1, 2, 3, 4, 5, 6].map(dd => { const came = [1, 3, 5].includes(dd) && !(w === 1 && dd === 3); const k = came ? sp(f, 46 + w * 7 + dd * 2, 260, 16) : 0; return <div key={dd} style={{ flex: 1, height: u(26), borderRadius: u(6), background: came && k > 0.02 ? C.acc : V.cell2, opacity: came ? Math.max(0.35, Math.min(1, k)) : 1, transform: `scale(${came ? 0.8 + 0.2 * Math.min(1, k) : 1})` }} />; })}
         </div>)}
       </div>
     </Group></In>
@@ -332,7 +336,7 @@ const BodyScreen: React.FC = () => {
         <div style={{ position: "absolute", left: u(16), top: u(20), width: u(128) }}>
           {worked.map(([t, v], i) => { const k = ease(f, 40 + i * 6, 58 + i * 6); return <div key={t} style={{ marginBottom: u(16), opacity: ease(f, 36 + i * 6, 44 + i * 6) }}>
             <div style={{ display: "flex", justifyContent: "space-between", ...T.body, fontWeight: 500 }}><span>{t}</span><span style={{ color: V.sec, fontVariantNumeric: "tabular-nums" }}>{Math.round(v * k * 100)}%</span></div>
-            <div style={{ height: u(5), borderRadius: u(3), background: C.cell2, marginTop: u(6), overflow: "hidden" }}><div style={{ width: `${v * k * 100}%`, height: "100%", borderRadius: u(3), background: C.muscle }} /></div>
+            <div style={{ height: u(5), borderRadius: u(3), background: V.cell2, marginTop: u(6), overflow: "hidden" }}><div style={{ width: `${v * k * 100}%`, height: "100%", borderRadius: u(3), background: C.muscle }} /></div>
           </div>; })}
           <div style={{ ...T.sub, marginTop: u(4), opacity: ease(f, 60, 68) }}>Not worked: chest, back, shoulders, obliques</div>
         </div>
@@ -353,7 +357,7 @@ export const SiteClip: React.FC = () => {
   const PLAN = 124;                                          // plan editor -> calendar, inside scene 1
   const member = ease(f, st[3] + 2, st[3] + 12);
   const coachTab = f < st[1] + 6 ? 1 : f < st[2] + 6 ? 0 : 2; const memberTab = f < st[4] + 6 ? 0 : 4;
-  return <AbsoluteFill style={{ background: C.bg, fontFamily: FONT, color: V.text, ...vars(C.text, C.sec, C.ter, C.sep) }}>
+  return <AbsoluteFill style={{ background: C.bg, fontFamily: FONT, color: V.text, ...vars(C.text, C.sec, C.ter, C.sep, BASE_CELL2()) }}>
     <style>{fontFace}</style>
     <Sequence from={0} durationInFrames={PLAN + OVER} layout="none"><Screen len={PLAN} first><PlanScreen /></Screen></Sequence>
     <Sequence from={PLAN} durationInFrames={LENS[0] - PLAN + OVER} layout="none"><Screen len={LENS[0] - PLAN}><CalendarScreen /></Screen></Sequence>

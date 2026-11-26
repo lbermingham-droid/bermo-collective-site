@@ -1,7 +1,7 @@
 import { Composition, Still } from "remotion";
 import { Ad, FPS, DURATION } from "./Ad";
 import { SiteClip, SITE_FPS, SITE_DURATION } from "./SiteClip";
-import { InstaPhoto, InstaColorways, AppColorways, AppDark, AppBlocks, InstaReel, INSTA_FPS, REEL_DURATION } from "./Insta";
+import { InstaPhoto, InstaColorways, AppColorways, AppDark, AppBlocks, AppAgreed, InstaReel, INSTA_FPS, REEL_DURATION } from "./Insta";
 export const Root = () => <>
   <Composition id="Ad" component={Ad} durationInFrames={DURATION} fps={FPS} width={1080} height={1920} />
   <Composition id="SiteClip" component={SiteClip} durationInFrames={SITE_DURATION} fps={SITE_FPS} width={1080} height={2208} />
@@ -11,4 +11,5 @@ export const Root = () => <>
   <Still id="AppColorways" component={AppColorways} width={2200} height={2130} />
   <Still id="AppDark" component={AppDark} width={1780} height={2280} />
   <Still id="AppBlocks" component={AppBlocks} width={2230} height={3110} />
+  <Still id="AppAgreed" component={AppAgreed} width={2200} height={2130} />
 </>;

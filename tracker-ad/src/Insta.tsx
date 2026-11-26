@@ -269,3 +269,32 @@ export const AppBright: React.FC = () => <AbsoluteFill style={{ background: "#10
     {BROWS.map((frame, r) => <Phone key={r} w={470} style={{ left: 50 + c * 540, top: 104 + r * 1000 }}><Themed theme={theme}><Clip start={frame} /></Themed></Phone>)}
   </React.Fragment>)}
 </AbsoluteFill>;
+
+// ---- BRAND BOARD. What makes her references (and Ladder) read as brands is not the app's
+// colours: it is a full-bleed colour FIELD, one loud display wordmark, one repeated shape,
+// real photography inside that shape, and small quiet detail text. BERMO's shape is its
+// full stop: the dot. No black backgrounds ("I don't want dark vibe coding man colors"). ----
+const unb = `@font-face{font-family:Unbounded;font-weight:900;src:url(${staticFile("fonts/unbounded-900.woff2")}) format("woff2")}`;
+type Board = { name: string; bg: string; ink: string; dot: string; small: string; app: Partial<SiteTheme> };
+const BOARDS: Board[] = [
+  { name: "A", bg: "#F6CE45", ink: "#2A54B4", dot: "#2A54B4", small: "#2A54B4", app: APPS[0][1] },
+  { name: "B", bg: "#C5EEF2", ink: "#E2332A", dot: "#E2332A", small: "#E2332A", app: APPS[1][1] },
+  { name: "C", bg: "#D8352B", ink: "#F7EFDD", dot: "#F7EFDD", small: "#F7EFDD", app: APPS[2][1] },
+  { name: "D", bg: "#4257F2", ink: "#FFFFFF", dot: "#F6CE45", small: "#FFFFFF", app: APPS[3][1] },
+];
+const Poster: React.FC<{ b: Board }> = ({ b }) => <AbsoluteFill style={{ background: b.bg, color: b.ink, fontFamily: "InterVar, InterTight, sans-serif", overflow: "hidden" }}>
+  <div style={{ position: "absolute", left: 70, top: 58, fontSize: 21, fontWeight: 600, lineHeight: 1.3, color: b.small }}>BERMO.COLLECTIVE<br />Custom apps for gyms</div>
+  <div style={{ position: "absolute", right: 70, top: 58, fontSize: 21, fontWeight: 600, textAlign: "right", lineHeight: 1.3, color: b.small }}>Colourway {b.name}<br />Est. 2024</div>
+  <svg width={1080} height={300} style={{ position: "absolute", left: 0, top: 150 }}><text x={70} y={220} textLength={940} lengthAdjust="spacingAndGlyphs" style={{ fontFamily: "Unbounded", fontWeight: 900, fontSize: 236, fill: b.ink }}>BERMO.</text></svg>
+  <div style={{ position: "absolute", left: 70, top: 418, fontFamily: "ArchivoWide", fontWeight: 900, fontSize: 30, letterSpacing: 1 }}>EVERY LIFT. EVERY MEMBER. EVERY PR.</div>
+  <div style={{ position: "absolute", left: -60, top: 600, width: 640, height: 640, borderRadius: "50%", background: b.dot, overflow: "hidden", border: `14px solid ${b.dot}` }}>
+    <img src={staticFile("clips/beach-still.jpg")} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "42% 30%", borderRadius: "50%" }} />
+  </div>
+  <div style={{ position: "absolute", left: 600, top: 500, transform: "rotate(6deg)", transformOrigin: "50% 50%" }}><Phone w={400} style={{ left: 0, top: 0 }}><Themed theme={b.app}><Clip start={603} /></Themed></Phone></div>
+  <div style={{ position: "absolute", left: 470, top: 1090, width: 150, height: 150, borderRadius: "50%", background: b.ink, color: b.bg, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", fontFamily: "ArchivoWide", fontWeight: 900, fontSize: 21, lineHeight: 1.1, transform: "rotate(-12deg)" }}>YOUR<br />GYM.<br />YOUR<br />APP.</div>
+  <div style={{ position: "absolute", left: 70, bottom: 44, fontSize: 21, fontWeight: 600, color: b.small }}>bermoco.com</div>
+</AbsoluteFill>;
+export const BrandBoards: React.FC = () => <AbsoluteFill style={{ background: "#fff" }}>
+  <style>{adFonts}</style><style>{wide}</style><style>{unb}</style>
+  {BOARDS.map((b, i) => <div key={i} style={{ position: "absolute", left: (i % 2) * 1080, top: Math.floor(i / 2) * 1350, width: 1080, height: 1350, overflow: "hidden" }}><Poster b={b} /></div>)}
+</AbsoluteFill>;

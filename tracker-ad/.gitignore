@@ -4,3 +4,5 @@ out/
 public/clips/*.mp4
 public/clips/*.mov
 public/mattes/
+
+public/clips/*.jpg

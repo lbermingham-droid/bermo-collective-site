@@ -1245,6 +1245,16 @@ compositions, both keeping **130 px clear on each side** (her number):
   "bright, not faded" since v7. `AppBright` is the current mock: full-
   strength blocks, with inner boxes a RICHER shade of the block (never a
   paler, washed one).
+- **"How to make it a brand. I don't want dark vibe coding man
+  colors. The photos I gave you look like a brand. Ladder looks like a
+  brand."** So: NO black backgrounds either. What her references share
+  is not app colours: a full-bleed colour FIELD, one loud display
+  wordmark, one repeated shape, real photography inside that shape, and
+  small quiet detail text. `BrandBoards` (Still, 2160x2700) shows this
+  for the four colourways: "BERMO." in Unbounded 900, the brand shape
+  is BERMO's full stop (a dot) holding her beach photo, a dot sticker,
+  and the app in the matching bright full-colour theme (`APPS`).
+  `public/clips/*.jpg` is gitignored (her photo; repo is public).
 - To show `SiteClip` from a given frame inside another composition use
   `<Sequence from={-n}>`. `<Freeze>` did not hold its nested Sequences.
 

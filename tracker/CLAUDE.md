@@ -1189,6 +1189,20 @@ a website a live demo beats a video, so it is a page, not another cut.
   `page.screenshot` frames with script-stepped scrolling, joined with an
   ffmpeg concat list. **Always look at a frame pulled from the FINAL
   file**, not from an intermediate sheet.
+- **The screen recording was rejected too** ("looks so ghetto… this
+  should be Monday.com level"). A raw recording of a dense phone UI never
+  reads as a product video. The site clip is now a DESIGNED animation:
+  `tracker-ad/src/SiteClip.tsx` (Remotion composition `SiteClip`,
+  1080x2208, 20 s, loops). Five scenes, each the app's screen redrawn
+  large and animated: class sheet (ticks, count 4→6, weight typed), month
+  calendar filling in, one member (stats count up, lift chart draws, PR
+  badge), her app (rings draw, week ticks), body figure lighting up with
+  "Add one more". Names and numbers are the demo gym's. Body cutouts come
+  from `scripts/site-body.js`. Render: `npx remotion render src/index.ts
+  SiteClip out/site-master.mp4 --browser-executable=/opt/pw-browsers/chromium`,
+  then ffmpeg to `site/fitness.mp4` (720x1472) and `fitness-full.mp4`.
+  Rule learned: for her WEBSITE, show big simple animated pieces of the
+  product, never a full dense screen.
 - Screens are re-shot with scratchpad `demoshot.js` (viewport 390x800,
   DPR 2, then ffmpeg to 585px webp).
 

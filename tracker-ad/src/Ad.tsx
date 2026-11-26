@@ -17,7 +17,7 @@ export const DURATION = 600; // 20s
 const SAFE = 120;
 const C = { teal: "#00f5d4", blue: "#4db8ff", purple: "#b788ff", pink: "#ff4d9d" };
 const FONT = "InterTight";
-const fontFace = `@font-face{font-family:${FONT};font-weight:800;src:url(${staticFile("fonts/intertight-800.woff2")}) format("woff2")}
+export const fontFace = `@font-face{font-family:${FONT};font-weight:800;src:url(${staticFile("fonts/intertight-800.woff2")}) format("woff2")}
 @font-face{font-family:Anton;font-weight:400;src:url(${staticFile("fonts/anton.woff2")}) format("woff2")}
 @font-face{font-family:${FONT};font-weight:600;src:url(${staticFile("fonts/intertight-600.woff2")}) format("woff2")}`;
 
@@ -28,7 +28,7 @@ const useSpring = (delay: number, stiffness = 210) => { const f = useCurrentFram
 
 // ---- text ---------------------------------------------------------------
 // One word that pops in. `k` = the accent key word (italic, coloured).
-const Word: React.FC<{ t: string; at: number; k?: boolean; c?: string; size?: number }> = ({ t, at, k, c = C.teal, size = 92 }) => {
+export const Word: React.FC<{ t: string; at: number; k?: boolean; c?: string; size?: number }> = ({ t, at, k, c = C.teal, size = 92 }) => {
   const s = useSpring(at); const f = useCurrentFrame();
   if (f < at) return <span style={{ opacity: 0, fontSize: size }}>{t}</span>;
   return <span style={{ display: "inline-block", fontFamily: FONT, fontWeight: 800, fontSize: size, letterSpacing: -2.5, lineHeight: 1.04, color: k ? c : "#fff",
@@ -51,7 +51,7 @@ const Num: React.FC<{ n: string; unit?: string; label: string; c?: string; at?: 
 // ---- footage ------------------------------------------------------------
 // Full-screen clip. Anything passed as `behind` is drawn between the scene
 // and her cut-out, so words can sit behind her.
-const Footage: React.FC<{ name: ClipName; len: number; from?: number; behind?: React.ReactNode; children?: React.ReactNode; dim?: number }> = ({ name, len, from = 0, behind, children, dim = 0.82 }) => {
+export const Footage: React.FC<{ name: ClipName; len: number; from?: number; behind?: React.ReactNode; children?: React.ReactNode; dim?: number }> = ({ name, len, from = 0, behind, children, dim = 0.82 }) => {
   const f = useCurrentFrame(); const src = clips[name]; const n = mattes ? mattes[name] : 0;
   const zoom = interpolate(f, [0, len], [1.07, 1]); const fit: React.CSSProperties = { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" };
   return <AbsoluteFill style={{ background: "#08090b" }}>

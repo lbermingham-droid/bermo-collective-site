@@ -1192,6 +1192,23 @@ through and clean the code". What was done:
   screenshot review. Layout and information density were not redesigned
   — this pass is colour, surfaces, type and tiles.
 
+**INSTAGRAM IN THE NEW LOOK (`tracker-ad/src/Insta.tsx`).** Two
+compositions, both keeping **130 px clear on each side** (her number):
+- `InstaPhoto` (Still, 1080x1350): two overlapping drawn iPhones on
+  black — member progress behind, the "NEW PR" lift-out in front — and
+  one line, "YOUR GYM. YOUR APP." Layout modelled on a Ladder site
+  image she sent; screens, colours and copy are ours. Render:
+  `npx remotion still src/index.ts InstaPhoto out/insta-photo.png`.
+- `InstaReel` (1080x1920, ~26 s): her gym clip ("Your gym still runs on
+  paper."), then the app in a phone playing four ranges of `SiteClip`
+  under the "Mine runs on this. / Every month, planned. / Every member.
+  / Every PR. / Every lift. / Every muscle." captions, then her beach
+  clip and the BERMO end card. Replaces the old `Ad` cut, which still
+  shows the teal screenshots. Needs `public/clips/*` (gitignored), so
+  the rendered reel is NOT committed; the photo is in `site/`.
+- To show `SiteClip` from a given frame inside another composition use
+  `<Sequence from={-n}>`. `<Freeze>` did not hold its nested Sequences.
+
 **THE WEBSITE SHOWCASE + DEMO MODE (v64).** She asked for a version
 "purely for my website… a mini app example. Buyer: gyms." Answer given: on
 a website a live demo beats a video, so it is a page, not another cut.

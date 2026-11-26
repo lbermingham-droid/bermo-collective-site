@@ -1211,6 +1211,19 @@ a website a live demo beats a video, so it is a page, not another cut.
   dates" save yet** (it has a weekday pattern + Fill the month); build
   it if she wants the app to match the video. Never use the real
   members' names from her sheet photos.
+  **Third pass — I had misread the sheets and she called it out.** On
+  the gym's cards each PERSON logs their own sets as reps x weight, the
+  weight climbs set to set, set counts and reps differ per person, and
+  some add a "bonus" set (her card: Squat 8x95, 8x115, 8x135, 6x115,
+  6x125, 6x130, 3x135 bonus). The coach's plan sheet only carries the
+  prescription (3x8, 3x6/6) and a progression note. So the class scene is
+  now: one lift + plan, then a row per member with their own set chips.
+  **The real Coach hub still stores ONE weight per member per lift** —
+  the app needs per-set entry to match the gym and the video.
+  She also said the look was "a bit vibe coded vs a strong app": the clip
+  was restyled flat and restrained (neutral surfaces, hairlines, one
+  accent for the primary action, no glows or gradients, an app bar with
+  sliding tabs). The real app still has the neon/glow look.
   Rule learned: for her WEBSITE, show big simple animated pieces of the
   product, never a full dense screen.
 - Screens are re-shot with scratchpad `demoshot.js` (viewport 390x800,

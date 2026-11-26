@@ -39,33 +39,48 @@ const Tile: React.FC<{ id: string; size: number }> = ({ id, size }) => { const u
   return <div style={{ width: size, height: size, flex: "none", borderRadius: size * 0.26, position: "relative", background: "linear-gradient(150deg,#2b2b31,#151518)", boxShadow: `inset 0 2px 0 rgba(255,255,255,.22), 0 ${size * 0.06}px 0 #0d0d10, 0 ${size * 0.14}px ${size * 0.18}px rgba(0,0,0,.45)` }}>
     <div style={{ position: "absolute", inset: size * 0.07, background: "linear-gradient(160deg,#fff 35%,#b9b0ff)", WebkitMaskImage: `url(${url})`, maskImage: `url(${url})`, WebkitMaskSize: "contain", maskSize: "contain", WebkitMaskRepeat: "no-repeat", maskRepeat: "no-repeat", WebkitMaskPosition: "center", maskPosition: "center" }} />
   </div>; };
-const cap = (key: string) => <span style={{ color: ACC, display: "inline-block", transform: "skewX(-9deg)" }}>{key}</span>;
-export const InstaPhoto: React.FC = () => <AbsoluteFill style={{ background: "#050506", fontFamily: "InterVar, InterTight, sans-serif", color: "#fff" }}>
+// A colourway for the photo. `hue` turns the app's violet on the phone screen toward the accent.
+type Theme = { name: string; bg: string; ink: string; acc: string; card: string; cardInk: string; cardEdge: string; block: string; blockInk: string; blockEdge: string; soft: string; hue: number };
+const BASE: Theme = { name: "", bg: "#050506", ink: "#fff", acc: ACC, card: "#fff", cardInk: "#0b0b0d", cardEdge: "#cfcfd6", block: ACC, blockInk: "#fff", blockEdge: "#4a3fc4", soft: "#d9d6ee", hue: 0 };
+const Photo: React.FC<{ t: Theme }> = ({ t }) => { const cap = (key: string) => <span style={{ color: t.acc, display: "inline-block", transform: "skewX(-9deg)" }}>{key}</span>;
+  return <AbsoluteFill style={{ background: t.bg, fontFamily: "InterVar, InterTight, sans-serif", color: t.ink }}>
   <style>{adFonts}</style><style>{wide}</style>
   <div style={{ position: "absolute", left: PAD, top: 92, fontFamily: "InterTight", fontWeight: 800, fontSize: 82, letterSpacing: -2.6, lineHeight: 1.05 }}>Every {cap("lift.")}<br />Every {cap("member.")}</div>
   <div style={{ position: "absolute", left: 0, top: 0, width: 1080, height: 1350, perspective: 2200, perspectiveOrigin: "50% 40%" }}>
-    <div style={{ position: "absolute", left: 356, top: 322, width: 440, transform: "rotateY(-17deg) rotateX(7deg) rotateZ(3deg)", transformOrigin: "50% 50%" }}><Phone w={440} style={{ left: 0, top: 0 }}><Clip start={362} /></Phone></div>
+    <div style={{ position: "absolute", left: 356, top: 322, width: 440, transform: "rotateY(-17deg) rotateX(7deg) rotateZ(3deg)", transformOrigin: "50% 50%" }}><Phone w={440} style={{ left: 0, top: 0 }}><div style={{ position: "absolute", inset: 0, filter: t.hue ? `hue-rotate(${t.hue}deg) saturate(1.15)` : "none" }}><Clip start={362} /></div></Phone></div>
   </div>
-  <div style={{ position: "absolute", left: 494, top: 706, width: 456, transform: "rotate(-3deg)", background: "#fff", color: "#0b0b0d", borderRadius: 34, boxShadow: "0 6px 0 #cfcfd6, 0 50px 90px rgba(0,0,0,.8)", overflow: "hidden" }}>
+  <div style={{ position: "absolute", left: 494, top: 706, width: 456, transform: "rotate(-3deg)", background: t.card, color: t.cardInk, borderRadius: 34, boxShadow: `0 6px 0 ${t.cardEdge}, 0 50px 90px rgba(0,0,0,${t.bg === "#050506" ? 0.8 : 0.35})`, overflow: "hidden" }}>
     <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "24px 24px 8px" }}>
       <Tile id="squat" size={60} />
       <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 28, fontWeight: 700, letterSpacing: -0.7 }}>Chris Walker</div><div style={{ fontSize: 19, color: "#6b6b76", whiteSpace: "nowrap" }}>Back Squat · bonus set</div></div>
-      <div style={{ background: ACC, color: "#fff", borderRadius: 13, padding: "9px 13px", fontSize: 17, fontWeight: 800, letterSpacing: 0.8, whiteSpace: "nowrap", flex: "none" }}>NEW PR</div>
+      <div style={{ background: t.block, color: t.blockInk, borderRadius: 13, padding: "9px 13px", fontSize: 17, fontWeight: 800, letterSpacing: 0.8, whiteSpace: "nowrap", flex: "none" }}>NEW PR</div>
     </div>
     <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", padding: "0 26px 24px" }}>
       <div><div style={{ fontFamily: "ArchivoWide", fontWeight: 900, fontSize: 84, lineHeight: 1.04, letterSpacing: -2, whiteSpace: "nowrap" }}>175<span style={{ fontFamily: "InterVar, InterTight", fontWeight: 700, fontSize: 28, marginLeft: 10, letterSpacing: 0 }}>lb × 3</span></div>
-        <div style={{ fontSize: 22, fontWeight: 600, color: "#4a3fc4" }}>+10 lb on his best</div></div>
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 100 }}>{[0.52, 0.6, 0.66, 0.74, 1].map((h, i) => <div key={i} style={{ width: 21, height: 100 * h, borderRadius: 6, background: i === 4 ? ACC : "#d9d6ee" }} />)}</div>
+        <div style={{ fontSize: 22, fontWeight: 600, color: t.block === t.card ? t.cardInk : t.block }}>+10 lb on his best</div></div>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 100 }}>{[0.52, 0.6, 0.66, 0.74, 1].map((h, i) => <div key={i} style={{ width: 21, height: 100 * h, borderRadius: 6, background: i === 4 ? t.block : t.soft }} />)}</div>
     </div>
   </div>
-  <div style={{ position: "absolute", left: PAD, top: 992, width: 372, transform: "rotate(4deg)", background: ACC, borderRadius: 30, boxShadow: "0 6px 0 #4a3fc4, 0 44px 80px rgba(0,0,0,.75)", padding: "22px 26px 24px" }}>
+  <div style={{ position: "absolute", left: PAD, top: 992, width: 372, transform: "rotate(4deg)", background: t.block, color: t.blockInk, borderRadius: 30, boxShadow: `0 6px 0 ${t.blockEdge}, 0 44px 80px rgba(0,0,0,${t.bg === "#050506" ? 0.75 : 0.3})`, padding: "22px 26px 24px" }}>
     <div style={{ fontFamily: "ArchivoWide", fontWeight: 900, fontSize: 66, lineHeight: 1 }}>4<span style={{ fontSize: 26, marginLeft: 12 }}>MONDAYS</span></div>
     <div style={{ fontSize: 22, fontWeight: 600, marginTop: 8, opacity: 0.94 }}>Planned from one entry</div>
   </div>
   <div style={{ position: "absolute", left: PAD, right: PAD, bottom: 62, display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
-    <div style={{ fontFamily: "InterTight", fontWeight: 800, fontSize: 46, letterSpacing: -1.5 }}>BERMO<span style={{ color: ACC }}>.</span></div>
-    <div style={{ fontSize: 24, fontWeight: 600, color: "rgba(255,255,255,.7)" }}>Custom apps for gyms</div>
+    <div style={{ fontFamily: "InterTight", fontWeight: 800, fontSize: 46, letterSpacing: -1.5 }}>BERMO<span style={{ color: t.acc }}>.</span></div>
+    <div style={{ fontSize: 24, fontWeight: 600, opacity: 0.75 }}>Custom apps for gyms</div>
   </div>
+    {t.name ? <div style={{ position: "absolute", right: PAD, top: 96, textAlign: "right", fontSize: 22, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", opacity: 0.7 }}>{t.name}</div> : null}
+  </AbsoluteFill>; };
+export const InstaPhoto: React.FC = () => <Photo t={BASE} />;
+// Four colourways she sent as references, on one sheet (2160 x 2700).
+const WAYS: Theme[] = [
+  { name: "A · Sun + cobalt", bg: "#F6CE45", ink: "#2A54B4", acc: "#2A54B4", card: "#fff", cardInk: "#16264f", cardEdge: "#d8b232", block: "#2A54B4", blockInk: "#F6CE45", blockEdge: "#1b3a80", soft: "#cfd9f1", hue: -22 },
+  { name: "B · Sky + tomato", bg: "#C5EEF2", ink: "#E2332A", acc: "#E2332A", card: "#fff", cardInk: "#3a1512", cardEdge: "#9fd3d9", block: "#E2332A", blockInk: "#fff", blockEdge: "#a8211a", soft: "#f6cfcc", hue: 118 },
+  { name: "C · Red + cream", bg: "#D8352B", ink: "#F7EFDD", acc: "#111", card: "#F7EFDD", cardInk: "#1a1210", cardEdge: "#a3241c", block: "#111", blockInk: "#F7EFDD", blockEdge: "#000", soft: "#e2d6bd", hue: 118 },
+  { name: "D · Cobalt + black", bg: "#4257F2", ink: "#fff", acc: "#B9C3FF", card: "#fff", cardInk: "#0b0d1f", cardEdge: "#2c3bbd", block: "#0b0b0d", blockInk: "#fff", blockEdge: "#000", soft: "#cfd5fb", hue: -16 },
+];
+export const InstaColorways: React.FC = () => <AbsoluteFill style={{ background: "#000" }}>
+  {WAYS.map((t, i) => <div key={i} style={{ position: "absolute", left: (i % 2) * 1080, top: Math.floor(i / 2) * 1350, width: 1080, height: 1350, overflow: "hidden" }}><Photo t={t} /></div>)}
 </AbsoluteFill>;
 
 // ---- the reel ------------------------------------------------------------

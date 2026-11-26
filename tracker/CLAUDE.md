@@ -1136,6 +1136,13 @@ are gitignored; `/tracker-ad/*` is 404'd on the public site in
   the origin low, so you look down at it and the top tilts away. The
   bottom edge runs just off the frame, where a hand would be. Rule:
   **readability first; a phone shot she cannot read is a failed shot.**
+- **Ninth cut — back to the screen close-up.** She pointed at the fifth
+  cut's close-up and asked "straight or angled? no yes man". Answer given:
+  angled (straight reads as a flat screenshot), but with half the sideways
+  roll so text reads faster. `Macro` is the close-up again: plane 900px
+  wide, `ANGLE = { rx: 24, ry: -8, rz: -4 }`, top and bottom out of focus,
+  plain near-black behind (the `bg` prop is accepted but unused). No
+  circle; taps are the row dimming. PR number sits bottom-left.
 - **Still not Ladder quality, and why:** Ladder's is professionally shot
   and graded, with a real hand-held phone. Hers is three phone clips. To
   close the gap she needs to FILM her phone showing the app (in hand at

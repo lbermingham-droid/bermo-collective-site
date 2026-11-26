@@ -1224,6 +1224,19 @@ a website a live demo beats a video, so it is a page, not another cut.
   was restyled flat and restrained (neutral surfaces, hairlines, one
   accent for the primary action, no glows or gradients, an app bar with
   sliding tabs). The real app still has the neon/glow look.
+  **Fourth pass — "still looks vibe coded vs Hevy / Fitbod / Ladder that
+  I would download".** Recolouring was not the problem. What those apps
+  share, now followed in `SiteClip.tsx`: native iPhone conventions
+  (status bar, nav bar with Cancel/Save and back, grouped lists, bottom
+  tab bar with icons, push transitions); true black with FILLED grey
+  cells and hairline separators, no outlined boxes; a real exercise
+  PHOTO beside every lift (`public/site/ex/*.jpg`, free-exercise-db,
+  public domain); Inter variable (`fonts/inter-var.woff2`) with regular
+  body text and bold only where it matters; ONE accent (teal), pink only
+  for worked muscles. The class scene is a Hevy-style set table (Set /
+  Previous / Lbs / Reps / check) for one member, then the others'
+  set summaries. **These are the rules to apply if the real app gets
+  the same treatment** — its neon multi-accent look is the same tell.
   Rule learned: for her WEBSITE, show big simple animated pieces of the
   product, never a full dense screen.
 - Screens are re-shot with scratchpad `demoshot.js` (viewport 390x800,

@@ -1112,6 +1112,14 @@ are gitignored; `/tracker-ad/*` is 404'd on the public site in
   "Add one more" suggestion lands (`Turn`). "Every" and its key word sit
   together (no gap). Calendar line: "Every month, planned." Food line:
   "Even every macro." 13 shots, max 1.8 s.
+- **Sixth cut:** she hated the white tap circle and asked for a realistic
+  phone. The circle is gone everywhere — pro app ads either film a thumb
+  or draw NO pointer and let the UI react, so `Macro` takes a `press`
+  rect (the tapped row dims for a few frames) and pages scroll with an
+  ease-out. `Macro` now renders a FULL iPhone 16 Pro (titanium band with
+  specular edge, antenna breaks, buttons, stacked slices for thickness,
+  Dynamic Island with lens, status bar, real tab bar, home indicator,
+  glass reflection) at one steady angle. Still a render, not a photo.
 - **Still not Ladder quality, and why:** Ladder's is professionally shot
   and graded, with a real hand-held phone. Hers is three phone clips. To
   close the gap she needs to FILM her phone showing the app (in hand at
